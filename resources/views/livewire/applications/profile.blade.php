@@ -62,14 +62,14 @@
                                         <label
                                             class="mb-2 ml-1 font-bold text-size-xs text-slate-700 dark:text-white/80"
                                             for="Date of Birth">Date of Birth</label>
-                                            <input datetimepicker  wire:model.lazy=""
+                                            <input datetimepicker  wire:model.lazy="birthday"
                                              class="focus:shadow-soft-primary-outline dark:bg-gray-950 dark:placeholder:text-white/80 dark:text-white/80 text-sm leading-5.6 ease-soft block w-full appearance-none rounded-lg border border-solid border-gray-300 bg-white bg-clip-padding px-3 py-2 font-normal text-gray-700 outline-none transition-all placeholder:text-gray-500 focus:border-fuchsia-300 focus:outline-none" type="text" placeholder="Please select a date" />
 
                                         <label
                                             class="mb-2 ml-1 font-bold text-size-xs text-slate-700 dark:text-white/80"
                                             for="gender">Gender</label>
                                             <div className="w-4/5">
-                                                <select choices-select="" wire:model.lazy="">
+                                                <select choices-select="" wire:model.lazy="gender">
                                                     <option value="">Select Gender</option>
                                                   <option value="male">Male</option>
                                                   <option value="female">Female</option>
@@ -80,7 +80,7 @@
                                             class="mb-2 ml-1 font-bold text-size-xs text-slate-700 dark:text-white/80"
                                             for="Email Address">Marital Status</label>
                                             <div className="w-4/5">
-                                                <select choices-select="" wire:model.lazy="" name="choices">
+                                                <select choices-select="" wire:model.lazy="maritalStatus" name="choices">
                                                     <option value="">Status</option>
                                                   <option value="married">Married</option>
                                                   <option value="single">Single</option>
@@ -238,28 +238,28 @@
                                         <label
                                             class="mb-2 ml-1 font-bold text-size-xs text-slate-700 dark:text-white/80"
                                             for="Street Name">Home Address</label>
-                                        <input type="text" wire:model.lazy="" placeholder="Home Address"
+                                        <input type="text" wire:model.lazy="home_address" placeholder="Home Address"
                                             class="focus:shadow-soft-primary-outline dark:bg-gray-950 dark:placeholder:text-white/80 dark:text-white/80 text-size-sm leading-5.6 ease-soft block w-full appearance-none rounded-lg border border-solid border-gray-300 bg-white bg-clip-padding px-3 py-2 font-normal text-gray-700 outline-none transition-all placeholder:text-gray-500 focus:border-fuchsia-300 focus:outline-none" />
                                     </div>
                                     <div class="w-full max-w-full px-3 mt-4 ml-auto flex-0 md:w-6/12">
                                         <label
                                             class="mb-2 ml-1 font-bold text-size-xs text-slate-700 dark:text-white/80"
                                             for="Street No">Correspondence Address</label>
-                                        <input type="text" wire:model.lazy="password" min="01" placeholder="Eg 221"
+                                        <input type="text" wire:model.lazy="cor_address" min="01" placeholder="Eg 221"
                                             class="focus:shadow-soft-primary-outline dark:bg-gray-950 dark:placeholder:text-white/80 dark:text-white/80 text-size-sm leading-5.6 ease-soft block w-full appearance-none rounded-lg border border-solid border-gray-300 bg-white bg-clip-padding px-3 py-2 font-normal text-gray-700 outline-none transition-all placeholder:text-gray-500 focus:border-fuchsia-300 focus:outline-none" />
                                     </div>
                                     <div class="w-full max-w-full px-3 mt-4 ml-auto flex-0 md:w-8/12">
                                         <label
                                             class="mb-2 ml-1 font-bold text-size-xs text-slate-700 dark:text-white/80"
                                             for="Street Name">Next of Kin Address</label>
-                                        <input type="text" wire:model.lazy="" placeholder="Eg. Soft"
+                                        <input type="text" wire:model.lazy="kin_address" placeholder="Eg. Soft"
                                             class="focus:shadow-soft-primary-outline dark:bg-gray-950 dark:placeholder:text-white/80 dark:text-white/80 text-size-sm leading-5.6 ease-soft block w-full appearance-none rounded-lg border border-solid border-gray-300 bg-white bg-clip-padding px-3 py-2 font-normal text-gray-700 outline-none transition-all placeholder:text-gray-500 focus:border-fuchsia-300 focus:outline-none" />
                                     </div>
                                     <div class="w-full max-w-full px-3 mt-4 ml-auto flex-0 md:w-4/12">
                                         <label
                                             class="mb-2 ml-1 font-bold text-size-xs text-slate-700 dark:text-white/80"
                                             for="Street No">Next of Kin Name</label>
-                                        <input type="text" wire:model.lazy=""  placeholder="Eg 221"
+                                        <input type="text" wire:model.lazy="kin_name"  placeholder="Eg 221"
                                             class="focus:shadow-soft-primary-outline dark:bg-gray-950 dark:placeholder:text-white/80 dark:text-white/80 text-size-sm leading-5.6 ease-soft block w-full appearance-none rounded-lg border border-solid border-gray-300 bg-white bg-clip-padding px-3 py-2 font-normal text-gray-700 outline-none transition-all placeholder:text-gray-500 focus:border-fuchsia-300 focus:outline-none" />
                                     </div>
                                     <div class="w-full max-w-full px-3 mt-4 ml-auto flex-0 md:w-7/12">

@@ -16,9 +16,11 @@ return new class extends Migration
         Schema::create('profiles', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->foreignUuid('user_id')->constrained();
+            $table->string('picture_path');
             $table->string('birthday');
             $table->string('marital_status');
             $table->string('gender');
+            $table->text('home_address');
 
             $table->timestamps();
         });

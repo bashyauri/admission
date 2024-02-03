@@ -29,8 +29,7 @@ class Login extends Component
             auth()->login($user);
 
 
-            // return redirect(RouteServiceProvider::HOME);
-            return to_route('profile');
+            return redirect(RouteServiceProvider::HOME);
         } else {
             return $this->addError('phone', trans('auth.failed'));
         }
