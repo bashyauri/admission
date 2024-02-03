@@ -21,8 +21,7 @@
             </div>
             <div class="flex flex-wrap -mx-3">
                 <div class="w-full max-w-full px-3 m-auto flex-0 lg:w-8/12">
-                    <form class="relative mb-32">
-
+                    <form wire:submit.prevent="store" enctype="multipart/form-data" class="relative mb-32">
                         <div active form="about"
                             class="absolute top-0 left-0 flex flex-col visible w-full h-auto min-w-0 p-4 break-words bg-white border-0 opacity-100 dark:bg-gray-950 dark:shadow-soft-dark-xl shadow-soft-xl rounded-2xl bg-clip-border">
 
@@ -38,15 +37,25 @@
                                 <div class="flex flex-wrap mt-4 -mx-3">
                                     <div class="w-full max-w-full px-3 flex-0 sm:w-4/12">
                                         <div
-                                            class="inline-flex items-center justify-center w-28 h-28 relative text-white transition-all duration-200 text-size-base ease-soft-in-out rounded-xl">
-                                            <img class="w-full rounded-lg" src="../../assets/img/team-2.jpg"
-                                                alt="Image placeholder" />
-                                            <a href="javascript:;"
-                                                class="inline-block w-6 h-6 p-1.2 right-0 bottom-0 absolute -mb-2 -mr-2 font-bold text-center uppercase align-middle transition-all bg-gradient-gray text-slate-800 border-0 border-transparent border-solid rounded-lg cursor-pointer leading-pro text-size-xs ease-soft-in tracking-tight-soft shadow-soft-md bg-150 bg-x-25 active:opacity-85">
-                                                <i class="top-0 fa fa-pen text-size-3xs"></i>
-                                            </a>
 
+                                            class="inline-flex items-center justify-center w-28 h-28 relative text-white transition-all duration-200 text-size-base ease-soft-in-out rounded-xl">
+                                            @if($picture)
+                                            <img src="{{ $picture->temporaryUrl() }}"
+                                                class="w-full rounded-lg" alt="Profile Photo">
+                                            @else
+                                            <img src="{{ asset('assets') }}/img/avatar-default.jpg"
+                                                class="w-full rounded-lg">
+                                            @endif
+
+                                            <label for="file-input"
+                                    class="inline-block w-6 h-6 p-1.2 right-0 bottom-0 absolute -mb-2 -mr-2 font-bold text-center uppercase align-middle transition-all bg-gradient-gray text-slate-800 border-0 border-transparent border-solid rounded-lg cursor-pointer leading-pro text-size-xs ease-soft-in tracking-tight-soft shadow-soft-md bg-150 bg-x-25 active:opacity-85">
+                                    <i class="top-0 fa fa-pen text-size-3xs"></i>
+                                </label>
+                                            <input wire:model='picture' type="file" id="file-input" style="display: none">
                                         </div>
+                                        @error('picture')
+                                        <p class="text-size-sm text-red-500">{{ $message }} </p>
+                                        @enderror
                                     </div>
 
                                     <div class="w-full max-w-full px-3 mt-6 text-left flex-0 sm:w-8/12 sm:mt-0">

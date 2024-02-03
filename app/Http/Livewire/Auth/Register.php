@@ -56,7 +56,7 @@ class Register extends Component
 
     public function mount()
     {
-        $this->programmes = Programme::all();
+        $this->programmes = Programme::where('id', 1)->get();
     }
 
     public function render()
