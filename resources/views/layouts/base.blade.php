@@ -45,7 +45,7 @@
     <!-- Popper -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/2.11.5/umd/popper.min.js"></script>
     <!-- AlpineJS -->
-    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/alpinejs/3.10.3/cdn.min.js"></script>
+    {{-- <script defer src="https://cdnjs.cloudflare.com/ajax/libs/alpinejs/3.10.3/cdn.min.js"></script> --}}
     <!-- CSS Files -->
     <link href="{{ asset('assets') }}/css/styles.css" rel="stylesheet" />
 
