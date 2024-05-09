@@ -30,5 +30,9 @@ return [
         'secret' => env('AWS_SECRET_ACCESS_KEY'),
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     ],
+    'geonames' => [
+        'username' => env('GEONAME_USERNAME'),
+        'country_id' => env('GEONAME_COUNTRY_ID'),
+    ],
 
 ];

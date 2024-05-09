@@ -8,7 +8,7 @@ use Livewire\WithFileUploads;
 class Profile extends Component
 {
     use WithFileUploads;
-    public $picture = '';
+    public $picture;
     public $birthday;
     public $maritalStatus;
     public $gender;

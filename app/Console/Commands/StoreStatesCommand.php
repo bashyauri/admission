@@ -31,8 +31,8 @@ class StoreStatesCommand extends Command
         $country = Country::where(['geoname_id' => '2328926'])->first(); // getting for nigeria only
 
         $response = Http::get('http://api.geonames.org/childrenJSON', [
-            'geonameId' => $country['geoname_id'],
-            'code' => $country['code'],
+            'geonameId' => config('services.geonames.country_id'),
+            'code' => 'NG',
             'username' => config('services.geonames.username'),
         ]);
 
@@ -44,7 +44,6 @@ class StoreStatesCommand extends Command
             $attributes = [
                 'name' => $state['name'],
                 'code' => $state['adminCodes1']['ISO3166_2'],
-                'country_id' => $country['id'],
 
             ];
 
