@@ -1,6 +1,8 @@
 <?php
 
+use App\Models\Lga;
 use App\Models\Programme;
+use App\Models\State;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -17,12 +19,22 @@ return new class extends Migration
         Schema::create('users', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->foreignIdFor(Programme::class);
+            $table->string('picture')->nullable();
             $table->string('surname');
             $table->string('firstname');
             $table->string('m_name');
-
             $table->string('email')->unique();
             $table->string('phone')->unique();
+            $table->string('gender')->nullable();
+            $table->string('marital_status')->nullable();
+            $table->string('birthday')->nullable();
+            $table->foreignIdFor(State::class)->nullable();
+            $table->foreignIdFor(Lga::class)->nullable();
+            $table->string('home_address')->nullable();
+            $table->string('cor_address')->nullable();
+            $table->string('kin_name')->nullable();
+            $table->string('kin_address')->nullable();
+            $table->string('kin_phone')->nullable();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
             $table->string('vpassword');
