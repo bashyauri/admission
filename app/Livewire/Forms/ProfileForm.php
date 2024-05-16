@@ -4,22 +4,27 @@ namespace App\Livewire\Forms;
 
 use App\Models\User;
 use Livewire\Attributes\Validate;
-use Illuminate\Validation\Rule;
 use Livewire\Form;
 
 class ProfileForm extends Form
 {
 
 
-
     public $picture;
 
-
-    public function updatedPicture()
+    public function rules(): array
     {
-        $this->validate([
-            'picture' => !auth()->user()->picture ? 'required|image|max:1024' : 'nullable|image|max:1024',
-        ]);
+        return [
+            'picture' => $this->pictureIsRequired() ? 'required|image|max:1024' : 'nullable|image|max:1024',
+        ];
+    }
+
+    private function pictureIsRequired(): bool
+    {
+        // Logic to check if the database has a picture associated with the record
+        $record = auth()->user();
+
+        return !$record || !$record->picture;
     }
 
 
