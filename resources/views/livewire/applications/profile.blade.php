@@ -10,8 +10,8 @@
                     <div class="w-full max-w-full flex">
                         <div
                             class="inline-flex items-center justify-center w-19 relative text-white transition-all duration-200 text-size-base ease-soft-in-out rounded-xl">
-                            @if($picture)
-                            <img src="{{ $picture->temporaryUrl() }}"
+                            @if($form->picture)
+                            <img src="{{ $form->picture->temporaryUrl() }}"
                                 class="w-19 shadow-soft-sm rounded-xl" alt="Profile Photo">
                             @elseif (auth()->user()->picture)
 
@@ -26,13 +26,13 @@
                                 class="inline-block w-6 h-6 p-1.2 right-0 bottom-0 absolute -mb-2 -mr-2 font-bold text-center uppercase align-middle transition-all bg-gradient-gray text-slate-800 border-0 border-transparent border-solid rounded-lg cursor-pointer leading-pro text-size-xs ease-soft-in tracking-tight-soft shadow-soft-md bg-150 bg-x-25 active:opacity-85">
                                 <i class="top-0 fa fa-pen text-size-3xs"></i>
                             </label>
-                            <input wire:model='picture' type="file" id="file-input" style="display: none">
+                            <input wire:model='form.picture' type="file" id="file-input" style="display: none">
 
 
                         </div>
 
                     </div>
-                    <div cla wire:loading wire:target="picture" class="text-teal-500">
+                    <div cla wire:loading wire:target="form.picture" class="text-teal-500">
                         uploading...
                        </div>
 
@@ -58,7 +58,7 @@
 
             </div>
 
-            @error('picture')
+            @error('form.picture')
             <p class="mt-4 text-size-sm text-red-500">{{ $message }} </p>
             @enderror
 
@@ -96,11 +96,11 @@
                         <label class="mb-2 ml-1 font-bold text-size-xs text-slate-700 dark:text-white/80"
                             for="Name">Birthday</label>
                         <div class="relative flex flex-wrap items-stretch w-full rounded-lg">
-                            <input datetimepicker  wire:model="birthday"
+                            <input datetimepicker  wire:model="form.birthday"
                                              class="focus:shadow-soft-primary-outline dark:bg-gray-950 dark:placeholder:text-white/80 dark:text-white/80 text-sm leading-5.6 ease-soft block w-full appearance-none rounded-lg border border-solid border-gray-300 bg-white bg-clip-padding px-3 py-2 font-normal text-gray-700 outline-none transition-all placeholder:text-gray-500 focus:border-fuchsia-300 focus:outline-none" type="text" placeholder="Please select a date" />
 
 
-                            @error('birthday')
+                            @error('form.birthday')
                             <p class="text-size-sm text-red-500">{{ $message }} </p>
                             @enderror
                         </div>
@@ -110,13 +110,13 @@
                         <label class="mb-2 ml-1 font-bold text-size-xs text-slate-700 dark:text-white/80"
                             for="gender">Gender</label>
                         <div className="relative flex flex-wrap items-stretch w-full rounded-lg">
-                            <select choices-select="" name="choices" wire:model="gender"  class="focus:shadow-soft-primary-outline dark:bg-gray-950 dark:placeholder:text-white/80 dark:text-white/80 text-sm leading-5.6 ease-soft block w-full appearance-none rounded-lg border border-solid border-gray-300 bg-white bg-clip-padding px-3 py-2 font-normal text-gray-700 outline-none transition-all placeholder:text-gray-500 focus:border-fuchsia-300 focus:outline-none" >
+                            <select choices-select="" name="choices" wire:model="form.gender"  class="focus:shadow-soft-primary-outline dark:bg-gray-950 dark:placeholder:text-white/80 dark:text-white/80 text-sm leading-5.6 ease-soft block w-full appearance-none rounded-lg border border-solid border-gray-300 bg-white bg-clip-padding px-3 py-2 font-normal text-gray-700 outline-none transition-all placeholder:text-gray-500 focus:border-fuchsia-300 focus:outline-none" >
                                 <option value="">Select Gender</option>
                               <option value="male">Male</option>
                               <option value="female">Female</option>
 
                             </select>
-                            @error('gender')
+                            @error('form.gender')
                             <p class="text-size-sm text-red-500">{{ $message }} </p>
                             @enderror
                         </div>
@@ -126,7 +126,7 @@
                         <label class="mb-2 ml-1 font-bold text-size-xs text-slate-700 dark:text-white/80"
                             for="Email">Marital Sattus</label>
                         <div className="w-4/5">
-                            <select choices-select="" wire:model="maritalStatus" name="choices"  class="focus:shadow-soft-primary-outline dark:bg-gray-950 dark:placeholder:text-white/80 dark:text-white/80 text-sm leading-5.6 ease-soft block w-full appearance-none rounded-lg border border-solid border-gray-300 bg-white bg-clip-padding px-3 py-2 font-normal text-gray-700 outline-none transition-all placeholder:text-gray-500 focus:border-fuchsia-300 focus:outline-none" >
+                            <select choices-select="" wire:model="form.maritalStatus" name="choices"  class="focus:shadow-soft-primary-outline dark:bg-gray-950 dark:placeholder:text-white/80 dark:text-white/80 text-sm leading-5.6 ease-soft block w-full appearance-none rounded-lg border border-solid border-gray-300 bg-white bg-clip-padding px-3 py-2 font-normal text-gray-700 outline-none transition-all placeholder:text-gray-500 focus:border-fuchsia-300 focus:outline-none" >
                                 <option value="">Status</option>
                               <option value="married">Married</option>
                               <option value="single">Single</option>
@@ -134,7 +134,7 @@
                               <option value="widowed">Widowed</option>
 
                             </select>
-                            @error('maritalStatus')
+                            @error('form.maritalStatus')
                             <p class="text-size-sm text-red-500">{{ $message }} </p>
                             @enderror
                         </div>
@@ -147,7 +147,7 @@
                         <label class="mb-2 ml-1 font-bold text-size-xs text-slate-700 dark:text-white/80"
                             for="stateID">State</label>
                         <div class="relative flex flex-wrap items-stretch w-full rounded-lg">
-                            <select  wire:model.live="stateID" class="focus:shadow-soft-primary-outline dark:bg-gray-950 dark:placeholder:text-white/80 dark:text-white/80 text-size-sm leading-5.6 ease-soft block w-full appearance-none rounded-lg border border-solid border-gray-300 bg-white bg-clip-padding px-3 py-2 font-normal text-gray-700 outline-none transition-all placeholder:text-gray-500 focus:border-fuchsia-300 focus:outline-none"  >
+                            <select  wire:model.live="form.stateID" class="focus:shadow-soft-primary-outline dark:bg-gray-950 dark:placeholder:text-white/80 dark:text-white/80 text-size-sm leading-5.6 ease-soft block w-full appearance-none rounded-lg border border-solid border-gray-300 bg-white bg-clip-padding px-3 py-2 font-normal text-gray-700 outline-none transition-all placeholder:text-gray-500 focus:border-fuchsia-300 focus:outline-none"  >
                                 <option value="">Select</option>
                                 @foreach ($this->states as $state)
                                             <option value="{{ $state->id }}">{{$state->name}}</option>
@@ -155,7 +155,7 @@
 
                             </select>
 
-                            @error('stateID')
+                            @error('form.stateID')
                             <p class="text-size-sm text-red-500">{{ $message }} </p>
                             @enderror
                         </div>
@@ -165,14 +165,14 @@
                         <label class="mb-2 ml-1 font-bold text-size-xs text-slate-700 dark:text-white/80"
                             for="lgaID">LGA</label>
                         <div class="relative flex flex-wrap items-stretch w-full rounded-lg">
-                            <select wire:model.live="lgaID" class="focus:shadow-soft-primary-outline dark:bg-gray-950 dark:placeholder:text-white/80 dark:text-white/80 text-size-sm leading-5.6 ease-soft block w-full appearance-none rounded-lg border border-solid border-gray-300 bg-white bg-clip-padding px-3 py-2 font-normal text-gray-700 outline-none transition-all placeholder:text-gray-500 focus:border-fuchsia-300 focus:outline-none">
+                            <select wire:model.live="form.lgaID" class="focus:shadow-soft-primary-outline dark:bg-gray-950 dark:placeholder:text-white/80 dark:text-white/80 text-size-sm leading-5.6 ease-soft block w-full appearance-none rounded-lg border border-solid border-gray-300 bg-white bg-clip-padding px-3 py-2 font-normal text-gray-700 outline-none transition-all placeholder:text-gray-500 focus:border-fuchsia-300 focus:outline-none">
                                 <option value="">Select</option>
                                 @foreach ($this->lgas as $lga)
                                             <option value="{{$lga->id}}">{{$lga->name}}</option>
                                             @endforeach
 
                             </select>
-                            @error('lgaID')
+                            @error('form.lgaID')
                             <p class="text-size-sm text-red-500">{{ $message }} </p>
                             @enderror
                         </div>
@@ -188,10 +188,10 @@
                         <label class="mt-6 mb-2 ml-1 font-bold text-size-xs text-slate-700 dark:text-white/80"
                             for="homeAddress">Home Address</label>
                         <div class="relative flex flex-wrap items-stretch w-full rounded-lg">
-                            <input wire:model="homeAddress" type="text" name="Location"
+                            <input wire:model="form.homeAddress" type="text" name="Location"
                                 placeholder="Home Address"
                                 class="focus:shadow-soft-primary-outline dark:bg-gray-950 dark:placeholder:text-white/80 dark:text-white/80 text-size-sm leading-5.6 ease-soft block w-full appearance-none rounded-lg border border-solid border-gray-300 bg-white bg-clip-padding px-3 py-2 font-normal text-gray-700 outline-none transition-all placeholder:text-gray-500 focus:border-fuchsia-300 focus:outline-none" />
-                            @error('homeAddress')
+                            @error('form.homeAddress')
                             <p class="text-size-sm text-red-500">{{ $message }} </p>
                             @enderror
                         </div>
@@ -201,9 +201,9 @@
                         <label class="mt-6 mb-2 ml-1 font-bold text-size-xs text-slate-700 dark:text-white/80"
                             for="corAddress">Correspondent Address</label>
                         <div class="relative flex flex-wrap items-stretch w-full rounded-lg">
-                            <input wire:model="corAddress" type="text" name="Phone" placeholder="Correspondent Address"
+                            <input wire:model="form.corAddress" type="text" name="Phone" placeholder="Correspondent Address"
                                 class="focus:shadow-soft-primary-outline dark:bg-gray-950 dark:placeholder:text-white/80 dark:text-white/80 text-size-sm leading-5.6 ease-soft block w-full appearance-none rounded-lg border border-solid border-gray-300 bg-white bg-clip-padding px-3 py-2 font-normal text-gray-700 outline-none transition-all placeholder:text-gray-500 focus:border-fuchsia-300 focus:outline-none" />
-                            @error('corAddress')
+                            @error('form.corAddress')
                             <p class="text-size-sm text-red-500">{{ $message }} </p>
                             @enderror
                         </div>
@@ -215,10 +215,10 @@
                         <label class="mt-6 mb-2 ml-1 font-bold text-size-xs text-slate-700 dark:text-white/80"
                             for="Location">Next of Kin Name</label>
                         <div class="relative flex flex-wrap items-stretch w-full rounded-lg">
-                            <input wire:model="kinName" type="text"
+                            <input wire:model="form.kinName" type="text"
                                 placeholder="Next of Kin Name"
                                 class="focus:shadow-soft-primary-outline dark:bg-gray-950 dark:placeholder:text-white/80 dark:text-white/80 text-size-sm leading-5.6 ease-soft block w-full appearance-none rounded-lg border border-solid border-gray-300 bg-white bg-clip-padding px-3 py-2 font-normal text-gray-700 outline-none transition-all placeholder:text-gray-500 focus:border-fuchsia-300 focus:outline-none" />
-                            @error('kinName')
+                            @error('form.kinName')
                             <p class="text-size-sm text-red-500">{{ $message }} </p>
                             @enderror
                         </div>
@@ -228,9 +228,9 @@
                         <label class="mt-6 mb-2 ml-1 font-bold text-size-xs text-slate-700 dark:text-white/80"
                             for="kinAddress">Next of kin Address</label>
                         <div class="relative flex flex-wrap items-stretch w-full rounded-lg">
-                            <input wire:model="kinAddress" type="text"  placeholder="Next of kin Address"
+                            <input wire:model="form.kinAddress" type="text"  placeholder="Next of kin Address"
                                 class="focus:shadow-soft-primary-outline dark:bg-gray-950 dark:placeholder:text-white/80 dark:text-white/80 text-size-sm leading-5.6 ease-soft block w-full appearance-none rounded-lg border border-solid border-gray-300 bg-white bg-clip-padding px-3 py-2 font-normal text-gray-700 outline-none transition-all placeholder:text-gray-500 focus:border-fuchsia-300 focus:outline-none" />
-                            @error('kinAddress')
+                            @error('form.kinAddress')
                             <p class="text-size-sm text-red-500">{{ $message }} </p>
                             @enderror
                         </div>
@@ -243,9 +243,9 @@
                         <label class="mt-6 mb-2 ml-1 font-bold text-size-xs text-slate-700 dark:text-white/80"
                             for="kinPhone">Next of Kin Phone</label>
                         <div class="relative flex flex-wrap items-stretch w-full rounded-lg">
-                            <input wire:model="kinPhone" type="text" placeholder="0723456789"
+                            <input wire:model="form.kinPhone" type="text" placeholder="0723456789"
                                 class="focus:shadow-soft-primary-outline dark:bg-gray-950 dark:placeholder:text-white/80 dark:text-white/80 text-size-sm leading-5.6 ease-soft block w-full appearance-none rounded-lg border border-solid border-gray-300 bg-white bg-clip-padding px-3 py-2 font-normal text-gray-700 outline-none transition-all placeholder:text-gray-500 focus:border-fuchsia-300 focus:outline-none" />
-                            @error('kinPhone')
+                            @error('form.kinPhone')
                             <p class="text-size-sm text-red-500">{{ $message }} </p>
                             @enderror
                         </div>
