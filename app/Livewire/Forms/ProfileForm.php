@@ -15,20 +15,9 @@ class ProfileForm extends Form
     public function rules(): array
     {
         return [
-            'picture' => $this->pictureIsRequired() ? 'required|image|max:1024' : 'nullable|image|max:1024',
+            'picture' => (!auth()->user() || !auth()->user()->picture) ? 'required|image|max:1024' : 'nullable|image|max:1024',
         ];
     }
-
-    private function pictureIsRequired(): bool
-    {
-        // Logic to check if the database has a picture associated with the record
-        $record = auth()->user();
-
-        return !$record || !$record->picture;
-    }
-
-
-
 
     #[Validate('required')]
     public $birthday;
