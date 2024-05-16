@@ -48,6 +48,7 @@
     {{-- <script defer src="https://cdnjs.cloudflare.com/ajax/libs/alpinejs/3.10.3/cdn.min.js"></script> --}}
 
 
+
     <!-- CSS Files -->
     <link href="{{ asset('assets') }}/css/styles.css" rel="stylesheet" />
 
@@ -64,10 +65,16 @@
     {{ $slot }}
 
     @livewireScripts
+    <script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <x-livewire-alert::scripts />
+
+
 </body>
 
 @stack('js')
 <script src="{{ asset('assets') }}/js/plugins/perfect-scrollbar.min.js"></script>
 <script src="{{ asset('assets') }}/js/soft-ui-dashboard-pro-tailwind.js"></script>
+
 
 </html>

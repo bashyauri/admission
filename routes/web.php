@@ -89,6 +89,7 @@ use App\Http\Livewire\Authentication\SignUp\Illustration as SignUpIllustration;
 use App\Http\Livewire\Authentication\Verification\Basic as VerificationBasic;
 use App\Http\Livewire\Authentication\Verification\Cover as VerificationCover;
 use App\Http\Livewire\Authentication\Verification\Illustration as VerificationIllustration;
+use App\Http\Livewire\SchoolAttended;
 
 /*
 |--------------------------------------------------------------------------
@@ -179,6 +180,7 @@ Route::middleware('auth')->group(function () {
     Route::get('applications/calendar', Calendar::class)->name('calendar');
     Route::get('applications/analytics', Analytics::class)->name('analytics-page');
     Route::get('applications/profile', Profile::class)->name('profile');
+    Route::get('applications/school-attended', SchoolAttended::class)->name('school-attended');
 
     // Ecommerce
 

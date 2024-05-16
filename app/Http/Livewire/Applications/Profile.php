@@ -6,6 +6,7 @@ use App\Livewire\Forms\ProfileForm;
 use App\Models\Lga;
 use App\Models\User;
 use App\Models\State;
+use Jantinnerezo\LivewireAlert\LivewireAlert;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 use Livewire\Attributes\Computed;
@@ -13,7 +14,7 @@ use Livewire\Attributes\Validate;
 
 class Profile extends Component
 {
-    use WithFileUploads;
+    use WithFileUploads, LivewireAlert;
 
 
 
@@ -32,12 +33,28 @@ class Profile extends Component
     {
 
         $user = auth()->user();
+        try {
+            $this->updatePicture($user);
+            $this->form->store(); // Assuming 'form' is a model or form object
+            $this->alert('success', 'Your profile has been successfully updated!', [
+                'position' => 'center',
+                'timer' => 3000,
+                'toast' => true,
+            ]);
+            return to_route('school-attended');
+        } catch (\Exception $e) {
+            report($e);
+            $this->alert('error', 'Profile update failed.', [
+                'position' => 'center',
+                'timer' => 3000,
+                'toast' => true,
+            ]);
+            return to_route('profile');
+        }
 
         $this->updatePicture($user);
 
         $this->form->store();
-
-        return back()->withStatus('Your profile has been successfully updated!');
     }
 
     protected function updatePicture($user)
