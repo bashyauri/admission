@@ -22,6 +22,7 @@ use App\Http\Livewire\Auth\ResetPassword;
 
 use App\Http\Livewire\Applications\Kanban;
 use App\Http\Livewire\Applications\Profile;
+use App\Http\Livewire\Applications\SchoolAttended;
 use App\Http\Livewire\Applications\Wizard;
 use App\Http\Livewire\Auth\ForgotPassword;
 use App\Http\Livewire\Pages\Notifications;
@@ -89,7 +90,7 @@ use App\Http\Livewire\Authentication\SignUp\Illustration as SignUpIllustration;
 use App\Http\Livewire\Authentication\Verification\Basic as VerificationBasic;
 use App\Http\Livewire\Authentication\Verification\Cover as VerificationCover;
 use App\Http\Livewire\Authentication\Verification\Illustration as VerificationIllustration;
-use App\Http\Livewire\SchoolAttended;
+
 
 /*
 |--------------------------------------------------------------------------

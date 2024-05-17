@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Livewire;
+namespace App\Http\Livewire\Applications;
 
 use Livewire\Component;
 
@@ -8,6 +8,6 @@ class SchoolAttended extends Component
 {
     public function render()
     {
-        return view('livewire.school-attended');
+        return view('livewire.applications.school-attended');
     }
 }
