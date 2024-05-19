@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Forms;
 
+use App\Models\School;
 use Jantinnerezo\LivewireAlert\LivewireAlert;
 use Livewire\Attributes\Validate;
 use Livewire\Form;
@@ -15,6 +16,12 @@ class SchoolAttendedForm extends Form
     public $certificateName = '';
     #[Validate('required')]
     public $dateObtained = '';
+    public function setSchool(School $school)
+    {
+        $this->schoolName = $school->school_name;
+        $this->certificateName = $school->certificate_name;
+        $this->dateObtained = $school->date_obtained;
+    }
     public function store()
     {
         $this->validate();
@@ -23,8 +30,19 @@ class SchoolAttendedForm extends Form
 
         auth()->user()->schools()->create([
             'school_name' => $this->schoolName,
-            'certificate_name' => $this->certificateName["value"],
+            'certificate_name' => $this->certificateName,
             'date_obtained' => $this->dateObtained,
         ]);
+    }
+    public function update($schoolId)
+    {
+
+        School::find($schoolId)->update(
+            [
+                'school_name' => $this->schoolName,
+                'certificate_name' => $this->certificateName,
+                'date_obtained' => $this->dateObtained,
+            ]
+        );
     }
 }
