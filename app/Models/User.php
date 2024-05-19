@@ -72,8 +72,8 @@ class User extends Authenticatable
 
         return $this->belongsTo(Programme::class);
     }
-    public function school()
+    public function schools()
     {
-        return $this->belongsTo(School::class);
+        return $this->hasMany(School::class);
     }
 }

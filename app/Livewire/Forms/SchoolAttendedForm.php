@@ -17,11 +17,12 @@ class SchoolAttendedForm extends Form
     public $dateObtained = '';
     public function store()
     {
-        $data = $this->validate();
+        $this->validate();
 
 
-        auth()->user()->school()->create([
-            'name' => $this->schoolName,
+
+        auth()->user()->schools()->create([
+            'school_name' => $this->schoolName,
             'certificate_name' => $this->certificateName["value"],
             'date_obtained' => $this->dateObtained,
         ]);
