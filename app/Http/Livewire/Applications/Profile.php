@@ -51,10 +51,6 @@ class Profile extends Component
             ]);
             return to_route('profile');
         }
-
-        $this->updatePicture($user);
-
-        $this->form->store();
     }
 
     protected function updatePicture($user)
