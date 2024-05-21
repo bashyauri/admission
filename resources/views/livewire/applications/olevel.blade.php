@@ -1,5 +1,5 @@
 <div class="w-full max-w-full px-3 lg:flex-0 shrink-0">
-    <div class="relative  flex flex-col w-1/2 min-w-0 mb-0 break-words bg-white border-0 border-transparent border-solid shadow-soft-xl rounded-2xl bg-clip-border">
+    <div class="relative  flex flex-col w-full min-w-0 mb-0 break-words bg-white border-0 border-transparent border-solid shadow-soft-xl rounded-2xl bg-clip-border">
         <div class="p-6 pb-0 mb-0 bg-white rounded-t-2xl mb-12">
             <h6>SSCE List</h6>
             <div class="mt-4 flex justify-end">

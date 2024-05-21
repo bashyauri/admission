@@ -14,7 +14,7 @@ return new class extends Migration
     {
         Schema::create('olevel_subject_grades', function (Blueprint $table) {
             $table->id();
-            $table->foreignIdFor(Olevel::class);
+            $table->foreignUuid('user_id');
             $table->string('subject_name');
             $table->string('grade');
             $table->string('exam_name');

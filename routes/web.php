@@ -23,6 +23,7 @@ use App\Http\Livewire\Auth\ResetPassword;
 
 use App\Http\Livewire\Applications\Kanban;
 use App\Http\Livewire\Applications\Olevel;
+use App\Http\Livewire\Applications\OlevelGrade;
 use App\Http\Livewire\Applications\Profile;
 use App\Http\Livewire\Applications\SchoolAttended;
 use App\Http\Livewire\Applications\Wizard;
@@ -185,6 +186,8 @@ Route::middleware('auth')->group(function () {
     Route::get('applications/profile', Profile::class)->name('profile');
     Route::get('applications/school-attended', SchoolAttended::class)->name('school-attended');
     Route::get('applications/olevel', Olevel::class)->name('olevel');
+    Route::get('applications/olevel-grade', OlevelGrade::class)->name('olevel-grade');
+
 
 
     // Ecommerce
