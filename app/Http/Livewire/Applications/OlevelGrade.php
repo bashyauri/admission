@@ -35,7 +35,7 @@ class OlevelGrade extends Component
                 'toast' => true,
             ]);
         }
-        return to_route('olevel-grade');
+        $this->redirect('olevel-grade');
     }
 
     #[Computed()]

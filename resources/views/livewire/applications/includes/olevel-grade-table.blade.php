@@ -18,14 +18,14 @@
               <div class="flex px-2 py-1">
 
                 <div class="flex flex-col justify-center">
-                  <h6 class="mb-0 leading-normal text-sm">{{$subject->subject_name}}</h6>
-                  <p class="mb-0 leading-tight text-xs text-slate-400">{{$subject->exam_name}}</p>
+                  <h6 class="mb-0 leading-normal text-sm">{{ucwords($subject->subject_name)}}</h6>
+                  <p class="mb-0 leading-tight text-xs text-slate-400">{{ucwords($subject->exam_name)}}</p>
                 </div>
               </div>
             </td>
             <td class="p-2 align-middle bg-transparent border-b whitespace-nowrap shadow-transparent">
-              <p class="mb-0 font-semibold leading-tight text-xs">{{$subject->grade}}</p>
-              
+              <p class="mb-0 font-semibold leading-tight text-xs">{{strtoupper($subject->grade)}}</p>
+
             </td>
 
 

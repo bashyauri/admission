@@ -1,0 +1,55 @@
+<div class="flex flex-wrap -mx-3">
+    <div class="w-full max-w-full px-3 mx-auto flex-0 lg:w-9/12">
+        <div
+            class="relative flex flex-col flex-auto min-w-0 p-4 mt-6 break-words bg-white border-0 dark:bg-gray-950 dark:shadow-soft-dark-xl shadow-soft-xl rounded-2xl bg-clip-border">
+            <h6 class="mb-0 dark:text-white">New Project</h6>
+            <p class="mb-0 leading-normal text-size-sm">Create new project</p>
+            <hr
+                class="h-px mx-0 my-4 bg-transparent border-0 opacity-25 bg-gradient-horizontal-dark dark:bg-gradient-horizontal-light" />
+
+
+
+
+            <div class="flex flex-wrap -mx-3">
+                <div class="w-6/12 max-w-full px-3 flex-0">
+                    <label class="inline-block mb-2 ml-1 font-bold text-size-xs text-slate-700 dark:text-white/80"
+                        for="Start Date">Qualification</label>
+
+                    <select choices
+                        class="focus:shadow-soft-primary-outline dark:bg-gray-950 dark:placeholder:text-white/80 dark:text-white/80 text-size-sm leading-5.6 ease-soft block w-full appearance-none rounded-lg border border-solid border-gray-300 bg-white bg-clip-padding px-3 py-2 font-normal text-gray-700 outline-none transition-all placeholder:text-gray-500 focus:border-fuchsia-300 focus:outline-none"
+                        data-input >
+                        <option value="">Select Certificate</option>
+                        @foreach ($this->certificates as $certificate)
+
+
+                        <option value="">{{ucwords($certificate->certificate_name)}}</option>
+
+                        @endforeach
+                    </select>
+                </div>
+                <div class="w-6/12 max-w-full px-3 flex-0">
+                    <label class="inline-block mb-2 ml-1 font-bold text-size-xs text-slate-700 dark:text-white/80"
+                        for="End Date">upload file:(pdf)</label>
+                    <input
+                        class="focus:shadow-soft-primary-outline dark:bg-gray-950 dark:placeholder:text-white/80 dark:text-white/80 text-size-sm leading-5.6 ease-soft block w-full appearance-none rounded-lg border border-solid border-gray-300 bg-white bg-clip-padding px-3 py-2 font-normal text-gray-700 outline-none transition-all placeholder:text-gray-500 focus:border-fuchsia-300 focus:outline-none"
+                        type="file" placeholder="Please select end date" data-input />
+                </div>
+            </div>
+
+            <div class="flex justify-end mt-6">
+                <button type="button"
+                    class="inline-block px-6 py-3 m-0 font-bold text-center uppercase align-middle transition-all bg-gray-200 border-0 rounded-lg cursor-pointer hover:scale-102 active:opacity-85 hover:shadow-soft-xs leading-pro text-size-xs ease-soft-in tracking-tight-soft shadow-soft-md bg-150 bg-x-25 text-slate-800">Cancel</button>
+                <button type="button"
+                    class="inline-block px-6 py-3 m-0 ml-2 text-xs font-bold text-center text-white uppercase align-middle transition-all border-0 rounded-lg cursor-pointer ease-soft-in leading-pro tracking-tight-soft bg-gradient-fuchsia shadow-soft-md bg-150 bg-x-25 hover:scale-102 active:opacity-85">Create
+                    Project</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@push('js')
+<script src="{{ asset('assets') }}/js/plugins/quill.min.js"></script>
+<script src="{{ asset('assets') }}/js/plugins/choices.min.js"></script>
+<script src="{{ asset('assets') }}/js/plugins/flatpickr.min.js"></script>
+
+@endpush

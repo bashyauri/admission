@@ -13,9 +13,10 @@
                 <select wire:model="form.certificateName"
                 class="dark:bg-gray-950 mb-4 focus:shadow-soft-success-outline dark:placeholder:text-white/80 dark:text-white/80 text-sm leading-5.6 ease-soft block w-full appearance-none rounded-lg border border-solid border-gray-300 bg-white bg-clip-padding px-3 py-2 font-normal text-gray-700 outline-none transition-all placeholder:text-gray-500 focus:border-teal-300 focus:outline-none"
                          >
-                        <option value="">Certificate Obtained</option>
-                        <option value="national diploma">National Diploma</option>
-                        <option value="secondary certificate">Secondary Certificate</option>
+                         <option value="">Certificate Obtained</option>
+                         <option value="secondary certificate">Secondary Certificate</option>
+                         <option value="higher national diploma">Higher National Diploma</option>
+                         <option value="degree">University Degree</option>
 
                 </select>
                 @error('form.certificateName')
@@ -61,7 +62,7 @@
             </button>
         </div>
     </div>
-    <p class="mb-0 font-semibold leading-tight text-xs">{{ucfirst($school->certificate_name)}}</p>
+    <p class="mb-0 font-semibold leading-tight text-xs">{{ucwords($school->certificate_name)}}</p>
 
     <span class="text-xs text-gray-500"> {{$school->date_obtained}}</span>
     <div class="mt-3 text-xs text-gray-700">
