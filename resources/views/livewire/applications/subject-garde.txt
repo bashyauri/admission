@@ -28,7 +28,7 @@
                              <option value="">Select Exam</option>
                             @forelse ($this->exams as $exam)
 
-                                <option value="{{strtolower($exam->exam_name.':'.$exam->exam_number)}}">{{ucfirst($exam->exam_name).'/'.$exam->exam_number}}</option>
+                                <option value="{{$exam->exam_name.'/'.$exam->exam_number}}">{{$exam->exam_name.'/'.$exam->exam_number}}</option>
 
                             @empty
                                 No records found
@@ -42,7 +42,7 @@
                      <option value="">Select Subject</option>
                     @forelse ($this->subjects as $subject)
 
-                        <option value="{{strtolower($subject->name)}}">{{$subject->name}}</option>
+                        <option value="{{$subject->name}}">{{$subject->name}}</option>
 
                     @empty
                         No records found
@@ -54,10 +54,14 @@
             class="mb-4 focus:shadow-soft-primary-outline dark:bg-gray-950 dark:placeholder:text-white/80 dark:text-white/80 text-size-sm leading-5.6 ease-soft block w-full appearance-none rounded-lg border border-solid border-gray-300 bg-white bg-clip-padding px-3 py-2 font-normal text-gray-700 outline-none transition-all placeholder:text-gray-500 focus:border-fuchsia-300 focus:outline-none">
             <option value="">Select Grade</option>
             @foreach ($this->grades as $grade)
-            <option value="{{strtolower($grade->name)}}">{{ucfirst($grade->name)}}</option>
+            <option value="{{$grade->name}}">{{$grade->name}}</option>
             @endforeach
 
     </select>
+
+
+
+
 
 
                 </div>

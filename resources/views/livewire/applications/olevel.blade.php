@@ -65,7 +65,7 @@
 
                 <div class="flex flex-wrap -mx-3">
                     <div class="flex-auto p-6 pt-0">
-                        <a href ="{{route('olevel')}}"
+                        <a href ="{{route('olevel-grade')}}"
                             class="inline-block float-right px-8 py-2 mt-16 mb-0 font-bold text-right text-white uppercase align-middle transition-all border-0 rounded-lg cursor-pointer hover:scale-102 active:opacity-85 hover:shadow-soft-xs dark:bg-gradient-neutral bg-gradient-dark-gray leading-pro text-size-xs ease-soft-in tracking-tight-soft shadow-soft-md bg-150 bg-x-25">Next</a>
                     </div>
                 </div>
