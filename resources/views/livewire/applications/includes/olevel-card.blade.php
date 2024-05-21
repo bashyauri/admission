@@ -1,28 +1,30 @@
-<div  wire:key=""  class="todo mb-5 card px-5 py-6 bg-white col-span-1 border-t-2 border-dark-gray">
+<div  wire:key="{{$exam->id}}"  class="todo mb-5 card px-5 py-6 bg-white col-span-1 border-t-2 border-dark-gray">
     <div class="flex justify-between space-x-2">
         <div class="flex items-center">
 
-            {{-- @if ($editingSchoolId === $school->id) --}}
+            @if ($editingOlevelExamId === $exam->id)
             <div class="relative flex-auto p-4">
-                <form wire:submit="update">
-                    <input wire:model="form.schoolName" type="text"  class="dark:bg-gray-950 mb-4 focus:shadow-soft-success-outline dark:placeholder:text-white/80 dark:text-white/80 text-sm leading-5.6 ease-soft block w-full appearance-none rounded-lg border border-solid border-gray-300 bg-white bg-clip-padding px-3 py-2 font-normal text-gray-700 outline-none transition-all placeholder:text-gray-500 focus:border-teal-300 focus:outline-none" placeholder="School name....">
-                    @error('form.schoolName')
+                <form>
+                    <input wire:model="form.examNumber" type="text"  class="dark:bg-gray-950 mb-4 focus:shadow-soft-success-outline dark:placeholder:text-white/80 dark:text-white/80 text-sm leading-5.6 ease-soft block w-full appearance-none rounded-lg border border-solid border-gray-300 bg-white bg-clip-padding px-3 py-2 font-normal text-gray-700 outline-none transition-all placeholder:text-gray-500 focus:border-teal-300 focus:outline-none" placeholder="Exam number....">
+                    @error('form.examNumber')
                     <p class="text-size-sm text-red-500">{{ $message }} </p>
                     @enderror
 
-                <select wire:model="form.certificateName"
-                class="dark:bg-gray-950 mb-4 focus:shadow-soft-success-outline dark:placeholder:text-white/80 dark:text-white/80 text-sm leading-5.6 ease-soft block w-full appearance-none rounded-lg border border-solid border-gray-300 bg-white bg-clip-padding px-3 py-2 font-normal text-gray-700 outline-none transition-all placeholder:text-gray-500 focus:border-teal-300 focus:outline-none"
-                         >
-                        <option value="">Certificate Obtained</option>
-                        <option value="national diploma">National Diploma</option>
-                        <option value="secondary certificate">Secondary Certificate</option>
+                    <select wire:model="form.examName"
+                    class="mb-4 focus:shadow-soft-primary-outline dark:bg-gray-950 dark:placeholder:text-white/80 dark:text-white/80 text-size-sm leading-5.6 ease-soft block w-full appearance-none rounded-lg border border-solid border-gray-300 bg-white bg-clip-padding px-3 py-2 font-normal text-gray-700 outline-none transition-all placeholder:text-gray-500 focus:border-fuchsia-300 focus:outline-none"
+                   >
+                    <option value="">Select</option>
+                    <option value="waec">Waec</option>
+                    <option value="neco" >Neco</option>
+                    <option value="nabteb">Nabteb</option>
+                    <option value="neco">Others</option>
 
-                </select>
-                @error('form.certificateName')
+            </select>
+                @error('form.examName')
                 <p class="text-size-sm text-red-500">{{ $message }} </p>
                 @enderror
-                <input wire:model="form.dateObtained" class="dark:bg-gray-950 mb-4 focus:shadow-soft-success-outline dark:placeholder:text-white/80 dark:text-white/80 text-sm leading-5.6 ease-soft block w-full appearance-none rounded-lg border border-solid border-gray-300 bg-white bg-clip-padding px-3 py-2 font-normal text-gray-700 outline-none transition-all placeholder:text-gray-500 focus:border-teal-300 focus:outline-none"  type="date" placeholder="Select date.." />
-                @error('form.dateObtained')
+                <input wire:model="form.examYear" class="dark:bg-gray-950 mb-4 focus:shadow-soft-success-outline dark:placeholder:text-white/80 dark:text-white/80 text-sm leading-5.6 ease-soft block w-full appearance-none rounded-lg border border-solid border-gray-300 bg-white bg-clip-padding px-3 py-2 font-normal text-gray-700 outline-none transition-all placeholder:text-gray-500 focus:border-teal-300 focus:outline-none"  type="text" placeholder="e.g 2015.." />
+                @error('form.examYear')
                 <p class="text-size-sm text-red-500">{{ $message }} </p>
                 @enderror
 
@@ -32,10 +34,10 @@
               </div>
 
 
-           {{-- @else --}}
+           @else
 
-            <h3 class="text-lg text-semibold text-gray-800"></h3>
-            {{-- @endif --}}
+            <h3 class="text-lg text-semibold text-gray-800">{{ucfirst($exam->exam_name)}}</h3>
+            @endif
 
         </div>
 
@@ -45,14 +47,14 @@
 
 
         <div class="flex items-center space-x-2">
-            <button wire:click="" class="text-sm text-teal-500 font-semibold rounded hover:text-teal-800">
+            <button wire:click="edit({{$exam->id}})" class="text-sm text-teal-500 font-semibold rounded hover:text-teal-800">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                     stroke="currentColor" class="w-4 h-4">
                     <path stroke-linecap="round" stroke-linejoin="round"
                         d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
                 </svg>
             </button>
-            <button wire:click="" class="text-sm text-red-500 font-semibold rounded hover:text-teal-800 mr-1">
+            <button wire:click="delete({{$exam->id}})" class="text-sm text-red-500 font-semibold rounded hover:text-teal-800 mr-1">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                     stroke="currentColor" class="w-4 h-4">
                     <path stroke-linecap="round" stroke-linejoin="round"
@@ -61,16 +63,16 @@
             </button>
         </div>
     </div>
-    <p class="mb-0 font-semibold leading-tight text-xs"></p>
+    <p class="mb-0 font-semibold leading-tight text-xs">{{ucfirst($exam->exam_number)}}</p>
 
-    <span class="text-xs text-gray-500"> </span>
+    <span class="text-xs text-gray-500"> {{$exam->exam_year}}</span>
     <div class="mt-3 text-xs text-gray-700">
-        {{-- @if ($editingSchoolId === $school->id) --}}
+        @if ($editingOlevelExamId === $exam->id)
                 <button wire:click="update"
                     class="mt-3 px-4 py-2 bg-teal-500 text-white font-semibold rounded hover:bg-teal-600">Update</button>
                 <button wire:click="cancelEdit"
                     class="mt-3 px-4 py-2 bg-red-500 text-white font-semibold rounded hover:bg-red-600">Cancel</button>
-                    {{-- @endif --}}
+                    @endif
 
     </div>
 </div>

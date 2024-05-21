@@ -76,4 +76,8 @@ class User extends Authenticatable
     {
         return $this->hasMany(School::class);
     }
+    public function olevelExams()
+    {
+        return $this->hasMany(OlevelExam::class);
+    }
 }

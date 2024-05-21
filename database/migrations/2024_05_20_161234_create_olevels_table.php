@@ -13,10 +13,7 @@ return new class extends Migration
     {
         Schema::create('olevels', function (Blueprint $table) {
             $table->id();
-            $table->foreignUuid('user_id');
-            $table->string('exam_name');
-            $table->string('exam_number')->unique();
-            $table->string('exam_year');
+
             $table->timestamps();
         });
     }
