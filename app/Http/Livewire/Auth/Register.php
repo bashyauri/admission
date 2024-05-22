@@ -39,6 +39,7 @@ class Register extends Component
     {
         $this->validate();
 
+
         $user = User::create([
             'surname' => $this->surname,
             'firstname' => $this->firstName,
@@ -47,8 +48,9 @@ class Register extends Component
             'phone' => $this->phone,
             'password' => Hash::make($this->password),
             'vpassword' => $this->password,
-            'programme_id' => $this->programme_id,
+            'programme_id' => $this->programme_id["value"],
         ]);
+
         event(new Registered($user));
 
         auth()->login($user);

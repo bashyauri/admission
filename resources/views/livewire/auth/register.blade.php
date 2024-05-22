@@ -92,15 +92,7 @@
               <p class='text-size-sm text-red-500'>{{ $message }} </p>
               @enderror
 
-              <div class="min-h-6 pl-7-em mb-0.5 block">
-                <input id="terms"
-                  class="w-5-em h-5-em ease-soft -ml-7-em rounded-1.4 checked:bg-gradient-dark-gray after:text-size-fa-check after:font-awesome after:duration-250 after:ease-soft-in-out duration-250 relative float-left mt-1 cursor-pointer appearance-none border border-solid border-slate-200 bg-white bg-contain bg-center bg-no-repeat align-top transition-all after:absolute after:flex after:h-full after:w-full after:items-center after:justify-center after:text-white after:opacity-0 after:transition-all after:content-['\f00c'] checked:border-0 checked:border-transparent checked:bg-transparent checked:after:opacity-100"
-                  type="checkbox" value="" required />
-                <label
-                  class="relative float-left mt-0.75 ml-1 font-normal text-left cursor-pointer select-none text-size-sm text-slate-700"
-                  for="terms"> I agree to the <a href="javascript:;" class="font-bold text-slate-700">Terms and
-                    Conditions</a> </label>
-              </div>
+
 
               <div class="text-center">
                 <button type="submit"

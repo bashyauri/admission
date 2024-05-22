@@ -1,10 +1,3 @@
-<!doctype html>
-<html>
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <script src="https://cdn.tailwindcss.com"></script>
-</head>
 <main class="mt-0 transition-all duration-200 ease-soft-in-out">
     <div
         class="min-h-screen p-0 relative overflow-hidden flex items-center bg-cover bg-center bg-[url('../../assets/img/curved-images/curved9.jpg')]">
@@ -47,25 +40,43 @@
                                     </svg>
                                 </div>
                                 <div class="mb-6 text-center text-slate-500">
-                                    <h2>A new verification link has been sent to the email address you provided during registration.</h2>
+                                    <h2>2-Step Verification</h2>
                                 </div>
                                 <div class="flex flex-wrap -mx-1 sm:-mx-2">
-                                    <form method="POST" action="{{ route('verification.send') }}">
-                                        @csrf
-
-
-                                        <div class="text-center">
-                                            <button type="button"
-                                                class="inline-block w-full px-6 py-3 mb-4 font-bold text-center text-white uppercase align-middle transition-all border-0 rounded-lg cursor-pointer hover:scale-102 active:opacity-85 hover:shadow-soft-xs bg-gradient-orange leading-pro text-size-xs ease-soft-in tracking-tight-soft shadow-soft-md bg-150 bg-x-25">Next</button>
-                                            <span class="leading-normal text-slate-500 text-size-sm">
-                                                Haven't received it?
-                                                <button type="submit">Resend a new code</button>
-                                            </span>
+                                    <div class="w-full max-w-full px-3 flex-1-0">
+                                        <div class="mb-4">
+                                            <input maxlength="1" autocapitalize="off" autocomplete="off" type="text"
+                                                class="min-h-unset focus:shadow-soft-primary-outline dark:bg-gray-950 dark:placeholder:text-white/80 dark:text-white/80 text-size-sm leading-5.6 ease-soft block w-full appearance-none rounded-lg border border-solid border-gray-300 bg-white bg-clip-padding p-3 font-normal text-gray-700 outline-none transition-all placeholder:text-gray-500 focus:border-fuchsia-300 focus:outline-none" />
                                         </div>
-                                    </form>
+                                    </div>
+                                    <div class="w-full max-w-full px-3 flex-1-0">
+                                        <div class="mb-4">
+                                            <input maxlength="1" autocapitalize="off" autocomplete="off" type="text"
+                                                class="min-h-unset focus:shadow-soft-primary-outline dark:bg-gray-950 dark:placeholder:text-white/80 dark:text-white/80 text-size-sm leading-5.6 ease-soft block w-full appearance-none rounded-lg border border-solid border-gray-300 bg-white bg-clip-padding p-3 font-normal text-gray-700 outline-none transition-all placeholder:text-gray-500 focus:border-fuchsia-300 focus:outline-none" />
+                                        </div>
+                                    </div>
+                                    <div class="w-full max-w-full px-3 flex-1-0">
+                                        <div class="mb-4">
+                                            <input maxlength="1" autocapitalize="off" autocomplete="off" type="text"
+                                                class="min-h-unset focus:shadow-soft-primary-outline dark:bg-gray-950 dark:placeholder:text-white/80 dark:text-white/80 text-size-sm leading-5.6 ease-soft block w-full appearance-none rounded-lg border border-solid border-gray-300 bg-white bg-clip-padding p-3 font-normal text-gray-700 outline-none transition-all placeholder:text-gray-500 focus:border-fuchsia-300 focus:outline-none" />
+                                        </div>
+                                    </div>
+                                    <div class="w-full max-w-full px-3 flex-1-0">
+                                        <div class="mb-4">
+                                            <input maxlength="1" autocapitalize="off" autocomplete="off" type="text"
+                                                class="min-h-unset focus:shadow-soft-primary-outline dark:bg-gray-950 dark:placeholder:text-white/80 dark:text-white/80 text-size-sm leading-5.6 ease-soft block w-full appearance-none rounded-lg border border-solid border-gray-300 bg-white bg-clip-padding p-3 font-normal text-gray-700 outline-none transition-all placeholder:text-gray-500 focus:border-fuchsia-300 focus:outline-none" />
+                                        </div>
+                                    </div>
                                 </div>
-
-
+                                <div class="text-center">
+                                    <button type="button"
+                                        class="inline-block w-full px-6 py-3 mb-4 font-bold text-center text-white uppercase align-middle transition-all border-0 rounded-lg cursor-pointer hover:scale-102 active:opacity-85 hover:shadow-soft-xs bg-gradient-orange leading-pro text-size-xs ease-soft-in tracking-tight-soft shadow-soft-md bg-150 bg-x-25">Next</button>
+                                    <span class="leading-normal text-slate-500 text-size-sm">
+                                        Haven't received it?
+                                        <a href="javascript:;">Resend a new code</a>
+                                        .
+                                    </span>
+                                </div>
                             </div>
                         </div>
                     </div>

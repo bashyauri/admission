@@ -1,27 +1,28 @@
 <?php
 
 
+use Illuminate\Http\Request;
 use App\Http\Livewire\Auth\Login;
 use App\Http\Livewire\Pages\Charts;
 use App\Http\Livewire\Auth\Register;
 use App\Http\Livewire\Pages\RtlPage;
-use App\Http\Livewire\Pages\Widgets;
 
+use App\Http\Livewire\Pages\Widgets;
 use App\Http\Livewire\Dashboards\Crm;
 use App\Http\Livewire\Pages\Messages;
 use Illuminate\Support\Facades\Route;
+
 use App\Http\Livewire\Dashboards\Index;
 
 use App\Http\Livewire\Pages\PricingPage;
-
 use App\Http\Livewire\Pages\SweetAlerts;
 use App\Http\Livewire\Auth\ResetPassword;
 use App\Http\Livewire\Ecommerce\Overview;
+
 use App\Http\Livewire\Ecommerce\Referral;
-
 use App\Http\Livewire\Applications\Kanban;
-use App\Http\Livewire\Applications\Olevel;
 
+use App\Http\Livewire\Applications\Olevel;
 use App\Http\Livewire\Applications\Wizard;
 use App\Http\Livewire\Auth\ForgotPassword;
 use App\Http\Livewire\Pages\Notifications;
@@ -30,8 +31,8 @@ use App\Http\Livewire\Pages\Users\Reports;
 use App\Http\Livewire\Applications\Profile;
 use App\Http\Livewire\Dashboards\SmartHome;
 use App\Http\Livewire\Dashboards\Vr\VrInfo;
-use App\Http\Livewire\Applications\Calendar;
 
+use App\Http\Livewire\Applications\Calendar;
 use App\Http\Livewire\Dashboards\Automotive;
 use App\Http\Livewire\Pages\Account\Billing;
 use App\Http\Livewire\Pages\Account\Invoice;
@@ -71,27 +72,27 @@ use App\Http\Livewire\LaravelExamples\Items\Index as ItemsIndex;
 use App\Http\Livewire\LaravelExamples\Roles\Index as RolesIndex;
 use App\Http\Livewire\Pages\Profile\Overview as ProfileOverview;
 use App\Http\Livewire\Authentication\SignIn\Basic as SignInBasic;
+
 use App\Http\Livewire\Authentication\SignIn\Cover as SignInCover;
-
 use App\Http\Livewire\Authentication\SignUp\Basic as SignUpBasic;
-use App\Http\Livewire\Authentication\SignUp\Cover as SignUpCover;
 
+use App\Http\Livewire\Authentication\SignUp\Cover as SignUpCover;
 use App\Http\Livewire\LaravelExamples\Items\Create as ItemsCreate;
 use App\Http\Livewire\LaravelExamples\Profile\Edit as ProfileEdit;
-use App\Http\Livewire\LaravelExamples\Roles\Create as RolesCreate;
 
+use App\Http\Livewire\LaravelExamples\Roles\Create as RolesCreate;
 use App\Http\Livewire\LaravelExamples\Category\Edit as CategoryEdit;
 use App\Http\Livewire\LaravelExamples\Category\Index as CategoryIndex;
-use App\Http\Livewire\LaravelExamples\Category\Create as CategoryCreate;
 
+use App\Http\Livewire\LaravelExamples\Category\Create as CategoryCreate;
 use App\Http\Livewire\Authentication\Lock\Illustration as LockIllustration;
 use App\Http\Livewire\Authentication\Reset\Illustration as ResetIllustration;
-use App\Http\Livewire\Authentication\Verification\Basic as VerificationBasic;
 
+use App\Http\Livewire\Authentication\Verification\Basic as VerificationBasic;
 use App\Http\Livewire\Authentication\Verification\Cover as VerificationCover;
 use App\Http\Livewire\Authentication\SignIn\Illustration as SignInIllustration;
-use App\Http\Livewire\Authentication\SignUp\Illustration as SignUpIllustration;
 
+use App\Http\Livewire\Authentication\SignUp\Illustration as SignUpIllustration;
 use App\Http\Livewire\LaravelExamples\UsersManagement\Edit as UserManagementEdit;
 use App\Http\Livewire\LaravelExamples\UsersManagement\Index as UserManagementIndex;
 use App\Http\Livewire\LaravelExamples\UsersManagement\Create as UserManagementCreate;
@@ -241,11 +242,17 @@ Route::get('/', function () {
     return redirect()->route('login');
 });
 Route::get('/email/verify', function () {
-    return view('auth.verify-email');
+    return view('livewire.authentication.verification.basic');
 })->middleware('auth')->name('verification.notice');
 
 Route::get('/email/verify/{id}/{hash}', function (EmailVerificationRequest $request) {
     $request->fulfill();
 
-    return redirect('/home');
+    return redirect('dashboard/analytics');
 })->middleware(['auth', 'signed'])->name('verification.verify');
+
+Route::post('/email/verification-notification', function (Request $request) {
+    $request->user()->sendEmailVerificationNotification();
+
+    return back()->with('message', 'Verification link sent!');
+})->middleware(['auth', 'throttle:6,1'])->name('verification.send');
