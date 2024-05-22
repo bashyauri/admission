@@ -241,6 +241,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 Route::get('/', function () {
     return redirect()->route('login');
 });
+// Email Verification stuff
 Route::get('/email/verify', function () {
     return view('livewire.authentication.verification.basic');
 })->middleware('auth')->name('verification.notice');

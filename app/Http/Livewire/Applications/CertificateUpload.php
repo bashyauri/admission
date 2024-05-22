@@ -57,8 +57,11 @@ class CertificateUpload extends Component
     }
     public function delete($id)
     {
+        $certificate = ModelsCertificateUpload::find($id);
         try {
-            ModelsCertificateUpload::find($id)->delete();
+
+            $this->deleteCertificateFile($certificate->path);
+            $certificate->delete();
         } catch (\Exception $e) {
             $this->alert('error', 'Failed to delete', [
                 'position' => 'center',
@@ -73,6 +76,13 @@ class CertificateUpload extends Component
             'timer' => 3000,
             'toast' => true,
         ]);
+    }
+    protected function deleteCertificateFile($path)
+    {
+
+        if (file_exists(storage_path('app/public/' . $path))) {
+            unlink(storage_path('app/public/' . $path));
+        }
     }
 
     public function render()
