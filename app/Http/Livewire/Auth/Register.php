@@ -2,11 +2,12 @@
 
 namespace App\Http\Livewire\Auth;
 
-use App\Models\Programme;
 use App\Models\Role;
 use App\Models\User;
 use Livewire\Component;
+use App\Models\Programme;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Auth\Events\Registered;
 use App\Providers\RouteServiceProvider;
 
 class Register extends Component
@@ -48,6 +49,7 @@ class Register extends Component
             'vpassword' => $this->password,
             'programme_id' => $this->programme_id,
         ]);
+        event(new Registered($user));
 
         auth()->login($user);
 
@@ -56,7 +58,7 @@ class Register extends Component
 
     public function mount()
     {
-        $this->programmes = Programme::where('id', 1)->get();
+        $this->programmes = Programme::where('id', 6)->get();
     }
 
     public function render()

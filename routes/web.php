@@ -1,99 +1,100 @@
 <?php
 
 
-use App\Http\Livewire\Applications\Analytics;
-use App\Http\Livewire\Applications\Calendar;
-use App\Http\Livewire\Applications\CertificateUpload;
-use App\Http\Livewire\Applications\Datatables;
 use App\Http\Livewire\Auth\Login;
-
 use App\Http\Livewire\Pages\Charts;
 use App\Http\Livewire\Auth\Register;
 use App\Http\Livewire\Pages\RtlPage;
 use App\Http\Livewire\Pages\Widgets;
 
 use App\Http\Livewire\Dashboards\Crm;
-
 use App\Http\Livewire\Pages\Messages;
 use Illuminate\Support\Facades\Route;
 use App\Http\Livewire\Dashboards\Index;
+
 use App\Http\Livewire\Pages\PricingPage;
 
 use App\Http\Livewire\Pages\SweetAlerts;
 use App\Http\Livewire\Auth\ResetPassword;
+use App\Http\Livewire\Ecommerce\Overview;
+use App\Http\Livewire\Ecommerce\Referral;
 
 use App\Http\Livewire\Applications\Kanban;
 use App\Http\Livewire\Applications\Olevel;
-use App\Http\Livewire\Applications\OlevelGrade;
-use App\Http\Livewire\Applications\Profile;
-use App\Http\Livewire\Applications\Qualification;
-use App\Http\Livewire\Applications\SchoolAttended;
+
 use App\Http\Livewire\Applications\Wizard;
 use App\Http\Livewire\Auth\ForgotPassword;
 use App\Http\Livewire\Pages\Notifications;
-
 use App\Http\Livewire\Pages\Users\NewUser;
 use App\Http\Livewire\Pages\Users\Reports;
+use App\Http\Livewire\Applications\Profile;
 use App\Http\Livewire\Dashboards\SmartHome;
 use App\Http\Livewire\Dashboards\Vr\VrInfo;
+use App\Http\Livewire\Applications\Calendar;
+
 use App\Http\Livewire\Dashboards\Automotive;
 use App\Http\Livewire\Pages\Account\Billing;
 use App\Http\Livewire\Pages\Account\Invoice;
+use App\Http\Livewire\Applications\Analytics;
 use App\Http\Livewire\Pages\Account\Security;
 use App\Http\Livewire\Pages\Account\Settings;
 use App\Http\Livewire\Pages\Profile\Projects;
 use App\Http\Livewire\Pages\Projects\General;
+use App\Http\Livewire\Applications\Datatables;
 use App\Http\Livewire\Dashboards\Vr\VrDefault;
 use App\Http\Livewire\Pages\Projects\Timeline;
+use App\Http\Livewire\Applications\OlevelGrade;
+use App\Http\Livewire\Ecommerce\Orders\Details;
 use App\Http\Livewire\Pages\Projects\NewProject;
+use App\Http\Livewire\Applications\Qualification;
+use App\Http\Livewire\Ecommerce\Orders\OrderList;
+use App\Http\Livewire\Applications\SchoolAttended;
+use App\Http\Livewire\Authentication\Error\Error404;
+use App\Http\Livewire\Authentication\Error\Error500;
+use App\Http\Livewire\Ecommerce\Products\NewProduct;
+use App\Http\Livewire\Applications\CertificateUpload;
+use App\Http\Livewire\Ecommerce\Products\EditProduct;
+use App\Http\Livewire\Ecommerce\Products\ProductPage;
+use App\Http\Livewire\Ecommerce\Products\ProductsList;
+use Illuminate\Foundation\Auth\EmailVerificationRequest;
 use App\Http\Livewire\LaravelExamples\Tag\Edit as TagEdit;
 use App\Http\Livewire\Pages\Profile\Teams as ProfileTeams;
 use App\Http\Livewire\LaravelExamples\Tag\Index as TagIndex;
+use App\Http\Livewire\Authentication\Lock\Basic as LockBasic;
+use App\Http\Livewire\Authentication\Lock\Cover as LockCover;
 use App\Http\Livewire\LaravelExamples\Items\Edit as ItemsEdit;
 use App\Http\Livewire\LaravelExamples\Roles\Edit as RolesEdit;
 use App\Http\Livewire\LaravelExamples\Tag\Create as TagCreate;
+use App\Http\Livewire\Authentication\Reset\Basic as ResetBasic;
+use App\Http\Livewire\Authentication\Reset\Cover as ResetCover;
 use App\Http\Livewire\LaravelExamples\Items\Index as ItemsIndex;
 use App\Http\Livewire\LaravelExamples\Roles\Index as RolesIndex;
 use App\Http\Livewire\Pages\Profile\Overview as ProfileOverview;
-use App\Http\Livewire\Ecommerce\Orders\Details;
-use App\Http\Livewire\Ecommerce\Orders\OrderList;
-use App\Http\Livewire\Ecommerce\Overview;
-use App\Http\Livewire\Ecommerce\Products\EditProduct;
-use App\Http\Livewire\Ecommerce\Products\NewProduct;
-use App\Http\Livewire\Ecommerce\Products\ProductPage;
-use App\Http\Livewire\Ecommerce\Products\ProductsList;
-use App\Http\Livewire\Ecommerce\Referral;
-use App\Http\Livewire\LaravelExamples\Items\Create as ItemsCreate;
-use App\Http\Livewire\LaravelExamples\Profile\Edit as ProfileEdit;
-use App\Http\Livewire\LaravelExamples\Roles\Create as RolesCreate;
-use App\Http\Livewire\LaravelExamples\Category\Edit as CategoryEdit;
-use App\Http\Livewire\LaravelExamples\Category\Index as CategoryIndex;
-use App\Http\Livewire\LaravelExamples\Category\Create as CategoryCreate;
-use App\Http\Livewire\LaravelExamples\UsersManagement\Edit as UserManagementEdit;
-use App\Http\Livewire\LaravelExamples\UsersManagement\Index as UserManagementIndex;
-use App\Http\Livewire\LaravelExamples\UsersManagement\Create as UserManagementCreate;
-
-use App\Http\Livewire\Authentication\Error\Error404;
-use App\Http\Livewire\Authentication\Error\Error500;
-
-use App\Http\Livewire\Authentication\Lock\Basic as LockBasic;
-use App\Http\Livewire\Authentication\Lock\Cover as LockCover;
-use App\Http\Livewire\Authentication\Lock\Illustration as LockIllustration;
-
-use App\Http\Livewire\Authentication\Reset\Basic as ResetBasic;
-use App\Http\Livewire\Authentication\Reset\Cover as ResetCover;
-use App\Http\Livewire\Authentication\Reset\Illustration as ResetIllustration;
-
 use App\Http\Livewire\Authentication\SignIn\Basic as SignInBasic;
 use App\Http\Livewire\Authentication\SignIn\Cover as SignInCover;
-use App\Http\Livewire\Authentication\SignIn\Illustration as SignInIllustration;
 
 use App\Http\Livewire\Authentication\SignUp\Basic as SignUpBasic;
 use App\Http\Livewire\Authentication\SignUp\Cover as SignUpCover;
+
+use App\Http\Livewire\LaravelExamples\Items\Create as ItemsCreate;
+use App\Http\Livewire\LaravelExamples\Profile\Edit as ProfileEdit;
+use App\Http\Livewire\LaravelExamples\Roles\Create as RolesCreate;
+
+use App\Http\Livewire\LaravelExamples\Category\Edit as CategoryEdit;
+use App\Http\Livewire\LaravelExamples\Category\Index as CategoryIndex;
+use App\Http\Livewire\LaravelExamples\Category\Create as CategoryCreate;
+
+use App\Http\Livewire\Authentication\Lock\Illustration as LockIllustration;
+use App\Http\Livewire\Authentication\Reset\Illustration as ResetIllustration;
+use App\Http\Livewire\Authentication\Verification\Basic as VerificationBasic;
+
+use App\Http\Livewire\Authentication\Verification\Cover as VerificationCover;
+use App\Http\Livewire\Authentication\SignIn\Illustration as SignInIllustration;
 use App\Http\Livewire\Authentication\SignUp\Illustration as SignUpIllustration;
 
-use App\Http\Livewire\Authentication\Verification\Basic as VerificationBasic;
-use App\Http\Livewire\Authentication\Verification\Cover as VerificationCover;
+use App\Http\Livewire\LaravelExamples\UsersManagement\Edit as UserManagementEdit;
+use App\Http\Livewire\LaravelExamples\UsersManagement\Index as UserManagementIndex;
+use App\Http\Livewire\LaravelExamples\UsersManagement\Create as UserManagementCreate;
 use App\Http\Livewire\Authentication\Verification\Illustration as VerificationIllustration;
 
 
@@ -115,7 +116,7 @@ Route::middleware('guest')->group(function () {
     Route::get('reset-password/{id}', ResetPassword::class)->name('reset-password')->middleware('signed');
 });
 
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth', 'verified'])->group(function () {
 
     //Laravel Examples
 
@@ -235,6 +236,16 @@ Route::middleware('auth')->group(function () {
     Route::get('authentication/verification/illustration', VerificationIllustration::class)->name('illustration-verification');
 });
 
+
 Route::get('/', function () {
     return redirect()->route('login');
 });
+Route::get('/email/verify', function () {
+    return view('auth.verify-email');
+})->middleware('auth')->name('verification.notice');
+
+Route::get('/email/verify/{id}/{hash}', function (EmailVerificationRequest $request) {
+    $request->fulfill();
+
+    return redirect('/home');
+})->middleware(['auth', 'signed'])->name('verification.verify');

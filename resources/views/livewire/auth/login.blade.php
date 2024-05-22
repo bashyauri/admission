@@ -101,11 +101,11 @@
 
                         <form wire:submit.prevent="login" role="form text-left">
                             <div class="mb-4">
-                                <input wire:model.lazy="phone" type="phone"
+                                <input wire:model.lazy="email" type="email"
                                     class="text-size-sm focus:shadow-soft-primary-outline dark:bg-gray-950 dark:placeholder:text-white/80 dark:text-white/80 leading-5.6 ease-soft block w-full appearance-none rounded-lg border border-solid border-gray-300 bg-white bg-clip-padding py-2 px-3 font-normal text-gray-700 transition-all focus:border-fuchsia-300 focus:bg-white focus:text-gray-700 focus:outline-none focus:transition-shadow"
-                                    placeholder="Phone" aria-label="Phone" aria-describedby="phone-addon" required
+                                    placeholder="email" aria-label="email" aria-describedby="email-addon" required
                                     />
-                                @error('phone')
+                                @error('email')
                                 <p class="text-size-sm text-red-500">{{ $message }}</p>
                                 @enderror
                             </div>

@@ -16,11 +16,12 @@ class ProgrammeSeeder extends Seeder
     public function run()
     {
         $programmes = [
-            ['id' => 1, 'name' => 'Higher National Diploma', 'abv' => 'HND'],
-            ['id' => 2, 'name' => 'National Diploma', 'abv' => 'ND'],
-            ['id' => 3, 'name' => 'National Diploma Special', 'abv' => 'NDS'],
-            ['id' => 4, 'name' => 'National Certificate in Education', 'abv' => 'NCE'],
-            ['id' => 5, 'name' => 'Polytechnic Diploma', 'abv' => 'PD'],
+            // ['id' => 1, 'name' => 'Higher National Diploma', 'abv' => 'HND'],
+            // ['id' => 2, 'name' => 'National Diploma', 'abv' => 'ND'],
+            // ['id' => 3, 'name' => 'National Diploma Special', 'abv' => 'NDS'],
+            // ['id' => 4, 'name' => 'National Certificate in Education', 'abv' => 'NCE'],
+            // ['id' => 5, 'name' => 'Polytechnic Diploma', 'abv' => 'PD'],
+            ['id' => 6, 'name' => 'Postgraduate Diploma', 'abv' => 'PG'],
         ];
 
         foreach ($programmes as $programme) {

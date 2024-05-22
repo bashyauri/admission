@@ -8,30 +8,25 @@ use App\Providers\RouteServiceProvider;
 
 class Login extends Component
 {
-    public $phone = '';
+    public $email = '';
     public $password = '';
 
 
     protected $rules = [
-        'phone' => 'required',
+        'email' => 'required|email',
         'password' => 'required',
     ];
 
-    public function mount()
-    {
-        $this->fill(['email' => 'admin@softui.com', 'password' => 'secret']);
-    }
+
 
     public function login()
     {
-        if (auth()->attempt(['phone' => $this->phone, 'password' => $this->password])) {
-            $user = User::where(["phone" => $this->phone])->first();
+        if (auth()->attempt(['email' => $this->email, 'password' => $this->password])) {
+            $user = User::where(["email" => $this->email])->first();
             auth()->login($user);
-
-
             return redirect(RouteServiceProvider::HOME);
         } else {
-            return $this->addError('phone', trans('auth.failed'));
+            return $this->addError('email', trans('auth.failed'));
         }
     }
 
