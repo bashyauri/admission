@@ -84,4 +84,8 @@ class User extends Authenticatable
     {
         return $this->hasMany(OlevelSubjectGrade::class);
     }
+    public function certificateUploads()
+    {
+        return $this->hasMany(CertificateUpload::class);
+    }
 }

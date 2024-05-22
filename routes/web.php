@@ -3,6 +3,7 @@
 
 use App\Http\Livewire\Applications\Analytics;
 use App\Http\Livewire\Applications\Calendar;
+use App\Http\Livewire\Applications\CertificateUpload;
 use App\Http\Livewire\Applications\Datatables;
 use App\Http\Livewire\Auth\Login;
 
@@ -188,7 +189,8 @@ Route::middleware('auth')->group(function () {
     Route::get('applications/school-attended', SchoolAttended::class)->name('school-attended');
     Route::get('applications/olevel', Olevel::class)->name('olevel');
     Route::get('applications/olevel-grade', OlevelGrade::class)->name('olevel-grade');
-    Route::get('applications/qualification', Qualification::class)->name('qualification');
+
+    Route::get('applications/upload-certificate', CertificateUpload::class)->name('upload-certificate');
 
 
 
