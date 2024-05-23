@@ -1,7 +1,7 @@
 <?php
 
+use App\Models\Course;
 use App\Models\Department;
-use App\Models\Programme;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
@@ -13,12 +13,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('courses', function (Blueprint $table) {
+        Schema::create('proposed_courses', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
+            $table->foreignUuid('user_id');
             $table->foreignIdFor(Department::class);
-            $table->foreignIdFor(Programme::class);
-            $table->string('semesters')->default(4);
+            $table->foreignIdFor(Course::class);
+            $table->string('status')->nullable();
             $table->timestamps();
         });
     }
@@ -28,6 +28,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('courses');
+        Schema::dropIfExists('proposed_courses');
     }
 };

@@ -49,10 +49,12 @@ use App\Http\Livewire\Ecommerce\Orders\Details;
 use App\Http\Livewire\Pages\Projects\NewProject;
 use App\Http\Livewire\Applications\Qualification;
 use App\Http\Livewire\Ecommerce\Orders\OrderList;
+use App\Http\Livewire\Applications\ProposedCourse;
 use App\Http\Livewire\Applications\SchoolAttended;
 use App\Http\Livewire\Authentication\Error\Error404;
 use App\Http\Livewire\Authentication\Error\Error500;
 use App\Http\Livewire\Ecommerce\Products\NewProduct;
+
 use App\Http\Livewire\Applications\CertificateUpload;
 use App\Http\Livewire\Ecommerce\Products\EditProduct;
 use App\Http\Livewire\Ecommerce\Products\ProductPage;
@@ -71,33 +73,32 @@ use App\Http\Livewire\Authentication\Reset\Cover as ResetCover;
 use App\Http\Livewire\LaravelExamples\Items\Index as ItemsIndex;
 use App\Http\Livewire\LaravelExamples\Roles\Index as RolesIndex;
 use App\Http\Livewire\Pages\Profile\Overview as ProfileOverview;
+
 use App\Http\Livewire\Authentication\SignIn\Basic as SignInBasic;
-
 use App\Http\Livewire\Authentication\SignIn\Cover as SignInCover;
-use App\Http\Livewire\Authentication\SignUp\Basic as SignUpBasic;
 
+use App\Http\Livewire\Authentication\SignUp\Basic as SignUpBasic;
 use App\Http\Livewire\Authentication\SignUp\Cover as SignUpCover;
 use App\Http\Livewire\LaravelExamples\Items\Create as ItemsCreate;
-use App\Http\Livewire\LaravelExamples\Profile\Edit as ProfileEdit;
 
+use App\Http\Livewire\LaravelExamples\Profile\Edit as ProfileEdit;
 use App\Http\Livewire\LaravelExamples\Roles\Create as RolesCreate;
 use App\Http\Livewire\LaravelExamples\Category\Edit as CategoryEdit;
-use App\Http\Livewire\LaravelExamples\Category\Index as CategoryIndex;
 
+use App\Http\Livewire\LaravelExamples\Category\Index as CategoryIndex;
 use App\Http\Livewire\LaravelExamples\Category\Create as CategoryCreate;
 use App\Http\Livewire\Authentication\Lock\Illustration as LockIllustration;
-use App\Http\Livewire\Authentication\Reset\Illustration as ResetIllustration;
 
+use App\Http\Livewire\Authentication\Reset\Illustration as ResetIllustration;
 use App\Http\Livewire\Authentication\Verification\Basic as VerificationBasic;
 use App\Http\Livewire\Authentication\Verification\Cover as VerificationCover;
-use App\Http\Livewire\Authentication\SignIn\Illustration as SignInIllustration;
 
+use App\Http\Livewire\Authentication\SignIn\Illustration as SignInIllustration;
 use App\Http\Livewire\Authentication\SignUp\Illustration as SignUpIllustration;
 use App\Http\Livewire\LaravelExamples\UsersManagement\Edit as UserManagementEdit;
 use App\Http\Livewire\LaravelExamples\UsersManagement\Index as UserManagementIndex;
 use App\Http\Livewire\LaravelExamples\UsersManagement\Create as UserManagementCreate;
 use App\Http\Livewire\Authentication\Verification\Illustration as VerificationIllustration;
-
 
 /*
 |--------------------------------------------------------------------------
@@ -191,8 +192,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('applications/school-attended', SchoolAttended::class)->name('school-attended');
     Route::get('applications/olevel', Olevel::class)->name('olevel');
     Route::get('applications/olevel-grade', OlevelGrade::class)->name('olevel-grade');
-
     Route::get('applications/upload-certificate', CertificateUpload::class)->name('upload-certificate');
+    Route::get('applications/apply-course', ProposedCourse::class)->name('proposed-course');
 
 
 
