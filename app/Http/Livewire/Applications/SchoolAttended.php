@@ -16,6 +16,8 @@ class SchoolAttended extends Component
     public $editingSchoolId;
 
 
+
+
     public function save()
     {
 
