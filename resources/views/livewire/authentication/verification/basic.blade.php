@@ -63,6 +63,11 @@
                                             </span>
                                         </div>
                                     </form>
+                                    <div class="flex flex-wrap -mx-3">
+                                        <a href="{{route('login')}}" class="inline-block float-right px-8 py-2 mt-2 mb-0 font-bold text-right text-white uppercase align-middle transition-all border-0 rounded-lg cursor-pointer hover:scale-102 active:opacity-85 hover:shadow-soft-xs dark:bg-gradient-neutral bg-teal-500 leading-pro text-size-xs ease-soft-in tracking-tight-soft shadow-soft-md bg-150 bg-x-25">
+                                            to login
+                                        </a>
+                                    </div>
                                 </div>
 
 

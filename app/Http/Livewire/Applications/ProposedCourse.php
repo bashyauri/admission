@@ -3,6 +3,7 @@
 namespace App\Http\Livewire\Applications;
 
 use App\Models\Course;
+use App\Models\Programme;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
 
@@ -12,8 +13,11 @@ class ProposedCourse extends Component
     #[Computed()]
     public function departments()
     {
-        return Course::where('programme_id', auth()->user()->programme_id)->get();
+        $program = Programme::findOrFail(auth()->user()->programme->id);
+
+        return $program->departments;
     }
+
     #[Computed()]
     public function courses()
     {

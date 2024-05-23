@@ -41,6 +41,7 @@ class DepartmentSeeder extends Seeder
             ['name' => 'Science Education'],
             ['name' => 'ENGLISH'],
             ['name' => 'Library and Information Science'],
+            ['name' => 'Education']
         ];
         DB::table('departments')->insert($departments);
     }

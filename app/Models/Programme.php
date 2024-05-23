@@ -14,4 +14,8 @@ class Programme extends Model
 
         return $this->hasMany(User::class);
     }
+    public function departments()
+    {
+        return $this->belongsToMany(Department::class, 'department_programmes');
+    }
 }

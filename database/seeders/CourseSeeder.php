@@ -78,6 +78,7 @@ class CourseSeeder extends Seeder
             ['programme_id' => 1, 'department_id' => 13, 'name' => 'HND Building Technology'],
             ['programme_id' => 2, 'department_id' => 13, 'name' => 'ND Building Technology'],
             ['programme_id' => 5, 'department_id' => 13, 'name' => 'Diploma in Building Technology'],
+            ['programme_id' => 6, 'department_id' => 13, 'name' => 'PGD in Building Technology'],
             ['programme_id' => 1, 'department_id' => 14, 'name' => 'HND Urban and Regional Planning'],
             ['programme_id' => 2, 'department_id' => 14, 'name' => 'ND Urban and Regional Planning'],
             ['programme_id' => 3, 'department_id' => 14, 'name' => 'NDS Urban and Regional Planning'],
@@ -129,6 +130,7 @@ class CourseSeeder extends Seeder
             ['programme_id' => 5,  'department_id' => 24, 'name' => 'Diploma Sharia and Civil Law'],
             ['programme_id' => 5,  'department_id' => 26, 'name' => 'Diploma Mass Communication'],
             ['programme_id' => 2,  'department_id' => 27, 'name' => 'ND Library and Information Science'],
+            ['programme_id' => 6,  'department_id' => 28, 'name' => 'PGD Education'],
 
         ];
         DB::table('courses')->insert($courses);

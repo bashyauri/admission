@@ -6,34 +6,37 @@
             <form wire:model="save">
             <div class="flex-auto p-6 pt-0">
                 <div class="flex flex-wrap -mx-3">
-                    <div class="w-full md:w-4/12 max-w-full px-3 flex-0">
+                    <div class="w-full md:w-6/12 max-w-full px-3 flex-0">
                         <label class="mb-2 ml-1 font-bold text-size-xs text-slate-700 dark:text-white/80" for="Name">Department</label>
                         <div class="relative flex flex-wrap items-stretch w-full rounded-lg">
-                            <select   wire:model="form.department"
-                                    class="focus:shadow-soft-primary-outline dark:bg-gray-950 dark:placeholder:text-white/80 dark:text-white/80 text-sm leading-5.6 ease-soft block w-full appearance-none rounded-lg border border-solid border-gray-300 bg-white bg-clip-padding px-3 py-2 font-normal text-gray-700 outline-none transition-all placeholder:text-gray-500 focus:border-fuchsia-300 focus:outline-none">
-                                <option value="" disabled selected>Select an Option</option>
-                                <option value="male">Male</option>
-                                <option value="female">Female</option>
-                            </select>
+                            <select choices-select=""  wire:model="form.course"
+                            class="focus:shadow-soft-primary-outline dark:bg-gray-950 dark:placeholder:text-white/80 dark:text-white/80 text-sm leading-5.6 ease-soft block w-full appearance-none rounded-lg border border-solid border-gray-300 bg-white bg-clip-padding px-3 py-2 font-normal text-gray-700 outline-none transition-all placeholder:text-gray-500 focus:border-fuchsia-300 focus:outline-none">
+                        <option value="" disabled selected>Select an Option</option>
+                        @forelse ($this->departments as $department)
+                        <option value="{{$department->id}}">{{$department->name}}</option>
+                        @empty
+                        <option value="" disabled selected>No record</option>
+                        @endforelse
+
+                    </select>
 
                             @error('form.department')
                             <p class="text-size-sm text-red-500">{{ $message }}</p>
                             @enderror
                         </div>
                     </div>
-                    <div class="w-full md:w-4/12 max-w-full px-3 flex-0">
+                    <div class="w-full md:w-6/12 max-w-full px-3 flex-0">
                         <label class="mb-2 ml-1 font-bold text-size-xs text-slate-700 dark:text-white/80" for="course">Course of Study</label>
                         <div class="relative flex flex-wrap items-stretch w-full rounded-lg">
                             <select choices-select=""  wire:model="form.course"
                                     class="focus:shadow-soft-primary-outline dark:bg-gray-950 dark:placeholder:text-white/80 dark:text-white/80 text-sm leading-5.6 ease-soft block w-full appearance-none rounded-lg border border-solid border-gray-300 bg-white bg-clip-padding px-3 py-2 font-normal text-gray-700 outline-none transition-all placeholder:text-gray-500 focus:border-fuchsia-300 focus:outline-none">
                                 <option value="" disabled selected>Select an Option</option>
-                                @forelse ($collection as $item)
-
+                                @forelse ($this->departments as $department)
+                                <option value="{{$department->id}}">{{$department->name}}</option>
                                 @empty
-
+                                <option value="" disabled selected>No record</option>
                                 @endforelse
-                                <option value="male">Male</option>
-                                <option value="female">Female</option>
+
                             </select>
                             @error('form.course')
                             <p class="text-size-sm text-red-500">{{ $message }}</p>
