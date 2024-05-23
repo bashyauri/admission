@@ -29,6 +29,7 @@ class SchoolAttended extends Component
                 'timer' => 3000,
                 'toast' => true,
             ]);
+
             return to_route('school-attended');
         } catch (\Exception $e) {
             report($e);

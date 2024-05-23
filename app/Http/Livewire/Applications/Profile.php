@@ -25,6 +25,7 @@ class Profile extends Component
 
     public function mount()
     {
+
         $user = auth()->user();
         $this->form->setProfile($user);
     }

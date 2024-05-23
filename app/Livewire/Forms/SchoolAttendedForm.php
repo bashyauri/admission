@@ -16,12 +16,7 @@ class SchoolAttendedForm extends Form
     public $certificateName = '';
     #[Validate('required')]
     public $dateObtained = '';
-    public function setSchool(School $school)
-    {
-        $this->schoolName = $school->school_name;
-        $this->certificateName = $school->certificate_name;
-        $this->dateObtained = $school->date_obtained;
-    }
+
     public function store()
     {
         $this->validate();

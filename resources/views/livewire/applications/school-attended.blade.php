@@ -48,7 +48,9 @@
                 </div>
             </div>
         </div>
-
+        <div wire:loading>
+            <i class="fas fa-spinner fa-spin"></i> wait...
+        </div>
 
                 @foreach ($this->schools as $school)
 

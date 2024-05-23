@@ -27,11 +27,7 @@
                 <div class="flex-auto p-4">
 
                     <div class="relative flex flex-col min-w-0 break-words bg-white border-0 shadow-soft-xl rounded-2xl bg-clip-border">
-                        <div class="relative">
-                          <a class="block shadow-xl rounded-2xl">
-                            <img src="https://raw.githubusercontent.com/creativetimofficial/public-assets/master/soft-ui-dashboard/assets/img/home-decor-1.jpg" alt="img-blur-shadow" class="max-w-full shadow-soft-2xl rounded-2xl" />
-                          </a>
-                        </div>
+
                         <div class="flex-auto px-1 pt-6">
 
 

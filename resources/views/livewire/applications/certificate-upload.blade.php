@@ -5,6 +5,12 @@
 
             <hr
                 class="h-px mx-0 my-4 bg-transparent border-0 opacity-25 bg-gradient-horizontal-dark dark:bg-gradient-horizontal-light" />
+                <div wire:loading>
+                    <i class="fas fa-spinner fa-spin"></i> wait...
+                </div>
+                <div wire:offline.class="bg-red-500">
+                    This device is currently offline.
+                </div>
         <form wire:submit="save">
 
             <div class="flex flex-wrap -mx-3">

@@ -1,6 +1,7 @@
 <div>
 <div class="w-full max-w-full px-3 lg:flex-0 shrink-0">
 
+
     <form wire:submit.prevent="save" enctype="multipart/form-data">
 
         <div class="relative flex flex-col flex-auto min-w-0 p-4 break-words bg-white border-0 dark:bg-gray-950 dark:shadow-soft-dark-xl shadow-soft-xl rounded-2xl bg-clip-border"
@@ -33,7 +34,7 @@
                         </div>
 
                     </div>
-                    <div cla wire:loading wire:target="form.picture" class="text-teal-500">
+                    <div  wire:loading wire:target="form.picture" class="text-teal-500">
                         uploading...
                        </div>
 
@@ -42,7 +43,7 @@
                 <div class="w-8/12 max-w-full px-3 my-auto flex-0 sm:w-auto">
                     <div class="h-full">
                         <h5 class="mb-1 font-bold dark:text-white">{{ auth()->user()->name }}</h5>
-                        <p class="mb-0 font-semibold leading-normal text-size-sm">CEO / Co-Founder</p>
+                        <p class="mb-0 font-semibold leading-normal text-size-sm">{{ auth()->user()->email }}</p>
                     </div>
                 </div>
                 <div class="flex max-w-full px-3 mt-4 sm:flex-0 shrink-0 sm:mt-0 sm:ml-auto sm:w-auto">
@@ -68,7 +69,10 @@
         <div class="relative flex flex-col min-w-0 mt-6 break-words bg-white border-0 dark:bg-gray-950 dark:shadow-soft-dark-xl shadow-soft-xl rounded-2xl bg-clip-border"
             id="basic-info">
             <div class="p-6 mb-0 rounded-t-2xl">
-                <h5 class="dark:text-white">Profile</h5>
+                <h5  class="dark:text-white">Profile</h5>
+            </div>
+            <div wire:offline class="p-6 mb-0 rounded-t-2xl">
+                <h5  class="dark:text-white">No network</h5>
             </div>
 
             <div class="flex-auto p-6 pt-0">
@@ -252,16 +256,24 @@
                         </div>
                     </div>
                 </div>
+                <div class="flex-auto p-6 pt-0">
+                    <button type="submit"
+                        class="inline-block float-right px-8 py-2 mt-16 mb-0 font-bold text-right text-white uppercase align-middle transition-all border-0 rounded-lg cursor-pointer hover:scale-102 active:opacity-85 hover:shadow-soft-xs dark:bg-gradient-neutral bg-gradient-dark-gray leading-pro text-size-xs ease-soft-in tracking-tight-soft shadow-soft-md bg-150 bg-x-25">Save
+                        Changes</button>
+
+                </div>
 
                 <div class="flex flex-wrap -mx-3">
                     <div class="flex-auto p-6 pt-0">
                         <button type="submit"
                             class="inline-block float-right px-8 py-2 mt-16 mb-0 font-bold text-right text-white uppercase align-middle transition-all border-0 rounded-lg cursor-pointer hover:scale-102 active:opacity-85 hover:shadow-soft-xs dark:bg-gradient-neutral bg-gradient-dark-gray leading-pro text-size-xs ease-soft-in tracking-tight-soft shadow-soft-md bg-150 bg-x-25">Save
                             Changes</button>
+
                     </div>
+
                 </div>
                 <div class="flex flex-wrap -mx-3">
-                    <a href="{{route('school-attended')}}" class="inline-block float-right px-8 py-2 mt-2 mb-0 font-bold text-right text-white uppercase align-middle transition-all border-0 rounded-lg cursor-pointer hover:scale-102 active:opacity-85 hover:shadow-soft-xs dark:bg-gradient-neutral bg-gradient-dark-gray leading-pro text-size-xs ease-soft-in tracking-tight-soft shadow-soft-md bg-150 bg-x-25">
+                    <a href="{{route('school-attended')}}" class="inline-block  px-8 py-2 mt-2 mb-0 font-bold text-right text-white uppercase align-middle transition-all border-0 rounded-lg cursor-pointer hover:scale-102 active:opacity-85 hover:shadow-soft-xs dark:bg-gradient-neutral bg-gradient-dark-gray leading-pro text-size-xs ease-soft-in tracking-tight-soft shadow-soft-md bg-150 bg-x-25">
                         to school attended
                     </a>
                 </div>
