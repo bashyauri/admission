@@ -91,7 +91,7 @@ class UserPolicy
         //
     }
 
-        /**
+    /**
      * Determine whether the authenticate user can manage other users.
      */
     public function manageUsers(User $user)
@@ -105,5 +105,12 @@ class UserPolicy
     public function manageItems(User $user)
     {
         return $user->isAdmin() || $user->isCreator();
+    }
+    /**
+     * Determine whether the authenticate user can access the profile page etc.
+     */
+    public function checkPayment(User $user, $payment)
+    {
+        return $user->hasPaid($payment);
     }
 }

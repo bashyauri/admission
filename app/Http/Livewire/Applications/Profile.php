@@ -90,6 +90,7 @@ class Profile extends Component
     }
     public function render()
     {
+        $this->authorize('has-paid', User::class, config('remita.admission.description'));
         return view('livewire.applications.profile');
     }
 }

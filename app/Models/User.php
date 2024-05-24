@@ -2,12 +2,14 @@
 
 namespace App\Models;
 
+use App\Enums\TransactionStatus;
+use Laravel\Sanctum\HasApiTokens;
+use Illuminate\Notifications\Notifiable;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
-use Illuminate\Notifications\Notifiable;
-use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable implements MustVerifyEmail
 {
@@ -92,5 +94,16 @@ class User extends Authenticatable implements MustVerifyEmail
     {
 
         return $this->hasOne(ProposedCourse::class);
+    }
+    public function transactions(): HasMany
+    {
+        return $this->hasMany(Transaction::class);
+    }
+    public function hasPaid(string $payment): bool
+    {
+
+        return $this->transactions()->where(
+            ['status' => TransactionStatus::APPROVED, 'resource' => $payment]
+        )->exists() ?? false;
     }
 }

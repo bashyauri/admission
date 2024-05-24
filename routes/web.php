@@ -99,6 +99,7 @@ use App\Http\Livewire\LaravelExamples\UsersManagement\Edit as UserManagementEdit
 use App\Http\Livewire\LaravelExamples\UsersManagement\Index as UserManagementIndex;
 use App\Http\Livewire\LaravelExamples\UsersManagement\Create as UserManagementCreate;
 use App\Http\Livewire\Authentication\Verification\Illustration as VerificationIllustration;
+use App\Http\Livewire\Transactions\Payment;
 
 /*
 |--------------------------------------------------------------------------
@@ -195,7 +196,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('applications/upload-certificate', CertificateUpload::class)->name('upload-certificate');
     Route::get('applications/apply-course', ProposedCourse::class)->name('proposed-course');
 
-
+    // Transactions
+    Route::get('transactions', Payment::class)->name('transactions');
 
 
     // Ecommerce
