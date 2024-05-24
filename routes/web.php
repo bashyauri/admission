@@ -32,6 +32,7 @@ use App\Http\Livewire\Applications\Profile;
 use App\Http\Livewire\Dashboards\SmartHome;
 use App\Http\Livewire\Dashboards\Vr\VrInfo;
 
+use App\Http\Livewire\Transactions\Payment;
 use App\Http\Livewire\Applications\Calendar;
 use App\Http\Livewire\Dashboards\Automotive;
 use App\Http\Livewire\Pages\Account\Billing;
@@ -44,6 +45,7 @@ use App\Http\Livewire\Pages\Projects\General;
 use App\Http\Livewire\Applications\Datatables;
 use App\Http\Livewire\Dashboards\Vr\VrDefault;
 use App\Http\Livewire\Pages\Projects\Timeline;
+use App\Http\Controllers\TransactionController;
 use App\Http\Livewire\Applications\OlevelGrade;
 use App\Http\Livewire\Ecommerce\Orders\Details;
 use App\Http\Livewire\Pages\Projects\NewProject;
@@ -52,9 +54,10 @@ use App\Http\Livewire\Ecommerce\Orders\OrderList;
 use App\Http\Livewire\Applications\ProposedCourse;
 use App\Http\Livewire\Applications\SchoolAttended;
 use App\Http\Livewire\Authentication\Error\Error404;
+
 use App\Http\Livewire\Authentication\Error\Error500;
 use App\Http\Livewire\Ecommerce\Products\NewProduct;
-
+use App\Http\Livewire\Transactions\AdmissionInvoice;
 use App\Http\Livewire\Applications\CertificateUpload;
 use App\Http\Livewire\Ecommerce\Products\EditProduct;
 use App\Http\Livewire\Ecommerce\Products\ProductPage;
@@ -70,10 +73,11 @@ use App\Http\Livewire\LaravelExamples\Roles\Edit as RolesEdit;
 use App\Http\Livewire\LaravelExamples\Tag\Create as TagCreate;
 use App\Http\Livewire\Authentication\Reset\Basic as ResetBasic;
 use App\Http\Livewire\Authentication\Reset\Cover as ResetCover;
+
 use App\Http\Livewire\LaravelExamples\Items\Index as ItemsIndex;
 use App\Http\Livewire\LaravelExamples\Roles\Index as RolesIndex;
-use App\Http\Livewire\Pages\Profile\Overview as ProfileOverview;
 
+use App\Http\Livewire\Pages\Profile\Overview as ProfileOverview;
 use App\Http\Livewire\Authentication\SignIn\Basic as SignInBasic;
 use App\Http\Livewire\Authentication\SignIn\Cover as SignInCover;
 
@@ -92,15 +96,12 @@ use App\Http\Livewire\Authentication\Lock\Illustration as LockIllustration;
 use App\Http\Livewire\Authentication\Reset\Illustration as ResetIllustration;
 use App\Http\Livewire\Authentication\Verification\Basic as VerificationBasic;
 use App\Http\Livewire\Authentication\Verification\Cover as VerificationCover;
-
 use App\Http\Livewire\Authentication\SignIn\Illustration as SignInIllustration;
 use App\Http\Livewire\Authentication\SignUp\Illustration as SignUpIllustration;
 use App\Http\Livewire\LaravelExamples\UsersManagement\Edit as UserManagementEdit;
 use App\Http\Livewire\LaravelExamples\UsersManagement\Index as UserManagementIndex;
 use App\Http\Livewire\LaravelExamples\UsersManagement\Create as UserManagementCreate;
 use App\Http\Livewire\Authentication\Verification\Illustration as VerificationIllustration;
-use App\Http\Livewire\Transactions\AdmissionInvoice;
-use App\Http\Livewire\Transactions\Payment;
 
 /*
 |--------------------------------------------------------------------------
@@ -168,7 +169,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::get('pages/account/settings', Settings::class)->name('settings');
     Route::get('pages/account/billing', Billing::class)->name('billing');
-    Route::get('pages/account/invoice', Invoice::class)->name('invoice');
+    // Route::get('pages/account/invoice', Invoice::class)->name('invoice');
     Route::get('pages/account/security', Security::class)->name('security');
 
     Route::get('pages/projects/general', General::class)->name('general');
@@ -200,6 +201,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Transactions
     Route::get('transactions', Payment::class)->name('transactions');
     Route::get('transactions/admission-invoice', AdmissionInvoice::class)->name('admission-invoice');
+    // Normal Controller
+    Route::post('/transactions/generate-invoice', [TransactionController::class, 'generateInvoice'])->name('invoice');
 
 
     // Ecommerce

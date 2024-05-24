@@ -4,7 +4,8 @@
     <div class="my-4">
         <div class="flex flex-wrap -mx-3">
             <div class="w-full max-w-full px-3 mx-auto sm:flex-0 shrink-0 sm:w-10/12 md:w-8/12">
-                <form wire:submit="generateInvoice">
+                <form action="{{route('invoice')}}" method="POST">
+                    @csrf
                     <div
                         class="relative flex flex-col min-w-0 break-words bg-white border-0 dark:bg-gray-950 dark:shadow-soft-dark-xl shadow-soft-xl rounded-2xl bg-clip-border sm:my-12">
                         <div class="border-black/12.5 rounded-t-2xl border-b-0 border-solid p-6 text-center">
@@ -77,7 +78,7 @@
                                                     Transaction ID:</th>
                                                     <td
                                                         class="p-2 text-left border-b whitespace-nowrap dark:border-white/40 dark:text-white/60">
-                                                        Not Available</td>
+                                                        {{$transactionId ?? 'Not Available'}}</td>
                                                 </tr>
                                                 <tr>
                                                     <th scope="col"
