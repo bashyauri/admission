@@ -106,4 +106,14 @@ class User extends Authenticatable implements MustVerifyEmail
             ['status' => TransactionStatus::APPROVED, 'resource' => $payment]
         )->exists() ?? false;
     }
+    public function getFullNameAttribute()
+    {
+        return $this->surname . ' ' . $this->firstname . ' ' . $this->m_name;
+    }
+    public function hasInvoice(string $paymentType)
+    {
+        return $this->transactions()->where(
+            ['resource' => $paymentType]
+        )->count() ?? false;
+    }
 }

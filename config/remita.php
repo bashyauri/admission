@@ -12,7 +12,10 @@ return [
         'apikey' => env('APIKEY'),
         'academic_session' => env('ACADEMIC_SESSION'),
         'invoice_url' => env('REMITA_PAYMENT_INIT_URL'),
-        'base_url' => env('BASE_URL ')
+        'base_url' => env('BASE_URL '),
+        'address' => env('INSTITUTION_ADDRESS'),
+        'state' => env('INSTITUTION_STATE'),
+        'email' => env('INSTITUTION_EMAIL'),
     ],
     'status' => [
         'approved' => '00',

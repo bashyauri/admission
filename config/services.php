@@ -34,5 +34,6 @@ return [
         'username' => env('GEONAME_USERNAME'),
         'country_id' => env('GEONAME_COUNTRY_ID'),
     ],
+    
 
 ];
