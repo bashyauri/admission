@@ -99,6 +99,7 @@ use App\Http\Livewire\LaravelExamples\UsersManagement\Edit as UserManagementEdit
 use App\Http\Livewire\LaravelExamples\UsersManagement\Index as UserManagementIndex;
 use App\Http\Livewire\LaravelExamples\UsersManagement\Create as UserManagementCreate;
 use App\Http\Livewire\Authentication\Verification\Illustration as VerificationIllustration;
+use App\Http\Livewire\Transactions\AdmissionInvoice;
 use App\Http\Livewire\Transactions\Payment;
 
 /*
@@ -198,6 +199,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // Transactions
     Route::get('transactions', Payment::class)->name('transactions');
+    Route::get('transactions/admission-invoice', AdmissionInvoice::class)->name('admission-invoice');
 
 
     // Ecommerce

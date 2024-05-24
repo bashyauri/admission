@@ -1,0 +1,13 @@
+<?php
+
+namespace App\Http\Livewire\Transactions;
+
+use Livewire\Component;
+
+class AdmissionInvoice extends Component
+{
+    public function render()
+    {
+        return view('livewire.transactions.admission-invoice');
+    }
+}

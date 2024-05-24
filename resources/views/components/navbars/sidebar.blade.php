@@ -26,7 +26,7 @@
           class="hidden h-full max-w-full transition-all duration-200 ease-soft-in-out max-h-8 dark:inline-block"
           alt="main_logo" />
 
-        <span class="ml-1 font-semibold transition-all duration-200 ease-soft-in-out">Soft UI Dashboard PRO</span>
+        <span class="ml-1 font-semibold transition-all duration-200 ease-soft-in-out">Wufpbk DHS</span>
       </a>
     </div>
 
@@ -346,8 +346,531 @@
         </li>
 
         <li class="w-full mt-4">
-          <h6 class="pl-6 ml-2 font-bold leading-tight uppercase text-size-xs opacity-60 dark:text-white">PAGES</h6>
+          <h6 class="pl-6 ml-2 font-bold leading-tight uppercase text-size-xs opacity-60 dark:text-white">ADMISSION</h6>
         </li>
+         <!-- Applications -->
+
+         <li class="mt-0.5 w-full">
+            <a {{ in_array_r(request()->route()->getName(),getCategoriesArray('applications')) ? 'active_primary
+              aria-expanded=true' :
+              'aria-expanded=false' }} collapse_trigger="primary" href="javascript:;" class="ease-soft-in-out
+              text-size-sm
+              py-2.7 active after:ease-soft-in-out after:font-awesome-5-free my-0 mx-4 flex items-center whitespace-nowrap
+              px-4 {{ in_array_r(request()->route()->getName(),getCategoriesArray('applications')) ? 'font-semibold
+              text-slate-700
+              xl:shadow-soft-xl rounded-lg bg-white transition-all after:text-slate-800 after:rotate-180' : 'font-medium
+              text-slate-500 shadow-none transition-colors after:text-slate-800/50 dark:after:text-white/50
+              dark:after:text-white' }} after:ml-auto after:inline-block after:font-bold after:antialiased
+              after:transition-all after:duration-200 after:content-['\f107'] dark:text-white dark:opacity-80">
+  
+              <div
+                class="stroke-none mr-2 flex h-8 w-8 items-center justify-center rounded-lg bg-white bg-center fill-current p-2.5 text-center text-black {{ in_array_r(request()->route()->getName(),getCategoriesArray('applications')) ? 'shadow-soft-sm bg-gradient-fuchsia' : 'shadow-soft-2xl' }}">
+  
+                <svg width="12px" height="12px" viewBox="0 0 40 40" version="1.1" xmlns="http://www.w3.org/2000/svg"
+                  xmlns:xlink="http://www.w3.org/1999/xlink">
+                  <title>settings</title>
+                  <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+                    <g transform="translate(-2020.000000, -442.000000)" fill="#FFFFFF" fill-rule="nonzero">
+                      <g transform="translate(1716.000000, 291.000000)">
+                        <g transform="translate(304.000000, 151.000000)">
+                          <polygon
+                            class="{{ in_array_r(request()->route()->getName(),getCategoriesArray('applications')) ? '' : 'fill-slate-800' }}"
+                            opacity="0.596981957"
+                            points="18.0883333 15.7316667 11.1783333 8.82166667 13.3333333 6.66666667 6.66666667 0 0 6.66666667 6.66666667 13.3333333 8.82166667 11.1783333 15.315 17.6716667">
+                          </polygon>
+                          <path
+                            class="{{ in_array_r(request()->route()->getName(),getCategoriesArray('applications')) ? '' : 'fill-slate-800' }}"
+                            d="M31.5666667,23.2333333 C31.0516667,23.2933333 30.53,23.3333333 30,23.3333333 C29.4916667,23.3333333 28.9866667,23.3033333 28.48,23.245 L22.4116667,30.7433333 L29.9416667,38.2733333 C32.2433333,40.575 35.9733333,40.575 38.275,38.2733333 L38.275,38.2733333 C40.5766667,35.9716667 40.5766667,32.2416667 38.275,29.94 L31.5666667,23.2333333 Z"
+                            opacity="0.596981957"></path>
+                          <path
+                            class="{{ in_array_r(request()->route()->getName(),getCategoriesArray('applications')) ? '' : 'fill-slate-800' }}"
+                            d="M33.785,11.285 L28.715,6.215 L34.0616667,0.868333333 C32.82,0.315 31.4483333,0 30,0 C24.4766667,0 20,4.47666667 20,10 C20,10.99 20.1483333,11.9433333 20.4166667,12.8466667 L2.435,27.3966667 C0.95,28.7083333 0.0633333333,30.595 0.00333333333,32.5733333 C-0.0583333333,34.5533333 0.71,36.4916667 2.11,37.89 C3.47,39.2516667 5.27833333,40 7.20166667,40 C9.26666667,40 11.2366667,39.1133333 12.6033333,37.565 L27.1533333,19.5833333 C28.0566667,19.8516667 29.01,20 30,20 C35.5233333,20 40,15.5233333 40,10 C40,8.55166667 39.685,7.18 39.1316667,5.93666667 L33.785,11.285 Z">
+                          </path>
+                        </g>
+                      </g>
+                    </g>
+                  </g>
+                </svg>
+              </div>
+  
+              <span
+                class="ml-1 duration-300 opacity-100 pointer-events-none ease-soft {{ in_array_r(request()->route()->getName(),getCategoriesArray('applications')) ? 'text-slate-700' : '' }}">Transactions</span>
+            </a>
+  
+            <div class="h-auto overflow-hidden transition-all duration-200 ease-soft-in-out max-h-0"
+              id="applicationsExamples">
+              <ul class="flex flex-wrap pl-4 mb-0 ml-6 list-none transition-all duration-200 ease-soft-in-out">
+                  <li class="w-full">
+                      <a class="ease-soft-in-out py-1.6 ml-5.4 pl-4 text-size-sm relative my-0 mr-4 flex items-center whitespace-nowrap bg-transparent pr-4 shadow-none transition-colors before:absolute before:top-1/2 before:-translate-y-1/2 before:rounded-3xl before:content-[''] dark:text-white dark:before:bg-white dark:before:opacity-80 {{ Route::currentRouteName() == 'transactions' ? 'before:-left-5 rounded-lg font-semibold text-slate-800 before:h-2 before:w-2 before:bg-slate-800 dark:opacity-100' : 'before:-left-4.5 before:h-1.25 before:w-1.25 font-medium text-slate-800/50 before:bg-slate-800/50 dark:opacity-60' }}"
+                        href="{{ route('transactions') }}">
+                        <span
+                          class="w-0 text-center transition-all duration-200 opacity-0 pointer-events-none ease-soft-in-out">
+                          T
+                        </span>
+                        <span class="transition-all duration-100 pointer-events-none ease-soft"> Transactions </span>
+                      </a>
+                    </li>
+                <li class="w-full">
+                  <a class="ease-soft-in-out py-1.6 ml-5.4 pl-4 text-size-sm relative my-0 mr-4 flex items-center whitespace-nowrap bg-transparent pr-4 shadow-none transition-colors before:absolute before:top-1/2 before:-translate-y-1/2 before:rounded-3xl before:content-[''] dark:text-white dark:before:bg-white dark:before:opacity-80 {{ Route::currentRouteName() == 'admission-invoice' ? 'before:-left-5 rounded-lg font-semibold text-slate-800 before:h-2 before:w-2 before:bg-slate-800 dark:opacity-100' : 'before:-left-4.5 before:h-1.25 before:w-1.25 font-medium text-slate-800/50 before:bg-slate-800/50 dark:opacity-60' }}"
+                    href="{{ route('admission-invoice') }}">
+                    <span
+                      class="w-0 text-center transition-all duration-200 opacity-0 pointer-events-none ease-soft-in-out">
+                      K
+                    </span>
+                    <span class="transition-all duration-100 pointer-events-none ease-soft">Admission Invoice </span>
+                  </a>
+                </li>
+  
+                <li class="w-full">
+                  <a class="ease-soft-in-out py-1.6 ml-5.4 pl-4 text-size-sm relative my-0 mr-4 flex items-center whitespace-nowrap bg-transparent pr-4 shadow-none transition-colors before:absolute before:top-1/2 before:-translate-y-1/2 before:rounded-3xl before:content-[''] dark:text-white dark:before:bg-white dark:before:opacity-80 {{ Route::currentRouteName() == 'olevel' ? 'before:-left-5 rounded-lg font-semibold text-slate-800 before:h-2 before:w-2 before:bg-slate-800 dark:opacity-100' : 'before:-left-4.5 before:h-1.25 before:w-1.25 font-medium text-slate-800/50 before:bg-slate-800/50 dark:opacity-60' }}"
+                    href="{{ route('olevel') }}">
+                    <span
+                      class="w-0 text-center transition-all duration-200 opacity-0 pointer-events-none ease-soft-in-out">
+                      W
+                    </span>
+                    <span class="transition-all duration-100 pointer-events-none ease-soft"> Olevel </span>
+                  </a>
+                </li>
+  
+                <li class="w-full">
+                  <a class="ease-soft-in-out py-1.6 ml-5.4 pl-4 text-size-sm relative my-0 mr-4 flex items-center whitespace-nowrap bg-transparent pr-4 shadow-none transition-colors before:absolute before:top-1/2 before:-translate-y-1/2 before:rounded-3xl before:content-[''] dark:text-white dark:before:bg-white dark:before:opacity-80 {{ Route::currentRouteName() == 'olevel-grade' ? 'before:-left-5 rounded-lg font-semibold text-slate-800 before:h-2 before:w-2 before:bg-slate-800 dark:opacity-100' : 'before:-left-4.5 before:h-1.25 before:w-1.25 font-medium text-slate-800/50 before:bg-slate-800/50 dark:opacity-60' }}"
+                    href="{{ route('olevel-grade') }}">
+                    <span
+                      class="w-0 text-center transition-all duration-200 opacity-0 pointer-events-none ease-soft-in-out">
+                      D
+                    </span>
+                    <span class="transition-all duration-100 pointer-events-none ease-soft"> Olevel Grade </span>
+                  </a>
+                </li>
+  
+                <li class="w-full">
+                  <a class="ease-soft-in-out py-1.6 ml-5.4 pl-4 text-size-sm relative my-0 mr-4 flex items-center whitespace-nowrap bg-transparent pr-4 shadow-none transition-colors before:absolute before:top-1/2 before:-translate-y-1/2 before:rounded-3xl before:content-[''] dark:text-white dark:before:bg-white dark:before:opacity-80 {{ Route::currentRouteName() == 'upload-certificate' ? 'before:-left-5 rounded-lg font-semibold text-slate-800 before:h-2 before:w-2 before:bg-slate-800 dark:opacity-100' : 'before:-left-4.5 before:h-1.25 before:w-1.25 font-medium text-slate-800/50 before:bg-slate-800/50 dark:opacity-60' }}"
+                    href="{{ route('upload-certificate') }}">
+                    <span
+                      class="w-0 text-center transition-all duration-200 opacity-0 pointer-events-none ease-soft-in-out">
+                      CO
+                    </span>
+                    <span class="transition-all duration-100 pointer-events-none ease-soft"> Certificate Upload </span>
+                  </a>
+                </li>
+  
+                <li class="w-full">
+                  <a class="ease-soft-in-out py-1.6 ml-5.4 pl-4 text-size-sm relative my-0 mr-4 flex items-center whitespace-nowrap bg-transparent pr-4 shadow-none transition-colors before:absolute before:top-1/2 before:-translate-y-1/2 before:rounded-3xl before:content-[''] dark:text-white dark:before:bg-white dark:before:opacity-80 {{ Route::currentRouteName() == 'proposed-course' ? 'before:-left-5 rounded-lg font-semibold text-slate-800 before:h-2 before:w-2 before:bg-slate-800 dark:opacity-100' : 'before:-left-4.5 before:h-1.25 before:w-1.25 font-medium text-slate-800/50 before:bg-slate-800/50 dark:opacity-60' }}"
+                    href="{{ route('proposed-course') }}">
+                    <span
+                      class="w-0 text-center transition-all duration-200 opacity-0 pointer-events-none ease-soft-in-out">
+                      A
+                    </span>
+                    <span class="transition-all duration-100 pointer-events-none ease-soft"> Select Course </span>
+                  </a>
+                </li>
+              </ul>
+            </div>
+          </li>
+        {{-- pAYMENT --}}
+        <li class="mt-0.5 w-full">
+
+            <a {{ in_array_r(request()->route()->getName(),getCategoriesArray('remita-transactions')) ? 'active_primary
+              aria-expanded=true' :
+              'aria-expanded=false' }} collapse_trigger="primary" href="javascript:;" class="ease-soft-in-out
+              text-size-sm
+              py-2.7 active after:ease-soft-in-out after:font-awesome-5-free my-0 mx-4 flex items-center whitespace-nowrap
+              px-4 {{ in_array_r(request()->route()->getName(),getCategoriesArray('pages')) ? 'font-semibold
+              text-slate-700
+              xl:shadow-soft-xl rounded-lg bg-white transition-all after:text-slate-800 after:rotate-180' : 'font-medium
+              text-slate-500 shadow-none transition-colors after:text-slate-800/50 dark:after:text-white/50
+              dark:after:text-white' }} after:ml-auto after:inline-block after:font-bold after:antialiased
+              after:transition-all after:duration-200 after:content-['\f107'] dark:text-white dark:opacity-80">
+
+              <!-- big anchor expandable -->
+              <div
+                class="stroke-none mr-2 flex h-8 w-8 items-center justify-center rounded-lg bg-white bg-center fill-current p-2.5 text-center text-black {{ in_array_r(request()->route()->getName(),getCategoriesArray('pages')) ? 'shadow-soft-sm bg-gradient-fuchsia' : 'shadow-soft-2xl' }}">
+
+                <!-- icon -->
+
+                <svg width="12px" height="12px" viewBox="0 0 42 42" version="1.1" xmlns="http://www.w3.org/2000/svg"
+                  xmlns:xlink="http://www.w3.org/1999/xlink">
+                  <title>office</title>
+                  <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+                    <g transform="translate(-1869.000000, -293.000000)" fill="#FFFFFF" fill-rule="nonzero">
+                      <g transform="translate(1716.000000, 291.000000)">
+                        <g id="office" transform="translate(153.000000, 2.000000)">
+                          <path
+                            class="{{ in_array_r(request()->route()->getName(),getCategoriesArray('pages')) ? '' : 'fill-slate-800' }}"
+                            d="M12.25,17.5 L8.75,17.5 L8.75,1.75 C8.75,0.78225 9.53225,0 10.5,0 L31.5,0 C32.46775,0 33.25,0.78225 33.25,1.75 L33.25,12.25 L29.75,12.25 L29.75,3.5 L12.25,3.5 L12.25,17.5 Z"
+                            opacity="0.6"></path>
+                          <path
+                            class="{{ in_array_r(request()->route()->getName(),getCategoriesArray('pages')) ? '' : 'fill-slate-800' }}"
+                            d="M40.25,14 L24.5,14 C23.53225,14 22.75,14.78225 22.75,15.75 L22.75,38.5 L19.25,38.5 L19.25,22.75 C19.25,21.78225 18.46775,21 17.5,21 L1.75,21 C0.78225,21 0,21.78225 0,22.75 L0,40.25 C0,41.21775 0.78225,42 1.75,42 L40.25,42 C41.21775,42 42,41.21775 42,40.25 L42,15.75 C42,14.78225 41.21775,14 40.25,14 Z M12.25,36.75 L7,36.75 L7,33.25 L12.25,33.25 L12.25,36.75 Z M12.25,29.75 L7,29.75 L7,26.25 L12.25,26.25 L12.25,29.75 Z M35,36.75 L29.75,36.75 L29.75,33.25 L35,33.25 L35,36.75 Z M35,29.75 L29.75,29.75 L29.75,26.25 L35,26.25 L35,29.75 Z M35,22.75 L29.75,22.75 L29.75,19.25 L35,19.25 L35,22.75 Z">
+                          </path>
+                        </g>
+                      </g>
+                    </g>
+                  </g>
+                </svg>
+              </div>
+
+              <!-- primary span -->
+
+              <span
+                class="ml-1 duration-300 opacity-100 pointer-events-none ease-soft {{ in_array_r(request()->route()->getName(),getCategoriesArray('pages')) ? 'text-slate-700' : '' }}">Transactions</span>
+            </a>
+
+            <div class="h-auto overflow-hidden transition-all duration-200 ease-soft-in-out max-h-0" id="pagesExamples">
+              <ul class="flex flex-wrap pl-4 mb-0 ml-6 list-none transition-all duration-200 ease-soft-in-out">
+                <li class="w-full">
+                    <a class="ease-soft-in-out py-1.6 ml-5.4 pl-4 text-size-sm relative my-0 mr-4 flex items-center whitespace-nowrap bg-transparent pr-4 shadow-none transition-colors before:absolute before:top-1/2 before:-translate-y-1/2 before:rounded-3xl before:content-[''] dark:text-white dark:before:bg-white dark:before:opacity-80 {{ Route::currentRouteName() == 'transactions' ? 'before:-left-5 rounded-lg font-semibold text-slate-800 before:h-2 before:w-2 before:bg-slate-800 dark:opacity-100' : 'before:-left-4.5 before:h-1.25 before:w-1.25 font-medium text-slate-800/50 before:bg-slate-800/50 dark:opacity-60' }}"
+                      href="{{ route('transactions') }}">
+                      <span
+                        class="w-0 text-center transition-all duration-200 opacity-0 pointer-events-none ease-soft-in-out">
+                        P
+                      </span>
+                      <span class="transition-all duration-100 pointer-events-none ease-soft"> Payments </span>
+                    </a>
+                  </li>
+                <li class="w-full">
+                  <a {{ in_array(request()->route()->getName(),getCategoriesArray('remita-transactions', 'transactions')) ? 'active_secondary
+                    aria-expanded=true' :
+                    'aria-expanded=false' }}
+                    collapse_trigger="secondary" href="javascript:;" class="after:ease-soft-in-out
+                    after:font-awesome-5-free
+                    ease-soft-in-out py-1.6 ml-5.4 pl-4 text-size-sm relative my-0 mr-4 flex items-center
+                    whitespace-nowrap
+                    bg-transparent pr-4 shadow-none transition-colors before:absolute before:top-1/2
+                    before:-translate-y-1/2
+                    before:rounded-3xl before:content-[''] after:ml-auto after:inline-block after:font-bold
+                    after:antialiased after:transition-all after:duration-200 after:content-['\f107'] dark:text-white
+                    dark:before:bg-white dark:before:opacity-80 dark:after:text-white {{
+                    in_array(request()->route()->getName(),getCategoriesArray('remita-transactions', 'transactions')) ? 'before:-left-5
+                    rounded-lg font-semibold text-slate-800 before:bg-slate-800 before:h-2 before:w-2 after:text-slate-800
+                    after:rotate-180 dark:opacity-100' : 'before:-left-4.5 before:h-1.25 before:w-1.25 font-medium
+                    text-slate-800/50 before:bg-slate-800/50 after:text-slate-800/50 dark:opacity-60
+                    dark:after:text-white/50' }}">
+
+                    <span
+                      class="w-0 text-center transition-all duration-200 opacity-0 pointer-events-none ease-soft-in-out">
+                      P
+                    </span>
+                    <span class="transition-all duration-100 pointer-events-none ease-soft"> Profile <b
+                        class="caret"></b></span>
+                  </a>
+
+                  <div class="h-auto overflow-hidden transition-all duration-200 ease-soft-in-out max-h-0"
+                    id="profileExample">
+                    <ul class="flex flex-col flex-wrap pl-0 mb-0 list-none transition-all duration-200 ease-soft-in-out">
+                      <li class="w-full">
+                        <a {{ Route::currentRouteName()=='profile-overview' ? 'active_page' : '' }}
+                          class="ease-soft-in-out py-1.6 ml-5.4 pl-4 text-3.4 relative my-0 mr-4 flex items-center whitespace-nowrap bg-transparent pr-4 shadow-none transition-colors dark:text-white {{ Route::currentRouteName() == 'profile-overview' ? 'font-semibold text-slate-800 dark:opacity-100' : 'font-medium text-slate-800/50 dark:opacity-60' }}"
+                          href="{{ route('profile-overview') }}">
+                          <span
+                            class="w-0 leading-tight text-center transition-all duration-200 opacity-0 pointer-events-none text-size-xs ease-soft-in-out">
+                            P </span>
+                          <span class="transition-all duration-100 pointer-events-none ease-soft"> Profile Overview
+                          </span>
+                        </a>
+                      </li>
+
+                      <li class="w-full">
+                        <a {{ Route::currentRouteName()=='profile-teams' ? 'active_page' : '' }}
+                          class="ease-soft-in-out py-1.6 ml-5.4 pl-4 text-3.4 relative my-0 mr-4 flex items-center whitespace-nowrap bg-transparent pr-4 shadow-none transition-colors dark:text-white {{ Route::currentRouteName() == 'profile-teams' ? 'font-semibold text-slate-800 dark:opacity-100' : 'font-medium text-slate-800/50 dark:opacity-60' }}"
+                          href="{{ route('profile-teams') }}">
+                          <span
+                            class="w-0 leading-tight text-center transition-all duration-200 opacity-0 pointer-events-none text-size-xs ease-soft-in-out">
+                            T </span>
+                          <span class="transition-all duration-100 pointer-events-none ease-soft"> Teams </span>
+                        </a>
+                      </li>
+
+                      <li class="w-full">
+                        <a {{ Route::currentRouteName()=='profile-projects' ? 'active_page' : '' }}
+                          class="ease-soft-in-out py-1.6 ml-5.4 pl-4 text-3.4 relative my-0 mr-4 flex items-center whitespace-nowrap bg-transparent pr-4 shadow-none transition-colors dark:text-white {{ Route::currentRouteName() == 'profile-projects' ? 'font-semibold text-slate-800 dark:opacity-100' : 'font-medium text-slate-800/50 dark:opacity-60' }}"
+                          href="{{ route('profile-projects') }}">
+                          <span
+                            class="w-0 leading-tight text-center transition-all duration-200 opacity-0 pointer-events-none text-size-xs ease-soft-in-out">
+                            A </span>
+                          <span class="transition-all duration-100 pointer-events-none ease-soft"> All Projects </span>
+                        </a>
+                      </li>
+
+                    </ul>
+                  </div>
+                </li>
+
+                <li class="w-full">
+                  <a {{ in_array(request()->route()->getName(),getCategoriesArray('pages', 'users')) ? 'active_secondary
+                    aria-expanded=true' :
+                    'aria-expanded=false' }}
+                    collapse_trigger="secondary" href="javascript:;" class="after:ease-soft-in-out
+                    after:font-awesome-5-free
+                    ease-soft-in-out py-1.6 ml-5.4 pl-4 text-size-sm relative my-0 mr-4 flex items-center
+                    whitespace-nowrap
+                    bg-transparent pr-4 shadow-none transition-colors before:absolute before:top-1/2
+                    before:-translate-y-1/2
+                    before:rounded-3xl before:content-[''] after:ml-auto after:inline-block after:font-bold
+                    after:antialiased after:transition-all after:duration-200 after:content-['\f107'] dark:text-white
+                    dark:before:bg-white dark:before:opacity-80 dark:after:text-white {{
+                    in_array(request()->route()->getName(),getCategoriesArray('pages', 'users')) ? 'before:-left-5
+                    rounded-lg font-semibold text-slate-800 before:bg-slate-800 before:h-2 before:w-2 after:text-slate-800
+                    after:rotate-180 dark:opacity-100' : 'before:-left-4.5 before:h-1.25 before:w-1.25 font-medium
+                    text-slate-800/50 before:bg-slate-800/50 after:text-slate-800/50 dark:opacity-60
+                    dark:after:text-white/50' }}">
+
+                    <span
+                      class="w-0 text-center transition-all duration-200 opacity-0 pointer-events-none ease-soft-in-out">
+                      U
+                    </span>
+                    <span class="transition-all duration-100 pointer-events-none ease-soft"> Users <b
+                        class="caret"></b></span>
+                  </a>
+
+                  <div class="h-auto overflow-hidden transition-all duration-200 ease-soft-in-out max-h-0"
+                    id="profileExample">
+                    <ul class="flex flex-col flex-wrap pl-0 mb-0 list-none transition-all duration-200 ease-soft-in-out">
+                      <li class="w-full">
+                        <a {{ Route::currentRouteName()=='reports' ? 'active_page' : '' }}
+                          class="ease-soft-in-out py-1.6 ml-5.4 pl-4 text-3.4 relative my-0 mr-4 flex items-center whitespace-nowrap bg-transparent pr-4 shadow-none transition-colors dark:text-white {{ Route::currentRouteName() == 'reports' ? 'font-semibold text-slate-800 dark:opacity-100' : 'font-medium text-slate-800/50 dark:opacity-60' }}"
+                          href="{{ route('reports') }}">
+                          <span
+                            class="w-0 leading-tight text-center transition-all duration-200 opacity-0 pointer-events-none text-size-xs ease-soft-in-out">
+                            R </span>
+                          <span class="transition-all duration-100 pointer-events-none ease-soft"> Reports
+                          </span>
+                        </a>
+                      </li>
+
+                      <li class="w-full">
+                        <a {{ Route::currentRouteName()=='new-user' ? 'active_page' : '' }}
+                          class="ease-soft-in-out py-1.6 ml-5.4 pl-4 text-3.4 relative my-0 mr-4 flex items-center whitespace-nowrap bg-transparent pr-4 shadow-none transition-colors dark:text-white {{ Route::currentRouteName() == 'new-user' ? 'font-semibold text-slate-800 dark:opacity-100' : 'font-medium text-slate-800/50 dark:opacity-60' }}"
+                          href="{{ route('new-user') }}">
+                          <span
+                            class="w-0 leading-tight text-center transition-all duration-200 opacity-0 pointer-events-none text-size-xs ease-soft-in-out">
+                            N </span>
+                          <span class="transition-all duration-100 pointer-events-none ease-soft"> New User </span>
+                        </a>
+                      </li>
+
+                    </ul>
+                  </div>
+                </li>
+
+                <li class="w-full">
+                  <a {{ in_array(request()->route()->getName(),getCategoriesArray('pages', 'account')) ? 'active_secondary
+                    aria-expanded=true' :
+                    'aria-expanded=false' }}
+                    collapse_trigger="secondary" href="javascript:;" class="after:ease-soft-in-out
+                    after:font-awesome-5-free
+                    ease-soft-in-out py-1.6 ml-5.4 pl-4 text-size-sm relative my-0 mr-4 flex items-center
+                    whitespace-nowrap
+                    bg-transparent pr-4 shadow-none transition-colors before:absolute before:top-1/2
+                    before:-translate-y-1/2
+                    before:rounded-3xl before:content-[''] after:ml-auto after:inline-block after:font-bold
+                    after:antialiased after:transition-all after:duration-200 after:content-['\f107'] dark:text-white
+                    dark:before:bg-white dark:before:opacity-80 dark:after:text-white {{
+                    in_array(request()->route()->getName(),getCategoriesArray('pages', 'account')) ? 'before:-left-5
+                    rounded-lg font-semibold text-slate-800 before:bg-slate-800 before:h-2 before:w-2 after:text-slate-800
+                    after:rotate-180 dark:opacity-100' : 'before:-left-4.5 before:h-1.25 before:w-1.25 font-medium
+                    text-slate-800/50 before:bg-slate-800/50 after:text-slate-800/50 dark:opacity-60
+                    dark:after:text-white/50' }}">
+
+                    <span
+                      class="w-0 text-center transition-all duration-200 opacity-0 pointer-events-none ease-soft-in-out">
+                      A
+                    </span>
+                    <span class="transition-all duration-100 pointer-events-none ease-soft"> Account <b
+                        class="caret"></b></span>
+                  </a>
+
+                  <div class="h-auto overflow-hidden transition-all duration-200 ease-soft-in-out max-h-0"
+                    id="profileExample">
+                    <ul class="flex flex-col flex-wrap pl-0 mb-0 list-none transition-all duration-200 ease-soft-in-out">
+                      <li class="w-full">
+                        <a {{ Route::currentRouteName()=='settings' ? 'active_page' : '' }}
+                          class="ease-soft-in-out py-1.6 ml-5.4 pl-4 text-3.4 relative my-0 mr-4 flex items-center whitespace-nowrap bg-transparent pr-4 shadow-none transition-colors dark:text-white {{ Route::currentRouteName() == 'settings' ? 'font-semibold text-slate-800 dark:opacity-100' : 'font-medium text-slate-800/50 dark:opacity-60' }}"
+                          href="{{ route('settings') }}">
+                          <span
+                            class="w-0 leading-tight text-center transition-all duration-200 opacity-0 pointer-events-none text-size-xs ease-soft-in-out">
+                            S </span>
+                          <span class="transition-all duration-100 pointer-events-none ease-soft"> Settings
+                          </span>
+                        </a>
+                      </li>
+
+                      <li class="w-full">
+                        <a {{ Route::currentRouteName()=='billing' ? 'active_page' : '' }}
+                          class="ease-soft-in-out py-1.6 ml-5.4 pl-4 text-3.4 relative my-0 mr-4 flex items-center whitespace-nowrap bg-transparent pr-4 shadow-none transition-colors dark:text-white {{ Route::currentRouteName() == 'billing' ? 'font-semibold text-slate-800 dark:opacity-100' : 'font-medium text-slate-800/50 dark:opacity-60' }}"
+                          href="{{ route('billing') }}">
+                          <span
+                            class="w-0 leading-tight text-center transition-all duration-200 opacity-0 pointer-events-none text-size-xs ease-soft-in-out">
+                            B </span>
+                          <span class="transition-all duration-100 pointer-events-none ease-soft"> Billing </span>
+                        </a>
+                      </li>
+
+                      <li class="w-full">
+                        <a {{ Route::currentRouteName()=='invoice' ? 'active_page' : '' }}
+                          class="ease-soft-in-out py-1.6 ml-5.4 pl-4 text-3.4 relative my-0 mr-4 flex items-center whitespace-nowrap bg-transparent pr-4 shadow-none transition-colors dark:text-white {{ Route::currentRouteName() == 'invoice' ? 'font-semibold text-slate-800 dark:opacity-100' : 'font-medium text-slate-800/50 dark:opacity-60' }}"
+                          href="{{ route('invoice') }}">
+                          <span
+                            class="w-0 leading-tight text-center transition-all duration-200 opacity-0 pointer-events-none text-size-xs ease-soft-in-out">
+                            I </span>
+                          <span class="transition-all duration-100 pointer-events-none ease-soft"> Invoice </span>
+                        </a>
+                      </li>
+
+                      <li class="w-full">
+                        <a {{ Route::currentRouteName()=='security' ? 'active_page' : '' }}
+                          class="ease-soft-in-out py-1.6 ml-5.4 pl-4 text-3.4 relative my-0 mr-4 flex items-center whitespace-nowrap bg-transparent pr-4 shadow-none transition-colors dark:text-white {{ Route::currentRouteName() == 'security' ? 'font-semibold text-slate-800 dark:opacity-100' : 'font-medium text-slate-800/50 dark:opacity-60' }}"
+                          href="{{ route('security') }}">
+                          <span
+                            class="w-0 leading-tight text-center transition-all duration-200 opacity-0 pointer-events-none text-size-xs ease-soft-in-out">
+                            S </span>
+                          <span class="transition-all duration-100 pointer-events-none ease-soft"> Security </span>
+                        </a>
+                      </li>
+
+                    </ul>
+                  </div>
+                </li>
+
+                <li class="w-full">
+                  <a {{ in_array(request()->route()->getName(),getCategoriesArray('pages', 'projects')) ?
+                    'active_secondary
+                    aria-expanded=true' :
+                    'aria-expanded=false' }}
+                    collapse_trigger="secondary" href="javascript:;" class="after:ease-soft-in-out
+                    after:font-awesome-5-free
+                    ease-soft-in-out py-1.6 ml-5.4 pl-4 text-size-sm relative my-0 mr-4 flex items-center
+                    whitespace-nowrap
+                    bg-transparent pr-4 shadow-none transition-colors before:absolute before:top-1/2
+                    before:-translate-y-1/2
+                    before:rounded-3xl before:content-[''] after:ml-auto after:inline-block after:font-bold
+                    after:antialiased after:transition-all after:duration-200 after:content-['\f107'] dark:text-white
+                    dark:before:bg-white dark:before:opacity-80 dark:after:text-white {{
+                    in_array(request()->route()->getName(),getCategoriesArray('pages', 'projects')) ? 'before:-left-5
+                    rounded-lg font-semibold text-slate-800 before:bg-slate-800 before:h-2 before:w-2 after:text-slate-800
+                    after:rotate-180 dark:opacity-100' : 'before:-left-4.5 before:h-1.25 before:w-1.25 font-medium
+                    text-slate-800/50 before:bg-slate-800/50 after:text-slate-800/50 dark:opacity-60
+                    dark:after:text-white/50' }}">
+
+                    <span
+                      class="w-0 text-center transition-all duration-200 opacity-0 pointer-events-none ease-soft-in-out">
+                      P
+                    </span>
+                    <span class="transition-all duration-100 pointer-events-none ease-soft"> Projects <b
+                        class="caret"></b></span>
+                  </a>
+
+                  <div class="h-auto overflow-hidden transition-all duration-200 ease-soft-in-out max-h-0"
+                    id="profileExample">
+                    <ul class="flex flex-col flex-wrap pl-0 mb-0 list-none transition-all duration-200 ease-soft-in-out">
+                      <li class="w-full">
+                        <a {{ Route::currentRouteName()=='general' ? 'active_page' : '' }}
+                          class="ease-soft-in-out py-1.6 ml-5.4 pl-4 text-3.4 relative my-0 mr-4 flex items-center whitespace-nowrap bg-transparent pr-4 shadow-none transition-colors dark:text-white {{ Route::currentRouteName() == 'general' ? 'font-semibold text-slate-800 dark:opacity-100' : 'font-medium text-slate-800/50 dark:opacity-60' }}"
+                          href="{{ route('general') }}">
+                          <span
+                            class="w-0 leading-tight text-center transition-all duration-200 opacity-0 pointer-events-none text-size-xs ease-soft-in-out">
+                            G </span>
+                          <span class="transition-all duration-100 pointer-events-none ease-soft"> General
+                          </span>
+                        </a>
+                      </li>
+
+                      <li class="w-full">
+                        <a {{ Route::currentRouteName()=='timeline' ? 'active_page' : '' }}
+                          class="ease-soft-in-out py-1.6 ml-5.4 pl-4 text-3.4 relative my-0 mr-4 flex items-center whitespace-nowrap bg-transparent pr-4 shadow-none transition-colors dark:text-white {{ Route::currentRouteName() == 'timeline' ? 'font-semibold text-slate-800 dark:opacity-100' : 'font-medium text-slate-800/50 dark:opacity-60' }}"
+                          href="{{ route('timeline') }}">
+                          <span
+                            class="w-0 leading-tight text-center transition-all duration-200 opacity-0 pointer-events-none text-size-xs ease-soft-in-out">
+                            T </span>
+                          <span class="transition-all duration-100 pointer-events-none ease-soft"> Timeline </span>
+                        </a>
+                      </li>
+
+                      <li class="w-full">
+                        <a {{ Route::currentRouteName()=='new-project' ? 'active_page' : '' }}
+                          class="ease-soft-in-out py-1.6 ml-5.4 pl-4 text-3.4 relative my-0 mr-4 flex items-center whitespace-nowrap bg-transparent pr-4 shadow-none transition-colors dark:text-white {{ Route::currentRouteName() == 'new-project' ? 'font-semibold text-slate-800 dark:opacity-100' : 'font-medium text-slate-800/50 dark:opacity-60' }}"
+                          href="{{ route('new-project') }}">
+                          <span
+                            class="w-0 leading-tight text-center transition-all duration-200 opacity-0 pointer-events-none text-size-xs ease-soft-in-out">
+                            N </span>
+                          <span class="transition-all duration-100 pointer-events-none ease-soft"> New Project </span>
+                        </a>
+                      </li>
+
+                    </ul>
+                  </div>
+                </li>
+
+                <li class="w-full">
+                  <a class="ease-soft-in-out py-1.6 ml-5.4 pl-4 text-size-sm relative my-0 mr-4 flex items-center whitespace-nowrap bg-transparent pr-4 shadow-none transition-colors before:absolute before:top-1/2 before:-translate-y-1/2 before:rounded-3xl before:content-[''] dark:text-white dark:before:bg-white dark:before:opacity-80 before:-left-4.5 before:h-1.25 before:w-1.25 font-medium text-slate-800/50 before:bg-slate-800/50 dark:opacity-60"
+                    href="{{ route('pricing-page') }}">
+                    <span
+                      class="w-0 text-center transition-all duration-200 opacity-0 pointer-events-none ease-soft-in-out">
+                      P
+                    </span>
+                    <span class="transition-all duration-100 pointer-events-none ease-soft"> Pricing Page </span>
+                  </a>
+                </li>
+
+                
+
+                <li class="w-full">
+                  <a class="ease-soft-in-out py-1.6 ml-5.4 pl-4 text-size-sm relative my-0 mr-4 flex items-center whitespace-nowrap bg-transparent pr-4 shadow-none transition-colors before:absolute before:top-1/2 before:-translate-y-1/2 before:rounded-3xl before:content-[''] dark:text-white dark:before:bg-white dark:before:opacity-80 before:-left-4.5 before:h-1.25 before:w-1.25 font-medium text-slate-800/50 before:bg-slate-800/50 dark:opacity-60"
+                    href="{{ route('rtl') }}">
+                    <span
+                      class="w-0 text-center transition-all duration-200 opacity-0 pointer-events-none ease-soft-in-out">
+                      R
+                    </span>
+                    <span class="transition-all duration-100 pointer-events-none ease-soft"> RTL </span>
+                  </a>
+                </li>
+
+                <li class="w-full">
+                  <a class="ease-soft-in-out py-1.6 ml-5.4 pl-4 text-size-sm relative my-0 mr-4 flex items-center whitespace-nowrap bg-transparent pr-4 shadow-none transition-colors before:absolute before:top-1/2 before:-translate-y-1/2 before:rounded-3xl before:content-[''] dark:text-white dark:before:bg-white dark:before:opacity-80 {{ Route::currentRouteName() == 'widgets' ? 'before:-left-5 rounded-lg font-semibold text-slate-800 before:h-2 before:w-2 before:bg-slate-800 dark:opacity-100' : 'before:-left-4.5 before:h-1.25 before:w-1.25 font-medium text-slate-800/50 before:bg-slate-800/50 dark:opacity-60' }}"
+                    href="{{ route('widgets') }}">
+                    <span
+                      class="w-0 text-center transition-all duration-200 opacity-0 pointer-events-none ease-soft-in-out">
+                      W
+                    </span>
+                    <span class="transition-all duration-100 pointer-events-none ease-soft"> Widgets </span>
+                  </a>
+                </li>
+
+                <li class="w-full">
+                  <a class="ease-soft-in-out py-1.6 ml-5.4 pl-4 text-size-sm relative my-0 mr-4 flex items-center whitespace-nowrap bg-transparent pr-4 shadow-none transition-colors before:absolute before:top-1/2 before:-translate-y-1/2 before:rounded-3xl before:content-[''] dark:text-white dark:before:bg-white dark:before:opacity-80 {{ Route::currentRouteName() == 'charts' ? 'before:-left-5 rounded-lg font-semibold text-slate-800 before:h-2 before:w-2 before:bg-slate-800 dark:opacity-100' : 'before:-left-4.5 before:h-1.25 before:w-1.25 font-medium text-slate-800/50 before:bg-slate-800/50 dark:opacity-60' }}"
+                    href="{{ route('charts') }}">
+                    <span
+                      class="w-0 text-center transition-all duration-200 opacity-0 pointer-events-none ease-soft-in-out">
+                      C
+                    </span>
+                    <span class="transition-all duration-100 pointer-events-none ease-soft"> Charts </span>
+                  </a>
+                </li>
+
+                <li class="w-full">
+                  <a class="ease-soft-in-out py-1.6 ml-5.4 pl-4 text-size-sm relative my-0 mr-4 flex items-center whitespace-nowrap bg-transparent pr-4 shadow-none transition-colors before:absolute before:top-1/2 before:-translate-y-1/2 before:rounded-3xl before:content-[''] dark:text-white dark:before:bg-white dark:before:opacity-80 {{ Route::currentRouteName() == 'sweet-alerts' ? 'before:-left-5 rounded-lg font-semibold text-slate-800 before:h-2 before:w-2 before:bg-slate-800 dark:opacity-100' : 'before:-left-4.5 before:h-1.25 before:w-1.25 font-medium text-slate-800/50 before:bg-slate-800/50 dark:opacity-60' }}"
+                    href="{{ route('sweet-alerts') }}">
+                    <span
+                      class="w-0 text-center transition-all duration-200 opacity-0 pointer-events-none ease-soft-in-out">
+                      S
+                    </span>
+                    <span class="transition-all duration-100 pointer-events-none ease-soft"> Sweet Alerts </span>
+                  </a>
+                </li>
+
+                <li class="w-full">
+                  <a class="ease-soft-in-out py-1.6 ml-5.4 pl-4 text-size-sm relative my-0 mr-4 flex items-center whitespace-nowrap bg-transparent pr-4 shadow-none transition-colors before:absolute before:top-1/2 before:-translate-y-1/2 before:rounded-3xl before:content-[''] dark:text-white dark:before:bg-white dark:before:opacity-80 {{ Route::currentRouteName() == 'notifications' ? 'before:-left-5 rounded-lg font-semibold text-slate-800 before:h-2 before:w-2 before:bg-slate-800 dark:opacity-100' : 'before:-left-4.5 before:h-1.25 before:w-1.25 font-medium text-slate-800/50 before:bg-slate-800/50 dark:opacity-60' }}"
+                    href="{{ route('notifications') }}">
+                    <span
+                      class="w-0 text-center transition-all duration-200 opacity-0 pointer-events-none ease-soft-in-out">
+                      N
+                    </span>
+                    <span class="transition-all duration-100 pointer-events-none ease-soft"> Notifications </span>
+                  </a>
+                </li>
+              </ul>
+            </div>
+          </li>
 
         <li class="mt-0.5 w-full">
 
@@ -751,6 +1274,7 @@
             </ul>
           </div>
         </li>
+
 
         <!-- Applications -->
 
