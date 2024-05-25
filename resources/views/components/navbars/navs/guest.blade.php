@@ -1729,7 +1729,7 @@
                                             </div>
                                         </div>
                                     </a>
-                                    <a class="hover:text-slate-700 hover:bg-gray-200 block w-full px-4 py-1.2 clear-both font-normal text-slate-500 text-align-inherit whitespace-nowrap bg-transparent border-0 lg:transition-colors lg:duration-300 lg:ease-soft rounded-lg"
+                                   <a class="hover:text-slate-700 hover:bg-gray-200 block w-full px-4 py-1.2 clear-both font-normal text-slate-500 text-align-inherit whitespace-nowrap bg-transparent border-0 lg:transition-colors lg:duration-300 lg:ease-soft rounded-lg"
                                         href="javascript:;">
                                         <div class="flex">
                                             <div
