@@ -1,3 +1,4 @@
+
 <div>
     <div class="flex flex-wrap -mx-3">
         <div class="relative z-20 w-full max-w-full px-3 lg:flex-0 shrink-0 lg:w-7/12">
@@ -26,21 +27,25 @@
                 class="relative z-20 flex flex-col min-w-0 break-words bg-white border-0 border-solid dark:bg-gray-950 border-black-125 shadow-soft-xl dark:shadow-soft-dark-xl rounded-2xl bg-clip-border">
                 <div class="flex-auto p-4">
 
-                    <div class="relative flex flex-col min-w-0 break-words bg-white border-0 shadow-soft-xl rounded-2xl bg-clip-border">
 
-                        <div class="flex-auto px-1 pt-6">
+
+
 
 
                             <h5>Name: {{auth()->user()->surname .' ' . auth()->user()->firstname .' ' . auth()->user()->m_name}}</h5>
 
-
-                          <p class="mb-6 leading-normal text-sm">Department:</p>
+                            @php
+                                $department_id = auth()->user()->proposedCourse?->department_id;
+                                $course_id = auth()->user()->proposedCourse?->course_id;
+                            @endphp
+                          <p class="mb-6 leading-normal text-sm">Department: {{App\Models\Department::find($department_id)->name}}</p>
+                          <p class="mb-6 leading-normal text-sm">Course: {{App\Models\Course::find($course_id)->name}}</p>
                           <div class="flex items-center justify-between">
-                            <a href="{{route('profile')}}" type="button" class="inline-block px-8 py-2 mb-0 font-bold text-center uppercase align-middle transition-all bg-transparent border border-solid rounded-lg shadow-none cursor-pointer leading-pro ease-soft-in text-xs hover:scale-102 active:shadow-soft-xs tracking-tight-soft border-fuchsia-500 text-fuchsia-500 hover:border-fuchsia-500 hover:bg-transparent hover:text-fuchsia-500 hover:opacity-75 hover:shadow-none active:bg-fuchsia-500 active:text-white
-                            active:hover:bg-transparent active:hover:text-fuchsia-500">Fill Application Form</a>
+                            <a href="{{route('profile')}}" type="button" class="inline-block px-8 py-2 mb-0 font-bold text-center uppercase align-middle transition-all bg-transparent border border-solid rounded-lg shadow-none cursor-pointer leading-pro ease-soft-in text-xs hover:scale-102 active:shadow-soft-xs tracking-tight-soft border-teal-500 text-teal-500 hover:border-teal-500 hover:bg-transparent hover:text-fuchsia-500 hover:opacity-75 hover:shadow-none active:bg-fuchsia-500 active:text-white
+                            active:hover:bg-transparent active:hover:text-teal-500">Fill Application Form</a>
 
-                          </div>
-                        </div>
+
+
                       </div>
                 </div>
             </div>

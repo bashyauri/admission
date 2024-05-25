@@ -42,20 +42,13 @@
 
                 <div class="w-8/12 max-w-full px-3 my-auto flex-0 sm:w-auto">
                     <div class="h-full">
-                        <h5 class="mb-1 font-bold dark:text-white">{{ auth()->user()->name }}</h5>
+                        <h5 class="mb-1 font-bold dark:text-white">{{ auth()->user()->full_name }}</h5>
                         <p class="mb-0 font-semibold leading-normal text-size-sm">{{ auth()->user()->email }}</p>
                     </div>
                 </div>
                 <div class="flex max-w-full px-3 mt-4 sm:flex-0 shrink-0 sm:mt-0 sm:ml-auto sm:w-auto">
-                    <label profile-visibility-toggle-label for="profile-visibility-toggle"
-                        class="inline-block mb-0 ml-1 font-normal cursor-pointer text-size-sm text-slate-700 dark:text-white/80">
-                        <small>Switch to invisible</small>
-                    </label>
-                    <div class="min-h-6 ml-2 mb-0.5 block pl-12">
-                        <input checked profile-visibility-toggle
-                            class="rounded-10 duration-250 ease-soft-in-out after:rounded-circle after:shadow-soft-2xl after:duration-250 checked:after:translate-x-5.3 h-5-em mt-0.5-em relative float-left -ml-12 w-10 cursor-pointer appearance-none border border-solid border-gray-200 bg-slate-800/10 bg-none bg-contain bg-left bg-no-repeat align-top transition-all after:absolute after:top-px after:h-4 after:w-4 after:translate-x-px after:bg-white after:content-[''] checked:border-slate-800/95 checked:bg-slate-800/95 checked:bg-none checked:bg-right"
-                            type="checkbox" />
-                    </div>
+
+
                 </div>
 
             </div>
@@ -83,8 +76,8 @@
                         class="w-85 text-size-sm shadow-soft-2xl pointer-events-auto max-w-full rounded-lg border-0 bg-white bg-clip-padding p-2 transition-opacity ease-linear">
                         <div class="flex items-center p-3 rounded-t-lg bg-clip-padding text-slate-700">
                             <i class="mr-2 ni ni-check-bold text-lime-500"></i>
-                            <span class="mr-auto font-semibold">Soft UI Dashboard</span>
-                            <small class="text-slate-500">Now</small>
+                            <span class="mr-auto font-semibold">Message</span>
+
                             <button type="button" onclick="alertClose()">
                                 <i class="ml-4 cursor-pointer fas fa-times"></i>
                             </button>
@@ -263,20 +256,8 @@
 
                 </div>
 
-                <div class="flex flex-wrap -mx-3">
-                    <div class="flex-auto p-6 pt-0">
-                        <button type="submit"
-                            class="inline-block float-right px-8 py-2 mt-16 mb-0 font-bold text-right text-white uppercase align-middle transition-all border-0 rounded-lg cursor-pointer hover:scale-102 active:opacity-85 hover:shadow-soft-xs dark:bg-gradient-neutral bg-gradient-dark-gray leading-pro text-size-xs ease-soft-in tracking-tight-soft shadow-soft-md bg-150 bg-x-25">Save
-                            Changes</button>
 
-                    </div>
 
-                </div>
-                <div class="flex flex-wrap -mx-3">
-                    <a href="{{route('school-attended')}}" class="inline-block  px-8 py-2 mt-2 mb-0 font-bold text-right text-white uppercase align-middle transition-all border-0 rounded-lg cursor-pointer hover:scale-102 active:opacity-85 hover:shadow-soft-xs dark:bg-gradient-neutral bg-gradient-dark-gray leading-pro text-size-xs ease-soft-in tracking-tight-soft shadow-soft-md bg-150 bg-x-25">
-                        to school attended
-                    </a>
-                </div>
 
 
 

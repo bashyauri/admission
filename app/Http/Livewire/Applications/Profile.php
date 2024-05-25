@@ -25,7 +25,9 @@ class Profile extends Component
 
     public function mount()
     {
-
+        if (!auth()->user()->hasPaid(config('remita.admission.description'))) {
+            to_route('transactions');
+        }
         $user = auth()->user();
         $this->form->setProfile($user);
     }
@@ -90,7 +92,7 @@ class Profile extends Component
     }
     public function render()
     {
-        $this->authorize('has-paid', User::class, config('remita.admission.description'));
+
         return view('livewire.applications.profile');
     }
 }
