@@ -4,7 +4,7 @@
         <div class="container flex flex-wrap items-center justify-between lg:flex-nowrap">
 
             <a class="py-2.5 text-size-sm mr-4 ml-4 whitespace-nowrap font-bold text-{{ in_array(request()->route()->getName(),getCategoriesArray('guest-dark')) ? 'dark' : 'white' }} lg:ml-0"
-                href="{{ env('APP_URL') }}">Soft UI Dashboard PRO</a>
+                href="#">{{config('app.name')}}</a>
 
             <button aria-expanded="false" nav-collapse-trigger
                 class="px-3 py-1 ml-2 leading-none bg-transparent rounded-lg shadow-none cursor-pointer lg:hidden text-size-lg text-slate-700">
@@ -1796,14 +1796,15 @@
                 </ul>
                 @endguest
 
-                <ul class="hidden pl-0 mb-0 list-none lg:block lg:flex-row">
+               {{-- <ul class="hidden pl-0 mb-0 list-none lg:block lg:flex-row">
                     <li>
                         <a href="javascript:;"
-                            {{-- class="inline-block px-8 py-2 mb-0 mr-1 font-bold text-center uppercase align-middle bg-white border-0 cursor-pointer text-size-xs leading-pro text-slate-500 tracking-tight-soft shadow-soft-md bg-150 bg-x-25 rounded-7 {{ in_array(request()->route()->getName(),getCategoriesArray('guest-dark')) ? 'text-white bg-gradient-fuchsia' : '' }}">Buy --}}
+
                              class="inline-block px-8 py-2 mb-0 mr-1 font-bold text-center uppercase align-middle bg-white border-0 cursor-pointer text-size-xs leading-pro text-slate-500 tracking-tight-soft shadow-soft-md bg-150 bg-x-25 rounded-7 text-white bg-gradient-fuchsia">Buy
                              Now</a>
                     </li>
-                </ul>
+                </ul> --}}
+
             </div>
         </div>
     </nav>
