@@ -203,6 +203,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('transactions/admission-invoice', AdmissionInvoice::class)->name('admission-invoice');
     // Normal Controller
     Route::post('/transactions/generate-invoice', [TransactionController::class, 'generateInvoice'])->name('invoice');
+    Route::get('/transactions/generate-invoice', [TransactionController::class, 'index'])->name('payment');
 
 
     // Ecommerce

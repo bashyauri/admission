@@ -326,10 +326,10 @@
                                                 <div>
 
                                                     @if ($status === '01' || $status === '00')
-                                                    <a href="{{ route('home') }}" class="button">Back</a>
+                                                    <a href="{{ route('analytics') }}" class="button">Back</a>
                                                   @else
                                                     <input type="button" onclick="makePayment()" value="Pay" button class="button"/>
-                                                    <a href="{{ route('home') }}" class="button">Back</a>
+                                                    <a href="{{ route('analytics') }}" class="button">Back</a>
                                                   @endif
                                                 </div>
                                             </div>

@@ -22,11 +22,8 @@ class AdmissionInvoice extends Component
     {
         $this->transactionService = new TransactionService();
         if ($this->transactionService->hasInvoice(config('remita.admission.description'))) {
-            $data = Transaction::where([
-                'user_id' => auth()->user()->id,
-                'resource' => config('remita.admission.description')
-            ])->first();
-            return view('payment.payment-slip')->with(json_decode($data, true));
+
+            to_route('payment');
         }
         $this->transactionId = $this->transactionService->generateTransactionId("WUFPDHS");
         $this->amount = config('remita.admission.fee');

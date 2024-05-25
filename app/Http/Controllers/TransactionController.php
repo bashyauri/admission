@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Transaction;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use App\Services\TransactionService;
@@ -10,6 +11,16 @@ class TransactionController extends Controller
 {
     public function __construct(protected TransactionService $transactionService)
     {
+    }
+    public function index()
+    {
+        $data = Transaction::where([
+            'user_id' => auth()->user()->id,
+            'resource' => config('remita.admission.description')
+        ])->first();
+
+
+        return view('payment.payment-slip')->with(json_decode($data, true));
     }
     public function generateInvoice(Request $request)
     {

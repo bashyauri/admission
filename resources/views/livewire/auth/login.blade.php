@@ -98,6 +98,10 @@
                     </div>
 
                     <div class="flex-auto p-6 text-center">
+                        <div wire:loading>
+                            <i class="fas fa-spinner fa-spin"></i> wait...
+                        </div>
+
 
                         <form wire:submit.prevent="login" role="form text-left">
                             <div class="mb-4">
