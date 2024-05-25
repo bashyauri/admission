@@ -99,13 +99,13 @@
                   href="{{ route('analytics') }}">
                   <span
                     class="w-0 text-center transition-all duration-200 opacity-0 pointer-events-none ease-soft-in-out">
-                    A
+                    D
                   </span>
-                  <span class="transition-all duration-100 pointer-events-none ease-soft"> Default </span>
+                  <span class="transition-all duration-100 pointer-events-none ease-soft"> Dashboard </span>
                 </a>
               </li>
 
-              <li class="w-full">
+              {{-- <li class="w-full">
                 <a class="ease-soft-in-out py-1.6 ml-5.4 pl-4 text-size-sm relative my-0 mr-4 flex items-center whitespace-nowrap bg-transparent pr-4 shadow-none transition-colors before:absolute before:top-1/2 before:-translate-y-1/2 before:rounded-3xl before:content-[''] dark:text-white dark:before:bg-white dark:before:opacity-80 {{ Route::currentRouteName() == 'automotive' ? 'before:-left-5 rounded-lg font-semibold text-slate-800 before:h-2 before:w-2 before:bg-slate-800 dark:opacity-100' : 'before:-left-4.5 before:h-1.25 before:w-1.25 font-medium text-slate-800/50 before:bg-slate-800/50 dark:opacity-60' }}"
                   href="{{ route('automotive') }}">
                   <span
@@ -114,9 +114,9 @@
                   </span>
                   <span class="transition-all duration-100 pointer-events-none ease-soft"> Automotive </span>
                 </a>
-              </li>
+              </li> --}}
 
-              <li class="w-full">
+              {{-- <li class="w-full">
                 <a class="ease-soft-in-out py-1.6 ml-5.4 pl-4 text-size-sm relative my-0 mr-4 flex items-center whitespace-nowrap bg-transparent pr-4 shadow-none transition-colors before:absolute before:top-1/2 before:-translate-y-1/2 before:rounded-3xl before:content-[''] dark:text-white dark:before:bg-white dark:before:opacity-80 {{ Route::currentRouteName() == 'smart-home' ? 'before:-left-5 rounded-lg font-semibold text-slate-800 before:h-2 before:w-2 before:bg-slate-800 dark:opacity-100' : 'before:-left-4.5 before:h-1.25 before:w-1.25 font-medium text-slate-800/50 before:bg-slate-800/50 dark:opacity-60' }}"
                   href="{{ route('smart-home') }}">
                   <span
@@ -125,9 +125,9 @@
                   </span>
                   <span class="transition-all duration-100 pointer-events-none ease-soft"> Smart Home </span>
                 </a>
-              </li>
+              </li> --}}
 
-              <li class="w-full">
+              {{-- <li class="w-full">
                 <a {{ in_array(request()->route()->getName(),getCategoriesArray('dashboards', 'virtual-reality')) ?
                   'active_secondary
                   aria-expanded=true' :
@@ -194,12 +194,12 @@
                   </span>
                   <span class="transition-all duration-100 pointer-events-none ease-soft"> CRM </span>
                 </a>
-              </li>
+              </li> --}}
             </ul>
           </div>
         </li>
 
-        <li class="mt-0.5 w-full">
+        {{-- <li class="mt-0.5 w-full">
           <!-- primary anchor  -->
           <a {{ in_array_r(request()->route()->getName(),getCategoriesArray('laravel-examples')) ? 'active_primary
             aria-expanded=true'
@@ -343,29 +343,29 @@
 
             </ul>
           </div>
-        </li>
+        </li> --}}
 
         <li class="w-full mt-4">
           <h6 class="pl-6 ml-2 font-bold leading-tight uppercase text-size-xs opacity-60 dark:text-white">ADMISSION</h6>
         </li>
-         <!-- Applications -->
+         <!-- Transactions -->
 
          <li class="mt-0.5 w-full">
-            <a {{ in_array_r(request()->route()->getName(),getCategoriesArray('applications')) ? 'active_primary
+            <a {{ in_array_r(request()->route()->getName(),getCategoriesArray('remita-transactions')) ? 'active_primary
               aria-expanded=true' :
               'aria-expanded=false' }} collapse_trigger="primary" href="javascript:;" class="ease-soft-in-out
               text-size-sm
               py-2.7 active after:ease-soft-in-out after:font-awesome-5-free my-0 mx-4 flex items-center whitespace-nowrap
-              px-4 {{ in_array_r(request()->route()->getName(),getCategoriesArray('applications')) ? 'font-semibold
+              px-4 {{ in_array_r(request()->route()->getName(),getCategoriesArray('remita-transactions')) ? 'font-semibold
               text-slate-700
               xl:shadow-soft-xl rounded-lg bg-white transition-all after:text-slate-800 after:rotate-180' : 'font-medium
               text-slate-500 shadow-none transition-colors after:text-slate-800/50 dark:after:text-white/50
               dark:after:text-white' }} after:ml-auto after:inline-block after:font-bold after:antialiased
               after:transition-all after:duration-200 after:content-['\f107'] dark:text-white dark:opacity-80">
-  
+
               <div
-                class="stroke-none mr-2 flex h-8 w-8 items-center justify-center rounded-lg bg-white bg-center fill-current p-2.5 text-center text-black {{ in_array_r(request()->route()->getName(),getCategoriesArray('applications')) ? 'shadow-soft-sm bg-gradient-fuchsia' : 'shadow-soft-2xl' }}">
-  
+                class="stroke-none mr-2 flex h-8 w-8 items-center justify-center rounded-lg bg-white bg-center fill-current p-2.5 text-center text-black {{ in_array_r(request()->route()->getName(),getCategoriesArray('remita-transactions')) ? 'shadow-soft-sm bg-gradient-fuchsia' : 'shadow-soft-2xl' }}">
+
                 <svg width="12px" height="12px" viewBox="0 0 40 40" version="1.1" xmlns="http://www.w3.org/2000/svg"
                   xmlns:xlink="http://www.w3.org/1999/xlink">
                   <title>settings</title>
@@ -379,11 +379,11 @@
                             points="18.0883333 15.7316667 11.1783333 8.82166667 13.3333333 6.66666667 6.66666667 0 0 6.66666667 6.66666667 13.3333333 8.82166667 11.1783333 15.315 17.6716667">
                           </polygon>
                           <path
-                            class="{{ in_array_r(request()->route()->getName(),getCategoriesArray('applications')) ? '' : 'fill-slate-800' }}"
+                            class="{{ in_array_r(request()->route()->getName(),getCategoriesArray('remita-transactions')) ? '' : 'fill-slate-800' }}"
                             d="M31.5666667,23.2333333 C31.0516667,23.2933333 30.53,23.3333333 30,23.3333333 C29.4916667,23.3333333 28.9866667,23.3033333 28.48,23.245 L22.4116667,30.7433333 L29.9416667,38.2733333 C32.2433333,40.575 35.9733333,40.575 38.275,38.2733333 L38.275,38.2733333 C40.5766667,35.9716667 40.5766667,32.2416667 38.275,29.94 L31.5666667,23.2333333 Z"
                             opacity="0.596981957"></path>
                           <path
-                            class="{{ in_array_r(request()->route()->getName(),getCategoriesArray('applications')) ? '' : 'fill-slate-800' }}"
+                            class="{{ in_array_r(request()->route()->getName(),getCategoriesArray('remita-transactions')) ? '' : 'fill-slate-800' }}"
                             d="M33.785,11.285 L28.715,6.215 L34.0616667,0.868333333 C32.82,0.315 31.4483333,0 30,0 C24.4766667,0 20,4.47666667 20,10 C20,10.99 20.1483333,11.9433333 20.4166667,12.8466667 L2.435,27.3966667 C0.95,28.7083333 0.0633333333,30.595 0.00333333333,32.5733333 C-0.0583333333,34.5533333 0.71,36.4916667 2.11,37.89 C3.47,39.2516667 5.27833333,40 7.20166667,40 C9.26666667,40 11.2366667,39.1133333 12.6033333,37.565 L27.1533333,19.5833333 C28.0566667,19.8516667 29.01,20 30,20 C35.5233333,20 40,15.5233333 40,10 C40,8.55166667 39.685,7.18 39.1316667,5.93666667 L33.785,11.285 Z">
                           </path>
                         </g>
@@ -392,11 +392,11 @@
                   </g>
                 </svg>
               </div>
-  
+
               <span
-                class="ml-1 duration-300 opacity-100 pointer-events-none ease-soft {{ in_array_r(request()->route()->getName(),getCategoriesArray('applications')) ? 'text-slate-700' : '' }}">Transactions</span>
+                class="ml-1 duration-300 opacity-100 pointer-events-none ease-soft {{ in_array_r(request()->route()->getName(),getCategoriesArray('remita-transactions')) ? 'text-slate-700' : '' }}">Transactions</span>
             </a>
-  
+
             <div class="h-auto overflow-hidden transition-all duration-200 ease-soft-in-out max-h-0"
               id="applicationsExamples">
               <ul class="flex flex-wrap pl-4 mb-0 ml-6 list-none transition-all duration-200 ease-soft-in-out">
@@ -415,67 +415,35 @@
                     href="{{ route('admission-invoice') }}">
                     <span
                       class="w-0 text-center transition-all duration-200 opacity-0 pointer-events-none ease-soft-in-out">
-                      K
+                      AI
                     </span>
                     <span class="transition-all duration-100 pointer-events-none ease-soft">Admission Invoice </span>
                   </a>
                 </li>
-  
                 <li class="w-full">
-                  <a class="ease-soft-in-out py-1.6 ml-5.4 pl-4 text-size-sm relative my-0 mr-4 flex items-center whitespace-nowrap bg-transparent pr-4 shadow-none transition-colors before:absolute before:top-1/2 before:-translate-y-1/2 before:rounded-3xl before:content-[''] dark:text-white dark:before:bg-white dark:before:opacity-80 {{ Route::currentRouteName() == 'olevel' ? 'before:-left-5 rounded-lg font-semibold text-slate-800 before:h-2 before:w-2 before:bg-slate-800 dark:opacity-100' : 'before:-left-4.5 before:h-1.25 before:w-1.25 font-medium text-slate-800/50 before:bg-slate-800/50 dark:opacity-60' }}"
-                    href="{{ route('olevel') }}">
-                    <span
-                      class="w-0 text-center transition-all duration-200 opacity-0 pointer-events-none ease-soft-in-out">
-                      W
-                    </span>
-                    <span class="transition-all duration-100 pointer-events-none ease-soft"> Olevel </span>
-                  </a>
-                </li>
-  
-                <li class="w-full">
-                  <a class="ease-soft-in-out py-1.6 ml-5.4 pl-4 text-size-sm relative my-0 mr-4 flex items-center whitespace-nowrap bg-transparent pr-4 shadow-none transition-colors before:absolute before:top-1/2 before:-translate-y-1/2 before:rounded-3xl before:content-[''] dark:text-white dark:before:bg-white dark:before:opacity-80 {{ Route::currentRouteName() == 'olevel-grade' ? 'before:-left-5 rounded-lg font-semibold text-slate-800 before:h-2 before:w-2 before:bg-slate-800 dark:opacity-100' : 'before:-left-4.5 before:h-1.25 before:w-1.25 font-medium text-slate-800/50 before:bg-slate-800/50 dark:opacity-60' }}"
-                    href="{{ route('olevel-grade') }}">
-                    <span
-                      class="w-0 text-center transition-all duration-200 opacity-0 pointer-events-none ease-soft-in-out">
-                      D
-                    </span>
-                    <span class="transition-all duration-100 pointer-events-none ease-soft"> Olevel Grade </span>
-                  </a>
-                </li>
-  
-                <li class="w-full">
-                  <a class="ease-soft-in-out py-1.6 ml-5.4 pl-4 text-size-sm relative my-0 mr-4 flex items-center whitespace-nowrap bg-transparent pr-4 shadow-none transition-colors before:absolute before:top-1/2 before:-translate-y-1/2 before:rounded-3xl before:content-[''] dark:text-white dark:before:bg-white dark:before:opacity-80 {{ Route::currentRouteName() == 'upload-certificate' ? 'before:-left-5 rounded-lg font-semibold text-slate-800 before:h-2 before:w-2 before:bg-slate-800 dark:opacity-100' : 'before:-left-4.5 before:h-1.25 before:w-1.25 font-medium text-slate-800/50 before:bg-slate-800/50 dark:opacity-60' }}"
-                    href="{{ route('upload-certificate') }}">
-                    <span
-                      class="w-0 text-center transition-all duration-200 opacity-0 pointer-events-none ease-soft-in-out">
-                      CO
-                    </span>
-                    <span class="transition-all duration-100 pointer-events-none ease-soft"> Certificate Upload </span>
-                  </a>
-                </li>
-  
-                <li class="w-full">
-                  <a class="ease-soft-in-out py-1.6 ml-5.4 pl-4 text-size-sm relative my-0 mr-4 flex items-center whitespace-nowrap bg-transparent pr-4 shadow-none transition-colors before:absolute before:top-1/2 before:-translate-y-1/2 before:rounded-3xl before:content-[''] dark:text-white dark:before:bg-white dark:before:opacity-80 {{ Route::currentRouteName() == 'proposed-course' ? 'before:-left-5 rounded-lg font-semibold text-slate-800 before:h-2 before:w-2 before:bg-slate-800 dark:opacity-100' : 'before:-left-4.5 before:h-1.25 before:w-1.25 font-medium text-slate-800/50 before:bg-slate-800/50 dark:opacity-60' }}"
-                    href="{{ route('proposed-course') }}">
-                    <span
-                      class="w-0 text-center transition-all duration-200 opacity-0 pointer-events-none ease-soft-in-out">
-                      A
-                    </span>
-                    <span class="transition-all duration-100 pointer-events-none ease-soft"> Select Course </span>
-                  </a>
-                </li>
+                    <a class="ease-soft-in-out py-1.6 ml-5.4 pl-4 text-size-sm relative my-0 mr-4 flex items-center whitespace-nowrap bg-transparent pr-4 shadow-none transition-colors before:absolute before:top-1/2 before:-translate-y-1/2 before:rounded-3xl before:content-[''] dark:text-white dark:before:bg-white dark:before:opacity-80 {{ Route::currentRouteName() == 'admission-invoice' ? 'before:-left-5 rounded-lg font-semibold text-slate-800 before:h-2 before:w-2 before:bg-slate-800 dark:opacity-100' : 'before:-left-4.5 before:h-1.25 before:w-1.25 font-medium text-slate-800/50 before:bg-slate-800/50 dark:opacity-60' }}"
+                      href="{{ route('payment') }}">
+                      <span
+                        class="w-0 text-center transition-all duration-200 opacity-0 pointer-events-none ease-soft-in-out">
+                        AI
+                      </span>
+                      <span class="transition-all duration-100 pointer-events-none ease-soft">Payment </span>
+                    </a>
+                  </li>
+
+
               </ul>
             </div>
           </li>
         {{-- pAYMENT --}}
-        <li class="mt-0.5 w-full">
+        {{-- <li class="mt-0.5 w-full">
 
             <a {{ in_array_r(request()->route()->getName(),getCategoriesArray('remita-transactions')) ? 'active_primary
               aria-expanded=true' :
               'aria-expanded=false' }} collapse_trigger="primary" href="javascript:;" class="ease-soft-in-out
               text-size-sm
               py-2.7 active after:ease-soft-in-out after:font-awesome-5-free my-0 mx-4 flex items-center whitespace-nowrap
-              px-4 {{ in_array_r(request()->route()->getName(),getCategoriesArray('pages')) ? 'font-semibold
+              px-4 {{ in_array_r(request()->route()->getName(),getCategoriesArray('remita-transactions')) ? 'font-semibold
               text-slate-700
               xl:shadow-soft-xl rounded-lg bg-white transition-all after:text-slate-800 after:rotate-180' : 'font-medium
               text-slate-500 shadow-none transition-colors after:text-slate-800/50 dark:after:text-white/50
@@ -812,7 +780,7 @@
                   </a>
                 </li>
 
-                
+
 
                 <li class="w-full">
                   <a class="ease-soft-in-out py-1.6 ml-5.4 pl-4 text-size-sm relative my-0 mr-4 flex items-center whitespace-nowrap bg-transparent pr-4 shadow-none transition-colors before:absolute before:top-1/2 before:-translate-y-1/2 before:rounded-3xl before:content-[''] dark:text-white dark:before:bg-white dark:before:opacity-80 before:-left-4.5 before:h-1.25 before:w-1.25 font-medium text-slate-800/50 before:bg-slate-800/50 dark:opacity-60"
@@ -1273,7 +1241,7 @@
               </li>
             </ul>
           </div>
-        </li>
+        </li> --}}
 
 
         <!-- Applications -->
@@ -1322,7 +1290,7 @@
             </div>
 
             <span
-              class="ml-1 duration-300 opacity-100 pointer-events-none ease-soft {{ in_array_r(request()->route()->getName(),getCategoriesArray('applications')) ? 'text-slate-700' : '' }}">Applications</span>
+              class="ml-1 duration-300 opacity-100 pointer-events-none ease-soft {{ in_array_r(request()->route()->getName(),getCategoriesArray('applications')) ? 'text-slate-700' : '' }}">Application</span>
           </a>
 
           <div class="h-auto overflow-hidden transition-all duration-200 ease-soft-in-out max-h-0"
@@ -1397,7 +1365,7 @@
         </li>
 
         <!-- Ecommerce  -->
-
+{{--
         <li class="mt-0.5 w-full">
           <a {{ in_array_r(request()->route()->getName(),getCategoriesArray('ecommerce')) ? 'active_primary
             aria-expanded=true' :
@@ -2350,13 +2318,13 @@
             </div>
             <span class="ml-1 duration-300 opacity-100 pointer-events-none ease-soft">Changelog</span>
           </a>
-        </li>
+        </li> --}}
       </ul>
     </div>
 
     <div class="pt-4 mx-4 mt-4">
       <!-- load phantom colors for card after: -->
-      <p
+      {{-- <p
         class="invisible hidden text-red-600 text-orange after:bg-gradient-dark-gray after:bg-gradient-cyan after:bg-gradient-orange after:bg-gradient-lime after:bg-gradient-red after:bg-gradient-slate text-lime-500 text-cyan-500">
       </p>
       <div sidenav-card
@@ -2378,12 +2346,12 @@
               class="inline-block w-full px-8 py-2 mb-0 font-bold text-center text-black uppercase transition-all ease-in bg-white border-0 border-white rounded-lg shadow-soft-md bg-150 leading-pro text-size-xs hover:shadow-soft-2xl hover:scale-102">Documentation</a>
           </div>
         </div>
-      </div>
+      </div> --}}
       {{-- <!-- pro btn  -->
       <a class="inline-block w-full px-6 py-3 my-4 font-bold text-center text-white uppercase align-middle transition-all ease-in border-0 rounded-lg select-none shadow-soft-md bg-150 bg-x-25 leading-pro text-size-xs bg-gradient-fuchsia hover:shadow-soft-2xl hover:scale-102"
         href="https://www.creative-tim.com/product/soft-ui-dashboard-pro-tall">Upgrade to pro</a> --}}
       <!-- free btn  -->
-      <a class="inline-block w-full px-6 py-3 my-4 font-bold text-center text-white uppercase align-middle transition-all ease-in border-0 rounded-lg select-none shadow-soft-md bg-150 bg-x-25 leading-pro text-size-xs bg-gradient-fuchsia hover:shadow-soft-2xl hover:scale-102"
-        href="https://www.creative-tim.com/product/soft-ui-dashboard-tall" target="_blank">Get free version</a>
+      {{-- <a class="inline-block w-full px-6 py-3 my-4 font-bold text-center text-white uppercase align-middle transition-all ease-in border-0 rounded-lg select-none shadow-soft-md bg-150 bg-x-25 leading-pro text-size-xs bg-gradient-fuchsia hover:shadow-soft-2xl hover:scale-102"
+        href="https://www.creative-tim.com/product/soft-ui-dashboard-tall" target="_blank">Get free version</a> --}}
     </div>
   </aside>
