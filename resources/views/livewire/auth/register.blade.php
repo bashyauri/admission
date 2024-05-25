@@ -96,7 +96,7 @@
 
               <div class="text-center">
                 <button type="submit"
-                  class="inline-block w-full px-6 py-3 mt-6 mb-2 font-bold text-center text-white uppercase align-middle transition-all bg-transparent border-0 rounded-lg cursor-pointer active:opacity-85 hover:scale-102 hover:shadow-soft-xs leading-pro text-size-xs ease-soft-in tracking-tight-soft shadow-soft-md bg-150 bg-x-25 bg-teal-700 hover:border-teal-800 hover:bg-teal-800 hover:text-white">Sign
+                  class="inline-block w-full px-6 py-3 mt-6 mb-2 font-bold text-center text-white uppercase align-middle transition-all  border-0 rounded-lg cursor-pointer active:opacity-85 hover:scale-102 hover:shadow-soft-xs leading-pro text-size-xs ease-soft-in tracking-tight-soft shadow-soft-md bg-150 bg-x-25 bg-teal-700 hover:border-teal-800 hover:bg-teal-800 hover:text-white">Sign
                   up</button>
               </div>
               <p class="mt-4 mb-0 leading-normal text-size-sm">Already have an account? <a href="{{ route('login') }}"

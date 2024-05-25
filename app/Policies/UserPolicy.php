@@ -2,6 +2,7 @@
 
 namespace App\Policies;
 
+use App\Models\Transaction;
 use App\Models\User;
 use Illuminate\Auth\Access\HandlesAuthorization;
 
@@ -109,8 +110,8 @@ class UserPolicy
     /**
      * Determine whether the authenticate user can access the profile page etc.
      */
-    public function checkPayment(User $user, $payment)
+    public function checkPayment(User $user, Transaction $transaction)
     {
-        return $user->hasPaid($payment);
+        return $user->hasPaid($transaction->resource);
     }
 }

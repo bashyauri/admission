@@ -59,8 +59,8 @@
     <div class="flex items-center mt-2 grow sm:mt-0 sm:mr-6 md:mr-0 lg:flex lg:basis-auto" id="navbar">
       <div class="flex items-center md:ml-auto md:pr-4">
         <!-- pro btn  -->
-        <a class="mr-2 inline-block w-full px-6 py-3 font-bold text-center text-white uppercase align-middle transition-all ease-in border-0 rounded-lg select-none shadow-soft-md bg-150 bg-x-25 leading-pro text-size-xs bg-gradient-fuchsia hover:shadow-soft-2xl hover:scale-102"
-          href="https://www.creative-tim.com/product/soft-ui-dashboard-pro-tall" target="_blank"><i class="fas fa-shopping-cart mr-2"></i>Purchase now</a>
+        {{-- <a class="mr-2 inline-block w-full px-6 py-3 font-bold text-center text-white uppercase align-middle transition-all ease-in border-0 rounded-lg select-none shadow-soft-md bg-150 bg-x-25 leading-pro text-size-xs bg-gradient-fuchsia hover:shadow-soft-2xl hover:scale-102"
+          href="https://www.creative-tim.com/product/soft-ui-dashboard-pro-tall" target="_blank"><i class="fas fa-shopping-cart mr-2"></i>Purchase now</a> --}}
         <div class="relative flex flex-wrap items-stretch w-full transition-all rounded-lg ease-soft">
           <span
             class="text-size-sm ease-soft leading-5.6 absolute z-50 -ml-px flex h-full items-center whitespace-nowrap rounded-lg rounded-tr-none rounded-br-none border border-r-0 border-transparent bg-transparent py-2 px-2.5 text-center font-normal text-slate-500 transition-all">

@@ -2,19 +2,21 @@
 
 namespace App\Http\Livewire\Applications;
 
-use App\Livewire\Forms\ProfileForm;
 use App\Models\Lga;
 use App\Models\User;
 use App\Models\State;
-use Jantinnerezo\LivewireAlert\LivewireAlert;
 use Livewire\Component;
+use App\Models\Transaction;
 use Livewire\WithFileUploads;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Validate;
+use App\Livewire\Forms\ProfileForm;
+use Jantinnerezo\LivewireAlert\LivewireAlert;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
 class Profile extends Component
 {
-    use WithFileUploads, LivewireAlert;
+    use WithFileUploads, LivewireAlert, AuthorizesRequests;
 
 
 
@@ -25,10 +27,15 @@ class Profile extends Component
 
     public function mount()
     {
+
+
+        $user = auth()->user();
+
+
+
         if (!auth()->user()->hasPaid(config('remita.admission.description'))) {
             to_route('transactions');
         }
-        $user = auth()->user();
         $this->form->setProfile($user);
     }
 
