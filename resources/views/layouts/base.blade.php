@@ -31,9 +31,9 @@
         <meta property="og:site_name" content="Creative Tim" />
     @endif
 
-    <link rel="apple-touch-icon" sizes="76x76" href="{{ asset('assets') }}/img/apple-icon.png" />
-    <link rel="icon" type="image/png" href="{{ asset('assets') }}/img/favicon.png" />
-    <title>Soft UI Dashboard PRO TALL Stack by Creative Tim & UPDIVISION</title>
+    <link rel="apple-touch-icon" sizes="76x76" href="{{ asset('assets') }}/img/wiz_logo/apple-icon.png" />
+    <link rel="icon" type="image/png" href="{{ asset('assets') }}/img/wiz_logo/favicon.png" />
+    <title>{{config('app.name')}}</title>
     <!-- Fonts and icons -->
     <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700" rel="stylesheet" />
     <!-- Nucleo Icons -->
