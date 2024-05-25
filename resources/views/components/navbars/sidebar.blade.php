@@ -19,15 +19,16 @@
       <a class="block px-8 py-6 m-0 text-size-sm whitespace-nowrap text-slate-700 dark:text-white"
         href="{{ env('APP_URL') }}">
         {{-- target="_blank" --}}
-        <img src="{{ asset('assets') }}/img/logo-ct-dark.png"
+        <img src="{{ asset('assets') }}/img/logo-ct.png"
           class="inline-block h-full max-w-full transition-all duration-200 ease-soft-in-out max-h-8 dark:hidden"
           alt="main_logo" />
         <img src="{{ asset('assets') }}/img/logo-ct.png"
           class="hidden h-full max-w-full transition-all duration-200 ease-soft-in-out max-h-8 dark:inline-block"
           alt="main_logo" />
-
-        <span class="ml-1 font-semibold transition-all duration-200 ease-soft-in-out">Wufpbk DHS</span>
+          <span class="ml-1 font-semibold transition-all duration-200 ease-soft-in-out">{{auth()->user()->firstname}},</span>
+        {{-- <span class="ml-1 font-semibold transition-all duration-200 ease-soft-in-out">Wufpbk DHS</span> --}}
       </a>
+
     </div>
 
     <!-- //---------hr----------// -->

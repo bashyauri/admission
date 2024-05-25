@@ -200,7 +200,7 @@
                             <div class="row">
                                 <div class="col-12">
                                     <div class="text-center text-150">
-                                        <img alt="Image placeholder" src="../assets/img/logos/logo.jpg">
+                                        <img alt="Image placeholder" src="{{ asset('assets') }}/img/logo-ct.png">
 
                                     </div>
                                 </div>
