@@ -13,8 +13,9 @@ class ProposedCourseForm extends Form
     #[Validate('required', message: "please select your course")]
     public $courseID;
 
-    public function setProposedCourse(ProposedCourse $course)
+    public function setProposedCourse($course)
     {
+
         $this->departmentID = $course->department_id;
         $this->courseID = $course->course_id;
     }

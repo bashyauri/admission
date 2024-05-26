@@ -16,7 +16,7 @@ class ProposedCourse extends Component
     public ProposedCourseForm $form;
     public function mount()
     {
-        $course = new ModelsProposedCourse();
+        $course = auth()->user()->proposedCourse;
         $this->form->setProposedCourse($course);
     }
     public function save()
