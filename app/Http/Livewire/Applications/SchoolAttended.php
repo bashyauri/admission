@@ -27,8 +27,8 @@ class SchoolAttended extends Component
     {
 
         try {
-
             $this->form->store();
+
             $this->alert('success', 'School Added', [
                 'position' => 'center',
                 'timer' => 3000,

@@ -8,7 +8,7 @@
                 <div wire:loading>
                     <i class="fas fa-spinner fa-spin"></i> wait...
                 </div>
-                <div wire:offline.class="bg-red-500">
+                <div wire:offline>
                     This device is currently offline.
                 </div>
         <form wire:submit="save">
@@ -51,7 +51,7 @@
         @include('livewire.applications.includes.certificate-upload-table')
         <div class="flex justify-end mt-6 mb-4">
 
-            <a href ="#"
+            <a href ="{{route('proposed-course')}}"
             class="inline-block float-right px-8 py-2 mt-2 mb-0 font-bold text-right text-white uppercase align-middle transition-all border-0 rounded-lg cursor-pointer hover:scale-102 active:opacity-85 hover:shadow-soft-xs dark:bg-gradient-neutral bg-gradient-dark-gray leading-pro text-size-xs ease-soft-in tracking-tight-soft shadow-soft-md bg-150 bg-x-25">Next</a>
         </div>
         </div>

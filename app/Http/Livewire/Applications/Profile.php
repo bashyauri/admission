@@ -43,7 +43,7 @@ class Profile extends Component
     {
 
         $user = auth()->user();
-        $this->form->store(); // Assuming 'form' is a model or form object
+        $this->form->store();
 
         $this->updatePicture($user);
 
