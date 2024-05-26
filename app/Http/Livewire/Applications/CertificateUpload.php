@@ -26,7 +26,12 @@ class CertificateUpload extends Component
     #[Validate('required|file|mimes:pdf|max:1024')]
     public $certificate;
 
-
+    public function mount()
+    {
+        if (!auth()->user()->hasPaid(config('remita.admission.description'))) {
+            to_route('transactions');
+        }
+    }
 
     public function save()
     {

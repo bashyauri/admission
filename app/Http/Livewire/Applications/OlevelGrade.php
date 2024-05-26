@@ -16,6 +16,13 @@ class OlevelGrade extends Component
     use LivewireAlert;
 
     public OlevelGradeForm $form;
+
+    public function mount()
+    {
+        if (!auth()->user()->hasPaid(config('remita.admission.description'))) {
+            to_route('transactions');
+        }
+    }
     public function save()
     {
 

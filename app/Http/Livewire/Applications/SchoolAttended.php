@@ -16,7 +16,12 @@ class SchoolAttended extends Component
     public $editingSchoolId;
 
 
-
+    public function mount()
+    {
+        if (!auth()->user()->hasPaid(config('remita.admission.description'))) {
+            to_route('transactions');
+        }
+    }
 
     public function save()
     {

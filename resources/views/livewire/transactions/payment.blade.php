@@ -174,6 +174,10 @@
                           </tr>
 
                         @empty
+                        <div class="flex flex-col justify-center">
+                            <h6 class="mb-0 leading-normal text-sm">No Transaction yet</h6>
+
+                          </div>
 
                         @endforelse
 

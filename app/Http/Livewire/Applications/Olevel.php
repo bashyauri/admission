@@ -15,7 +15,12 @@ class Olevel extends Component
     public OlevelExamForm $form;
     public $editingOlevelExamId;
 
-
+    public function mount()
+    {
+        if (!auth()->user()->hasPaid(config('remita.admission.description'))) {
+            to_route('transactions');
+        }
+    }
     public function save()
     {
 

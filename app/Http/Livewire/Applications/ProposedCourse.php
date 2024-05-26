@@ -16,9 +16,13 @@ class ProposedCourse extends Component
     public ProposedCourseForm $form;
     public function mount()
     {
+        if (!auth()->user()->hasPaid(config('remita.admission.description'))) {
+            to_route('transactions');
+        }
         $course = auth()->user()->proposedCourse;
         $this->form->setProposedCourse($course);
     }
+
     public function save()
     {
         $this->form->store();
