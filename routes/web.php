@@ -204,6 +204,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Normal Controller
     Route::post('/transactions/generate-invoice', [TransactionController::class, 'generateInvoice'])->name('invoice');
     Route::get('/transactions/generate-invoice', [TransactionController::class, 'index'])->name('payment');
+    Route::get('/payment/status/{rrr}', [TransactionController::class, 'checkTransactionStatus'])->name('payment.status');
 
 
     // Ecommerce

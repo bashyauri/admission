@@ -94,8 +94,10 @@ class TransactionService
             'Authorization' => 'remitaConsumerKey=' . $merchantId . ',remitaConsumerToken=' . $hash
         ];
 
+
         $response = Http::withHeaders($headers)
             ->get($url);
+
         return TransactionService::convertJsonToArray($response->body());
     }
 }

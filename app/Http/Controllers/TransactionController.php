@@ -49,4 +49,23 @@ class TransactionController extends Controller
             return redirect()->back()->withErrors(['msgError' => 'Something went wrong:' . $response->status]);
         }
     }
+    public function checkTransactionStatus($rrr)
+    {
+
+
+        try {
+
+
+            $response = $this->transactionService->getTransactionStatus($rrr);
+
+            $this->transactionService->updateTransactionStatus($response->status, $response->RRR);
+
+            // return view('nds.payment')->with($data);
+
+            return redirect()->route('invoice')->with('success', $response->message);
+        } catch (\Exception $ex) {
+            Log::alert($ex->getMessage());
+            return redirect()->back()->withErrors(['msgError' => 'Something went wrong:' . $response->message]);
+        }
+    }
 }

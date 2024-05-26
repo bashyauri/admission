@@ -21,10 +21,7 @@ class AdmissionInvoice extends Component
     public function mount()
     {
         $this->transactionService = new TransactionService();
-        if ($this->transactionService->hasInvoice(config('remita.admission.description'))) {
 
-            to_route('payment');
-        }
         $this->transactionId = $this->transactionService->generateTransactionId("WUFPDHS");
         $this->amount = config('remita.admission.fee');
         $this->description = config('remita.admission.description');

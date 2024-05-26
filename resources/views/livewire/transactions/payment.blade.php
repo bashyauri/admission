@@ -169,8 +169,9 @@
                             </td>
 
                             <td class="p-2 align-middle bg-transparent border-b whitespace-nowrap shadow-transparent">
-                              <a href="#" class="font-semibold leading-tight text-xs text-slate-400"> check status</a>
+                              <a href="{{route('payment.status',['rrr'=>$transaction->RRR])}}" class="font-semibold leading-tight text-xs text-slate-400"> check status</a>
                             </td>
+
                           </tr>
 
                         @empty

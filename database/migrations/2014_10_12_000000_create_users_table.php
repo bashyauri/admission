@@ -36,6 +36,7 @@ return new class extends Migration
             $table->string('kin_address')->nullable();
             $table->string('kin_phone')->nullable();
             $table->timestamp('email_verified_at')->nullable();
+            $table->enum('role', ['applicant', 'student', 'graduate'])->default('applicant')->nullable();
             $table->string('password');
             $table->string('vpassword');
             $table->rememberToken();
