@@ -59,6 +59,7 @@ use App\Http\Livewire\Authentication\Error\Error500;
 use App\Http\Livewire\Ecommerce\Products\NewProduct;
 use App\Http\Livewire\Transactions\AdmissionInvoice;
 use App\Http\Livewire\Applications\CertificateUpload;
+use App\Http\Livewire\Applications\Review;
 use App\Http\Livewire\Ecommerce\Products\EditProduct;
 use App\Http\Livewire\Ecommerce\Products\ProductPage;
 use App\Http\Livewire\Ecommerce\Products\ProductsList;
@@ -197,6 +198,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('applications/olevel-grade', OlevelGrade::class)->name('olevel-grade');
     Route::get('applications/upload-certificate', CertificateUpload::class)->name('upload-certificate');
     Route::get('applications/apply-course', ProposedCourse::class)->name('proposed-course');
+    Route::get('applications/review', Review::class)->name('review');
+
 
     // Transactions
     Route::get('transactions', Payment::class)->name('transactions');
