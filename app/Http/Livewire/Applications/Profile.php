@@ -43,24 +43,16 @@ class Profile extends Component
     {
 
         $user = auth()->user();
-        try {
-            $this->updatePicture($user);
-            $this->form->store(); // Assuming 'form' is a model or form object
-            $this->alert('success', 'Your profile has been successfully updated!', [
-                'position' => 'center',
-                'timer' => 3000,
-                'toast' => true,
-            ]);
-            return to_route('school-attended');
-        } catch (\Exception $e) {
-            report($e);
-            $this->alert('error', 'Profile update failed.', [
-                'position' => 'center',
-                'timer' => 3000,
-                'toast' => true,
-            ]);
-            return to_route('profile');
-        }
+        $this->form->store(); // Assuming 'form' is a model or form object
+
+        $this->updatePicture($user);
+
+        $this->alert('success', 'Your profile has been successfully updated!', [
+            'position' => 'center',
+            'timer' => 3000,
+            'toast' => true,
+        ]);
+        return to_route('school-attended');
     }
 
     protected function updatePicture($user)
