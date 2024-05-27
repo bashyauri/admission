@@ -30,6 +30,8 @@ return new class extends Migration
             $table->string('birthday')->nullable();
             $table->foreignIdFor(State::class)->nullable();
             $table->foreignIdFor(Lga::class)->nullable();
+            $table->string('home_town')->nullable();
+            $table->string('nationality')->nullable();
             $table->string('home_address')->nullable();
             $table->string('cor_address')->nullable();
             $table->string('kin_name')->nullable();

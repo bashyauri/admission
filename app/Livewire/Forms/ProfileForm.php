@@ -24,6 +24,8 @@ class ProfileForm extends Form
     #[Validate('required')]
     public $maritalStatus;
     #[Validate('required')]
+    public $homeTown;
+    #[Validate('required')]
     public $gender;
     #[Validate('required', as: "next of kin name")]
     public $kinName;
@@ -49,6 +51,7 @@ class ProfileForm extends Form
         $this->kinPhone = $profile->kin_phone;
         $this->kinAddress = $profile->kin_address;
         $this->homeAddress = $profile->home_address;
+        $this->homeTown = $profile->home_town;
         $this->corAddress = $profile->cor_address;
         $this->lgaID = $profile->lga_id;
         $this->stateID = $profile->state_id;
@@ -69,6 +72,7 @@ class ProfileForm extends Form
             'kin_address' => $this->kinAddress,
             'home_address' => $this->homeAddress,
             'cor_address' => $this->corAddress,
+            'home_town' => $this->homeTown,
             'lga_id' => $this->lgaID,
             'state_id' => $this->stateID,
         ]);

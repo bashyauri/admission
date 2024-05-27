@@ -36,13 +36,13 @@
 
             <div class="top-container container-fluid border-bottom border-dark row">
                 <div class="log0-container col-2 border-right border-dark text-center mb-3 mt-3">
-                    <img src="{{ asset('assets/img/logos/logo.jpg') }}" alt="logo-image" height="100px" />
+                    <img src="{{ asset('assets/img') }}/logo-ct.png" alt="logo-image" height="100px" />
                 </div>
 
                 <div class="top-container-title col-8 text-center">
                     <h5 class="mb-4 font-weight-bolder">WAZIRI UMARU FEDERAL POLYTECHNIC, BIRNIN KEBBI</h5>
                     <h5 class="mb-4 font-weight-bold">ADMISSION SCREENING FORM</h5>
-                    <h6 class="font-weight-bold">2023/2024 ACADEMIC SESSION </h6>
+                    <h6 class="font-weight-bold">{{strtoupper(config('remita.settings.academic_session'))}} ACADEMIC SESSION </h6>
                 </div>
 
                 {{-- <div class="log0-container col-2 border-left border-dark text-center mb-3 p-3">
@@ -85,16 +85,16 @@
                                     <tr>
                                         <th>Application Number</th>
                                         <td rowspan="4"><img src="{{ asset('storage/' . auth()->user()?->picture) }}" alt="..."
-                                                height="200" width="200"></td>
+                                                height="100" width="100"></td>
                                     </tr>
                                     <tr>
-                                        <td><Strong></Strong></td>
+                                        <td><Strong>{{auth()->user()->id}}</Strong></td>
                                     </tr>
                                     <tr>
                                         <th>Remita Number</th>
                                     </tr>
                                     <tr>
-                                        <td><Strong></Strong></td>
+                                        <td><Strong>{{$RRR}}</Strong></td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -115,15 +115,11 @@
                                         <td>{{ auth()->user()->gender }}</td>
                                     </tr>
                                     <tr>
-                                        <th>Home Town:</th>
-                                        <td>{{ auth()->user()->home_town }}</td>
+
                                         <th>L/Govt. Area:</th>
-
-
-
-                                        <td>{{ auth()->user()->lga_id }}</td>
+                                        <td>{{ ucwords($lga) }}</td>
                                         <th>State of Origin:</th>
-                                        <td>{{ auth()->user()->state_id }}</td>
+                                        <td>{{ ucwords($state)}}</td>
                                     </tr>
                                     <tr>
                                         <th>Nationality:</th>
@@ -342,9 +338,6 @@
         <!-- /container -->
 
     </body>
-    <script>
-        window.print();
-    </script>
 
     </html>
 </div>
