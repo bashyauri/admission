@@ -2,11 +2,12 @@
 
 namespace App\Http\Livewire\Applications;
 
-use App\Livewire\Forms\OlevelExamForm;
-use App\Models\OlevelExam;
-use Jantinnerezo\LivewireAlert\LivewireAlert;
-use Livewire\Attributes\Computed;
 use Livewire\Component;
+use App\Models\OlevelExam;
+use Livewire\Attributes\Computed;
+use App\Livewire\Forms\OlevelExamForm;
+use Jantinnerezo\LivewireAlert\LivewireAlert;
+use Illuminate\Validation\ValidationException;
 
 class Olevel extends Component
 {
@@ -33,6 +34,24 @@ class Olevel extends Component
                 'toast' => true,
             ]);
             to_route('olevel');
+        } catch (ValidationException $e) {
+
+            // Display validation errors
+            $errorMessages = implode(' ', $e->validator->errors()->all());
+
+            $this->alert('error', "$errorMessages", [
+                'position' => 'center',
+                'timer' => 3000,
+                'toast' => true,
+                'showConfirmButton' => true,
+                'onConfirmed' => 'confirmed'
+
+            ]);
+
+
+            // Set validation errors in Livewire's error bag
+            $this->setErrorBag($e->validator->errors());
+            $this->redirect(route('olevel'));
         } catch (\Exception $e) {
             report($e);
             $this->alert('error', 'Save failed.', [
@@ -40,7 +59,7 @@ class Olevel extends Component
                 'timer' => 3000,
                 'toast' => true,
             ]);
-            to_route('olevel');
+            return to_route('olevel');
         }
     }
 
