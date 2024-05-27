@@ -14,7 +14,7 @@ class DatabaseSeeder extends Seeder
      */
     public function run()
     {
-        // DB::statement('SET FOREIGN_KEY_CHECKS=0');
+        DB::statement('SET FOREIGN_KEY_CHECKS=0');
         DB::table('programmes')->truncate();
         DB::table('users')->truncate();
 
@@ -22,7 +22,13 @@ class DatabaseSeeder extends Seeder
         // DB::table('tags')->truncate();
         // DB::table('items')->truncate();
 
-        $this->call([UserSeeder::class, ProgrammeSeeder::class]);
-        // DB::statement('SET FOREIGN_KEY_CHECKS=1');
+        $this->call([
+            UserSeeder::class,
+            ProgrammeSeeder::class,
+            DepartmentSeeder::class,
+            DepartmentProgrammeSeeder::class,
+            CourseSeeder::class,
+        ]);
+        DB::statement('SET FOREIGN_KEY_CHECKS=1');
     }
 }
