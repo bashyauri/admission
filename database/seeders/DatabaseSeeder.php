@@ -17,14 +17,17 @@ class DatabaseSeeder extends Seeder
         DB::statement('SET FOREIGN_KEY_CHECKS=0');
         DB::table('programmes')->truncate();
         DB::table('users')->truncate();
+        DB::table('departments')->truncate();
+        DB::table('department_programmes')->truncate();
+        DB::table('courses')->truncate();
 
         // DB::table('categories')->truncate();
         // DB::table('tags')->truncate();
         // DB::table('items')->truncate();
 
         $this->call([
-            UserSeeder::class,
             ProgrammeSeeder::class,
+            UserSeeder::class,
             DepartmentSeeder::class,
             DepartmentProgrammeSeeder::class,
             CourseSeeder::class,

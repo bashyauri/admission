@@ -113,7 +113,6 @@ class DepartmentProgrammeSeeder extends Seeder
             ['programme_id' => 6, 'department_id' => 28],
 
 
-
         ];
         DB::table('department_programmes')->insert($data);
     }
