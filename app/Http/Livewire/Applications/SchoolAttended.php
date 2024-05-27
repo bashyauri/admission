@@ -4,6 +4,7 @@ namespace App\Http\Livewire\Applications;
 
 use App\Livewire\Forms\SchoolAttendedForm;
 use App\Models\School;
+use Illuminate\Validation\ValidationException;
 use Jantinnerezo\LivewireAlert\LivewireAlert;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
@@ -36,6 +37,24 @@ class SchoolAttended extends Component
             ]);
 
             return to_route('school-attended');
+        } catch (ValidationException $e) {
+
+            // Display validation errors
+            $errorMessages = implode(' ', $e->validator->errors()->all());
+
+            $this->alert('error', "$errorMessages", [
+                'position' => 'center',
+                'timer' => 3000,
+                'toast' => true,
+                'showConfirmButton' => true,
+                'onConfirmed' => 'confirmed'
+
+            ]);
+
+
+            // Set validation errors in Livewire's error bag
+            $this->setErrorBag($e->validator->errors());
+            $this->redirect(route('school-attended'));
         } catch (\Exception $e) {
             report($e);
             $this->alert('error', 'Save failed.', [
@@ -45,6 +64,18 @@ class SchoolAttended extends Component
             ]);
             return to_route('school-attended');
         }
+    }
+
+    public function confirmed()
+    {
+
+        $this->redirect(route('school-attended'));
+    }
+    public function getListeners()
+    {
+        return [
+            'confirmed'
+        ];
     }
     public function edit($schoolId)
     {

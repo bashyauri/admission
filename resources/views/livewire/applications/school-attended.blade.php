@@ -21,7 +21,8 @@
                     <button type="button" data-toggle="modal" data-target="#add-school" class="fa fa-close w-4 h-4 ml-auto box-content p-2 text-black dark:text-white border-0 rounded-1.5 opacity-50 cursor-pointer -m-2 " data-dismiss="modal"></button>
                 </div>
                 <div class="relative flex-auto p-4">
-                    <form wire:submit="save">
+
+                    <form wire:submit.prevent="save">
                     <input wire:model="form.schoolName" type="text"  class="dark:bg-gray-950 mb-4 focus:shadow-soft-success-outline dark:placeholder:text-white/80 dark:text-white/80 text-sm leading-5.6 ease-soft block w-full appearance-none rounded-lg border border-solid border-gray-300 bg-white bg-clip-padding px-3 py-2 font-normal text-gray-700 outline-none transition-all placeholder:text-gray-500 focus:border-teal-300 focus:outline-none" placeholder="School name....">
                     @error('form.schoolName')
                     <p class="text-size-sm text-red-500">{{ $message }} </p>
@@ -61,6 +62,24 @@
         <div wire:loading>
             <i class="fas fa-spinner fa-spin"></i> wait...
         </div>
+        @if (Session::has('status'))
+        <div class="fixed bottom-1/100 right-1/100 z-2 mb-16 pb-4 mr-1.25">
+            <div id="alert"
+                class="w-85 text-size-sm shadow-soft-2xl pointer-events-auto max-w-full rounded-lg border-0 bg-white bg-clip-padding p-2 transition-opacity ease-linear">
+                <div class="flex items-center p-3 rounded-t-lg bg-clip-padding text-slate-700">
+                    <i class="mr-2 ni ni-check-bold text-lime-500"></i>
+                    <span class="mr-auto font-semibold">Soft UI Dashboard</span>
+                    <small class="text-slate-500">Now</small>
+                    <button type="button" onclick="alertClose()">
+                        <i class="ml-4 cursor-pointer fas fa-times"></i>
+                    </button>
+                </div>
+                <hr
+                    class="h-px m-0 bg-transparent border-0 opacity-25 bg-gradient-horizontal-dark dark:bg-gradient-horizontal-light" />
+                <div class="p-3 break-words">{{ Session::get('status') }}</div>
+            </div>
+        </div>
+        @endif
 
                 @foreach ($this->schools as $school)
 

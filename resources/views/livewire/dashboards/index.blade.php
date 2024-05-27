@@ -23,7 +23,7 @@
                           <p class="mb-6 leading-normal text-sm">Course: {{App\Models\Course::find($course_id)->name}}</p>
                           <div class="flex items-center justify-between">
                             <a href="{{route('profile')}}" type="button" class="inline-block px-8 py-2 mb-0 font-bold text-center uppercase align-middle transition-all bg-transparent border border-solid rounded-lg shadow-none cursor-pointer leading-pro ease-soft-in text-xs hover:scale-102 active:shadow-soft-xs tracking-tight-soft border-teal-500 text-teal-500 hover:border-teal-500 hover:bg-transparent hover:text-teal-700 hover:opacity-75 hover:shadow-none active:bg-teal-500 active:text-white
-                            active:hover:bg-transparent active:hover:text-teal-500">Fill Application Form</a>
+                            active:hover:bg-transparent active:hover:text-teal-500">Application Area</a>
 
 
 
