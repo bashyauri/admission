@@ -12,6 +12,7 @@ use Livewire\Attributes\Computed;
 use Livewire\Attributes\Validate;
 use App\Livewire\Forms\ProfileForm;
 use Jantinnerezo\LivewireAlert\LivewireAlert;
+use Illuminate\Validation\ValidationException;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
 class Profile extends Component
@@ -43,16 +44,41 @@ class Profile extends Component
     {
 
         $user = auth()->user();
-        $this->form->store();
 
-        $this->updatePicture($user);
+        try {
+            $this->form->store();
+            $this->updatePicture($user);
 
-        $this->alert('success', 'Your profile has been successfully updated!', [
-            'position' => 'center',
-            'timer' => 3000,
-            'toast' => true,
-        ]);
-        return to_route('school-attended');
+            $this->alert('success', 'Your profile has been successfully updated!', [
+                'position' => 'center',
+                'timer' => 3000,
+                'toast' => true,
+            ]);
+            return to_route('school-attended');
+        } catch (ValidationException $e) {
+
+            // Display validation errors
+            $errorMessages = implode(' ', $e->validator->errors()->all());
+
+            $this->alert('error', "$errorMessages", [
+                'position' => 'center',
+                'timer' => 3000,
+                'toast' => true,
+
+
+            ]);
+
+
+            // Set validation errors in Livewire's error bag
+            $this->setErrorBag($e->validator->errors());
+        } catch (\Exception $e) {
+            report($e);
+            $this->alert('error', 'Save failed.', [
+                'position' => 'center',
+                'timer' => 3000,
+                'toast' => true,
+            ]);
+        }
     }
 
     protected function updatePicture($user)

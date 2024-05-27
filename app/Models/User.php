@@ -93,7 +93,7 @@ class User extends Authenticatable implements MustVerifyEmail
     public function proposedCourse()
     {
 
-        return $this->hasOne(ProposedCourse::class);
+        return $this->hasOne(ProposedCourse::class)->withDefault();
     }
     public function transactions(): HasMany
     {

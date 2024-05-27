@@ -41,7 +41,7 @@ class ProfileForm extends Form
     public $lgaID;
     #[Validate('required', as: "Home Address")]
     public $homeAddress;
-    #[Validate('required', as: "Home Address")]
+    #[Validate('required', as: "Correspondent Address")]
     public $corAddress;
 
     public function setProfile(User $profile)

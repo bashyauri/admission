@@ -64,6 +64,9 @@
             <div class="p-6 mb-0 rounded-t-2xl">
                 <h5  class="dark:text-white">Profile</h5>
             </div>
+            <div wire:loading>
+                <i class="fas fa-spinner fa-spin"></i> wait...
+            </div>
             <div wire:offline class="p-6 mb-0 rounded-t-2xl">
                 <h5  class="dark:text-white">No network</h5>
             </div>
@@ -164,7 +167,7 @@
                             for="lgaID">LGA</label>
                         <div class="relative flex flex-wrap items-stretch w-full rounded-lg">
                             <select wire:model.live="form.lgaID" class="focus:shadow-soft-primary-outline dark:bg-gray-950 dark:placeholder:text-white/80 dark:text-white/80 text-size-sm leading-5.6 ease-soft block w-full appearance-none rounded-lg border border-solid border-gray-300 bg-white bg-clip-padding px-3 py-2 font-normal text-gray-700 outline-none transition-all placeholder:text-gray-500 focus:border-fuchsia-300 focus:outline-none">
-                                <option disabled selected>Select</option>
+                                <option value="">Select Option</option>
                                 @foreach ($this->lgas as $lga)
                                             <option value="{{$lga->id}}">{{$lga->name}}</option>
                                             @endforeach
@@ -182,7 +185,7 @@
                     <div class="w-6/12 max-w-full px-3 flex-0">
 
                         <label class="mt-6 mb-2 ml-1 font-bold text-size-xs text-slate-700 dark:text-white/80"
-                            for="homeAddress">Home Town</label>
+                            for="homeTown">Home Town</label>
                         <div class="relative flex flex-wrap items-stretch w-full rounded-lg">
                             <input wire:model="form.homeTown" type="text" name="Home town"
                                 placeholder="Home Town"
@@ -195,7 +198,7 @@
                     <div class="w-6/12 max-w-full px-3 flex-0">
 
                         <label class="mt-6 mb-2 ml-1 font-bold text-size-xs text-slate-700 dark:text-white/80"
-                            for="corAddress">Home Address</label>
+                            for="homeAddress">Home Address</label>
                         <div class="relative flex flex-wrap items-stretch w-full rounded-lg">
                             <input wire:model="form.homeAddress" type="text"  placeholder="Home Address"
                                 class="focus:shadow-soft-primary-outline dark:bg-gray-950 dark:placeholder:text-white/80 dark:text-white/80 text-size-sm leading-5.6 ease-soft block w-full appearance-none rounded-lg border border-solid border-gray-300 bg-white bg-clip-padding px-3 py-2 font-normal text-gray-700 outline-none transition-all placeholder:text-gray-500 focus:border-fuchsia-300 focus:outline-none" />
@@ -210,12 +213,12 @@
                     <div class="w-6/12 max-w-full px-3 flex-0">
 
                         <label class="mt-6 mb-2 ml-1 font-bold text-size-xs text-slate-700 dark:text-white/80"
-                            for="homeAddress">Home Address</label>
+                            for="corAddress">Correspondent Address</label>
                         <div class="relative flex flex-wrap items-stretch w-full rounded-lg">
-                            <input wire:model="form.homeAddress" type="text" name="Location"
-                                placeholder="Home Address"
+                            <input wire:model="form.corAddress" type="text" name="Location"
+                                placeholder="Correspondent Address"
                                 class="focus:shadow-soft-primary-outline dark:bg-gray-950 dark:placeholder:text-white/80 dark:text-white/80 text-size-sm leading-5.6 ease-soft block w-full appearance-none rounded-lg border border-solid border-gray-300 bg-white bg-clip-padding px-3 py-2 font-normal text-gray-700 outline-none transition-all placeholder:text-gray-500 focus:border-fuchsia-300 focus:outline-none" />
-                            @error('form.homeAddress')
+                            @error('form.corAddress')
                             <p class="text-size-sm text-red-500">{{ $message }} </p>
                             @enderror
                         </div>
@@ -227,11 +230,11 @@
                  <div class="relative flex flex-wrap items-stretch w-full rounded-lg">
                      <select wire:model="form.nationality"
                              class="focus:shadow-soft-primary-outline dark:bg-gray-950 dark:placeholder:text-white/80 dark:text-white/80 text-size-sm leading-5.6 ease-soft block w-full appearance-none rounded-lg border border-solid border-gray-300 bg-white bg-clip-padding px-3 py-2 font-normal text-gray-700 outline-none transition-all placeholder:text-gray-500 focus:border-fuchsia-300 focus:outline-none">
-                         <option value="" disabled selected>Select Correspondent Address</option>
+                         <option value="" >Select Option</option>
                          <option value="nigerian">Nigerian</option>
                          <option value="international">International</option>
                      </select>
-                     @error('form.corAddress')
+                     @error('form.nationality')
                      <p class="text-size-sm text-red-500">{{ $message }} </p>
                      @enderror
                  </div>
@@ -307,3 +310,8 @@
 
 </div>
 </div>
+@push('js')
+<script src="{{ asset('assets') }}/js/plugins/choices.min.js"></script>
+<script src="{{ asset('assets') }}/js/plugins/flatpickr.min.js"></script>
+@endpush
+
