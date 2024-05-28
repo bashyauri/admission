@@ -1,6 +1,6 @@
 <?php
 
-
+use App\Http\Controllers\PrintForm;
 use Illuminate\Http\Request;
 use App\Http\Livewire\Auth\Login;
 use App\Http\Livewire\Pages\Charts;
@@ -199,6 +199,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('applications/upload-certificate', CertificateUpload::class)->name('upload-certificate');
     Route::get('applications/apply-course', ProposedCourse::class)->name('proposed-course');
     Route::get('applications/review', Review::class)->name('review');
+    Route::get('applications/print-form', PrintForm::class)->name('print-form');
 
 
     // Transactions
