@@ -32,7 +32,7 @@ class SchoolAttended extends Component
 
             $this->alert('success', 'School Added', [
                 'position' => 'center',
-                'timer' => 3000,
+                'timer' => 1000,
                 'toast' => true,
             ]);
 

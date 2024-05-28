@@ -115,6 +115,8 @@
                                         <td>{{ auth()->user()->gender }}</td>
                                     </tr>
                                     <tr>
+                                        <th>Home Town:</th>
+                                        <td>{{ ucwords(auth()->user()->home_town) }}</td>
 
                                         <th>L/Govt. Area:</th>
                                         <td>{{ ucwords($lga) }}</td>
@@ -123,40 +125,41 @@
                                     </tr>
                                     <tr>
                                         <th>Nationality:</th>
-                                        <td>{{ auth()->user()->nationality }}</td>
+                                        <td>{{ ucwords(auth()->user()->nationality) }}</td>
                                         <th>Marital Status:</th>
-                                        <td>{{ auth()->user()->marital_status }}</td>
+                                        <td>{{ ucwords(auth()->user()->marital_status) }}</td>
                                         <th>Phone Number:</th>
                                         <td>{{ auth()->user()->phone }}</td>
                                     </tr>
                                     <tr>
                                         <th colspan="2">Permanent Home Address:</th>
-                                        <td colspan="4">{{ auth()->user()->home_address }}</td>
+                                        <td colspan="4">{{ucwords(auth()->user()->home_address) }}</td>
 
                                     </tr>
                                     <tr>
                                         <th colspan="2">Correspondence Home Address:</th>
-                                        <td colspan="4">{{ auth()->user()->cor_address }}</td>
+                                        <td colspan="4">{{ ucwords(auth()->user()->cor_address) }}</td>
                                     </tr>
 
                                     <tr>
-                                        <th>Sponsor:</th>
-                                        <td>{{ auth()->user()->sponsor }}</td>
+
                                         <th>Next of Kin Name:</th>
-                                        <td>{{ auth()->user()->kin_name }}</td>
+                                        <td>{{ ucwords(auth()->user()->kin_name) }}</td>
                                         <th>Phone NO. of Next of Kin:</th>
-                                        <td>{{ auth()->user()->kin_gsm }}</td>
+                                        <td>{{ auth()->user()->kin_phone }}</td>
+
+
                                     </tr>
                                     <tr>
                                         <th colspan="2">Next of Kin Address:</th>
-                                        <td colspan="4">{{ auth()->user()->kin_address }}</td>
+                                        <td colspan="4">{{ucwords(auth()->user()->kin_address) }}</td>
 
                                     </tr>
                                     <tr>
                                         <th colspan="2" style="color:red;">PROGRAMME APPLIED FOR:</th>
 
 
-                                        <td colspan="4" style="color:red;">{{ auth()->user()->programmme_id }}</td>
+                                        <td colspan="4" style="color:red;">{{ ucwords($programme) }}</td>
                                     </tr>
                                 </tbody>
                                 <table>
@@ -170,23 +173,25 @@
                                 <h4><b>SECTION B: SCHOOLS/COLLEGES ATTENDED</b></h4>
                                 <tr>
                                     <th rowspan="2">S/N</th>
-                                    <th rowspan="2">Schools/Colleges Attended</th>
-                                    <th colspan="2">Date</th>
+                                    <th rowspan="2">School
+
                                 </tr>
                                 <tr>
-                                    <th>Start Date [From]</th>
-                                    <th>End Date [TO]</th>
+                                    <th>Certificate</th>
+                                    <th>Date</th>
                                 </tr>
 
-
-                                {{-- @foreach ($institutions as $institution)
+                                @php
+                                    $count= 0;
+                                @endphp
+                                @foreach (auth()->user()->schools as $school)
                                     <tr>
                                         <td>{{ $count = $count + 1 }}</td>
-                                        <td>{{ $institution->sch_colle_name }}</td>
-                                        <td>{{ $institution->start_date }}</td>
-                                        <td>{{ $institution->end_date }}</td>
+                                        <td>{{ ucwords($school->school_name) }}</td>
+                                        <td>{{ ucwords($school->certificate_name) }}</td>
+                                        <td>{{ $school->date_obtained }}</td>
                                     </tr>
-                                @endforeach --}}
+                                @endforeach
                             </table>
                         </div>
                     </div>
@@ -201,33 +206,36 @@
                                     <th colspan="2">Exam Name</th>
                                     <th colspan="2">Exam Number</th>
                                     <th colspan="2">Exam Date</th>
-                                    {{-- @foreach (aut as $exam)
+                                    @foreach (auth()->user()->olevelExams as $exam)
                                 </tr>
                                 <tr>
-                                    <td colspan="2">{{ $exam->exam_name }}</td>
-                                    <td colspan="2">{{ $exam->exam_no }}</td>
-                                    <td colspan="2">{{ $exam->exam_date }}</td>
+                                    <td colspan="2">{{ ucwords($exam->exam_name) }}</td>
+                                    <td colspan="2">{{ ucwords($exam->exam_number) }}</td>
+                                    <td colspan="2">{{ ucwords($exam->exam_year) }}</td>
 
                                 </tr>
-                                @endforeach --}}
+                                @endforeach
                                 <tr>
                                     <th>S/N</th>
                                     <th>Subject</th>
                                     <th>Exam</th>
                                     <th>Grade</th>
                                 </tr>
-                                {{-- @foreach ($subjects as $subject)
+                                @php
+                                    $subjectCount=0;
+                                @endphp
+                                @foreach (auth()->user()->olevelSubjectGrades as $subject)
                                     <tr>
 
 
 
                                         <td>{{ $subjectCount = $subjectCount + 1 }}</td>
-                                        <td>{{ $subject->subject_name }}</td>
-                                        <td>{{ $subject->exam_name }}</td>
-                                        <td><strong>{{ $subject->grade }}</strong></td>
+                                        <td>{{ ucwords($subject->subject_name) }}</td>
+                                        <td>{{ ucwords($subject->exam_name) }}</td>
+                                        <td><strong>{{ ucwords($subject->grade) }}</strong></td>
 
                                     </tr>
-                                @endforeach --}}
+                                @endforeach
                             </table>
                         </div>
                         <div class="span6">
@@ -236,16 +244,32 @@
 
                                 <tr>
                                     <td colspan="5">
-                                        <h4><b>JAMB RESULTS DETAILS</b></h4>
+                                        <h4><b>Uploaded Certificates</b></h4>
                                     </td>
                                 </tr>
                                 <tr>
-                                    <th colspan="2">JAMB Number</th>
-                                    <th colspan="1">JAMB Score</th>
+                                    <th colspan="2">Certificate</th>
+                                    <th colspan="1">File</th>
                                 </tr>
 
-                                {{-- <td colspan="2">{{ $jambNumber }}</td>
-                                <td colspan="2">{{ $score }}</td> --}}
+                                @forelse (auth()->user()->certificateUploads as $certificate)
+                                <tr>
+                                    <td colspan="2">{{ ucwords($certificate->name) }}</td>
+                                <td colspan="2"> <p class="mb-0 font-semibold leading-tight text-xs">
+                                    <a target="_blank" href="{{ asset('storage/' . $certificate->path) }}" aria-label="View Certificate">
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                                        </svg>
+                                    </a>
+                                </p></td>
+                                </tr>
+
+                                @empty
+
+                                @endforelse
+
+
 
                                 </tr>
                                 <!--tr>
@@ -299,21 +323,24 @@
          <td></td>
          <td></td>
          <td><b></b></td>
+         </tr>
+         -->
        <tr>
+
         <td colspan="5"><h4><b>PROPOSED COURSES OF STUDY</b></h4></td>
-        </tr-->
+       </tr>
 
                                 <tr>
-                                    <th>S/N</th>
+                                    <th>Department</th>
                                     <th colspan="3">
                                         <h4> Course of Study</h4>
                                     </th>
 
                                 </tr>
                                 <tr>
-                                    <td>{{ 1 }}</td>
+                                    <td>{{ucwords($department)}}</td>
                                     <td colspan="3">
-                                        <h6>{{ auth()->user()->proposedCourse->course_id }}</h6>
+                                        <h6>{{ ucwords($course) }}</h6>
                                     </td>
 
                                 </tr>

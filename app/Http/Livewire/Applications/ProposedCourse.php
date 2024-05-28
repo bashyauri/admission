@@ -28,7 +28,7 @@ class ProposedCourse extends Component
         $this->form->store();
         $this->alert('success', 'Saved Successfully', [
             'position' => 'center',
-            'timer' => 3000,
+            'timer' => 1000,
             'toast' => true,
         ]);
     }

@@ -62,6 +62,12 @@ class Olevel extends Component
             return to_route('olevel');
         }
     }
+    public function confirmed()
+    {
+
+        $this->redirect(route('olevel'));
+    }
+
 
     #[Computed()]
     public function olevelExams()

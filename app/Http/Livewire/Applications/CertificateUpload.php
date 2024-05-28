@@ -4,12 +4,13 @@ namespace App\Http\Livewire\Applications;
 
 use App\Models\School;
 use Livewire\Component;
+use Livewire\WithFileUploads;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Validate;
 use Illuminate\Support\Facades\Log;
-use App\Models\CertificateUpload as ModelsCertificateUpload;
 use Jantinnerezo\LivewireAlert\LivewireAlert;
-use Livewire\WithFileUploads;
+use Illuminate\Validation\ValidationException;
+use App\Models\CertificateUpload as ModelsCertificateUpload;
 
 class CertificateUpload extends Component
 {
@@ -36,18 +37,46 @@ class CertificateUpload extends Component
     public function save()
     {
         $this->validate();
-        $path = $this->certificate->store('certificates', 'public');
-        auth()->user()->certificateUploads()->create(
-            [
-                'name' => $this->name,
-                'path' => $path
-            ]
-        );
-        $this->alert('success', 'Saved Successfully', [
-            'position' => 'center',
-            'timer' => 1000,
-            'toast' => true,
-        ]);
+
+        try {
+            $path = $this->certificate->store('certificates', 'public');
+            auth()->user()->certificateUploads()->create(
+                [
+                    'name' => $this->name,
+                    'path' => $path
+                ]
+            );
+            $this->alert('success', 'Saved Successfully', [
+                'position' => 'center',
+                'timer' => 1000,
+                'toast' => true,
+            ]);
+            $this->reset();
+        } catch (ValidationException $e) {
+
+            // Display validation errors
+            $errorMessages = implode(' ', $e->validator->errors()->all());
+
+            $this->alert('error', "$errorMessages", [
+                'position' => 'center',
+                'timer' => 3000,
+                'toast' => true,
+                'showConfirmButton' => true,
+                'onConfirmed' => 'confirmed'
+
+            ]);
+
+
+            // Set validation errors in Livewire's error bag
+            $this->setErrorBag($e->validator->errors());
+        } catch (\Exception $e) {
+            report($e);
+            $this->alert('error', 'Save failed.', [
+                'position' => 'center',
+                'timer' => 3000,
+                'toast' => true,
+            ]);
+        }
     }
 
     #[Computed()]

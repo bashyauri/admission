@@ -31,6 +31,8 @@ class DatabaseSeeder extends Seeder
             DepartmentSeeder::class,
             DepartmentProgrammeSeeder::class,
             CourseSeeder::class,
+            SubjectSeeder::class,
+            GradeSeeder::class,
         ]);
         DB::statement('SET FOREIGN_KEY_CHECKS=1');
     }

@@ -7,9 +7,10 @@ use App\Models\Subject;
 use Livewire\Component;
 use App\Models\OlevelExam;
 use Livewire\Attributes\Computed;
-use App\Livewire\Forms\OlevelGradeForm;
 use App\Models\OlevelSubjectGrade;
+use App\Livewire\Forms\OlevelGradeForm;
 use Jantinnerezo\LivewireAlert\LivewireAlert;
+use Illuminate\Validation\ValidationException;
 
 class OlevelGrade extends Component
 {
@@ -34,16 +35,41 @@ class OlevelGrade extends Component
                 'timer' => 1000,
                 'toast' => true,
             ]);
+            return to_route('olevel-grade');
+        } catch (ValidationException $e) {
+
+            // Display validation errors
+            $errorMessages = implode(' ', $e->validator->errors()->all());
+
+            $this->alert('error', "$errorMessages", [
+                'position' => 'center',
+                'timer' => 3000,
+                'toast' => true,
+                'showConfirmButton' => true,
+                'onConfirmed' => 'confirmed'
+
+            ]);
+
+
+            // Set validation errors in Livewire's error bag
+            $this->setErrorBag($e->validator->errors());
+            $this->redirect(route('olevel-grade'));
         } catch (\Exception $e) {
             report($e);
             $this->alert('error', 'Save failed.', [
                 'position' => 'center',
-                'timer' => 1000,
+                'timer' => 3000,
                 'toast' => true,
             ]);
+            return to_route('olevel-grade');
         }
-        $this->redirect('olevel-grade');
     }
+    public function confirmed()
+    {
+
+        $this->redirect(route('olevel-grade'));
+    }
+
 
     #[Computed()]
     public function exams()

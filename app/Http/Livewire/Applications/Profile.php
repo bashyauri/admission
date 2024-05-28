@@ -51,7 +51,7 @@ class Profile extends Component
 
             $this->alert('success', 'Your profile has been successfully updated!', [
                 'position' => 'center',
-                'timer' => 3000,
+                'timer' => 1000,
                 'toast' => true,
             ]);
             return to_route('school-attended');
