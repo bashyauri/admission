@@ -3,7 +3,9 @@
 namespace App\Providers;
 
 use App\Models\Role;
+use App\Models\User;
 use App\Models\Category;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Database\Eloquent\Builder;
 
@@ -16,7 +18,6 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register()
     {
-        //
     }
 
     /**
@@ -26,6 +27,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot()
     {
+        // Gate::define('viewPulse', function (User $user) {
+        //     return $user->isAdmin();
+        // });
         Builder::macro('getRoleId', function ($name) {
             $roles = Role::all();
             for ($i = 0; $i < count($roles); $i++) {
