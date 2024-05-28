@@ -1,3 +1,4 @@
+@use('Carbon\Carbon;')
 <div>
     <!DOCTYPE html>
     <html lang="en">
@@ -189,7 +190,7 @@
                                         <td>{{ $count = $count + 1 }}</td>
                                         <td>{{ ucwords($school->school_name) }}</td>
                                         <td>{{ ucwords($school->certificate_name) }}</td>
-                                        <td>{{ $school->date_obtained }}</td>
+                                        <td>{{ Carbon::createFromFormat('Y-m-d', $school->date_obtained)->format('Y') }}</td>
                                     </tr>
                                 @endforeach
                             </table>

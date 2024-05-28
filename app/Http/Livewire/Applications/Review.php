@@ -17,11 +17,21 @@ class Review extends Component
     use LivewireAlert;
     public function mount()
     {
+        if (!auth()->user()->hasPaid(config('remita.admission.description'))) {
+            to_route('transactions');
+        }
 
-
-        if (ProposedCourse::where('user_id', auth()->user()->id)->count() > 0) {
-            $this->alert()
-
+        if (ProposedCourse::where('user_id', auth()->user()->id)->count() === 0) {
+            $this->alert('warning', 'Course not Selected', [
+                'position' => 'center',
+                'timer' => 3000,
+                'toast' => true,
+                'showConfirmButton' => true,
+                'onConfirmed' => '',
+                'width' => '500',
+                'confirmButtonText' => 'take me',
+                'text' => 'Select Course first',
+            ]);
             to_route('proposed-course');
         }
     }

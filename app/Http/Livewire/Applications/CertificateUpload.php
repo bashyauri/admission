@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Log;
 use Jantinnerezo\LivewireAlert\LivewireAlert;
 use Illuminate\Validation\ValidationException;
 use App\Models\CertificateUpload as ModelsCertificateUpload;
+use App\Models\OlevelSubjectGrade;
 
 class CertificateUpload extends Component
 {
@@ -31,6 +32,18 @@ class CertificateUpload extends Component
     {
         if (!auth()->user()->hasPaid(config('remita.admission.description'))) {
             to_route('transactions');
+        }
+        if (OlevelSubjectGrade::where('user_id', auth()->id())->count() === 0) {
+            $this->alert('warning', 'olevel subject not selected', [
+                'position' => 'center',
+                'timer' => 3000,
+                'toast' => true,
+                'showConfirmButton' => true,
+                'onConfirmed' => '',
+                'width' => '500',
+                'confirmButtonText' => 'take me',
+                'text' => 'Select Subject first',
+            ]);
         }
     }
 

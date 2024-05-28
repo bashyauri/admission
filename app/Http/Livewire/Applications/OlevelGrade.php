@@ -23,6 +23,19 @@ class OlevelGrade extends Component
         if (!auth()->user()->hasPaid(config('remita.admission.description'))) {
             to_route('transactions');
         }
+        if (OlevelExam::where('user_id', auth()->id())->count() === 0) {
+            $this->alert('warning', 'olevel exam not selected', [
+                'position' => 'center',
+                'timer' => 3000,
+                'toast' => true,
+                'showConfirmButton' => true,
+                'onConfirmed' => '',
+                'width' => '500',
+                'confirmButtonText' => 'take me',
+                'text' => 'Select SSCE Examination first',
+            ]);
+            to_route('olevel');
+        }
     }
     public function save()
     {

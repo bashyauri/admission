@@ -6,6 +6,7 @@ use Livewire\Component;
 use App\Models\OlevelExam;
 use Livewire\Attributes\Computed;
 use App\Livewire\Forms\OlevelExamForm;
+use App\Models\School;
 use Jantinnerezo\LivewireAlert\LivewireAlert;
 use Illuminate\Validation\ValidationException;
 
@@ -20,6 +21,19 @@ class Olevel extends Component
     {
         if (!auth()->user()->hasPaid(config('remita.admission.description'))) {
             to_route('transactions');
+        }
+        if (School::where('user_id', auth()->id())->count() < 2) {
+            $this->alert('warning', 'School not selected', [
+                'position' => 'center',
+                'timer' => 3000,
+                'toast' => true,
+                'showConfirmButton' => true,
+                'onConfirmed' => '',
+                'width' => '500',
+                'confirmButtonText' => 'take me',
+                'text' => 'Select Schools you attended first',
+            ]);
+            to_route('school-attended');
         }
     }
     public function save()

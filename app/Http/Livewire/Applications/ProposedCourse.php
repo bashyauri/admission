@@ -7,6 +7,7 @@ use Livewire\Component;
 use App\Models\Programme;
 use Livewire\Attributes\Computed;
 use App\Livewire\Forms\ProposedCourseForm;
+use App\Models\CertificateUpload;
 use App\Models\ProposedCourse as ModelsProposedCourse;
 use Jantinnerezo\LivewireAlert\LivewireAlert;
 
@@ -18,6 +19,19 @@ class ProposedCourse extends Component
     {
         if (!auth()->user()->hasPaid(config('remita.admission.description'))) {
             to_route('transactions');
+        }
+        if (CertificateUpload::where('user_id', auth()->user()->id)->count() < 2) {
+            $this->alert('warning', 'Please upload Certificate', [
+                'position' => 'center',
+                'timer' => 3000,
+                'toast' => true,
+                'showConfirmButton' => true,
+                'onConfirmed' => '',
+                'width' => '500',
+                'confirmButtonText' => 'take me',
+                'text' => 'Certficate for the schools attended not uploaded, please confirm that all the certificates are uploaded.',
+            ]);
+            to_route('upload-certificate');
         }
         $course = auth()->user()->proposedCourse;
         $this->form->setProposedCourse($course);
