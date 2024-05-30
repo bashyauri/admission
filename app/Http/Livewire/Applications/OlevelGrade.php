@@ -24,16 +24,7 @@ class OlevelGrade extends Component
             to_route('transactions');
         }
         if (OlevelExam::where('user_id', auth()->id())->count() === 0) {
-            $this->alert('warning', 'olevel exam not selected', [
-                'position' => 'center',
-                'timer' => 3000,
-                'toast' => true,
-                'showConfirmButton' => true,
-                'onConfirmed' => '',
-                'width' => '500',
-                'confirmButtonText' => 'take me',
-                'text' => 'Select SSCE Examination first',
-            ]);
+
             to_route('olevel');
         }
     }
@@ -87,7 +78,7 @@ class OlevelGrade extends Component
     #[Computed()]
     public function exams()
     {
-        return OlevelExam::all();
+        return OlevelExam::where('user_id', auth()->user()->id)->get();
     }
     #[Computed()]
     public function subjects()
@@ -102,10 +93,11 @@ class OlevelGrade extends Component
     #[Computed()]
     public function subjectGrades()
     {
-        return OlevelSubjectGrade::latest()->get();
+        return OlevelSubjectGrade::where('user_id', auth()->user()->id)->latest()->get();
     }
     public function delete(OlevelSubjectGrade $subject)
     {
+
         try {
             $subject->delete();
         } catch (\Exception $e) {

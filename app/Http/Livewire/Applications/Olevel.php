@@ -23,16 +23,7 @@ class Olevel extends Component
             to_route('transactions');
         }
         if (School::where('user_id', auth()->id())->count() < 2) {
-            $this->alert('warning', 'School not selected', [
-                'position' => 'center',
-                'timer' => 3000,
-                'toast' => true,
-                'showConfirmButton' => true,
-                'onConfirmed' => '',
-                'width' => '500',
-                'confirmButtonText' => 'take me',
-                'text' => 'Select Schools you attended first',
-            ]);
+
             to_route('school-attended');
         }
     }
@@ -86,7 +77,7 @@ class Olevel extends Component
     #[Computed()]
     public function olevelExams()
     {
-        return OlevelExam::all();
+        return OlevelExam::where('user_id', auth()->user()->id)->get();
     }
 
     public function edit($examId)

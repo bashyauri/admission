@@ -113,7 +113,7 @@ class SchoolAttended extends Component
     #[Computed()]
     public function schools()
     {
-        return School::all();
+        return School::where('user_id', auth()->user()->id)->get();
     }
     public function delete(School $school)
     {

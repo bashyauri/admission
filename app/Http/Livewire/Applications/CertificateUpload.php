@@ -34,16 +34,7 @@ class CertificateUpload extends Component
             to_route('transactions');
         }
         if (OlevelSubjectGrade::where('user_id', auth()->id())->count() === 0) {
-            $this->alert('warning', 'olevel subject not selected', [
-                'position' => 'center',
-                'timer' => 3000,
-                'toast' => true,
-                'showConfirmButton' => true,
-                'onConfirmed' => '',
-                'width' => '500',
-                'confirmButtonText' => 'take me',
-                'text' => 'Select Subject first',
-            ]);
+            to_route('olevel-grade');
         }
     }
 
@@ -95,12 +86,12 @@ class CertificateUpload extends Component
     #[Computed()]
     public function certificates()
     {
-        return School::get(['certificate_name']);
+        return School::where('user_id', auth()->user()->id)->get(['certificate_name']);
     }
     #[Computed()]
     public function uploadedCertificates()
     {
-        return ModelsCertificateUpload::all();
+        return ModelsCertificateUpload::where('user_id', auth()->user()->id)->get();
     }
     public function delete($id)
     {
