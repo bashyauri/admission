@@ -1,5 +1,5 @@
 <x-layouts.base>
-
+    @include('flash-messages')
     @if (Route::currentRouteName() == 'rtl')
         {{ $slot }}
 
@@ -29,6 +29,7 @@
             @include('components.navbars.navs.auth')
             <div class="relative mx-4 mt-4 rounded-2xl bg-[url('../img/vr-bg.jpg')] bg-cover">
                 @include('components.navbars.sidebar')
+
                 {{ $slot }}
             </div>
             @include('components.footers.auth.footer')

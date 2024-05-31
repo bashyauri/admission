@@ -25,7 +25,8 @@ class OlevelGrade extends Component
         }
         if (OlevelExam::where('user_id', auth()->id())->count() === 0) {
 
-            to_route('olevel');
+
+            to_route('olevel')->with('info', 'Please Select Olevel');
         }
     }
     public function save()

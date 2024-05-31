@@ -22,17 +22,7 @@ class Review extends Component
         }
 
         if (ProposedCourse::where('user_id', auth()->user()->id)->count() === 0) {
-            $this->alert('warning', 'Course not Selected', [
-                'position' => 'center',
-                'timer' => 3000,
-                'toast' => true,
-                'showConfirmButton' => true,
-                'onConfirmed' => '',
-                'width' => '500',
-                'confirmButtonText' => 'take me',
-                'text' => 'Select Course first',
-            ]);
-            to_route('proposed-course');
+            to_route('proposed-course')->with('warning', 'Please select a course');
         }
     }
     public function render()

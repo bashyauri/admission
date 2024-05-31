@@ -34,7 +34,8 @@ class CertificateUpload extends Component
             to_route('transactions');
         }
         if (OlevelSubjectGrade::where('user_id', auth()->id())->count() === 0) {
-            to_route('olevel-grade');
+
+            to_route('olevel-grade')->with('info', 'Please Select Subject');
         }
     }
 

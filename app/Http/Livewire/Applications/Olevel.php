@@ -24,7 +24,7 @@ class Olevel extends Component
         }
         if (School::where('user_id', auth()->id())->count() < 2) {
 
-            to_route('school-attended');
+            to_route('school-attended')->with('info', 'Please Select School Attended');
         }
     }
     public function save()
