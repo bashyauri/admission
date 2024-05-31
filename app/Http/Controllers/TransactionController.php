@@ -43,10 +43,10 @@ class TransactionController extends Controller
             $this->transactionService->createPayment($data);
 
 
-            return redirect()->route('admission-invoice')->with('success', $response->status);
+            return redirect()->route('admission-invoice')->with('Remita Generated ', $response->status);
         } catch (\Exception $ex) {
             Log::alert($ex->getMessage());
-            return redirect()->back()->with('error', 'Something went wrong:' . $response->status ?? "Error: " . $ex->getMessage());
+            return redirect()->back()->with('error', 'Something went wrong:' . $response?->status ?? "Error: " . $ex->getMessage());
         }
     }
     public function checkTransactionStatus($rrr)
@@ -62,7 +62,7 @@ class TransactionController extends Controller
 
             // return view('nds.payment')->with($data);
 
-            return redirect()->route('invoice')->with('success', $response->message);
+            return redirect()->route('invoice')->with('info', $response->message);
         } catch (\Exception $ex) {
             Log::alert($ex->getMessage());
             return redirect()->back()->with('error', 'Something went wrong: Try again later');

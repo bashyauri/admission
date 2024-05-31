@@ -36,6 +36,14 @@ Swal.fire({
 
 
 @if ($message = Session::get('warning'))
+<script>
+    Swal.fire({
+        icon: 'warning',
+        text: '{{ session('warning') }}',
+
+    })
+
+</script>
 
 {{-- <x-adminlte-alert theme="warning" title="Warning" dismissable>
     <strong>{{ $message }}</strong>!
@@ -46,6 +54,15 @@ Swal.fire({
 
 
 @if ($message = Session::get('info'))
+<script>
+    Swal.fire({
+        icon: 'info',
+        text: '{{ session('info') }}',
+
+    })
+
+</script>
+
 {{-- <x-adminlte-alert theme="info" title="Success" dismissable>
     <strong>{{ $message }}</strong>
 </x-adminlte-alert> --}}
