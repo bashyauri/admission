@@ -174,6 +174,7 @@
     <!-- Styles -->
     <link href="{{ asset('css/app.css') }}" rel="stylesheet">
     <link href="{{ asset('css/main.css') }}" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 
 </head>
@@ -181,6 +182,8 @@
 <body>
     <div class="card">
         <div class="card-body">
+            @include('flash-messages')
+
             <div class="page-content container">
                 <div class="page-header text-blue-d2">
                     <h1 class="page-title text-secondary-d1">

@@ -4,6 +4,8 @@
     <div class="my-4">
         <div class="flex flex-wrap -mx-3">
             <div class="w-full max-w-full px-3 mx-auto sm:flex-0 shrink-0 sm:w-10/12 md:w-8/12">
+                @include('flash-messages')
+
                 <form action="{{route('invoice')}}" method="POST">
                     @csrf
                     <div

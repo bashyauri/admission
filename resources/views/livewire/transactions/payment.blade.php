@@ -1,5 +1,6 @@
 <div>
     <div class="flex flex-wrap -mx-3">
+        @include('flash-messages')
         @if (!auth()->user()->hasPaid(config('remita.admission.description')))
 
 

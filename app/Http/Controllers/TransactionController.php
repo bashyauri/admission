@@ -46,7 +46,7 @@ class TransactionController extends Controller
             return redirect()->route('admission-invoice')->with('success', $response->status);
         } catch (\Exception $ex) {
             Log::alert($ex->getMessage());
-            return redirect()->back()->withErrors(['msgError' => 'Something went wrong:' . $response->status]);
+            return redirect()->back()->with('error', 'Something went wrong:' . $response->status ?? "Error: " . $ex->getMessage());
         }
     }
     public function checkTransactionStatus($rrr)
@@ -65,7 +65,7 @@ class TransactionController extends Controller
             return redirect()->route('invoice')->with('success', $response->message);
         } catch (\Exception $ex) {
             Log::alert($ex->getMessage());
-            return redirect()->back()->withErrors(['msgError' => 'Something went wrong:' . $response->message]);
+            return redirect()->back()->with('error', 'Something went wrong: Try again later');
         }
     }
 }
