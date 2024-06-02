@@ -1,37 +1,41 @@
 <?php
 
-use App\Http\Controllers\PrintForm;
 use Illuminate\Http\Request;
 use App\Http\Livewire\Auth\Login;
+use App\Http\Controllers\PrintForm;
 use App\Http\Livewire\Pages\Charts;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\URL;
+
 use App\Http\Livewire\Auth\Register;
 use App\Http\Livewire\Pages\RtlPage;
-
 use App\Http\Livewire\Pages\Widgets;
+use Illuminate\Auth\Events\Verified;
+
 use App\Http\Livewire\Dashboards\Crm;
+
 use App\Http\Livewire\Pages\Messages;
 use Illuminate\Support\Facades\Route;
-
 use App\Http\Livewire\Dashboards\Index;
-
 use App\Http\Livewire\Pages\PricingPage;
+
 use App\Http\Livewire\Pages\SweetAlerts;
 use App\Http\Livewire\Auth\ResetPassword;
-use App\Http\Livewire\Ecommerce\Overview;
 
+use App\Http\Livewire\Ecommerce\Overview;
 use App\Http\Livewire\Ecommerce\Referral;
 use App\Http\Livewire\Applications\Kanban;
-
 use App\Http\Livewire\Applications\Olevel;
+use App\Http\Livewire\Applications\Review;
 use App\Http\Livewire\Applications\Wizard;
 use App\Http\Livewire\Auth\ForgotPassword;
 use App\Http\Livewire\Pages\Notifications;
 use App\Http\Livewire\Pages\Users\NewUser;
+
 use App\Http\Livewire\Pages\Users\Reports;
 use App\Http\Livewire\Applications\Profile;
 use App\Http\Livewire\Dashboards\SmartHome;
 use App\Http\Livewire\Dashboards\Vr\VrInfo;
-
 use App\Http\Livewire\Transactions\Payment;
 use App\Http\Livewire\Applications\Calendar;
 use App\Http\Livewire\Dashboards\Automotive;
@@ -50,16 +54,16 @@ use App\Http\Livewire\Applications\OlevelGrade;
 use App\Http\Livewire\Ecommerce\Orders\Details;
 use App\Http\Livewire\Pages\Projects\NewProject;
 use App\Http\Livewire\Applications\Qualification;
+
 use App\Http\Livewire\Ecommerce\Orders\OrderList;
 use App\Http\Livewire\Applications\ProposedCourse;
 use App\Http\Livewire\Applications\SchoolAttended;
+use Illuminate\Auth\Access\AuthorizationException;
 use App\Http\Livewire\Authentication\Error\Error404;
-
 use App\Http\Livewire\Authentication\Error\Error500;
 use App\Http\Livewire\Ecommerce\Products\NewProduct;
 use App\Http\Livewire\Transactions\AdmissionInvoice;
 use App\Http\Livewire\Applications\CertificateUpload;
-use App\Http\Livewire\Applications\Review;
 use App\Http\Livewire\Ecommerce\Products\EditProduct;
 use App\Http\Livewire\Ecommerce\Products\ProductPage;
 use App\Http\Livewire\Ecommerce\Products\ProductsList;
@@ -70,30 +74,30 @@ use App\Http\Livewire\LaravelExamples\Tag\Index as TagIndex;
 use App\Http\Livewire\Authentication\Lock\Basic as LockBasic;
 use App\Http\Livewire\Authentication\Lock\Cover as LockCover;
 use App\Http\Livewire\LaravelExamples\Items\Edit as ItemsEdit;
+
 use App\Http\Livewire\LaravelExamples\Roles\Edit as RolesEdit;
 use App\Http\Livewire\LaravelExamples\Tag\Create as TagCreate;
+
 use App\Http\Livewire\Authentication\Reset\Basic as ResetBasic;
 use App\Http\Livewire\Authentication\Reset\Cover as ResetCover;
-
 use App\Http\Livewire\LaravelExamples\Items\Index as ItemsIndex;
-use App\Http\Livewire\LaravelExamples\Roles\Index as RolesIndex;
 
+use App\Http\Livewire\LaravelExamples\Roles\Index as RolesIndex;
 use App\Http\Livewire\Pages\Profile\Overview as ProfileOverview;
 use App\Http\Livewire\Authentication\SignIn\Basic as SignInBasic;
-use App\Http\Livewire\Authentication\SignIn\Cover as SignInCover;
 
+use App\Http\Livewire\Authentication\SignIn\Cover as SignInCover;
 use App\Http\Livewire\Authentication\SignUp\Basic as SignUpBasic;
 use App\Http\Livewire\Authentication\SignUp\Cover as SignUpCover;
-use App\Http\Livewire\LaravelExamples\Items\Create as ItemsCreate;
 
+use App\Http\Livewire\LaravelExamples\Items\Create as ItemsCreate;
 use App\Http\Livewire\LaravelExamples\Profile\Edit as ProfileEdit;
 use App\Http\Livewire\LaravelExamples\Roles\Create as RolesCreate;
-use App\Http\Livewire\LaravelExamples\Category\Edit as CategoryEdit;
 
+use App\Http\Livewire\LaravelExamples\Category\Edit as CategoryEdit;
 use App\Http\Livewire\LaravelExamples\Category\Index as CategoryIndex;
 use App\Http\Livewire\LaravelExamples\Category\Create as CategoryCreate;
 use App\Http\Livewire\Authentication\Lock\Illustration as LockIllustration;
-
 use App\Http\Livewire\Authentication\Reset\Illustration as ResetIllustration;
 use App\Http\Livewire\Authentication\Verification\Basic as VerificationBasic;
 use App\Http\Livewire\Authentication\Verification\Cover as VerificationCover;
@@ -255,19 +259,51 @@ Route::middleware(['auth', 'verified'])->group(function () {
 Route::get('/', function () {
     return redirect()->route('login');
 });
-// Email Verification stuff
+// Email Verification Routes
 Route::get('/email/verify', function () {
     return view('livewire.authentication.verification.basic');
 })->middleware('auth')->name('verification.notice');
 
-Route::get('/email/verify/{id}/{hash}', function (EmailVerificationRequest $request) {
-    $request->fulfill();
+Route::get('/email/verify/{id}/{hash}', function (Request $request, $id, $hash) {
+    try {
+        // Ensure the signed URL is valid
+        if (!URL::hasValidSignature($request)) {
+            throw new AuthorizationException();
+        }
 
-    return redirect('dashboard/analytics');
+        // Ensure the user is authenticated
+        if (!$request->user() || $request->user()->id != $id) {
+            throw new AuthorizationException();
+        }
+
+        // Ensure the hash matches
+        if (!hash_equals((string) $hash, sha1($request->user()->getEmailForVerification()))) {
+            throw new AuthorizationException();
+        }
+
+        // Check if the user's email is already verified
+        if ($request->user()->hasVerifiedEmail()) {
+            return redirect('dashboard/analytics')->with('status', 'Your email is already verified.');
+        }
+
+        // Mark the email as verified
+        if ($request->user()->markEmailAsVerified()) {
+            event(new Verified($request->user()));
+        }
+
+        return redirect('dashboard/analytics')->with('status', 'Your email has been verified.');
+    } catch (AuthorizationException $e) {
+        return redirect('/email/verify')->with('error', 'The email verification link is invalid or expired.');
+    }
 })->middleware(['auth', 'signed'])->name('verification.verify');
 
 Route::post('/email/verification-notification', function (Request $request) {
-    $request->user()->sendEmailVerificationNotification();
-
-    return back()->with('message', 'Verification link sent!');
+    try {
+        $request->user()->sendEmailVerificationNotification();
+        return back()->with('success', 'Verification link sent!');
+    } catch (\Exception $e) {
+        // Log the error message
+        Log::error('Email verification notification failed: ' . $e->getMessage());
+        return back()->with('error', 'There was a problem sending the verification email. Please try again later.');
+    }
 })->middleware(['auth', 'throttle:6,1'])->name('verification.send');

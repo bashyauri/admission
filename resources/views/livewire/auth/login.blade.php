@@ -41,7 +41,7 @@
 
                     <div class="flex-auto p-6 text-center">
 
-
+                        @include('flash-messages')
                         <form wire:submit.prevent="login" role="form text-left">
                             <div class="mb-4">
                                 <input wire:model.lazy="email" type="email"

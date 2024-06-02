@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 <main class="mt-0 transition-all duration-200 ease-soft-in-out">
     <div
@@ -46,8 +47,11 @@
                                         </g>
                                     </svg>
                                 </div>
+                                @include('flash-messages')
                                 <div class="mb-6 text-center text-slate-500">
-                                    <h2>A new verification link has been sent to the email address you provided during registration.</h2>
+
+
+                                    <h2>A  verification link has been sent to the email address you provided during registration.</h2>
                                 </div>
                                 <div class="flex flex-wrap -mx-1 sm:-mx-2">
                                     <form method="POST" action="{{ route('verification.send') }}">
@@ -59,15 +63,11 @@
                                                 class="inline-block w-full px-6 py-3 mb-4 font-bold text-center text-white uppercase align-middle transition-all border-0 rounded-lg cursor-pointer hover:scale-102 active:opacity-85 hover:shadow-soft-xs bg-gradient-orange leading-pro text-size-xs ease-soft-in tracking-tight-soft shadow-soft-md bg-150 bg-x-25">Next</button>
                                             <span class="leading-normal text-slate-500 text-size-sm">
                                                 Haven't received it?
-                                                <button type="submit">Resend a new code</button>
+                                                <button type="submit" class="inline-block w-full px-6 py-3 mt-6 mb-2 font-bold text-center text-white uppercase align-middle transition-all bg-teal-700 border-0 rounded-lg cursor-pointer active:opacity-85 hover:scale-102 hover:shadow-soft-xs leading-pro text-size-xs ease-soft-in tracking-tight-soft shadow-soft-md bg-150 bg-x-25 bg-gradient-teal hover:border-teal-800 hover:bg-teal-800 hover:text-white">Resend a new code</button>
                                             </span>
                                         </div>
                                     </form>
-                                    <div class="flex flex-wrap -mx-3">
-                                        <a href="{{route('login')}}" class="inline-block float-right px-8 py-2 mt-2 mb-0 font-bold text-right text-white uppercase align-middle transition-all border-0 rounded-lg cursor-pointer hover:scale-102 active:opacity-85 hover:shadow-soft-xs dark:bg-gradient-neutral bg-teal-500 leading-pro text-size-xs ease-soft-in tracking-tight-soft shadow-soft-md bg-150 bg-x-25">
-                                            to login
-                                        </a>
-                                    </div>
+
                                 </div>
 
 
