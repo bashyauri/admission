@@ -17,7 +17,11 @@ class TransactionController extends Controller
         $data = Transaction::where([
             'user_id' => auth()->user()->id,
             'resource' => config('remita.admission.description')
+
         ])->first();
+
+        $valuesToHash  = config('remita.settings.merchantid') . $data->RRR . config('remita.settings.apikey');
+        $data['apiHash'] = hash('sha512', $valuesToHash);
 
 
         return view('payment.payment-slip')->with(json_decode($data, true));
@@ -43,10 +47,10 @@ class TransactionController extends Controller
             $this->transactionService->createPayment($data);
 
 
-            return redirect()->route('admission-invoice')->with('Remita Generated ', $response->status);
+            return redirect()->route('admission-invoice')->with('success', 'Remita Generated ', $response->status);
         } catch (\Exception $ex) {
             Log::alert($ex->getMessage());
-            return redirect()->back()->with('error', 'Something went wrong:' . $response?->status ?? "Error: " . $ex->getMessage());
+            return redirect()->back()->with('error', 'Something went wrong:');
         }
     }
     public function checkTransactionStatus($rrr)

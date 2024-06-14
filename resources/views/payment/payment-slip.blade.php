@@ -184,7 +184,7 @@
         <div class="card-body">
             @include('flash-messages')
 
-            <div class="page-content container">
+            <div class="container page-content">
                 <div class="page-header text-blue-d2">
                     <h1 class="page-title text-secondary-d1">
                         Remita:
@@ -198,7 +198,7 @@
                 </div>
 
                 <div class="container px-0">
-                    <div class="row mt-4">
+                    <div class="mt-4 row">
                         <div class="col-12 col-lg-10 offset-lg-1">
                             <div class="row">
                                 <div class="col-12">
@@ -209,26 +209,25 @@
                                 </div>
                             </div>
                             <!-- .row -->
-                            <form id="payment-form">
-                                <div class='preserveHtml' class='preserveHtml' class="form-floating mb-3 mt-3">
-                                   <input type="hidden" value="{{$RRR}}" class="form-control" id="js-firstName"  name="rrr"/>
+                          <form action="https://login.remita.net/remita/ecomm/finalize.reg" name="SubmitRemitaForm" method="POST">
+                                 <input name="merchantId" value="{{config('remita.settings.merchantid')}}" type="hidden">
 
-                                </div>
-                                <div class='preserveHtml' class='preserveHtml' class="form-floating mb-3 mt-3">
-                                    <input type="hidden" value="{{$transaction_id}}" class="form-control" id="js-firstName"  name="transaction_id"/>
+                            <input name="hash" value="{{$apiHash}}" type="hidden">
 
-                                 </div>
+                            <input name="rrr" value="{{$RRR}}" type="hidden">
 
-                             </form>
+                            <input name="responseurl" value="{{config('remita.admission.payment_redirect')}}" type="hidden">
+
+
                                 @csrf
-                                <hr class="row brc-default-l1 mx-n1 mb-4" />
+                                <hr class="mb-4 row brc-default-l1 mx-n1" />
 
                                 <div class="row">
                                     <div class="col-sm-6">
                                         <div>
-                                            <span class="text-sm text-grey-m2 align-middle">To:</span>
+                                            <span class="text-sm align-middle text-grey-m2">To:</span>
                                             <span
-                                                class="text-600 text-110 text-blue align-middle">
+                                                class="align-middle text-600 text-110 text-blue">
                                                 {{ auth()->user()->surname.' '.auth()->user()->firstname. ' '.auth()->user()->middlename }}</span>
                                         </div>
                                         <div class="text-grey-m2">
@@ -260,16 +259,16 @@
                                             </div>
 
                                             <div class="my-2"><i
-                                                    class="fa fa-circle text-blue-m2 text-xs mr-1"></i> <span
+                                                    class="mr-1 text-xs fa fa-circle text-blue-m2"></i> <span
                                                     class="text-600 text-90">ID:</span> #{{ $transaction_id }}</div>
 
                                             <div class="my-2"><i
-                                                    class="fa fa-circle text-blue-m2 text-xs mr-1"></i> <span
+                                                    class="mr-1 text-xs fa fa-circle text-blue-m2"></i> <span
                                                     class="text-600 text-90">Issue Date:{{$date}}</span>
                                             </div>
 
                                             <div class="my-2"><i
-                                                    class="fa fa-circle text-blue-m2 text-xs mr-1"></i> <span
+                                                    class="mr-1 text-xs fa fa-circle text-blue-m2"></i> <span
                                                     class="text-600 text-90">Status:{{$status}}</span>
                                                 @if ($status === config('remita.status.approved'))
 
@@ -285,7 +284,7 @@
                                 </div>
 
                                 <div class="mt-4">
-                                    <div class="row text-600 text-white bgc-default-tp1 py-25">
+                                    <div class="text-white row text-600 bgc-default-tp1 py-25">
 
                                         <div class="col-md-6 col-sm-5">Payment Type</div>
                                         <div class="d-none d-sm-block col-4 col-sm-2">RRR</div>
@@ -294,7 +293,7 @@
                                     </div>
 
                                     <div class="text-95 text-secondary-d3">
-                                        <div class="row mb-2 mb-sm-0 py-25">
+                                        <div class="mb-2 row mb-sm-0 py-25">
 
                                             <div class="col-md-6 col-sm-5">{{ $resource }}</div>
 
@@ -303,16 +302,16 @@
                                             <div class="col-2 text-secondary-d2">{{ $amount }}</div>
 
                                         </div>
-                                        <div class="row border-b-2 brc-default-l2"></div>
+                                        <div class="border-b-2 row brc-default-l2"></div>
 
                                         <div class="row ">
-                                            <div class="col-12 col-sm-7 text-grey-d2 text-95 mt-2 mt-lg-0">
+                                            <div class="mt-2 col-12 col-sm-7 text-grey-d2 text-95 mt-lg-0">
                                                 Wufpbk  Services
                                             </div>
 
-                                            <div class="col-12 col-sm-5 text-grey text-90 order-first order-sm-last">
-                                                <div class="row my-2">
-                                                    <div class="col-7 text-right">
+                                            <div class="order-first col-12 col-sm-5 text-grey text-90 order-sm-last">
+                                                <div class="my-2 row">
+                                                    <div class="text-right col-7">
                                                         Total
                                                     </div>
                                                     <div class="col-5">
@@ -331,11 +330,13 @@
                                                     @if ($status === '01' || $status === '00')
                                                     <a href="{{ route('analytics') }}" class="button">Back</a>
                                                   @else
-                                                    <input type="button" onclick="makePayment()" value="Pay" button class="button"/>
+
+                                                    <input type="submit"  value="Pay" button class="button"/>
                                                     <a href="{{ route('analytics') }}" class="button">Back</a>
                                                   @endif
                                                 </div>
                                             </div>
+                                              </form>
                                         </div>
                                     </div>
                                 </div>
@@ -359,7 +360,7 @@
             var transaction_id = document.querySelector('input[name="transaction_id"]').value;
 
             var paymentEngine = RmPaymentEngine.init({
-                key:"QzAwMDAyNzEyNTl8MTEwNjE4NjF8OWZjOWYwNmMyZDk3MDRhYWM3YThiOThlNTNjZTE3ZjYxOTY5NDdmZWE1YzU3NDc0ZjE2ZDZjNTg1YWYxNWY3NWM4ZjMzNzZhNjNhZWZlOWQwNmJhNTFkMjIxYTRiMjYzZDkzNGQ3NTUxNDIxYWNlOGY4ZWEyODY3ZjlhNGUwYTY=",
+                key:"V1VGUHw0MjA2NDE1M3w1M2UxN2QwYmVhODA5NTc4YjVlOWJiZWNiYjBjYzJhNjZlM2EwNTM1ZTgyNzUzZWQ5MjlkNWViZTk2OGYwMTUzNDhlMzc3NzQ3NmQzNmEwM2JjYTk4ZTIzMmE1MTA4NGEwMDljMjBhYWQyNjk5MTliNjkxNTJiZDczYjlhNTFmOQ==",
                 processRrr: true,
                 // transactionId: randomnumber,
 

@@ -4,6 +4,7 @@ return [
     'admission' => [
         'fee' => env('ADMISSION_FEE'),
         'description' => env('ADMISSION_DESCRIPTION'),
+        'payment_redirect' => env('ADMISSION_PAYMENT_REDIRECT'),
 
     ],
     'settings' => [
