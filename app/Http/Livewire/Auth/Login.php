@@ -24,7 +24,8 @@ class Login extends Component
         if (auth()->attempt(['email' => $this->email, 'password' => $this->password])) {
             $user = User::where(["email" => $this->email])->first();
             auth()->login($user);
-            return redirect(RouteServiceProvider::HOME);
+            // return redirect(RouteServiceProvider::HOME);
+            return redirect()->intended('dashboard');
         } else {
             return $this->addError('email', trans('auth.failed'));
         }

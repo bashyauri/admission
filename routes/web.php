@@ -126,7 +126,7 @@ Route::middleware('guest')->group(function () {
     Route::get('reset-password/{id}', ResetPassword::class)->name('reset-password')->middleware('signed');
 });
 
-Route::middleware(['auth', 'verified'])->group(function () {
+Route::middleware(['auth', 'verified','role:applicant'])->group(function () {
 
     //Laravel Examples
 
@@ -254,7 +254,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('authentication/verification/cover', VerificationCover::class)->name('cover-verification');
     Route::get('authentication/verification/illustration', VerificationIllustration::class)->name('illustration-verification');
 });
-
+Route::group(['middleware' => 'role:applicant'], function () {
+    // Routes for applicant dashboard
+});
 
 Route::get('/', function () {
     return redirect()->route('login');

@@ -23,10 +23,26 @@ class RedirectIfAuthenticated
 
         foreach ($guards as $guard) {
             if (Auth::guard($guard)->check()) {
-                return redirect(RouteServiceProvider::HOME);
+                return $this->redirectToDashboard($request->user()->role);
             }
         }
 
         return $next($request);
+    }
+
+    protected function redirectToDashboard($role)
+    {
+        $dashboardRoutes = [
+            'hod' => 'hod.dashboard',
+            'admin' => 'admin.dashboard',
+        ];
+
+        if (array_key_exists($role, $dashboardRoutes)) {
+            return redirect()->route($dashboardRoutes[$role]);
+        }
+
+
+
+        return redirect(RouteServiceProvider::HOME);
     }
 }
