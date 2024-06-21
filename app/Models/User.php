@@ -6,7 +6,6 @@ use App\Enums\TransactionStatus;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Notifications\Notifiable;
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -116,5 +115,9 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->transactions()->where(
             ['resource' => $paymentType]
         )->count() ?? false;
+    }
+    public function hodDetails()
+    {
+        return $this->hasOne(HodUser::class, 'user_id');
     }
 }
