@@ -53,7 +53,7 @@ class UserPolicy
      */
     public function update(User $user, User $model)
     {
-        return $user->isAdmin();
+        return $user->ishod();
     }
 
     /**
@@ -97,7 +97,7 @@ class UserPolicy
      */
     public function manageUsers(User $user)
     {
-        return $user->isAdmin();
+        return $user->isApplicant() || $user->isHod();
     }
 
     /**

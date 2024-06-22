@@ -50,23 +50,23 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     public function isAdmin()
     {
-        return $this->role_id === 1;
+        return $this->role === 'admin';
     }
 
     /**
      * Check if the user is creator
      */
-    public function isCreator()
+    public function isHod()
     {
-        return $this->role_id === 2;
+        return $this->role === 'hod';
     }
 
     /**
      * Check if the user is member
      */
-    public function isMember()
+    public function isApplicant()
     {
-        return $this->role_id === 3;
+        return $this->role_id === 'applicant';
     }
 
     public function programme()
