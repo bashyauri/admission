@@ -66,7 +66,7 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     public function isApplicant()
     {
-        return $this->role_id === 'applicant';
+        return $this->role === 'applicant';
     }
 
     public function programme()

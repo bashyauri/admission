@@ -91,4 +91,8 @@ class RolePolicy
     {
         //
     }
+    public function viewApplicants(User $user)
+    {
+        return $user->isHod();
+    }
 }

@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('proposed_courses', function (Blueprint $table) {
-            $table->string('academic_session')->after('status');
+            $table->string('academic_session')->after('status')->default(config('remita.settings.academic_session'));
         });
     }
 
@@ -22,7 +22,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('proposed_courses', function (Blueprint $table) {
-            $table->dropColumn('academic_session')->default(config('remita.settings.academic_session'));
+            $table->dropColumn('academic_session');
         });
     }
 };

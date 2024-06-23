@@ -6,17 +6,18 @@
                 <div class="relative flex-auto p-4">
                     <div class="flex flex-wrap -mx-3 ">
                         <div class="w-7/12 max-w-full px-3 text-left flex-0">
-                            <p class="mb-1 font-semibold leading-normal capitalize text-size-sm">Sales</p>
-                            <h5 class="mb-0 font-bold dark:text-white">$230,220</h5>
+                            <p class="mb-1 font-semibold leading-normal capitalize text-size-sm">Total Applicants</p>
+                            <h5 class="mb-0 font-bold dark:text-white">{{$this->totalApplicants}}</h5>
                             <span class="mt-auto mb-0 font-bold leading-normal text-right text-lime-500 text-size-sm">
-                                +55%
-                                <span class="font-normal text-slate-400">since last month</span>
+
+                                <a href="{{route('admission-invoice')}}"
+                                    class="inline-block px-6 py-3 mt-4 font-bold text-center uppercase align-middle transition-all border-0 rounded-lg cursor-pointer hover:scale-102 active:opacity-85 hover:shadow-soft-xs bg-gradient-gray leading-pro text-size-xs ease-soft-in tracking-tight-soft shadow-soft-md bg-150 bg-x-25 text-slate-800">View More</a>
                             </span>
                         </div>
                         <div class="w-5/12 max-w-full px-3 flex-0">
                             <div class="relative text-right">
                                 <a href="javascript:;" class="cursor-pointer" dropdown-trigger aria-expanded="false">
-                                    <span class="leading-tight text-size-xs text-slate-400">6 May - 7 May</span>
+                                    <span class="leading-tight text-size-xs text-slate-400">{{config('remita.settings.academic_session')}}</span>
                                 </a>
                                 <p class="hidden transform-dropdown-show"></p>
                                 <ul dropdown-menu
@@ -48,7 +49,7 @@
                 <div class="relative flex-auto p-4">
                     <div class="flex flex-wrap -mx-3 ">
                         <div class="w-7/12 max-w-full px-3 text-left flex-0">
-                            <p class="mb-1 font-semibold leading-normal capitalize text-size-sm">Customers</p>
+                            <p class="mb-1 font-semibold leading-normal capitalize text-size-sm">Not Recommended</p>
                             <h5 class="mb-0 font-bold dark:text-white">3.200</h5>
                             <span class="mt-auto mb-0 font-bold leading-normal text-right text-lime-500 text-size-sm">
                                 +12%
@@ -88,7 +89,7 @@
                 <div class="relative flex-auto p-4">
                     <div class="flex flex-wrap -mx-3 ">
                         <div class="w-7/12 max-w-full px-3 text-left flex-0">
-                            <p class="mb-1 font-semibold leading-normal capitalize text-size-sm">Avg. Revenue</p>
+                            <p class="mb-1 font-semibold leading-normal capitalize text-size-sm">Shortlisted</p>
                             <h5 class="mb-0 font-bold dark:text-white">$1.200</h5>
                             <span class="mt-auto mb-0 font-bold leading-normal text-right text-slate-400 text-size-sm">
                                 +$231

@@ -9,8 +9,10 @@ use App\Models\ProposedCourse;
  */
 class StudentReportService
 {
-    public function totalApplicants($departmentId = null, $year =)
+
+
+    public function totalApplicants($departmentId = '')
     {
-        return ProposedCourse::where(['departmentId' => $departmentId, 'academic_session' => $year])->count();
+        return ProposedCourse::where(['department_id' => $departmentId, 'academic_session' => config('remita.settings.academic_session')])->count();
     }
 }
