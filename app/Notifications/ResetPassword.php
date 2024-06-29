@@ -12,7 +12,7 @@ use Illuminate\Http\Request;
 
 use Illuminate\Support\Facades\URL;
 
-class ResetPassword extends Notification
+class ResetPassword extends Notification implements ShouldQueue
 {
     use Queueable;
 
