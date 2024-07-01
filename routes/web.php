@@ -124,9 +124,13 @@ Route::middleware('guest')->group(function () {
     Route::get('sign-in', Login::class)->name('login');
     Route::get('forgot-password', ForgotPassword::class)->name('forgot-password');
     Route::get('reset-password/{id}', ResetPassword::class)->name('reset-password')->middleware('signed');
+    Route::get('logout', function () {
+        auth()->logout();
+        return redirect()->route('login');
+    })->name('logout');
 });
 
-Route::middleware(['auth', 'verified','role:applicant'])->group(function () {
+Route::middleware(['auth', 'verified', 'role:applicant'])->group(function () {
 
     //Laravel Examples
 

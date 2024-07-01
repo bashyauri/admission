@@ -2,21 +2,26 @@
 
 namespace App\Http\Livewire\Dashboards;
 
-use App\Models\User;
 use Livewire\Component;
-use App\Models\ProposedCourse;
+
 use Livewire\Attributes\Computed;
-use App\Services\Report\StudentReportService;
+use App\Services\Report\ApplicantReportService;
 
 
 class HodIndex extends Component
 {
+    public $totalApplicants;
 
+    public function mount(ApplicantReportService $applicantReportService)
+    {
+        $this->totalApplicants = $applicantReportService->totalApplicants(1);
+    }
 
     #[Computed()]
     public function totalApplicants()
     {
-        return ProposedCourse::where(['department_id' => '1', 'academic_session' => config('remita.settings.academic_session')])->count();
+
+        return $this->totalApplicants;
     }
     public function render()
     {
