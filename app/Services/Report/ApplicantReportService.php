@@ -24,6 +24,8 @@ class ApplicantReportService
                 'users.surname as surname',
                 'users.firstname as firstname',
                 'users.m_name as middlename',
+                'users.picture as picture',
+                'users.phone as phone',
 
                 'courses.name AS course_name'
             )

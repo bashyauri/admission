@@ -15,4 +15,8 @@ class ProposedCourse extends Model
     {
         return $this->belongsTo(User::class)->withDefault();
     }
+    public function course()
+    {
+        return $this->belongsTo(Course::class);
+    }
 }

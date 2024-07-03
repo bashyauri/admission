@@ -22,6 +22,7 @@ class AllApplicants extends Component
     {
         return $this->getAllApplicants;
     }
+
     public function render()
     {
         return view('livewire.hod.applicants.all-applicants');

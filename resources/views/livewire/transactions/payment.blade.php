@@ -155,13 +155,13 @@
                               <div class="flex px-2 py-1">
 
                                 <div class="flex flex-col justify-center">
-                                  <h6 class="mb-0 leading-normal text-sm">{{$transaction->resource}}</h6>
-                                  <p class="mb-0 leading-tight text-xs text-slate-400">{{$transaction->RRR}}</p>
+                                  <h6 class="mb-0 text-sm leading-normal">{{$transaction->resource}}</h6>
+                                  <p class="mb-0 text-xs leading-tight text-slate-400">{{$transaction->RRR}}</p>
                                 </div>
                               </div>
                             </td>
 
-                            <td class="p-2 leading-normal text-center align-middle bg-transparent border-b text-sm whitespace-nowrap shadow-transparent">
+                            <td class="p-2 text-sm leading-normal text-center align-middle bg-transparent border-b whitespace-nowrap shadow-transparent">
                                 <span class="px-3.6 text-xs rounded-1.8 py-2.2 inline-block whitespace-nowrap text-center align-baseline font-bold uppercase leading-none text-white
                                 {{ $transaction->status === '00' ? 'bg-gradient-to-tl from-green-600 to-lime-400' : 'bg-yellow-500' }}">
                                 {{ $transaction->status === '00' ? 'success' : 'pending' }}
@@ -170,14 +170,14 @@
                             </td>
 
                             <td class="p-2 align-middle bg-transparent border-b whitespace-nowrap shadow-transparent">
-                              <a href="{{route('payment.status',['rrr'=>$transaction->RRR])}}" class="font-semibold leading-tight text-xs text-slate-400"> check status</a>
+                              <a href="{{route('payment.status',['rrr'=>$transaction->RRR])}}" class="text-xs font-semibold leading-tight text-slate-400"> check status</a>
                             </td>
 
                           </tr>
 
                         @empty
                         <div class="flex flex-col justify-center">
-                            <h6 class="mb-0 leading-normal text-sm">No Transaction yet</h6>
+                            <h6 class="mb-0 text-sm leading-normal">No Transaction yet</h6>
 
                           </div>
 
@@ -194,6 +194,4 @@
 
 </div>
 
-@push('js')
-<script src="{{ asset('assets') }}/js/plugins/chartjs.min.js"></script>
-@endpush
+

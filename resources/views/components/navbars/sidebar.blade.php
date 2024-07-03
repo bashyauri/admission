@@ -1,7 +1,8 @@
 @if (auth()->user()->isApplicant())
 @include('components.navbars.applicant-sidebar')
+@endif
 
-@elseif (auth()->user()->isHod())
+@if (auth()->user()->isHod())
 @include('components.navbars.hod-sidebar')
 
 @endif

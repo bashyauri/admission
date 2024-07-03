@@ -71,7 +71,7 @@
                                 <th>Full Name</th>
 
                                 <th>Course</th>
-                                <th>SKU</th>
+                                <th>Phone</th>
 
                                 <th>Status</th>
                                 <th>Action</th>
@@ -86,30 +86,28 @@
                                     <div class="flex">
 
                                         <img class="ml-4 w-1/10"
-                                            src="https://raw.githubusercontent.com/creativetimofficial/public-assets/master/soft-ui-design-system/assets/img/ecommerce/adidas-hoodie.jpg"
-                                            alt="hoodie">
+                                            src="{{asset('/storage/'.$applicant->picture)}}"
+                                            alt="user image">
                                         <h6 class="my-auto ml-4 dark:text-white">{{$applicant->surname.' '.$applicant->firstname.' '.$applicant->middlename}}</h6>
                                     </div>
                                 </td>
                                 <td class="leading-normal text-size-sm">{{$applicant->course_name}}</td>
 
-                                <td class="leading-normal text-size-sm">243598234</td>
+                                <td class="leading-normal text-size-sm">{{$applicant->phone}}</td>
 
                                 <td>
-                                    <span
-                                        class="py-1.8-em px-3-em text-size-xxs-em rounded-1 inline-block whitespace-nowrap text-center align-baseline font-bold uppercase leading-none text-red-700 bg-red-200">Out
-                                        of Stock</span>
+
+                                   <span class="py-1.8-em px-3-em text-size-xxs-em rounded-1 inline-block whitespace-nowrap text-center align-baseline font-bold uppercase leading-none
+  {{ $applicant->status === 'Shortlisted' ? 'text-green-500 bg-green-100' : 'text-gray-700 bg-gray-200' }}">
+  {{ $applicant->status ?? 'Pending' }}
+</span>
                                 </td>
                                 <td class="leading-normal text-size-sm">
-                                    <a href="javascript:;">
-                                        <i class="fas fa-eye text-slate-400 dark:text-white/70"></i>
-                                    </a>
-                                    <a href="javascript:;" class="mx-4">
+
+                                    <a href="{{ route('hod.edit-applicant', $applicant->user_id)}}" class="mx-4">
                                         <i class="fas fa-user-edit text-slate-400 dark:text-white/70"></i>
                                     </a>
-                                    <a href="javascript:;">
-                                        <i class="fas fa-trash text-slate-400 dark:text-white/70"></i>
-                                    </a>
+
                                 </td>
                             </tr>
                               @endforeach
