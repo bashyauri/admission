@@ -4,6 +4,8 @@ namespace App\Http\Livewire\Hod\Applicants;
 
 use App\Models\User;
 use Livewire\Component;
+use App\Notifications\Shortlist;
+use Illuminate\Support\Facades\DB;
 use Jantinnerezo\LivewireAlert\LivewireAlert;
 
 class ApplicantEdit extends Component
@@ -16,14 +18,17 @@ class ApplicantEdit extends Component
     }
     public function shortlist()
     {
-        $this->user->proposedCourse()->update(
-            ['status' => 'shortlisted']
-        );
-        $this->alert('success', 'Updated Successfully', [
-            'position' => 'center',
-            'timer' => 3000,
-            'toast' => true,
-        ]);
+        DB::transaction(function () {
+            $this->user->proposedCourse()->update(
+                ['status' => 'shortlisted']
+            );
+            $this->user->notify(new Shortlist());
+            $this->alert('success', 'Updated Successfully', [
+                'position' => 'center',
+                'timer' => 3000,
+                'toast' => true,
+            ]);
+        });
     }
     public function render()
     {
