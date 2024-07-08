@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class HodUser extends Model
 {
     use HasFactory;
+    protected $fillable = ['user_id', 'department_id'];
 
     public function user()
     {
