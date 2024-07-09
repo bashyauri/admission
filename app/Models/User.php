@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\ApplicationStatus;
 use App\Enums\TransactionStatus;
 use App\Notifications\SendVerificationEmail;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
@@ -121,6 +122,10 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->transactions()->where(
             ['resource' => $paymentType]
         )->count() ?? false;
+    }
+    public function isShortlisted()
+    {
+        return $this->proposedCourse()->where(['status' => ApplicationStatus::SHORTLISTED])->count();
     }
     public function hodDetails()
     {

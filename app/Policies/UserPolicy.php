@@ -114,4 +114,8 @@ class UserPolicy
     {
         return $user->hasPaid($transaction->resource);
     }
+    public function generateAcceptanceInvoice(User $user)
+    {
+        return $user->isShortlisted();
+    }
 }

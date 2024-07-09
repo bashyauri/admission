@@ -19,11 +19,11 @@
                                 $department_id = auth()->user()->proposedCourse?->department_id;
                                 $course_id = auth()->user()->proposedCourse?->course_id;
                             @endphp
-                          <p class="mb-6 leading-normal text-sm">Department: {{App\Models\Department::find($department_id)->name ?? 'Not Selected'}}</p>
-                          <p class="mb-6 leading-normal text-sm">Course: {{App\Models\Course::find($course_id)->name ?? 'Not Selected'}}</p>
+                          <p class="mb-4 text-sm leading-normal">Department: {{App\Models\Department::find($department_id)->name ?? 'Not Selected'}}</p>
+                          <p class="mb-4 text-sm leading-normal">Course: {{App\Models\Course::find($course_id)->name ?? 'Not Selected'}}</p>
+                           <p class="mb-4 text-sm leading-normal">Status: {{auth()->user()->proposedCourse->status ?? 'Pending'}}</p>
                           <div class="flex items-center justify-between">
-                            <a href="{{route('profile')}}" type="button" class="inline-block px-8 py-2 mb-0 font-bold text-center uppercase align-middle transition-all bg-transparent border border-solid rounded-lg shadow-none cursor-pointer leading-pro ease-soft-in text-xs hover:scale-102 active:shadow-soft-xs tracking-tight-soft border-teal-500 text-teal-500 hover:border-teal-500 hover:bg-transparent hover:text-teal-700 hover:opacity-75 hover:shadow-none active:bg-teal-500 active:text-white
-                            active:hover:bg-transparent active:hover:text-teal-500">Application Area</a>
+                            <a href="{{route('profile')}}" type="button" class="inline-block px-8 py-2 mb-0 text-xs font-bold text-center text-teal-500 uppercase align-middle transition-all bg-transparent border border-teal-500 border-solid rounded-lg shadow-none cursor-pointer leading-pro ease-soft-in hover:scale-102 active:shadow-soft-xs tracking-tight-soft hover:border-teal-500 hover:bg-transparent hover:text-teal-700 hover:opacity-75 hover:shadow-none active:bg-teal-500 active:text-white active:hover:bg-transparent active:hover:text-teal-500">Application Area</a>
 
 
 
@@ -31,25 +31,25 @@
                 </div>
             </div>
         </div>
-
-
-        {{-- <div class="w-full max-w-full px-3 mt-6 shrink-0 sm:mt-0 sm:flex-0 sm:w-4/12">
+        @can('generateAcceptanceInvoice', App\Models\User::class)
+            <div class="w-full max-w-full px-3 shrink-0 sm:flex-0 sm:w-4/12">
             <div
                 class="relative flex flex-col min-w-0 break-words bg-white border-0 dark:bg-gray-950 dark:shadow-soft-dark-xl shadow-soft-xl rounded-2xl bg-clip-border">
                 <div class="relative flex-auto p-4">
                     <div class="flex flex-wrap -mx-3 ">
                         <div class="w-7/12 max-w-full px-3 text-left flex-0">
-                            <p class="mb-1 font-semibold leading-normal capitalize text-size-sm">Customers</p>
-                            <h5 class="mb-0 font-bold dark:text-white">3.200</h5>
+                            <p class="mb-1 font-semibold leading-normal capitalize text-size-sm">Generate Invoice</p>
+                            <h5 class="mb-0 font-bold dark:text-white">Acceptance Fee</h5>
                             <span class="mt-auto mb-0 font-bold leading-normal text-right text-lime-500 text-size-sm">
-                                +12%
-                                <span class="font-normal text-slate-400">since last month</span>
+
+                                <a href="{{route('admission-invoice')}}"
+                                    class="inline-block px-6 py-3 mt-4 font-bold text-center uppercase align-middle transition-all border-0 rounded-lg cursor-pointer hover:scale-102 active:opacity-85 hover:shadow-soft-xs bg-gradient-gray leading-pro text-size-xs ease-soft-in tracking-tight-soft shadow-soft-md bg-150 bg-x-25 text-slate-500">Generate Invoice</a>
                             </span>
                         </div>
                         <div class="w-5/12 max-w-full px-3 flex-0">
                             <div class="relative text-right">
                                 <a href="javascript:;" class="cursor-pointer" dropdown-trigger aria-expanded="false">
-                                    <span class="leading-tight text-size-xs text-slate-400">6 May - 7 May</span>
+                                    <span class="leading-tight text-size-xs text-slate-400"></span>
                                 </a>
                                 <p class="hidden transform-dropdown-show"></p>
                                 <ul dropdown-menu
@@ -69,10 +69,14 @@
                                 </ul>
                             </div>
                         </div>
+
                     </div>
                 </div>
             </div>
-        </div> --}}
+        </div>
+        @endcan
+
+
         {{-- <div class="w-full max-w-full px-3 mt-6 shrink-0 sm:mt-0 sm:flex-0 sm:w-4/12">
             <div
                 class="relative flex flex-col min-w-0 break-words bg-white border-0 dark:bg-gray-950 dark:shadow-soft-dark-xl shadow-soft-xl rounded-2xl bg-clip-border">
@@ -140,13 +144,13 @@
                               <div class="flex px-2 py-1">
 
                                 <div class="flex flex-col justify-center">
-                                  <h6 class="mb-0 leading-normal text-sm">{{$transaction->resource}}</h6>
-                                  <p class="mb-0 leading-tight text-xs text-slate-400">{{$transaction->RRR}}</p>
+                                  <h6 class="mb-0 text-sm leading-normal">{{$transaction->resource}}</h6>
+                                  <p class="mb-0 text-xs leading-tight text-slate-400">{{$transaction->RRR}}</p>
                                 </div>
                               </div>
                             </td>
 
-                            <td class="p-2 leading-normal text-center align-middle bg-transparent border-b text-sm whitespace-nowrap shadow-transparent">
+                            <td class="p-2 text-sm leading-normal text-center align-middle bg-transparent border-b whitespace-nowrap shadow-transparent">
                                 <span class="px-3.6 text-xs rounded-1.8 py-2.2 inline-block whitespace-nowrap text-center align-baseline font-bold uppercase leading-none text-white
                                 {{ $transaction->status === '00' ? 'bg-gradient-to-tl from-green-600 to-lime-400' : 'bg-yellow-500' }}">
                                 {{ $transaction->status === '00' ? 'success' : 'pending' }}
@@ -155,14 +159,14 @@
                             </td>
 
                             <td class="p-2 align-middle bg-transparent border-b whitespace-nowrap shadow-transparent">
-                              <a href="{{route('payment.status',['rrr'=>$transaction->RRR])}}" class="font-semibold leading-tight text-xs text-slate-400"> check status</a>
+                              <a href="{{route('payment.status',['rrr'=>$transaction->RRR])}}" class="text-xs font-semibold leading-tight text-slate-400"> check status</a>
                             </td>
 
                           </tr>
 
                         @empty
                         <div class="flex flex-col justify-center">
-                            <h6 class="mb-0 leading-normal text-sm">No Transaction yet</h6>
+                            <h6 class="mb-0 text-sm leading-normal">No Transaction yet</h6>
 
                           </div>
 
