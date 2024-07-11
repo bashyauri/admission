@@ -35,7 +35,7 @@
                                 </div>
                             </div>
                             <br />
-                            @if (auth()->user()->hasInvoice(config('remita.admission.description')))
+                            @if (auth()->user()->hasInvoice(config('remita.acceptance.description')))
                             <div class="flex flex-wrap -mx-3 md:justify-between">
                                 <div class="w-full max-w-full px-3 mt-auto md:flex-0 shrink-0 md:w-4/12">
                                     <h6 class="mb-0 text-left text-slate-400 dark:text-white dark:opacity-80">Invoice no
@@ -95,7 +95,7 @@
                                                     class="px-2 py-3 font-semibold text-left capitalize bg-transparent border-b border-solid shadow-none tracking-none whitespace-nowrap border-b-gray-200 dark:border-white/40 dark:text-white">
                                                     Description:</th>
                                                     <td class="p-2 pl-6 border-b whitespace-nowrap dark:border-white/40 dark:text-white/60"
-                                                    >{{config('remita.admission.description')}}</td>
+                                                    >{{$description}}</td>
 
                                                 </tr>
                                                 <tr>
@@ -104,7 +104,7 @@
                                                     Amount:</th>
                                                     <td class="p-2 pl-6 border-b whitespace-nowrap dark:border-white/40 dark:text-white/60"
                                                     >{{config('remita.currency')}}
-                                                    {{config('remita.admission.fee')}}</td>
+                                                    {{$amount}}</td>
 
                                                 </tr>
 
@@ -113,7 +113,7 @@
 
                                                 </tr>
                                                 <input name="payerPhone" value="{{auth()->user()->phone}}" type="hidden" />
-                                                <input name="description" value="{{config('remita.admission.description')}}" type="hidden" />
+                                                <input name="description" value="{{$description}}" type="hidden" />
                                                 <input id="payerEmail" name="payerEmail" value="{{auth()->user()->email}}"
                                                 type="hidden" />
                                                 <input id="payerName" name="payerName"
@@ -147,7 +147,7 @@
 
                                 <div
                                     class="w-full max-w-full px-3 mt-4 lg:flex-0 shrink-0 md:mt-0 md:text-right lg:w-7/12">
-                                    @if (auth()->user()->hasPaid(config('remita.admission.description')))
+                                    @if (auth()->user()->hasPaid(config('remita.acceptance.description')))
                                     <button onclick="window.print()" type="button"
                                         class="inline-block px-6 py-3 mb-0 font-bold text-right text-white uppercase align-middle transition-all border-0 rounded-lg cursor-pointer hover:scale-102 active:opacity-85 hover:shadow-soft-xs bg-gradient-cyan leading-pro text-size-xs ease-soft-in tracking-tight-soft shadow-soft-md bg-150 bg-x-25 lg:mt-24">Print</button>
                                     @else

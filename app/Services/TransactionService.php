@@ -60,7 +60,7 @@ class TransactionService
     {
         $values = $this->generateInvoice($data);
         if (!empty($values)) {
-            Transaction::create(
+            return  Transaction::create(
                 [
                     'transaction_id' => $data['transactionId'],
                     'user_id' => auth()->user()->id,

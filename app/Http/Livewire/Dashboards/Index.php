@@ -6,9 +6,11 @@ use App\Models\User;
 use Livewire\Component;
 use App\Models\Transaction;
 use Livewire\Attributes\Computed;
+use Livewire\Attributes\Locked;
 
 class Index extends Component
 {
+
     public function mount()
     {
         if (!auth()->user()->hasPaid(config('remita.admission.description'))) {

@@ -7,6 +7,12 @@ return [
         'payment_redirect' => env('ADMISSION_PAYMENT_REDIRECT'),
 
     ],
+    'acceptance' => [
+        'fee' => env('ACCEPTANCE_FEE'),
+        'description' => env('ACCEPTANCE_DESCRIPTION'),
+        'payment_redirect' => env('ACCEPTANCE_PAYMENT_REDIRECT'),
+
+    ],
     'settings' => [
         'serviceid' => env('SERVICEID'),
         'merchantid' => env('MERCHANTID'),

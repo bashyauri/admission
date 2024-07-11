@@ -107,6 +107,7 @@ use App\Http\Livewire\LaravelExamples\UsersManagement\Edit as UserManagementEdit
 use App\Http\Livewire\LaravelExamples\UsersManagement\Index as UserManagementIndex;
 use App\Http\Livewire\LaravelExamples\UsersManagement\Create as UserManagementCreate;
 use App\Http\Livewire\Authentication\Verification\Illustration as VerificationIllustration;
+use App\Http\Livewire\Transactions\AcceptanceInvoice;
 
 /*
 |--------------------------------------------------------------------------
@@ -213,9 +214,11 @@ Route::middleware(['auth', 'verified', 'role:applicant'])->group(function () {
     // Transactions
     Route::get('transactions', Payment::class)->name('transactions');
     Route::get('transactions/admission-invoice', AdmissionInvoice::class)->name('admission-invoice');
+    Route::get('transactions/acceptance-invoice', AcceptanceInvoice::class)->name('acceptance-invoice');
+
     // Normal Controller
     Route::post('/transactions/generate-invoice', [TransactionController::class, 'generateInvoice'])->name('invoice');
-    Route::get('/transactions/generate-invoice', [TransactionController::class, 'index'])->name('payment');
+    Route::get('/transactions/generate-invoice/{transaction?}', [TransactionController::class, 'index'])->name('payment');
     Route::get('/payment/status/{rrr}', [TransactionController::class, 'checkTransactionStatus'])->name('payment.status');
 
 

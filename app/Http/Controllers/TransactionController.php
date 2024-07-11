@@ -12,19 +12,14 @@ class TransactionController extends Controller
     public function __construct(protected TransactionService $transactionService)
     {
     }
-    public function index()
+    public function index(?Transaction $transaction)
     {
-        $data = Transaction::where([
-            'user_id' => auth()->user()->id,
-            'resource' => config('remita.admission.description')
 
-        ])->first();
-
-        $valuesToHash  = config('remita.settings.merchantid') . $data->RRR . config('remita.settings.apikey');
-        $data['apiHash'] = hash('sha512', $valuesToHash);
+        $valuesToHash  = config('remita.settings.merchantid') . $transaction->RRR . config('remita.settings.apikey');
+        $transaction['apiHash'] = hash('sha512', $valuesToHash);
 
 
-        return view('payment.payment-slip')->with(json_decode($data, true));
+        return view('payment.payment-slip')->with(json_decode($transaction, true));
     }
     public function generateInvoice(Request $request)
     {
@@ -44,10 +39,11 @@ class TransactionController extends Controller
             $data['RRR'] = $response->RRR;
             $data['statuscode'] = $response->statuscode;
             $data['status'] = $response->status;
-            $this->transactionService->createPayment($data);
+            $transaction = $this->transactionService->createPayment($data);
 
 
-            return redirect()->route('admission-invoice')->with('success', 'Remita Generated ', $response->status);
+
+            return to_route('payment', ['transaction' => $transaction])->with('success', 'Remita Generated ', $response->status);
         } catch (\Exception $ex) {
             Log::alert($ex->getMessage());
             return redirect()->back()->with('error', 'Something went wrong:');
@@ -57,16 +53,18 @@ class TransactionController extends Controller
     {
 
 
+
         try {
+            $transaction = Transaction::where('RRR', $rrr)->first();
 
 
             $response = $this->transactionService->getTransactionStatus($rrr);
 
             $this->transactionService->updateTransactionStatus($response->status, $response->RRR);
 
-            // return view('nds.payment')->with($data);
 
-            return redirect()->route('invoice')->with('info', $response->message);
+
+            return to_route('payment', ['transaction' => $transaction])->with('info', $response->message);
         } catch (\Exception $ex) {
             Log::alert($ex->getMessage());
             return redirect()->back()->with('error', 'Something went wrong: Try again later');

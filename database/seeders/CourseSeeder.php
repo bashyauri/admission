@@ -36,7 +36,7 @@ class CourseSeeder extends Seeder
             ['programme_id' => 2, 'department_id' => 5, 'name' => 'ND Accountancy'],
             ['programme_id' => 3, 'department_id' => 5, 'name' => 'NDS Accountancy'],
             ['programme_id' => 5, 'department_id' => 5, 'name' => 'PD Accountancy'],
-            ['programme_id' => 6, 'department_id' => 6, 'name' => 'PGD Accounting and Finance'],
+            ['programme_id' => 6, 'department_id' => 5, 'name' => 'PGD Accounting and Finance'],
 
 
             ['programme_id' => 1, 'department_id' => 6, 'name' => 'HND Banking and Finance'],
