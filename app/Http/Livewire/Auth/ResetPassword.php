@@ -21,7 +21,7 @@ class ResetPassword extends Component
     public function mount($id)
     {
         $existingUser = User::find($id);
-        $this->urlID = intval($existingUser->id);
+        $this->urlID = $existingUser->id;
     }
 
     public function resetPassword()

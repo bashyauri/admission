@@ -7,9 +7,9 @@
                         class="relative z-0 flex flex-col min-w-0 mt-40 mb-6 break-words bg-white border-0 sm:mt-64 dark:bg-gray-950 dark:shadow-soft-dark-xl shadow-soft-xl rounded-2xl bg-clip-border">
                         <div class="border-black/12.5 rounded-t-2xl border-b-0 border-solid p-6 text-center pt-6 pb-1">
                             @if (Session::has('email'))
-                            <div class="fixed bottom-1/100 right-1/100 z-2 mb-4">
+                            <div class="fixed mb-4 bottom-1/100 right-1/100 z-2">
                                 <div id="alert"
-                                    class="w-85 text-size-sm shadow-soft-2xl pointer-events-auto max-w-full rounded-lg border-0 bg-white bg-clip-padding p-2 transition-opacity ease-linear">
+                                    class="max-w-full p-2 transition-opacity ease-linear bg-white border-0 rounded-lg pointer-events-auto w-85 text-size-sm shadow-soft-2xl bg-clip-padding">
                                     <div class="flex items-center p-3 rounded-t-lg bg-clip-padding text-slate-700">
                                         <i class="mr-2 text-transparent ni ni-notification-70 bg-gradient-red bg-clip-text"></i>
                                         <span class="mr-auto font-semibold text-transparent bg-gradient-red bg-clip-text">Soft UI
@@ -32,39 +32,39 @@
 
                         <div class="flex-auto p-6 text-center">
 
-                            <form wire:submit.prevent="resetPassword" role="form">
+                            <form wire:submit="resetPassword" role="form">
 
                                 <div class="mb-4">
-                                    <input wire:model.lazy="email" type="email"
+                                    <input wire:model="email" type="email"
                                         class="
                                         focus:shadow-soft-primary-outline dark:bg-gray-950 dark:placeholder:text-white/80 dark:text-white/80 text-size-sm leading-5.6 ease-soft block w-full appearance-none rounded-lg border border-solid border-gray-300 bg-white bg-clip-padding px-3 py-2 font-normal text-gray-700 outline-none transition-all placeholder:text-gray-500 focus:border-fuchsia-300 focus:outline-none"
                                         placeholder="Email" aria-label="Email" aria-describedby="email-addon" required
                                         />
                                     @error('email')
-                                    <p class="text-size-sm text-red-500">{{ $message }}</p>
+                                    <p class="text-red-500 text-size-sm">{{ $message }}</p>
                                     @enderror
                                 </div>
 
                                 <div class="mb-4">
-                                    <input wire:model.lazy="password" type="password" id="password"
+                                    <input wire:model="password" type="password" id="password"
                                         class="
                                         focus:shadow-soft-primary-outline dark:bg-gray-950 dark:placeholder:text-white/80 dark:text-white/80 text-size-sm leading-5.6 ease-soft block w-full appearance-none rounded-lg border border-solid border-gray-300 bg-white bg-clip-padding px-3 py-2 font-normal text-gray-700 outline-none transition-all placeholder:text-gray-500 focus:border-fuchsia-300 focus:outline-none"
                                         placeholder="New password" aria-label="Password"
                                         aria-describedby="password-addon" required />
                                     @error('password')
-                                    <p class="text-size-sm text-red-500">{{ $message }}</p>
+                                    <p class="text-red-500 text-size-sm">{{ $message }}</p>
                                     @enderror
                                 </div>
 
                                 <div class="mb-4">
-                                    <input wire:model.lazy="passwordConfirmation" type="password"
+                                    <input wire:model="passwordConfirmation" type="password"
                                         id="passwordConfirmation"
                                         class="
                                         focus:shadow-soft-primary-outline dark:bg-gray-950 dark:placeholder:text-white/80 dark:text-white/80 text-size-sm leading-5.6 ease-soft block w-full appearance-none rounded-lg border border-solid border-gray-300 bg-white bg-clip-padding px-3 py-2 font-normal text-gray-700 outline-none transition-all placeholder:text-gray-500 focus:border-fuchsia-300 focus:outline-none"
                                         placeholder="Confirm new password" aria-label="Password"
                                         aria-describedby="password-addon" required />
                                     @error('passwordConfirmation')
-                                    <p class="text-size-sm text-red-500">{{ $message }}</p>
+                                    <p class="text-red-500 text-size-sm">{{ $message }}</p>
                                     @enderror
                                 </div>
 
