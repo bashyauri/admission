@@ -264,6 +264,8 @@
                 </div>
                 <div class="relative flex flex-col min-w-0 mt-6 break-words bg-white border-0 dark:bg-gray-950 dark:shadow-soft-dark-xl shadow-soft-xl rounded-2xl bg-clip-border"
                     id="password">
+                <form wire:submit="updatePassword">
+
                     <div class="p-6 mb-0 rounded-t-2xl">
                         <h5 class="dark:text-white">Change Password</h5>
                     </div>
@@ -271,19 +273,19 @@
                         <label class="inline-block mb-2 ml-1 font-bold text-size-xs text-slate-700 dark:text-white/80"
                             for="Current password">Current password</label>
                         <div class="mb-4">
-                            <input type="password" name="Current password" placeholder="Current password"
+                            <input type="password" wire:model="passwordForm.currentPassword" placeholder="Current password"
                                 class="focus:shadow-soft-primary-outline dark:bg-gray-950 dark:placeholder:text-white/80 dark:text-white/80 text-size-sm leading-5.6 ease-soft block w-full appearance-none rounded-lg border border-solid border-gray-300 bg-white bg-clip-padding px-3 py-2 font-normal text-gray-700 outline-none transition-all placeholder:text-gray-500 focus:border-fuchsia-300 focus:outline-none" />
                         </div>
                         <label class="inline-block mb-2 ml-1 font-bold text-size-xs text-slate-700 dark:text-white/80"
                             for="New password">New password</label>
                         <div class="mb-4">
-                            <input type="password" name="New password" placeholder="New password"
+                            <input type="password" wire:model="passwordForm.newPassword" placeholder="New password"
                                 class="focus:shadow-soft-primary-outline dark:bg-gray-950 dark:placeholder:text-white/80 dark:text-white/80 text-size-sm leading-5.6 ease-soft block w-full appearance-none rounded-lg border border-solid border-gray-300 bg-white bg-clip-padding px-3 py-2 font-normal text-gray-700 outline-none transition-all placeholder:text-gray-500 focus:border-fuchsia-300 focus:outline-none" />
                         </div>
                         <label class="inline-block mb-2 ml-1 font-bold text-size-xs text-slate-700 dark:text-white/80"
                             for="Confirm new password">Confirm new password</label>
                         <div class="mb-4">
-                            <input type="password" name="Confirm new password" placeholder="Confirm password"
+                            <input type="password"  wire:model="passwordForm.confirmPassword" placeholder="Confirm password"
                                 class="focus:shadow-soft-primary-outline dark:bg-gray-950 dark:placeholder:text-white/80 dark:text-white/80 text-size-sm leading-5.6 ease-soft block w-full appearance-none rounded-lg border border-solid border-gray-300 bg-white bg-clip-padding px-3 py-2 font-normal text-gray-700 outline-none transition-all placeholder:text-gray-500 focus:border-fuchsia-300 focus:outline-none" />
                         </div>
                         <h5 class="mt-12 dark:text-white">Password requirements</h5>
@@ -303,10 +305,13 @@
                                 <span class="leading-normal text-size-sm">Change it often</span>
                             </li>
                         </ul>
-                        <button href="javascript:;"
-                            class="inline-block float-right px-8 py-2 mt-16 mb-0 font-bold text-right text-white uppercase align-middle transition-all border-0 rounded-lg cursor-pointer hover:scale-102 active:opacity-85 hover:shadow-soft-xs dark:bg-gradient-neutral bg-gradient-dark-gray leading-pro text-size-xs ease-soft-in tracking-tight-soft shadow-soft-md bg-150 bg-x-25">Update
+                        <div class="flex-auto p-6 pt-0">
+                        <button type="submit"
+                            class="inline-block float-right px-8 py-2 mt-16 mb-4 font-bold text-right text-white uppercase align-middle transition-all border-0 rounded-lg cursor-pointer hover:scale-102 active:opacity-85 hover:shadow-soft-xs dark:bg-gradient-neutral bg-gradient-lime leading-pro text-size-xs ease-soft-in tracking-tight-soft shadow-soft-md bg-150 bg-x-25">Update
                             Password</button>
                     </div>
+                    </div>
+                    </form>
                 </div>
                 <div class="relative flex flex-col min-w-0 mt-6 break-words bg-white border-0 dark:bg-gray-950 dark:shadow-soft-dark-xl shadow-soft-xl rounded-2xl bg-clip-border"
                     id="2FA">

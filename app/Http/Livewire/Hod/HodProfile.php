@@ -5,6 +5,7 @@ namespace App\Http\Livewire\Hod;
 use App\Models\User;
 use Livewire\Component;
 use App\Livewire\Forms\UpdateHodNameForm;
+use App\Livewire\Forms\UpdateHodPasswordForm;
 use Jantinnerezo\LivewireAlert\LivewireAlert;
 use Illuminate\Validation\ValidationException;
 
@@ -12,6 +13,7 @@ class HodProfile extends Component
 {
     use LivewireAlert;
     public UpdateHodNameForm $form;
+    public UpdateHodPasswordForm $passwordForm;
     public function mount()
     {
         $hod = auth()->user();
@@ -36,6 +38,27 @@ class HodProfile extends Component
         } catch (\Exception $e) {
             report($e);
             $this->alert('error', 'Failed to update Hod Name');
+        }
+    }
+    public function updatePassword()
+    {
+        try {
+            $this->passwordForm->updatePassword();
+            $this->alert('success', 'Password updated successfully');
+            $this->passwordForm->reset();
+        } catch (ValidationException $e) {
+
+            // Display validation errors
+            $errorMessages = implode(' ', $e->validator->errors()->all());
+
+            $this->alert('error', "$errorMessages");
+
+
+            // Set validation errors in Livewire's error bag
+            $this->setErrorBag($e->validator->errors());
+        } catch (\Exception $e) {
+            report($e);
+            $this->alert('error', 'Failed to update');
         }
     }
     public function render()
