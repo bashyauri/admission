@@ -35,7 +35,7 @@ class ApplicantReportService
             ->join('courses', function ($join) {
                 $join->on('proposed_courses.course_id', '=', 'courses.id');
             })
-            ->where('proposed_courses.department_id', 1)
+            ->where('proposed_courses.department_id', auth()->user()->hodDetails->department_id)
             ->latest()
             ->get();
     }
