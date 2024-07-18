@@ -14,7 +14,7 @@ class HodIndex extends Component
 
     public function mount(ApplicantReportService $applicantReportService)
     {
-        $this->totalApplicants = $applicantReportService->totalApplicants(1);
+        $this->totalApplicants = $applicantReportService->totalApplicants(auth()->user()->hodDetails->department_id);
     }
 
     #[Computed()]

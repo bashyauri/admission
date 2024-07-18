@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Forms;
 
+use App\Enums\Role;
 use Livewire\Form;
 use App\Models\User;
 use App\Models\HodUser;
@@ -42,7 +43,7 @@ class CreateHodForm extends Form
             'surname' => $this->surName,
             'firstname' => $this->firstName,
             'email' => $this->email,
-            'role' => 'hod',
+            'role' => Role::HOD,
             'password' => Hash::make($this->password),
             'vpassword' => $this->password,
         ]);
