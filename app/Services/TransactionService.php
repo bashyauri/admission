@@ -4,9 +4,6 @@ namespace App\Services;
 
 use App\Enums\TransactionStatus;
 use App\Models\Transaction;
-use GuzzleHttp\Client;
-use GuzzleHttp\Psr7\Request as Psr7Request;
-use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
 
 class TransactionService
@@ -74,12 +71,12 @@ class TransactionService
             );
         }
     }
-    public function updateTransactionStatus($status, $rrr)
+    public function updateTransactionStatus(string $status, string $rrr)
     {
 
         Transaction::where('RRR', $rrr)->update(['status' => $status]);
     }
-    public static function getTransactionStatus($rrr)
+    public static function getTransactionStatus(string $rrr): object
     {
         $apiKey = config('remita.settings.apikey');
         $merchantId = config('remita.settings.merchantid');

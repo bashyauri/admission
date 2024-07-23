@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\PrintAcceptance;
 use Illuminate\Http\Request;
 use App\Http\Livewire\Auth\Login;
 use App\Http\Controllers\PrintForm;
@@ -209,6 +210,7 @@ Route::middleware(['auth', 'verified', 'role:applicant'])->group(function () {
     Route::get('applications/apply-course', ProposedCourse::class)->name('proposed-course');
     Route::get('applications/review', Review::class)->name('review');
     Route::get('applications/print-form', PrintForm::class)->name('print-form');
+    Route::get('applications/print-acceptance', PrintAcceptance::class)->name('print-acceptance');
 
 
     // Transactions
