@@ -2,20 +2,29 @@
 
 namespace App\Http\Livewire\Dashboards;
 
+use App\Livewire\Forms\AcademicDetailForm;
 use App\Models\User;
 use Livewire\Component;
 use App\Models\Transaction;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Locked;
+use Livewire\Attributes\Validate;
 
 class Index extends Component
 {
+    public AcademicDetailForm $form;
 
     public function mount()
     {
         if (!auth()->user()->hasPaid(config('remita.admission.description'))) {
             to_route('transactions');
         }
+    }
+    public function addStudent()
+    {
+
+        $this->form->store();
+        $this->redirect(route('student.dashboard'));
     }
     #[Computed(persist: true)]
     public function transactions()

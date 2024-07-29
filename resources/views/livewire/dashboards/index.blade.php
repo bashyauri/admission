@@ -1,7 +1,33 @@
 <div>
     <div class="flex flex-wrap -mx-3">
 
+         <div class="w-full max-w-full px-3 mt-6 shrink-0 sm:mt-0 sm:flex-0 sm:w-3/12">
+            <div
+                class="relative flex flex-col min-w-0 break-words bg-white border-0 dark:bg-gray-950 dark:shadow-soft-dark-xl shadow-soft-xl rounded-2xl bg-clip-border">
+                <form wire:submit='addStudent'>
+                    <div class="relative flex-auto p-4">
 
+                    <div x-data class="relative flex flex-wrap items-stretch w-full rounded-lg">
+                            <label class="mt-6 mb-2 ml-1 font-bold text-size-xs text-slate-700 dark:text-white/80"
+                            for="MATRIC NUMBER">Matric Number</label>
+                            <input wire:model.blur='form.matricNumber' x-mask="aaaa/aaa/aa/99/9999"  type="text"
+                                placeholder="e.g WUFP/PGD/ED/20/0041"
+                                class="focus:shadow-soft-primary-outline dark:bg-gray-950 dark:placeholder:text-white/80 dark:text-white/80 text-size-sm leading-5.6 ease-soft block w-full appearance-none rounded-lg border border-solid border-gray-300 bg-white bg-clip-padding px-3 py-2 font-normal text-gray-700 outline-none transition-all placeholder:text-gray-500 focus:border-fuchsia-300 focus:outline-none" />
+                            @error('form.matricNumber')
+                            <p class="text-red-500 text-size-sm">{{ $message }} </p>
+                            @enderror
+                    </div>
+                    <div class="flex justify-end mt-6 mb-4">
+
+                    <button type="submit"
+                        class="inline-block px-6 py-3 m-0 ml-2 text-xs font-bold text-center text-white uppercase align-middle transition-all border-0 rounded-lg cursor-pointer ease-soft-in leading-pro tracking-tight-soft bg-gradient-fuchsia shadow-soft-md bg-150 bg-x-25 hover:scale-102 active:opacity-85">Save</button>
+                </div>
+                </form>
+
+                </div>
+            </div>
+
+        </div>
 
         <div class="w-full max-w-full px-3 mt-0 mb-6 lg:mb-0 lg:w-5/12 lg:flex-none">
             <div
@@ -83,47 +109,7 @@
         @endcan
 
 
-        {{-- <div class="w-full max-w-full px-3 mt-6 shrink-0 sm:mt-0 sm:flex-0 sm:w-4/12">
-            <div
-                class="relative flex flex-col min-w-0 break-words bg-white border-0 dark:bg-gray-950 dark:shadow-soft-dark-xl shadow-soft-xl rounded-2xl bg-clip-border">
-                <div class="relative flex-auto p-4">
-                    <div class="flex flex-wrap -mx-3 ">
-                        <div class="w-7/12 max-w-full px-3 text-left flex-0">
-                            <p class="mb-1 font-semibold leading-normal capitalize text-size-sm">Avg. Revenue</p>
-                            <h5 class="mb-0 font-bold dark:text-white">$1.200</h5>
-                            <span class="mt-auto mb-0 font-bold leading-normal text-right text-slate-400 text-size-sm">
-                                +$231
-                                <span class="font-normal text-slate-400">since last month</span>
-                            </span>
-                        </div>
-                        <div class="w-5/12 max-w-full px-3 flex-0">
-                            <div class="relative text-right">
-                                <a href="javascript:;" class="cursor-pointer" dropdown-trigger aria-expanded="false">
-                                    <span class="leading-tight text-size-xs text-slate-400">6 May - 7 May</span>
-                                </a>
-                                <p class="hidden transform-dropdown-show"></p>
-                                <ul dropdown-menu
-                                    class="dark:shadow-soft-dark-xl z-100 dark:bg-gray-950 text-size-sm top-1 lg:shadow-soft-3xl duration-250 before:duration-350 before:font-awesome before:ease-soft min-w-44 before:text-5.5 transform-dropdown pointer-events-none absolute right-0 left-auto m-0 -mr-4 mt-2 list-none rounded-lg border-0 border-solid border-transparent bg-white bg-clip-padding px-0 py-2 text-left text-slate-500 opacity-0 transition-all before:absolute before:right-7 before:left-auto before:top-0 before:z-40 before:text-white before:transition-all before:content-['\f0d8']">
-                                    <li>
-                                        <a class="py-1.2 lg:ease-soft clear-both block w-full whitespace-nowrap rounded-lg border-0 bg-transparent px-4 text-left font-normal text-slate-500 hover:bg-gray-200 hover:text-slate-700 dark:text-white dark:hover:bg-gray-200/80 dark:hover:text-slate-700 lg:transition-colors lg:duration-300"
-                                            href="javascript:;">Yesterday</a>
-                                    </li>
-                                    <li>
-                                        <a class="py-1.2 lg:ease-soft clear-both block w-full whitespace-nowrap rounded-lg border-0 bg-transparent px-4 text-left font-normal text-slate-500 hover:bg-gray-200 hover:text-slate-700 dark:text-white dark:hover:bg-gray-200/80 dark:hover:text-slate-700 lg:transition-colors lg:duration-300"
-                                            href="javascript:;">Last 7 days</a>
-                                    </li>
-                                    <li>
-                                        <a class="py-1.2 lg:ease-soft clear-both block w-full whitespace-nowrap rounded-lg border-0 bg-transparent px-4 text-left font-normal text-slate-500 hover:bg-gray-200 hover:text-slate-700 dark:text-white dark:hover:bg-gray-200/80 dark:hover:text-slate-700 lg:transition-colors lg:duration-300"
-                                            href="javascript:;">Last 30 days</a>
-                                    </li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
 
-        </div> --}}
     </div>
 
     <div class="flex flex-wrap mt-6 -mx-3">

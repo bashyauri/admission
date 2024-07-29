@@ -29,23 +29,51 @@ class RouteServiceProvider extends ServiceProvider
         $this->configureRateLimiting();
 
         $this->routes(function () {
-            Route::middleware('api')
-                ->prefix('api')
-                ->group(base_path('routes/api.php'));
-
-            Route::middleware('web')
-                ->group(base_path('routes/web.php'));
-            Route::middleware(['web', 'auth', 'verified', 'role:admin'])
-                ->prefix('admin')
-                ->as('admin.')
-                ->group(base_path('routes/admin.php'));
-
-            Route::middleware(['web', 'auth', 'verified', 'role:hod'])
-                ->prefix('hod')
-                ->as('hod.')
-                ->group(base_path('routes/hod.php'));
+            $this->mapApiRoutes();
+            $this->mapWebRoutes();
+            $this->mapAdminRoutes();
+            $this->mapHodRoutes();
+            $this->mapStudentRoutes();
         });
     }
+
+    protected function mapApiRoutes()
+    {
+        Route::middleware('api')
+            ->prefix('api')
+            ->group(base_path('routes/api.php'));
+    }
+
+    protected function mapWebRoutes()
+    {
+        Route::middleware('web')
+            ->group(base_path('routes/web.php'));
+    }
+
+    protected function mapAdminRoutes()
+    {
+        Route::middleware(['web', 'auth', 'verified', 'role:admin'])
+            ->prefix('admin')
+            ->as('admin.')
+            ->group(base_path('routes/admin.php'));
+    }
+
+    protected function mapHodRoutes()
+    {
+        Route::middleware(['web', 'auth', 'verified', 'role:hod'])
+            ->prefix('hod')
+            ->as('hod.')
+            ->group(base_path('routes/hod.php'));
+    }
+
+    protected function mapStudentRoutes()
+    {
+        Route::middleware(['web', 'auth', 'verified', 'role:student'])
+            ->prefix('student')
+            ->as('student.')
+            ->group(base_path('routes/student.php'));
+    }
+
 
     /**
      * Configure the rate limiters for the application.
