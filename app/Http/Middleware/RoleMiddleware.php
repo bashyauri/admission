@@ -19,6 +19,7 @@ class RoleMiddleware
             $redirectRoute = match ($request->user()->role) {
                 'hod' => 'hod.dashboard',
                 'admin' => 'admin.dashboard',
+                'student' => 'student.dashboard',
                 default => 'analytics',
             };
 
