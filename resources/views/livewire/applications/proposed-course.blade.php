@@ -1,3 +1,6 @@
+@php
+    $user = auth()->user();
+@endphp
 <div class="w-full max-w-full px-3 lg:flex-0 shrink-0">
 <div class="relative flex flex-col min-w-0 mt-6 break-words bg-white border-0 dark:bg-gray-950 dark:shadow-soft-dark-xl shadow-soft-xl rounded-2xl bg-clip-border lg:w-9/12"
             id="basic-info">
@@ -12,7 +15,7 @@
                     <i class="fas fa-spinner fa-spin"></i> wait...
                 </div>
                 <div class="flex flex-wrap -mx-3">
-                    <div class="w-full md:w-6/12 max-w-full px-3 flex-0">
+                    <div class="w-full max-w-full px-3 md:w-6/12 flex-0">
                         <label class="mb-2 ml-1 font-bold text-size-xs text-slate-700 dark:text-white/80" for="Name">Department</label>
                         <div class="relative flex flex-wrap items-stretch w-full rounded-lg">
                             <select  wire:model.live="form.departmentID"
@@ -27,12 +30,12 @@
 
 
                             @error('form.department')
-                            <p class="text-size-sm text-red-500">{{ $message }}</p>
+                            <p class="text-red-500 text-size-sm">{{ $message }}</p>
                             @enderror
                         </div>
                     </div>
 
-                    <div class="w-full md:w-6/12 max-w-full px-3 flex-0">
+                    <div class="w-full max-w-full px-3 md:w-6/12 flex-0">
                         <label class="mb-2 ml-1 font-bold text-size-xs text-slate-700 dark:text-white/80" for="course">Course of Study</label>
                         <div class="relative flex flex-wrap items-stretch w-full rounded-lg">
                             <select choices-select=""  wire:model.live="form.courseID"
@@ -45,7 +48,7 @@
 
                             </select>
                             @error('form.courseID')
-                            <p class="text-size-sm text-red-500">{{ $message }}</p>
+                            <p class="text-red-500 text-size-sm">{{ $message }}</p>
                             @enderror
                         </div>
                     </div>
@@ -54,8 +57,15 @@
                 <div class="flex justify-end mt-6 mb-4">
                     <a href="{{route('upload-certificate')}}"
                         class="inline-block px-6 py-3 m-0 font-bold text-center uppercase align-middle transition-all bg-gray-200 border-0 rounded-lg cursor-pointer hover:scale-102 active:opacity-85 hover:shadow-soft-xs leading-pro text-size-xs ease-soft-in tracking-tight-soft shadow-soft-md bg-150 bg-x-25 text-slate-800">Back</a>
-                    <button type="submit"
+                        @if ($user->isShortlisted() )
+                            <p class="m-2 text-xs font-semibold text-green-500">Shortlisted</p>
+                        @else
+                         <button type="submit"
                         class="inline-block px-6 py-3 m-0 ml-2 text-xs font-bold text-center text-white uppercase align-middle transition-all border-0 rounded-lg cursor-pointer ease-soft-in leading-pro tracking-tight-soft bg-gradient-fuchsia shadow-soft-md bg-150 bg-x-25 hover:scale-102 active:opacity-85">Save</button>
+
+                        @endif
+
+
                 </div>
 
                 <div class="flex flex-wrap -mx-3">
