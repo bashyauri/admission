@@ -11,10 +11,13 @@ use App\Services\Report\ApplicantReportService;
 class HodIndex extends Component
 {
     public $totalApplicants;
+    public $notRecommendedApplicants;
+
 
     public function mount(ApplicantReportService $applicantReportService)
     {
         $this->totalApplicants = $applicantReportService->totalApplicants(auth()->user()->hodDetails->department_id);
+        $this->notRecommendedApplicants = $applicantReportService->applicantsNotRecommended(auth()->user()->hodDetails->department_id);
     }
 
     #[Computed()]
@@ -22,6 +25,12 @@ class HodIndex extends Component
     {
 
         return $this->totalApplicants;
+    }
+    #[Computed()]
+    public function notRecommendedApplicants()
+    {
+
+        return $this->notRecommendedApplicants;
     }
     public function render()
     {
