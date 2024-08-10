@@ -84,6 +84,7 @@
                             <tr>
                                 <td>
                                     <div class="flex">
+                                        {{asset('/storage/'.$applicant->picture)}}
 
                                         <img class="ml-4 w-1/10"
                                             src="{{asset('/storage/'.$applicant->picture)}}"

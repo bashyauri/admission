@@ -3,38 +3,29 @@
 namespace App\Http\Livewire\Dashboards;
 
 use Livewire\Component;
-
-use Livewire\Attributes\Computed;
 use App\Services\Report\ApplicantReportService;
-
 
 class HodIndex extends Component
 {
-    public $totalApplicants;
-    public $notRecommendedApplicants;
-
+    public int $totalApplicants;
+    public int $notRecommendedApplicants;
+    public int $shortlistedApplicants;
 
     public function mount(ApplicantReportService $applicantReportService)
     {
-        $this->totalApplicants = $applicantReportService->totalApplicants(auth()->user()->hodDetails->department_id);
-        $this->notRecommendedApplicants = $applicantReportService->applicantsNotRecommended(auth()->user()->hodDetails->department_id);
+        $departmentId = auth()->user()->hodDetails->department_id;
+
+        $this->totalApplicants = $applicantReportService->totalApplicants($departmentId);
+        $this->notRecommendedApplicants = $applicantReportService->applicantsNotRecommended($departmentId);
+        $this->shortlistedApplicants = $applicantReportService->applicantsShortlisted($departmentId);
     }
 
-    #[Computed()]
-    public function totalApplicants()
-    {
-
-        return $this->totalApplicants;
-    }
-    #[Computed()]
-    public function notRecommendedApplicants()
-    {
-
-        return $this->notRecommendedApplicants;
-    }
     public function render()
     {
-
-        return view('livewire.dashboards.hod-index');
+        return view('livewire.dashboards.hod-index', [
+            'totalApplicants' => $this->totalApplicants,
+            'notRecommendedApplicants' => $this->notRecommendedApplicants,
+            'shortlistedApplicants' => $this->shortlistedApplicants,
+        ]);
     }
 }
