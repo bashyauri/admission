@@ -25,83 +25,35 @@ class ApplicantReportService
     {
         return ProposedCourse::where(['department_id' => $departmentId, 'status' => ApplicationStatus::SHORTLISTED, 'academic_session' => config('remita.settings.academic_session')])->count();
     }
-    public function getApplicants()
+    public function getApplicants($status = null)
     {
-        return
-            ProposedCourse::select(
-                'proposed_courses.*',
-                'users.surname as surname',
-                'users.firstname as firstname',
-                'users.m_name as middlename',
-                'users.picture as picture',
-                'users.phone as phone',
+        $query = ProposedCourse::select(
+            'proposed_courses.*',
+            'users.surname as surname',
+            'users.firstname as firstname',
+            'users.m_name as middlename',
+            'users.picture as picture',
+            'users.phone as phone',
+            'courses.name AS course_name'
+        )
+            ->join('users', 'proposed_courses.user_id', '=', 'users.id')
+            ->join('courses', 'proposed_courses.course_id', '=', 'courses.id')
+            ->where('proposed_courses.department_id', auth()->user()->hodDetails->department_id);
 
-                'courses.name AS course_name'
-            )
-            ->join('users', function ($join) {
-                $join->on('proposed_courses.user_id', '=', 'users.id');
-            })
-            ->join('courses', function ($join) {
-                $join->on('proposed_courses.course_id', '=', 'courses.id');
-            })
-            ->where('proposed_courses.department_id', auth()->user()->hodDetails->department_id)
-            ->latest()
-            ->get();
+        if ($status !== null) {
+            $query->where('proposed_courses.status', $status);
+        }
+
+        return $query->latest()->get();
     }
+
     public function getApplicantsNotRecommended()
     {
-        return
-            ProposedCourse::select(
-                'proposed_courses.*',
-                'users.surname as surname',
-                'users.firstname as firstname',
-                'users.m_name as middlename',
-                'users.picture as picture',
-                'users.phone as phone',
-
-                'courses.name AS course_name'
-            )
-            ->join('users', function ($join) {
-                $join->on('proposed_courses.user_id', '=', 'users.id');
-            })
-            ->join('courses', function ($join) {
-                $join->on('proposed_courses.course_id', '=', 'courses.id');
-            })
-            ->where([
-                'proposed_courses.department_id' => auth()->user()->hodDetails->department_id,
-                'proposed_courses.status' => ApplicationStatus::PENDING,
-
-
-            ])
-            ->latest()
-            ->get();
+        return $this->getApplicants(ApplicationStatus::PENDING);
     }
+
     public function getApplicantsShortlisted()
     {
-        return
-            ProposedCourse::select(
-                'proposed_courses.*',
-                'users.surname as surname',
-                'users.firstname as firstname',
-                'users.m_name as middlename',
-                'users.picture as picture',
-                'users.phone as phone',
-
-                'courses.name AS course_name'
-            )
-            ->join('users', function ($join) {
-                $join->on('proposed_courses.user_id', '=', 'users.id');
-            })
-            ->join('courses', function ($join) {
-                $join->on('proposed_courses.course_id', '=', 'courses.id');
-            })
-            ->where([
-                'proposed_courses.department_id' => auth()->user()->hodDetails->department_id,
-                'proposed_courses.status' => ApplicationStatus::SHORTLISTED,
-
-
-            ])
-            ->latest()
-            ->get();
+        return $this->getApplicants(ApplicationStatus::SHORTLISTED);
     }
 }
