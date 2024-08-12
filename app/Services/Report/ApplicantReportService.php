@@ -51,6 +51,10 @@ class ApplicantReportService
     {
         return $this->getApplicants(ApplicationStatus::PENDING);
     }
+    public function getAllApplicants()
+    {
+        return $this->getApplicants();
+    }
 
     public function getApplicantsShortlisted()
     {

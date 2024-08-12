@@ -14,7 +14,7 @@ class AllApplicants extends Component
 
     public function mount(ApplicantReportService $applicantReportService)
     {
-        $this->getAllApplicants = $applicantReportService->getApplicants(auth()->user()->hodDetails->department_id);
+        $this->getAllApplicants = $applicantReportService->getAllApplicants();
     }
 
     #[Computed()]
