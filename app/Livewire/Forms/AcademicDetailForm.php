@@ -17,7 +17,7 @@ class AcademicDetailForm extends Form
     {
         return [
 
-            'matricNumber' => 'required|unique:academic_details,matric_no|regex:/^[A-Z]{4}\/[A-Z]{3}\/[A-Z]{2}\/\d{2}\/\d{4}$/',
+            'matricNumber' => 'required|unique:academic_details,matric_no|regex:/^[A-Za-z]{4}\/[A-Za-z]{3}\/[A-Za-z]{2}\/\d{2}\/\d{4}$/',
 
         ];
     }
