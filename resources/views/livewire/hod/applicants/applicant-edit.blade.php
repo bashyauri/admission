@@ -135,14 +135,15 @@
                             </div>
                         </div>
 
-
-
                         <div class="border-black/12.5 mt-6 rounded-b-2xl border-t-0 border-solid p-6 md:mt-12">
                             <div class="flex justify-end mt-6 mb-4">
                     <a href="{{route('hod.all-applicants')}}"
                         class="inline-block px-6 py-3 m-0 font-bold text-center uppercase align-middle transition-all bg-gray-200 border-0 rounded-lg cursor-pointer hover:scale-102 active:opacity-85 hover:shadow-soft-xs leading-pro text-size-xs ease-soft-in tracking-tight-soft shadow-soft-md bg-150 bg-x-25 text-slate-800">Back</a>
                     <button type="submit"
-                        class="inline-block px-6 py-3 m-0 ml-2 text-xs font-bold text-center text-white uppercase align-middle transition-all border-0 rounded-lg cursor-pointer ease-soft-in leading-pro tracking-tight-soft bg-gradient-lime shadow-soft-md bg-150 bg-x-25 hover:scale-102 active:opacity-85">Shortlist</button>
+                        class="inline-block px-6 py-3 m-0 ml-2 text-xs font-bold text-center text-white uppercase align-middle transition-all border-0 rounded-lg cursor-pointer ease-soft-in leading-pro tracking-tight-soft {{$user->isShortlisted() ? 'bg-gradient-red' : 'bg-gradient-lime'}}  shadow-soft-md bg-150 bg-x-25 hover:scale-102 active:opacity-85">{{$user->isShortlisted() ? 'Drop' : 'Shortlist'}}</button>
+                            <div wire:loading wire:target="shortlist">
+                                updating status...
+                            </div>
                 </div>
                         </div>
                     </div>
