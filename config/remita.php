@@ -13,6 +13,9 @@ return [
         'payment_redirect' => env('ACCEPTANCE_PAYMENT_REDIRECT'),
 
     ],
+    'schoolfees' => [
+        'description' => env('SCHOOL_FEES_DESCRIPTION')
+    ],
     'settings' => [
         'serviceid' => env('SERVICEID'),
         'merchantid' => env('MERCHANTID'),
@@ -31,4 +34,5 @@ return [
     ],
 
     "currency" => "₦",
+
 ];

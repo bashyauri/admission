@@ -14,4 +14,12 @@ class AcademicDetail extends Model
     {
         return $this->belongsTo(User::class);
     }
+    public function studentLevel()
+    {
+        return $this->belongsTo(StudentLevel::class);
+    }
+    public function studentTransactions()
+    {
+        return $this->hasMany(StudentTransaction::class);
+    }
 }

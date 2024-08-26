@@ -1,14 +1,11 @@
 <?php
 
-use App\Models\Course;
-use App\Models\Department;
-use App\Models\Programme;
+use App\Models\AcademicDetail;
 use App\Models\StudentLevel;
 use App\Models\User;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
-
 
 return new class extends Migration
 {
@@ -17,13 +14,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('academic_details', function (Blueprint $table) {
+        Schema::create('school_fees_payments', function (Blueprint $table) {
             $table->id();
-            $table->foreignIdFor(User::class)->constrained();
-            $table->string('matric_no')->unique();
-            $table->foreignIdFor(Course::class);
-            $table->foreignIdFor(Programme::class);
-            $table->foreignIdFor(Department::class);
+            $table->foreignIdFor(User::class);
             $table->foreignIdFor(StudentLevel::class);
             $table->timestamps();
         });
@@ -34,6 +27,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('academic_details');
+        Schema::dropIfExists('school_fees_payments');
     }
 };

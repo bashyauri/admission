@@ -3,6 +3,7 @@
 namespace App\Livewire\Forms;
 
 use App\Enums\Role;
+use App\Enums\StudentLevel;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Livewire\Form;
@@ -34,15 +35,15 @@ class AcademicDetailForm extends Form
         DB::transaction(function () use ($user) {
             $user->academicDetail()->create([
                 'matric_no' => $this->matricNumber,
-                'department_id' => auth()->user()->proposedCourse->department_id,
-                'programme_id' => auth()->user()->programme_id,
-                'course_id' => auth()->user()->proposedCourse->course_id,
-                'level' => 'PGD 1',
+                'department_id' => $user->proposedCourse->department_id,
+                'programme_id' =>  $user->programme_id,
+                'course_id' =>  $user->proposedCourse->course_id,
+                'student_level_id' => StudentLevel::YEAR_ONE,
             ]);
-            $this->changeRole($user);
+            $this->changeToStudent($user);
         });
     }
-    private function changeRole(User $user)
+    private function changeToStudent(User $user)
     {
         $user->update([
             'role' => Role::STUDENT
