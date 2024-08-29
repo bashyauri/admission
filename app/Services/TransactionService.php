@@ -43,10 +43,12 @@ class TransactionService
                 "description" => $data['description']
             ]);
 
+
         return TransactionService::convertJsonToArray($response->body());
     }
     public static function convertJsonToArray(string $response = '', bool $assoc = false): object
     {
+
         if ($response[0] !== '[' && $response[0] !== '{') { // we have JSONP
             $response = substr($response, strpos($response, '('));
             return json_decode(trim($response, '();'), $assoc);
@@ -94,6 +96,7 @@ class TransactionService
 
         $response = Http::withHeaders($headers)
             ->get($url);
+        dd($url);
 
         return TransactionService::convertJsonToArray($response->body());
     }
