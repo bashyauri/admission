@@ -34,6 +34,11 @@ return [
         'username' => env('GEONAME_USERNAME'),
         'country_id' => env('GEONAME_COUNTRY_ID'),
     ],
-    
+    'nigeriabulksms' => [
+        'username'      => env('NIGERIABULKSMS_USERNAME'),
+        'password'      => env('NIGERIABULKSMS_PASSWORD'),
+        'sender'        => env('NIGERIABULKSMS_SENDER'),
+    ],
+
 
 ];

@@ -7,6 +7,7 @@ use Livewire\Component;
 use App\Notifications\Reject;
 use App\Enums\ApplicationStatus;
 use App\Notifications\Shortlist;
+use App\Services\SendSMS;
 use Illuminate\Support\Facades\DB;
 use Jantinnerezo\LivewireAlert\LivewireAlert;
 
@@ -18,11 +19,13 @@ class ApplicantEdit extends Component
     {
         $this->user = $user;
     }
-    public function shortlist()
+    public function shortlist(SendSMS $sms)
     {
-        DB::transaction(function () {
+        DB::transaction(function () use ($sms) {
             $this->toggleStatus();
-            $this->notifyUser();
+            $sms->shortListSMS($this->user);
+
+
             $this->alert('success', 'Updated Successfully', [
                 'position' => 'center',
                 'timer' => 3000,
