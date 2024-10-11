@@ -15,15 +15,33 @@ class ApplicantReportService
 
     public function totalApplicants($departmentId = null)
     {
-        return ProposedCourse::where(['department_id' => $departmentId, 'academic_session' => config('remita.settings.academic_session')])->count();
+        if ($departmentId) {
+            $query = ProposedCourse::where(['department_id' => $departmentId, 'academic_session' => config('remita.settings.academic_session')]);
+        } else {
+
+            $query = ProposedCourse::where('academic_session', config('remita.settings.academic_session'))->count();
+        }
+
+        return $query;
     }
     public function applicantsNotRecommended($departmentId = null)
     {
-        return ProposedCourse::where(['department_id' => $departmentId, 'status' => ApplicationStatus::PENDING, 'academic_session' => config('remita.settings.academic_session')])->count();
+        if ($departmentId) {
+            $query = ProposedCourse::where(['department_id' => $departmentId, 'status' => ApplicationStatus::PENDING, 'academic_session' => config('remita.settings.academic_session')])->count();
+        } else {
+            $query = ProposedCourse::where(['status' => ApplicationStatus::PENDING, 'academic_session' => config('remita.settings.academic_session')])->count();
+        }
+
+        return $query;
     }
     public function applicantsShortlisted($departmentId = null)
     {
-        return ProposedCourse::where(['department_id' => $departmentId, 'status' => ApplicationStatus::SHORTLISTED, 'academic_session' => config('remita.settings.academic_session')])->count();
+        if ($departmentId) {
+            $query = ProposedCourse::where(['department_id' => $departmentId, 'status' => ApplicationStatus::SHORTLISTED, 'academic_session' => config('remita.settings.academic_session')])->count();
+        } else {
+            $query = ProposedCourse::where(['status' => ApplicationStatus::SHORTLISTED, 'academic_session' => config('remita.settings.academic_session')])->count();
+        }
+        return $query;
     }
     public function getApplicants($status = null)
     {

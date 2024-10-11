@@ -57,7 +57,9 @@ class Register extends Component
                 'programme_id' => $this->programme_id["value"],
             ]);
 
+            auth()->login($user);
 
+            return redirect(RouteServiceProvider::HOME);
 
 
 
