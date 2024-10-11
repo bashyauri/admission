@@ -13,10 +13,10 @@ class ApplicantReportService
 {
 
 
-    public function totalApplicants($departmentId = null)
+    public function totalApplicants($departmentId = null): int
     {
         if ($departmentId) {
-            $query = ProposedCourse::where(['department_id' => $departmentId, 'academic_session' => config('remita.settings.academic_session')]);
+            $query = ProposedCourse::where(['department_id' => $departmentId, 'academic_session' => config('remita.settings.academic_session')])->count();
         } else {
 
             $query = ProposedCourse::where('academic_session', config('remita.settings.academic_session'))->count();
@@ -24,7 +24,7 @@ class ApplicantReportService
 
         return $query;
     }
-    public function applicantsNotRecommended($departmentId = null)
+    public function applicantsNotRecommended($departmentId = null): int
     {
         if ($departmentId) {
             $query = ProposedCourse::where(['department_id' => $departmentId, 'status' => ApplicationStatus::PENDING, 'academic_session' => config('remita.settings.academic_session')])->count();
@@ -34,7 +34,7 @@ class ApplicantReportService
 
         return $query;
     }
-    public function applicantsShortlisted($departmentId = null)
+    public function applicantsShortlisted($departmentId = null): int
     {
         if ($departmentId) {
             $query = ProposedCourse::where(['department_id' => $departmentId, 'status' => ApplicationStatus::SHORTLISTED, 'academic_session' => config('remita.settings.academic_session')])->count();
