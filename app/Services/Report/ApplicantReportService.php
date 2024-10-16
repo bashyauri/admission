@@ -3,6 +3,7 @@
 namespace App\Services\Report;
 
 use App\Enums\ApplicationStatus;
+use App\Enums\TransactionStatus;
 use App\Models\ProposedCourse;
 use Illuminate\Support\Facades\DB;
 
@@ -77,5 +78,47 @@ class ApplicantReportService
     public function getApplicantsShortlisted()
     {
         return $this->getApplicants(ApplicationStatus::SHORTLISTED);
+    }
+    public function getPaidAdmissionFees($departmentId = null): int
+    {
+        if ($departmentId) {
+            return DB::table('transactions')
+                ->join('proposed_courses', 'proposed_courses.user_id', '=', 'transactions.user_id')
+                ->where([
+                    'proposed_courses.department_id' => $departmentId,
+                    'transactions.resource' => config('remita.admission.description'),
+                    'transactions.status' => TransactionStatus::APPROVED,
+                    'transactions.acad_session' => config('remita.settings.academic_session')
+                ])->count();
+        }
+        return
+            DB::table('transactions')
+            ->join('proposed_courses', 'proposed_courses.user_id', '=', 'transactions.user_id')
+            ->where([
+                'transactions.resource' => config('remita.admission.description'),
+                'transactions.status' => TransactionStatus::APPROVED,
+                'transactions.acad_session' => config('remita.settings.academic_session')
+            ])->count();
+    }
+    public function getPaidAcceptanceFees($departmentId = null): int
+    {
+        if ($departmentId) {
+            return DB::table('transactions')
+                ->join('proposed_courses', 'proposed_courses.user_id', '=', 'transactions.user_id')
+                ->where([
+                    'proposed_courses.department_id' => $departmentId,
+                    'transactions.resource' => config('remita.acceptance.description'),
+                    'transactions.status' => TransactionStatus::APPROVED,
+                    'transactions.acad_session' => config('remita.settings.academic_session')
+                ])->count();
+        }
+        return
+            DB::table('transactions')
+            ->join('proposed_courses', 'proposed_courses.user_id', '=', 'transactions.user_id')
+            ->where([
+                'transactions.resource' => config('remita.acceptance.description'),
+                'transactions.status' => TransactionStatus::APPROVED,
+                'transactions.acad_session' => config('remita.settings.academic_session')
+            ])->count();
     }
 }

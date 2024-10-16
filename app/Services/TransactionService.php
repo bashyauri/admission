@@ -96,7 +96,7 @@ class TransactionService
 
         $response = Http::withHeaders($headers)
             ->get($url);
-        dd($url);
+
 
         return TransactionService::convertJsonToArray($response->body());
     }
