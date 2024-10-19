@@ -39,6 +39,9 @@ return [
         'password'      => env('NIGERIABULKSMS_PASSWORD'),
         'sender'        => env('NIGERIABULKSMS_SENDER'),
     ],
+    'brevo' => [
+        'key'   => env('BREVO_APIKEY')
+    ],
 
 
 ];
