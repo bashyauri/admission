@@ -10,6 +10,8 @@ class HodIndex extends Component
     public int $totalApplicants;
     public int $notRecommendedApplicants;
     public int $shortlistedApplicants;
+    public int $paidAdmissionFees;
+    public int $paidAcceptanceFees;
 
     public function mount(ApplicantReportService $applicantReportService)
     {
@@ -18,6 +20,8 @@ class HodIndex extends Component
         $this->totalApplicants = $applicantReportService->totalApplicants($departmentId);
         $this->notRecommendedApplicants = $applicantReportService->applicantsNotRecommended($departmentId);
         $this->shortlistedApplicants = $applicantReportService->applicantsShortlisted($departmentId);
+        $this->paidAdmissionFees = $applicantReportService->getPaidAdmissionFees($departmentId);
+        $this->paidAcceptanceFees = $applicantReportService->getPaidAcceptanceFees($departmentId);
     }
 
     public function render()
@@ -26,6 +30,8 @@ class HodIndex extends Component
             'totalApplicants' => $this->totalApplicants,
             'notRecommendedApplicants' => $this->notRecommendedApplicants,
             'shortlistedApplicants' => $this->shortlistedApplicants,
+            'paidAdmissionFees' => $this->paidAdmissionFees,
+            'paidAcceptanceFees' => $this->paidAcceptanceFees,
         ]);
     }
 }

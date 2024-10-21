@@ -133,7 +133,7 @@
                 class="relative flex flex-col h-full min-w-0 break-words bg-white border-0 dark:bg-gray-950 dark:shadow-soft-dark-xl shadow-soft-xl rounded-2xl bg-clip-border">
                 <div class="border-black/12.5 rounded-t-2xl border-b-0 border-solid p-4 pb-0">
                     <div class="flex justify-between">
-                        <h6 class="mb-0 dark:text-white">Channels</h6>
+                        <h6 class="mb-0 dark:text-white">Admission Payments</h6>
                         <button type="button"
                             class="active:shadow-soft-xs active:opacity-85 ease-soft-in leading-pro text-size-xs bg-150 bg-x-25 rounded-3.5xl p-1.2 h-6 w-6 mb-0 ml-auto flex cursor-pointer items-center justify-center border border-solid border-slate-400 bg-transparent text-center align-middle font-bold text-slate-400 shadow-none transition-all hover:bg-transparent hover:text-slate-400 hover:opacity-75 hover:shadow-none active:bg-slate-400 active:text-black hover:active:bg-transparent hover:active:text-slate-400 hover:active:opacity-75 hover:active:shadow-none">
                             <i class="fas fa-info text-size-3xs"></i>
@@ -152,23 +152,19 @@
                             <span
                                 class="py-2.6-em mr-6 rounded-1.8 text-size-sm inline-block whitespace-nowrap bg-transparent px-0 text-center align-baseline font-normal leading-none text-white">
                                 <i class="rounded-circle mr-1.5 inline-block h-2 w-2 align-middle bg-cyan-500"></i>
-                                <span class="dark:text-white text-slate-700">Facebook</span>
+                                <span class="dark:text-white text-slate-700">Total Applicants</span>
                             </span>
                             <span
                                 class="py-2.6-em mr-6 rounded-1.8 text-size-sm inline-block whitespace-nowrap bg-transparent px-0 text-center align-baseline font-normal leading-none text-white">
                                 <i class="rounded-circle mr-1.5 inline-block h-2 w-2 align-middle bg-fuchsia-500"></i>
-                                <span class="dark:text-white text-slate-700">Direct</span>
+                                <span class="dark:text-white text-slate-700">Admission Fees</span>
                             </span>
                             <span
                                 class="py-2.6-em mr-6 rounded-1.8 text-size-sm inline-block whitespace-nowrap bg-transparent px-0 text-center align-baseline font-normal leading-none text-white">
                                 <i class="rounded-circle mr-1.5 inline-block h-2 w-2 align-middle bg-slate-700"></i>
-                                <span class="dark:text-white text-slate-700">Organic</span>
+                                <span class="dark:text-white text-slate-700">Acceptance Fees</span>
                             </span>
-                            <span
-                                class="py-2.6-em mr-6 rounded-1.8 text-size-sm inline-block whitespace-nowrap bg-transparent px-0 text-center align-baseline font-normal leading-none text-white">
-                                <i class="rounded-circle mr-1.5 inline-block h-2 w-2 align-middle bg-slate-400"></i>
-                                <span class="dark:text-white text-slate-700">Referral</span>
-                            </span>
+
                         </div>
                     </div>
                 </div>
@@ -176,11 +172,11 @@
                 <div class="border-black/12.5 rounded-b-2xl border-t-0 border-solid px-4 flex items-center">
                     <div class="w-3/5">
                         <p class="leading-normal text-size-sm">
-                            More than
-                            <b>1,200,000</b>
-                            sales are made using referral marketing, and
-                            <b>700,000</b>
-                            are from social media
+                            A total of
+                            <b>{{$paidAdmissionFees}}</b>
+                            applied for admission
+                            <b>{{$paidAcceptanceFees}}</b>
+                            paid Acceptance fees
                         </p>
                     </div>
                     <div class="w-2/5 text-right">
@@ -590,7 +586,95 @@
         </div>
     </div>
 </div>
-
 @push('js')
 <script src="{{ asset('assets') }}/js/plugins/chartjs.min.js"></script>
+<script>
+    // Define chartData globally
+    const chartData = {
+        totalApplicants: @json($totalApplicants),
+        paidAdmissionFees: @json($paidAdmissionFees),
+        paidAcceptanceFees: @json($paidAcceptanceFees)
+    };
+
+    // Check if the element exists before accessing it
+    if (document.getElementById("chart-pie")) {
+        var ctx2 = document.getElementById("chart-pie").getContext("2d");
+
+        // Access the Livewire data that was passed from Blade
+        const totalApplicants = chartData.totalApplicants;
+        const paidAdmissionFees = chartData.paidAdmissionFees;
+        const paidAcceptanceFees = chartData.paidAcceptanceFees;
+
+        // Log chart data for debugging
+        console.log("Chart Data:", chartData);
+
+        // Pie chart
+        new Chart(ctx2, {
+            type: "pie",
+            data: {
+                labels: [
+                    "Total Applicants",
+                    "Paid Admission Fees",
+                    "Paid Acceptance Fees",
+                ],
+                datasets: [
+                    {
+                        label: "Projects",
+                        weight: 9,
+                        cutout: 0,
+                        tension: 0.9,
+                        pointRadius: 2,
+                        borderWidth: 2,
+                        backgroundColor: ["#17c1e8", "#cb0c9f", "#3A416F"],
+                        data: [
+                            totalApplicants,
+                            paidAdmissionFees,
+                            paidAcceptanceFees,
+                        ], // Use Livewire values here
+                        fill: false,
+                    },
+                ],
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false,
+                    },
+                },
+                interaction: {
+                    intersect: false,
+                    mode: "index",
+                },
+                scales: {
+                    y: {
+                        grid: {
+                            drawBorder: false,
+                            display: false,
+                            drawOnChartArea: false,
+                            drawTicks: false,
+                        },
+                        ticks: {
+                            display: false,
+                        },
+                    },
+                    x: {
+                        grid: {
+                            drawBorder: false,
+                            display: false,
+                            drawOnChartArea: false,
+                            drawTicks: false,
+                        },
+                        ticks: {
+                            display: false,
+                        },
+                    },
+                },
+            },
+        });
+    }
+</script>
 @endpush
+
+
