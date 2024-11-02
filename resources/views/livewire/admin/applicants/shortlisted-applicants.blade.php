@@ -5,7 +5,7 @@
             <div class="border-black/12.5 rounded-t-2xl border-b-0 border-solid p-6 pb-0">
                 <div class="lg:flex">
                     <div>
-                        <h5 class="mb-0 dark:text-white">All Applicants</h5>
+                        <h5 class="mb-0 dark:text-white">Shortlisted Applicants</h5>
 
                     </div>
                     <div class="my-auto mt-6 ml-auto lg:mt-0">
@@ -30,20 +30,18 @@
                                 <th>Phone</th>
 
                                 <th>Status</th>
-                                <th>Action</th>
+
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach ($this->allApplicants as $applicant)
+                            @foreach ($shortlistedApplicants as $applicant)
 
 
                             <tr>
                                 <td>
                                     <div class="flex">
 
-                                        <img class="ml-4 w-1/10"
-                                            src="{{asset('/storage/'.$applicant->picture)}}"
-                                            alt="user image">
+
                                         <h6 class="my-auto ml-4 dark:text-white">{{$applicant->surname.' '.$applicant->firstname.' '.$applicant->middlename}}</h6>
                                     </div>
                                 </td>
@@ -58,30 +56,19 @@
   {{ $applicant->status ?? 'Pending' }}
 </span>
                                 </td>
-                                <td class="leading-normal text-size-sm">
 
-                                     <a href="{{ route('hod.edit-applicant', $applicant->user_id)}}" class="mx-4">
-
-                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="ml-2 size-4">
-  <path d="m5.433 13.917 1.262-3.155A4 4 0 0 1 7.58 9.42l6.92-6.918a2.121 2.121 0 0 1 3 3l-6.92 6.918c-.383.383-.84.685-1.343.886l-3.154 1.262a.5.5 0 0 1-.65-.65Z" />
-  <path d="M3.5 5.75c0-.69.56-1.25 1.25-1.25H10A.75.75 0 0 0 10 3H4.75A2.75 2.75 0 0 0 2 5.75v9.5A2.75 2.75 0 0 0 4.75 18h9.5A2.75 2.75 0 0 0 17 15.25V10a.75.75 0 0 0-1.5 0v5.25c0 .69-.56 1.25-1.25 1.25h-9.5c-.69 0-1.25-.56-1.25-1.25v-9.5Z" />
-</svg>
-
-                                    </a>
-
-                                </td>
                             </tr>
                               @endforeach
 
                         </tbody>
                         <tfoot>
                             <tr>
+                                 <th>Full Name</th>
 
                                 <th>Course</th>
                                 <th>Phone</th>
 
                                 <th>Status</th>
-                                <th>Action</th>
                             </tr>
                         </tfoot>
                     </table>
@@ -94,3 +81,4 @@
 @push('js')
 <script src="{{ asset('assets') }}/js/plugins/datatables.min.js"></script>
 @endpush
+

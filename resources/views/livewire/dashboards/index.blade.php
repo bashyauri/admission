@@ -1,3 +1,4 @@
+
 <div>
     <div class="flex flex-wrap -mx-3">
           @if (Auth::user()->hasPaid(config('remita.acceptance.description')))

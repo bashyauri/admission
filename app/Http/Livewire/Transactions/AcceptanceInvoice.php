@@ -24,8 +24,6 @@ class AcceptanceInvoice extends Component
                 'resource' => config('remita.acceptance.description')
             ])->first();
             to_route('payment', ['transaction' => $data])->with('success', $data->status);
-
-            // to_route('payment')->with('success', $data->status);
         }
         $this->transactionId = $this->transactionService->generateTransactionId("WUFPDHS");
         $this->amount = config('remita.acceptance.fee');

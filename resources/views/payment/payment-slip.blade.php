@@ -1,4 +1,9 @@
-
+@php
+    use App\Enums\TransactionStatus;
+    $approved = TransactionStatus::APPROVED;
+     $activated = TransactionStatus::ACTIVATED;
+    $pending = TransactionStatus::PENDING;
+@endphp
 <style>
     body {
         margin-top: 20px;
@@ -250,7 +255,7 @@
 
 
                                             @endphp
-                                                @if ($status === '00')
+                                                @if ($status === $approved->toString())
                                                 Reciept
                                             @else
                                             Invoice
@@ -298,7 +303,7 @@
                                             <div class="col-md-6 col-sm-5">{{ $resource }}</div>
 
                                             <div class="d-none d-sm-block col-2 text-95">{{ $RRR }}</div>
-                                            <div class="col-2 text-secondary-d2">{{ auth()->user()->phone; }}</div>
+                                            <div class="col-2 text-secondary-d2">{{ auth()->user()->phone }}</div>
                                             <div class="col-2 text-secondary-d2">{{ $amount }}</div>
 
                                         </div>
@@ -327,7 +332,7 @@
 
                                                 <div>
 
-                                                    @if ($status === '01' || $status === '00')
+                                                    @if ($status === $activated->toString() || $status === $approved->toString())
                                                     <a href="{{ route('analytics') }}" class="button">Back</a>
                                                   @else
 
