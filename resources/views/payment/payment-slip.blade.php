@@ -275,7 +275,7 @@
                                             <div class="my-2"><i
                                                     class="mr-1 text-xs fa fa-circle text-blue-m2"></i> <span
                                                     class="text-600 text-90">Status:{{$status}}</span>
-                                                @if ($status === config('remita.status.approved'))
+                                                @if ($status === $approved->toString())
 
                                                 <span class="badge badge-success">Success</span>
                                                 @else

@@ -19,11 +19,13 @@ class SchoolFeesInvoice extends Component
     public $student;
     public $selectedInstallment;
     public $nextLevel;
-    public function mount()
+    public $message;
+    public function mount(): void
     {
 
 
         $this->transactionService = new StudentTransactionService();
+
         if ($this->transactionService->hasInvoice(config('remita.schoolfees.description'))) {
             $data =
                 StudentTransaction::where('user_id', auth()->id())
@@ -36,10 +38,10 @@ class SchoolFeesInvoice extends Component
         $this->student = auth()->user()->academicDetail;
         $this->nextLevel = $this->transactionService->getLevelToPay($this->student->department_id);
     }
-    public function updatedSelectedInstallment(StudentTransactionService $service)
+    public function updatedSelectedInstallment(StudentTransactionService $service): void
     {
 
-
+        $this->message = '';
         $this->transactionId = $service->generateTransactionId("WUFPDHS");
 
         $totalLevelAmount = $service->getSchoolFees($this->student->department_id, $this->nextLevel);
@@ -48,7 +50,7 @@ class SchoolFeesInvoice extends Component
         $this->description = config('remita.schoolfees.description');
         $this->serviceid = config('remita.settings.serviceid');
     }
-    public function validatePayment($totalLevelAmount)
+    public function validatePayment($totalLevelAmount): void
     {
 
 
@@ -57,9 +59,11 @@ class SchoolFeesInvoice extends Component
         $currentAmount = $totalPaid + $this->amount;
 
 
+
         // Check if the student does not overpay
         if ($currentAmount > $totalLevelAmount) {
-            to_route('student.school-fees-invoice')->with('error', 'Payment failed! Your total payment exceeds the required amount.');
+            $this->amount = 0;
+            $this->message = 'Payment failed! Your total payment exceeds the required amount.';
         }
     }
 
