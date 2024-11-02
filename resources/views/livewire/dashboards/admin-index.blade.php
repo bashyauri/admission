@@ -10,7 +10,7 @@
                             <h5 class="mb-0 font-bold dark:text-white">{{$this->totalApplicants}}</h5>
                             <span class="mt-auto mb-0 font-bold leading-normal text-right text-lime-500 text-size-sm">
 
-                                <a href="{{route('hod.all-applicants')}}"
+                                <a href="{{route('admin.all-applicants')}}"
                                     class="inline-block px-6 py-3 mt-4 font-bold text-center uppercase align-middle transition-all border-0 rounded-lg cursor-pointer hover:scale-102 active:opacity-85 hover:shadow-soft-xs bg-gradient-gray leading-pro text-size-xs ease-soft-in tracking-tight-soft shadow-soft-md bg-150 bg-x-25 text-slate-800">View More</a>
                             </span>
                         </div>
@@ -53,7 +53,7 @@
                             <h5 class="mb-0 font-bold dark:text-white">{{$this->notRecommendedApplicants}}</h5>
                             <span class="mt-auto mb-0 font-bold leading-normal text-right text-lime-500 text-size-sm">
 
-                                <a href="{{route('hod.not-recommended-applicants')}}"
+                                <a href="{{route('admin.not-recommended-applicants')}}"
                                     class="inline-block px-6 py-3 mt-4 font-bold text-center uppercase align-middle transition-all border-0 rounded-lg cursor-pointer hover:scale-102 active:opacity-85 hover:shadow-soft-xs bg-gradient-gray leading-pro text-size-xs ease-soft-in tracking-tight-soft shadow-soft-md bg-150 bg-x-25 text-slate-800">View More</a>
                             </span>
                         </div>
@@ -94,7 +94,7 @@
                             <h5 class="mb-0 font-bold dark:text-white">{{$shortlistedApplicants}}</h5>
                               <span class="mt-auto mb-0 font-bold leading-normal text-right text-lime-500 text-size-sm">
 
-                                <a href="{{route('hod.shortlisted-applicants')}}"
+                                <a href="{{route('admin.shortlisted-applicants')}}"
                                     class="inline-block px-6 py-3 mt-4 font-bold text-center uppercase align-middle transition-all border-0 rounded-lg cursor-pointer hover:scale-102 active:opacity-85 hover:shadow-soft-xs bg-gradient-gray leading-pro text-size-xs ease-soft-in tracking-tight-soft shadow-soft-md bg-150 bg-x-25 text-slate-800">View More</a>
                             </span>
                         </div>

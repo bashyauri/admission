@@ -56,15 +56,21 @@ class ApplicantReportService
             'courses.name AS course_name'
         )
             ->join('users', 'proposed_courses.user_id', '=', 'users.id')
-            ->join('courses', 'proposed_courses.course_id', '=', 'courses.id')
-            ->where('proposed_courses.department_id', auth()->user()->hodDetails->department_id);
+            ->join('courses', 'proposed_courses.course_id', '=', 'courses.id');
 
+        // Add department filter if the user is a HOD
+        if ($departmentId = auth()->user()->hodDetails?->department_id) {
+            $query->where('proposed_courses.department_id', $departmentId);
+        }
+
+        // Apply status filter if provided
         if ($status !== null) {
             $query->where('proposed_courses.status', $status);
         }
 
         return $query->latest()->get();
     }
+
 
     public function getApplicantsNotRecommended()
     {

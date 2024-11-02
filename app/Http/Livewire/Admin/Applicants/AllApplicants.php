@@ -1,11 +1,10 @@
 <?php
 
-namespace App\Http\Livewire\Hod\Applicants;
+namespace App\Http\Livewire\Admin\Applicants;
 
-
-use App\Services\Report\ApplicantReportService;
-use Livewire\Attributes\Computed;
 use Livewire\Component;
+use Livewire\Attributes\Computed;
+use App\Services\Report\ApplicantReportService;
 
 class AllApplicants extends Component
 {
@@ -21,9 +20,8 @@ class AllApplicants extends Component
     {
         return $this->getAllApplicants;
     }
-
     public function render()
     {
-        return view('livewire.hod.applicants.all-applicants');
+        return view('livewire.admin.applicants.all-applicants');
     }
 }
