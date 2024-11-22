@@ -1,20 +1,24 @@
-
-<div>
+<div>@php
+    use App\Enums\TransactionStatus;
+    $approved = TransactionStatus::APPROVED;
+     $activated = TransactionStatus::ACTIVATED;
+    $pending = TransactionStatus::PENDING;
+@endphp
     <div class="flex flex-wrap -mx-3">
-          @if (Auth::user()->hasPaid(config('remita.acceptance.description')))
-
-         <div class="w-full max-w-full px-3 mt-6 mb-3 shrink-0 sm:mt-0 sm:flex-0 sm:w-3/12">
+    @if (Auth::user()->hasPaid(config('remita.acceptance.description')))
+          <div class="w-full max-w-full px-3 mt-6 shrink-0 sm:mt-0 sm:flex-0 sm:w-3/12 mb-3">
             <div
                 class="relative flex flex-col min-w-0 break-words bg-white border-0 dark:bg-gray-950 dark:shadow-soft-dark-xl shadow-soft-xl rounded-2xl bg-clip-border">
+
                 <form wire:submit='addStudent'>
                     <div class="relative flex-auto p-4">
 
                     <div x-data class="relative flex flex-wrap items-stretch w-full rounded-lg">
                             <label class="mt-6 mb-2 ml-1 font-bold text-size-xs text-slate-700 dark:text-white/80"
-                            for="MATRIC NUMBER">Matric Number (e.g WUFP/PGD/ED/20/0041)</label>
+                            for="MATRIC NUMBER">Matric Number e.g WUFP/PGD/ED/20/0041</label>
                             <input wire:model.live='form.matricNumber' x-mask="aaaa/aaa/aa/99/9999"  type="text"
                                 placeholder="e.g WUFP/PGD/ED/20/0041"
-                                class="focus:shadow-soft-primary-outline dark:bg-gray-950 dark:placeholder:text-white/80 dark:text-white/80 text-size-sm leading-5.6 ease-soft block w-full appearance-none rounded-lg border border-solid border-gray-300 bg-white bg-clip-padding px-3 py-2 font-normal text-gray-700 outline-none transition-all placeholder:text-gray-500 focus:border-fuchsia-300 focus:outline-none" />
+                                class="focus:shadow-soft-primary-outline dark:bg-gray-950 dark:placeholder:text-white/80 dark:text-white/80 text-size-sm leading-5.6 ease-soft block w-full appearance-none rounded-lg border border-solid border-gray-300 bg-white bg-clip-padding px-3 py-2 font-normal text-gray-700 outline-none transition-all placeholder:text-gray-500 focus:border-teal-300 focus:outline-none" />
                             @error('form.matricNumber')
                             <p class="text-red-500 text-size-sm">{{ $message }} </p>
                             @enderror
@@ -22,7 +26,7 @@
                     <div class="flex justify-end mt-6 mb-4">
 
                     <button type="submit"
-                        class="inline-block px-6 py-3 m-0 ml-2 text-xs font-bold text-center text-white uppercase align-middle transition-all border-0 rounded-lg cursor-pointer ease-soft-in leading-pro tracking-tight-soft bg-gradient-fuchsia shadow-soft-md bg-150 bg-x-25 hover:scale-102 active:opacity-85">Save</button>
+                        class="inline-block px-6 py-3 m-0 ml-2 text-xs font-bold text-center text-white uppercase align-middle transition-all border-0 rounded-lg cursor-pointer ease-soft-in leading-pro tracking-tight-soft bg-teal-500 shadow-soft-md bg-150 bg-x-25 hover:scale-102 active:opacity-85">Save</button>
                 </div>
                 </form>
 
@@ -141,14 +145,19 @@
                                 <div class="flex flex-col justify-center">
                                   <h6 class="mb-0 text-sm leading-normal">{{$transaction->resource}}</h6>
                                   <p class="mb-0 text-xs leading-tight text-slate-400">{{$transaction->RRR}}</p>
+                                  <h6 class="mb-0 text-sm leading-normal">{{config('remita.currency')}}{{$transaction->amount}}</h6>
                                 </div>
                               </div>
                             </td>
 
-                            <td class="p-2 text-sm leading-normal text-center align-middle bg-transparent border-b whitespace-nowrap shadow-transparent">
-                                <span class="px-3.6 text-xs rounded-1.8 py-2.2 inline-block whitespace-nowrap text-center align-baseline font-bold uppercase leading-none text-white
-                                {{ $transaction->status === '00' ? 'bg-gradient-to-tl from-green-600 to-lime-400' : 'bg-yellow-500' }}">
-                                {{ $transaction->status === '00' ? 'success' : 'pending' }}
+                            <td class="p-5 text-sm leading-normal text-center align-middle bg-transparent border-b whitespace-nowrap shadow-transparent">
+                                    @if ($transaction->status === $approved->toString())
+                             <span class="py-2.2 px-3.6 text-xs rounded-1.8 inline-block whitespace-nowrap text-center text-lime-600 align-baseline font-bold uppercase leading-none">Paid</span>
+
+                                @else
+                                <span class="py-2.2 px-3.6 text-xs rounded-1.8 inline-block whitespace-nowrap text-center  text-slate-750 align-baseline font-bold uppercase leading-none">Pending</span>
+
+                                @endif
                             </span>
 
                             </td>

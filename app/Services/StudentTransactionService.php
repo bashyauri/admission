@@ -93,7 +93,7 @@ class StudentTransactionService extends TransactionService
         $transaction->update(['status' => $status]);
 
         // If transaction is approved, check if it's a valid payment and add to school fees if necessary
-        if ($status !== TransactionStatus::APPROVED) {
+        if ($status !== TransactionStatus::APPROVED->toString()) {
             return;
         }
 
@@ -114,7 +114,7 @@ class StudentTransactionService extends TransactionService
     }
 
 
-    public function addSchoolFeesPayment($level)
+    public function addSchoolFeesPayment(int $level): void
     {
         DB::transaction(function () use ($level) {
             SchoolFeesPayment::create([
@@ -124,7 +124,7 @@ class StudentTransactionService extends TransactionService
             $this->updateStudentLevel($level);
         });
     }
-    private function updateStudentLevel($level)
+    private function updateStudentLevel($level): void
     {
         auth()->user()->AcademicDetail->update(['student_level_id' => $level]);
     }

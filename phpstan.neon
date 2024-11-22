@@ -1,0 +1,28 @@
+parameters:
+    level: max
+
+    paths:
+        - app
+        - database
+        - routes
+
+    excludePaths:
+        analyse:
+            - bootstrap/cache/*
+            - storage/*
+            - vendor/*
+
+    # Specifies autoload files if necessary (e.g., helpers)
+    bootstrapFiles:
+        - bootstrap/app.php
+
+    # Ignored errors (for Laravel magic methods and properties)
+    ignoreErrors:
+        - '#Call to an undefined method [A-Za-z0-9\\_]+::[A-Za-z0-9\\_]+#'
+        - '#Access to an undefined property [A-Za-z0-9\\_]+::\$[A-Za-z0-9\\_]+#'
+
+includes:
+    - vendor/nunomaduro/larastan/extension.neon
+
+# Removed extensions and memoryLimit from 'parameters'
+# If needed, you can manage PHP memory limit externally in your environment.

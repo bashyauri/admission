@@ -121,7 +121,11 @@ use App\Http\Livewire\Transactions\AcceptanceInvoice;
 |
 */
 
+Route::get('/', action: function () {
+    return view('welcome');
+});
 Route::middleware('guest')->group(function () {
+
     Route::get('sign-up', Register::class)->name('register');
     Route::get('sign-in', Login::class)->name('login');
     Route::get('forgot-password', ForgotPassword::class)->name('forgot-password');
@@ -267,9 +271,7 @@ Route::group(['middleware' => 'role:applicant'], function () {
     // Routes for applicant dashboard
 });
 
-Route::get('/', function () {
-    return redirect()->route('login');
-});
+
 // Email Verification Routes
 Route::get('/email/verify', function () {
     return view('livewire.authentication.verification.basic');

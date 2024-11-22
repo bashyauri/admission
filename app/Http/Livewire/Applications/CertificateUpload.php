@@ -7,11 +7,13 @@ use Livewire\Component;
 use Livewire\WithFileUploads;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Validate;
-use Illuminate\Support\Facades\Log;
 use Jantinnerezo\LivewireAlert\LivewireAlert;
 use Illuminate\Validation\ValidationException;
 use App\Models\CertificateUpload as ModelsCertificateUpload;
 use App\Models\OlevelSubjectGrade;
+use Illuminate\Contracts\View\View;
+use Illuminate\Database\Eloquent\Collection;
+
 
 class CertificateUpload extends Component
 {
@@ -39,7 +41,7 @@ class CertificateUpload extends Component
         }
     }
 
-    public function save()
+    public function save(): void
     {
         $this->validate();
 
@@ -59,10 +61,10 @@ class CertificateUpload extends Component
             $this->reset();
         } catch (ValidationException $e) {
 
-            // Display validation errors
+
             $errorMessages = implode(' ', $e->validator->errors()->all());
 
-            $this->alert('error', "$errorMessages", [
+            $this->alert('error', (string)$errorMessages, [
                 'position' => 'center',
                 'timer' => 3000,
                 'toast' => true,
@@ -72,7 +74,7 @@ class CertificateUpload extends Component
             ]);
 
 
-            // Set validation errors in Livewire's error bag
+
             $this->setErrorBag($e->validator->errors());
         } catch (\Exception $e) {
             report($e);
@@ -85,16 +87,16 @@ class CertificateUpload extends Component
     }
 
     #[Computed()]
-    public function certificates()
+    public function certificates(): Collection
     {
         return School::where('user_id', auth()->user()->id)->get(['certificate_name']);
     }
     #[Computed()]
-    public function uploadedCertificates()
+    public function uploadedCertificates(): Collection
     {
         return ModelsCertificateUpload::where('user_id', auth()->user()->id)->get();
     }
-    public function delete($id)
+    public function delete($id): void
     {
         $certificate = ModelsCertificateUpload::find($id);
         try {
@@ -116,15 +118,15 @@ class CertificateUpload extends Component
             'toast' => true,
         ]);
     }
-    protected function deleteCertificateFile($path)
+    protected function deleteCertificateFile($path): void
     {
 
-        if (file_exists(storage_path('app/public/' . $path))) {
-            unlink(storage_path('app/public/' . $path));
+        if (file_exists(storage_path("app/public/  {$path}"))) {
+            unlink(storage_path("app/public/  {$path}"));
         }
     }
 
-    public function render()
+    public function render(): View
     {
         return view('livewire.applications.certificate-upload');
     }
