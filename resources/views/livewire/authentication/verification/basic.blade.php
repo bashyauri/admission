@@ -52,6 +52,7 @@
 
 
                                     <h2>A  verification link has been sent to the email address you provided during registration.</h2>
+                                     <h2 class="font-bold text-white">Please Check your inbox and Spam folder</h2>
                                 </div>
                                 <div class="flex flex-wrap -mx-1 sm:-mx-2">
                                     <form method="POST" action="{{ route('verification.send') }}">
@@ -67,6 +68,8 @@
                                             </span>
                                         </div>
                                     </form>
+                                    <a href="{{route('logout')}}" class="inline-block w-full px-6 py-3 mt-6 mb-2 font-bold text-center text-white uppercase align-middle transition-all bg-red-700 border-0 rounded-lg cursor-pointer active:opacity-85 hover:scale-102 hover:shadow-soft-xs leading-pro text-size-xs ease-soft-in tracking-tight-soft shadow-soft-md bg-150 bg-x-25 bg-gradient-teal hover:border-red-800 hover:bg-red-800 hover:text-white">Logout</a>
+
 
                                 </div>
 

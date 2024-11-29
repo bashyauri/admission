@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Livewire\Admin\Applicants;
 
 use App\Imports\PostUtmeImport;
+use App\Services\Report\UtmeService;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 use Illuminate\Support\Facades\Log;
@@ -15,8 +16,12 @@ class UploadApplicants extends Component
 {
     use WithFileUploads, LivewireAlert;
     public $file;
+    public int $totalApplicantUploded;
 
-
+    public function mount(UtmeService $utmeService)
+    {
+        $this->totalApplicantUploded = $utmeService->getAllImportedApplicants();
+    }
 
 
 
