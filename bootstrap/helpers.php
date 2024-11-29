@@ -6,7 +6,7 @@ function getPathName()
 {
     $pathname = explode("/", Request::path());
     if (isset($pathname[2]))
-        echo ucfirst($pathname[0]) . "<li class='text-size-sm pl-2 leading-normal'>/<span class='opacity-50 text-slate-700 dark:text-white pl-2'>" . ucfirst($pathname[1]) . "</span></li>";
+        echo ucfirst($pathname[0]) . "<li class='pl-2 leading-normal text-size-sm'>/<span class='pl-2 opacity-50 text-slate-700 dark:text-white'>" . ucfirst($pathname[1]) . "</span></li>";
     else
         echo ucfirst($pathname[0]);
 }
@@ -79,7 +79,7 @@ function getCategoriesArray($parent, $child = null)
         ),
 
         'guest' => array(
-            'auth' => array('register', 'login', 'forgot-password', 'reset-password'),
+            'auth' => array('register', 'login', 'forgot-password', 'reset-password', 'degree-login', 'degree-register'),
             'pricing-page',
             'error404',
             'error500',
@@ -91,13 +91,21 @@ function getCategoriesArray($parent, $child = null)
         ),
 
         'guest-dark' => array(
-            'forgot-password', 'reset-password',
-            'error404', 'error500',
-            'cover-sign-in', 'illustration-sign-in',
-            'cover-lock', 'illustration-lock',
-            'basic-reset', 'cover-reset', 'illustration-reset',
-            'cover-sign-up', 'illustration-sign-up',
-            'cover-verification', 'illustration-verification'
+            'forgot-password',
+            'reset-password',
+            'error404',
+            'error500',
+            'cover-sign-in',
+            'illustration-sign-in',
+            'cover-lock',
+            'illustration-lock',
+            'basic-reset',
+            'cover-reset',
+            'illustration-reset',
+            'cover-sign-up',
+            'illustration-sign-up',
+            'cover-verification',
+            'illustration-verification'
         ),
     );
 

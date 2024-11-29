@@ -20,8 +20,8 @@ return new class extends Migration
             $table->uuid('id')->primary();
             $table->foreignIdFor(Programme::class);
             $table->string('picture')->nullable();
-            $table->string('surname');
-            $table->string('firstname');
+            $table->string('surname')->nullable();
+            $table->string('firstname')->nullable();
             $table->string('m_name')->nullable();
             $table->string('email')->unique();
             $table->string('phone')->nullable()->unique();

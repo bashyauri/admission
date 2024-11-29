@@ -1,13 +1,16 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Models;
 
+use App\Enums\ProgrammesEnum;
 use App\Enums\ApplicationStatus;
 use App\Enums\TransactionStatus;
-use App\Notifications\SendVerificationEmail;
-use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Notifications\Notifiable;
+use App\Notifications\SendVerificationEmail;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -62,15 +65,19 @@ class User extends Authenticatable implements MustVerifyEmail
     /**
      * Check if the user is creator
      */
-    public function isHod()
+    public function isHod(): bool
     {
         return $this->role === 'hod';
+    }
+    public function isUndergraduate(): bool
+    {
+        return $this->programme_id === ProgrammesEnum::Undergraduate->value;
     }
 
     /**
      * Check if the user is member
      */
-    public function isApplicant()
+    public function isApplicant(): bool
     {
         return $this->role === 'applicant';
     }

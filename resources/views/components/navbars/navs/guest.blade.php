@@ -4,7 +4,7 @@
         <div class="container flex flex-wrap items-center justify-between lg:flex-nowrap">
 
             <a class="py-2.5 text-size-sm mr-4 ml-4 whitespace-nowrap font-bold text-{{ in_array(request()->route()->getName(),getCategoriesArray('guest-dark')) ? 'dark' : 'white' }} lg:ml-0"
-                href="#">{{config('app.name')}}</a>
+                href="#"></a>
 
             <button aria-expanded="false" nav-collapse-trigger
                 class="px-3 py-1 ml-2 leading-none bg-transparent rounded-lg shadow-none cursor-pointer lg:hidden text-size-lg text-slate-700">
@@ -648,7 +648,7 @@
                                 </div>
                                 <div class="flex flex-col justify-center w-6/12 max-w-full px-3 pl-0 flex-0">
                                     <ul class="flex flex-col pl-0 mb-0 rounded-lg">
-                                        <li nav-nested-menu-trigger
+                                        {{-- <li nav-nested-menu-trigger
                                             class="after:absolute after:content-[''] after:h-full after:left-full after:w-1/2 after:bottom-0 relative block p-0 bg-white border-0 rounded-t-lg">
                                             <a
                                                 class="select-none hover:text-slate-700 hover:bg-gray-200 flex w-full px-4 py-1.2 clear-both font-normal text-slate-500 text-align-inherit bg-transparent border-0 justify-between items-center mb-1 pl-4 rounded-lg lg:transition-colors lg:duration-300 lg:ease-soft">
@@ -676,7 +676,7 @@
                                             class="after:absolute after:content-[''] after:h-full after:left-full after:w-1/2 after:bottom-0 relative block p-0 bg-white border-0 ">
                                             <a
                                                 class="select-none hover:text-slate-700 hover:bg-gray-200 flex w-full px-4 py-1.2 clear-both font-normal text-slate-500 text-align-inherit bg-transparent border-0 justify-between items-center mb-1 pl-4 rounded-lg lg:transition-colors lg:duration-300 lg:ease-soft">
-                                                <span>Sign Up</span>
+                                                <span>Sign U</span>
                                                 <img src="{{ asset('assets') }}/img/down-arrow.svg" alt="down-arrow"
                                                     class="lg:-rotate-90">
                                             </a>
@@ -695,7 +695,7 @@
                                                     <span>Illustration</span>
                                                 </a>
                                             </div>
-                                        </li>
+                                        </li> --}}
                                         <li nav-nested-menu-trigger
                                             class="after:absolute after:content-[''] after:h-full after:left-full after:w-1/2 after:bottom-0 relative block p-0 bg-white border-0 ">
                                             <a
@@ -1777,7 +1777,7 @@
 
                 @guest
                 <ul class="flex flex-col pl-0 mx-auto mb-0 list-none md-max:w-full lg:flex-row">
-                    <li
+                    {{-- <li
                         class="relative mx-2 group md-max:static lg:after:content-[''] lg:after:top-0 lg:hover:after:top-full lg:after:absolute lg:after:left-0 lg:after:-bottom-6 lg:after:w-full lg:after:h-full">
 
                         <a href="{{ route('login') }}" role="button"
@@ -1792,7 +1792,7 @@
                             class="flex items-center justify-between px-4 py-2 pl-2 font-normal text-{{ in_array(request()->route()->getName(),getCategoriesArray('guest-dark')) ? 'dark' : 'white' }} transition-all cursor-pointer select-none lg:group-hover:opacity-75 lg-max:text-slate-700 ease-soft-in-out lg:px-2 text-size-sm">
                             Sign Up
                         </a>
-                    </li>
+                    </li> --}}
                 </ul>
                 @endguest
 
@@ -1800,7 +1800,7 @@
                     <li>
                         <a href="javascript:;"
 
-                             class="inline-block px-8 py-2 mb-0 mr-1 font-bold text-center uppercase align-middle bg-white border-0 cursor-pointer text-size-xs leading-pro text-slate-500 tracking-tight-soft shadow-soft-md bg-150 bg-x-25 rounded-7 text-white bg-gradient-fuchsia">Buy
+                             class="inline-block px-8 py-2 mb-0 mr-1 font-bold text-center text-white uppercase align-middle bg-white border-0 cursor-pointer text-size-xs leading-pro text-slate-500 tracking-tight-soft shadow-soft-md bg-150 bg-x-25 rounded-7 bg-gradient-fuchsia">Buy
                              Now</a>
                     </li>
                 </ul> --}}

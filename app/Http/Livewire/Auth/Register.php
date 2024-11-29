@@ -43,6 +43,8 @@ class Register extends Component
         $this->validate();
 
 
+
+
         DB::beginTransaction();
 
         try {
