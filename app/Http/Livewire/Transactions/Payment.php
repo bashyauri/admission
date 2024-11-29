@@ -2,12 +2,20 @@
 
 namespace App\Http\Livewire\Transactions;
 
+use App\Enums\ProgrammesEnum;
 use Livewire\Component;
 use App\Models\Transaction;
 use Livewire\Attributes\Computed;
 
 class Payment extends Component
 {
+    public function mount()
+    {
+        if (auth()->user()->isUndergraduate()) {
+            to_route('search-utme');
+        }
+    }
+    public string $selected;
     #[Computed(persist: true)]
     public function transactions()
     {
@@ -15,6 +23,8 @@ class Payment extends Component
     }
     public function render()
     {
+
+
         return view('livewire.transactions.payment');
     }
 }

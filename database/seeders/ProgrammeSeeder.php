@@ -22,6 +22,8 @@ class ProgrammeSeeder extends Seeder
             ['id' => 4, 'name' => 'National Certificate in Education', 'abv' => 'NCE'],
             ['id' => 5, 'name' => 'Polytechnic Diploma', 'abv' => 'PD'],
             ['id' => 6, 'name' => 'Postgraduate Diploma', 'abv' => 'PG'],
+            ['id' => 7, 'name' => 'Degree Program', 'abv' => 'DP']
+
         ];
 
         foreach ($programmes as $programme) {

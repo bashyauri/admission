@@ -71,6 +71,7 @@ class User extends Authenticatable implements MustVerifyEmail
     }
     public function isUndergraduate(): bool
     {
+
         return $this->programme_id === ProgrammesEnum::Undergraduate->value;
     }
 
