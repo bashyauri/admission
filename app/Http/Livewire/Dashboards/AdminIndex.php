@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Livewire\Dashboards;
 
 use Livewire\Component;
@@ -13,6 +15,7 @@ class AdminIndex extends Component
     public int $shortlistedApplicants;
     public int $paidAdmissionFees;
     public int $paidAcceptanceFees;
+    public int $totalCandidatesUploded;
 
     public function mount(ApplicantReportService $applicantReportService)
     {

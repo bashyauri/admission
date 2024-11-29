@@ -68,7 +68,10 @@
                                             </span>
                                         </div>
                                     </form>
-                                    <a href="{{route('logout')}}" class="inline-block w-full px-6 py-3 mt-6 mb-2 font-bold text-center text-white uppercase align-middle transition-all bg-red-700 border-0 rounded-lg cursor-pointer active:opacity-85 hover:scale-102 hover:shadow-soft-xs leading-pro text-size-xs ease-soft-in tracking-tight-soft shadow-soft-md bg-150 bg-x-25 bg-gradient-teal hover:border-red-800 hover:bg-red-800 hover:text-white">Logout</a>
+                                    <form action="{{route('logout')}}" method="post">
+
+                                    </form>
+                                    <a href="{{route('logout')}}" class="inline-block w-full px-6 py-3 mt-6 mb-2 font-bold text-center text-white uppercase align-middle transition-all bg-red-700 border-0 rounded-lg cursor-pointer active:opacity-85 hover:scale-102 hover:shadow-soft-xs leading-pro text-size-xs ease-soft-in tracking-tight-soft shadow-soft-md bg-150 bg-x-25 bg-gradient-teal hover:border-red-800 hover:bg-red-800 hover:text-white">Logout<livewire:auth.logout /></a>
 
 
                                 </div>
