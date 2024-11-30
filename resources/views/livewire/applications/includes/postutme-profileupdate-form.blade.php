@@ -56,7 +56,7 @@ $parts = explode(' ', $result->name);
         <div>
             <label for="phoneNumber" class="block text-sm font-medium text-gray-700">Phone Number</label>
             <input type="text" wire:model="phoneNumber"
-                class="block w-full px-3 py-2 mt-1 text-sm border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                class="focus:shadow-soft-primary-outline dark:bg-gray-950 dark:placeholder:text-white/80 dark:text-white/80 text-size-sm leading-5.6 ease-soft block w-full appearance-none rounded-lg border border-solid border-gray-300 bg-white bg-clip-padding px-3 py-2 font-normal text-gray-700 outline-none transition-all placeholder:text-gray-500 focus:border-fuchsia-300 focus:outline-none">
             @error('phoneNumber') <span class="text-xs text-red-500">{{ $message }}</span> @enderror
         </div>
     </div>
@@ -64,7 +64,7 @@ $parts = explode(' ', $result->name);
     <!-- Generate Invoice Button -->
     <div class="flex justify-end mt-4">
         <button type="submit"
-            class="flex items-center px-6 py-2 text-sm font-medium text-white bg-indigo-600 rounded-md shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50"
+            class="flex items-center px-6 py-2 text-sm font-medium text-white bg-teal-500 rounded-md shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50"
             wire:loading.attr="disabled">
             <span wire:loading.remove>Update Profile</span>
             <svg wire:loading class="w-5 h-5 ml-2 text-white animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">

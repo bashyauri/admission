@@ -8,6 +8,7 @@ use App\Models\State;
 use Livewire\Component;
 use App\Models\Transaction;
 use Livewire\WithFileUploads;
+use App\Services\PaymentService;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Validate;
 use App\Livewire\Forms\ProfileForm;
@@ -26,7 +27,7 @@ class Profile extends Component
     public $picture;
 
 
-    public function mount()
+    public function mount(PaymentService $paymentService)
     {
 
 
@@ -34,7 +35,7 @@ class Profile extends Component
 
 
 
-        if (!auth()->user()->hasPaid(config('remita.admission.description'))) {
+        if (!auth()->user()->hasPaid($paymentService->getAdmissionResource())) {
             to_route('transactions');
         }
         $this->form->setProfile($user);
