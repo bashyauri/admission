@@ -7,7 +7,7 @@
         <div class="flex flex-wrap justify-center -mx-3">
           <div class="w-full max-w-full px-3 mx-auto text-center shrink-0 lg:flex-0 lg:w-5/12">
             <h1 class="mt-12 mb-2 text-white">Welcome</h1>
-            <p class="text-white ">{{config('app.name')}} Portal</p>
+            <p class="text-white ">{{config('app.name')}} Degree Portal</p>
           </div>
         </div>
       </div>
@@ -29,7 +29,7 @@
                     class="text-size-sm focus:shadow-soft-primary-outline dark:bg-gray-950 dark:placeholder:text-white/80 dark:text-white/80 leading-5.6 ease-soft block w-full appearance-none rounded-lg border border-solid border-gray-300 bg-white bg-clip-padding py-2 px-3 font-normal text-gray-700 transition-all focus:border-fuchsia-300 focus:bg-white focus:text-gray-700 focus:outline-none focus:transition-shadow"
                     placeholder="Surname" aria-label="Surname" aria-describedby="surname-addon" required />
                   @error('surname')
-                  <p class="text-size-sm text-red-500">{{ $message }}</p>
+                  <p class="text-red-500 text-size-sm">{{ $message }}</p>
                   @enderror
                 </div>
                 <div class="mb-4">
@@ -37,7 +37,7 @@
                     class="text-size-sm focus:shadow-soft-primary-outline dark:bg-gray-950 dark:placeholder:text-white/80 dark:text-white/80 leading-5.6 ease-soft block w-full appearance-none rounded-lg border border-solid border-gray-300 bg-white bg-clip-padding py-2 px-3 font-normal text-gray-700 transition-all focus:border-fuchsia-300 focus:bg-white focus:text-gray-700 focus:outline-none focus:transition-shadow"
                     placeholder="FirstName" aria-label="First Name" aria-describedby="firstname-addon" required />
                   @error('firstName')
-                  <p class="text-size-sm text-red-500">{{ $message }}</p>
+                  <p class="text-red-500 text-size-sm">{{ $message }}</p>
                   @enderror
                 </div>
                 <div class="mb-4">
@@ -45,7 +45,7 @@
                     class="text-size-sm focus:shadow-soft-primary-outline dark:bg-gray-950 dark:placeholder:text-white/80 dark:text-white/80 leading-5.6 ease-soft block w-full appearance-none rounded-lg border border-solid border-gray-300 bg-white bg-clip-padding py-2 px-3 font-normal text-gray-700 transition-all focus:border-fuchsia-300 focus:bg-white focus:text-gray-700 focus:outline-none focus:transition-shadow"
                     placeholder="Middle Name" aria-label="Middle Name" aria-describedby="middlename-addon"/>
                   @error('middleName')
-                  <p class="text-size-sm text-red-500">{{ $message }}</p>
+                  <p class="text-red-500 text-size-sm">{{ $message }}</p>
                   @enderror
                 </div>
                 <div class="mb-4">
@@ -53,7 +53,7 @@
                     class="text-size-sm focus:shadow-soft-primary-outline dark:bg-gray-950 dark:placeholder:text-white/80 dark:text-white/80 leading-5.6 ease-soft block w-full appearance-none rounded-lg border border-solid border-gray-300 bg-white bg-clip-padding py-2 px-3 font-normal text-gray-700 transition-all focus:border-fuchsia-300 focus:bg-white focus:text-gray-700 focus:outline-none focus:transition-shadow"
                     placeholder="Email" aria-label="Email" aria-describedby="email-addon" required />
                   @error('email')
-                  <p class="text-size-sm text-red-500">{{ $message }}</p>
+                  <p class="text-red-500 text-size-sm">{{ $message }}</p>
                   @enderror
                 </div>
                 <div class="mb-4">
@@ -61,7 +61,7 @@
                     class="text-size-sm focus:shadow-soft-primary-outline dark:bg-gray-950 dark:placeholder:text-white/80 dark:text-white/80 leading-5.6 ease-soft block w-full appearance-none rounded-lg border border-solid border-gray-300 bg-white bg-clip-padding py-2 px-3 font-normal text-gray-700 transition-all focus:border-fuchsia-300 focus:bg-white focus:text-gray-700 focus:outline-none focus:transition-shadow"
                     placeholder="Phone" aria-label="Phone" aria-describedby="phone-addon" required />
                   @error('phone')
-                  <p class="text-size-sm text-red-500">{{ $message }}</p>
+                  <p class="text-red-500 text-size-sm">{{ $message }}</p>
                   @enderror
                 </div>
                 <div class="mb-4">
@@ -69,7 +69,7 @@
                     class="text-size-sm focus:shadow-soft-primary-outline dark:bg-gray-950 dark:placeholder:text-white/80 dark:text-white/80 leading-5.6 ease-soft block w-full appearance-none rounded-lg border border-solid border-gray-300 bg-white bg-clip-padding py-2 px-3 font-normal text-gray-700 transition-all focus:border-fuchsia-300 focus:bg-white focus:text-gray-700 focus:outline-none focus:transition-shadow"
                     placeholder="Password" aria-label="Password" aria-describedby="password-addon" required />
                   @error('password')
-                  <p class="text-size-sm text-red-500">{{ $message }}</p>
+                  <p class="text-red-500 text-size-sm">{{ $message }}</p>
                   @enderror
                 </div>
 
@@ -91,7 +91,7 @@
                   </div>
                 </div>
                 @error('programme_id')
-                <p class='text-size-sm text-red-500'>{{ $message }} </p>
+                <p class='text-red-500 text-size-sm'>{{ $message }} </p>
                 @enderror
 
 

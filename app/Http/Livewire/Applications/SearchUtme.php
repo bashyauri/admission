@@ -17,6 +17,7 @@ class SearchUtme extends Component
     public $result = null;
     public bool $showResult;
 
+
     public function search(): void
     {
         $this->validate(rules: [
@@ -31,6 +32,11 @@ class SearchUtme extends Component
     }
     public function updateProfile()
     {
+
+        $parts = explode(' ', $this->result->name);
+
+
+        [$surname, $firstname, $middlename] = array_pad($parts, 3, null);
         $this->validate(rules: [
             'phoneNumber' => 'required|string|unique:users,phone',
         ]);
@@ -39,9 +45,9 @@ class SearchUtme extends Component
             auth()->user()->update(
                 attributes: [
                     'jamb_no' => $this->result->jamb_no,
-                    'surname' => $this->result->surname,
-                    'firstname' => $this->result->firstname,
-                    'middlename' => $this->result->middlename,
+                    'surname' => $surname,
+                    'firstname' => $firstname,
+                    'm_name' => $middlename,
                     'phone' => $this->phoneNumber
                 ]
 
@@ -53,7 +59,7 @@ class SearchUtme extends Component
                 'toast' => true,
             ]);
 
-            return to_route('admission-invoice');
+            return to_route('postutmescreening-invoice');
         } catch (\Exception $e) {
             report($e);
             $this->alert('error', 'Save failed.', [

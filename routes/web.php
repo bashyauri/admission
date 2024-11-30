@@ -117,6 +117,7 @@ use App\Http\Livewire\Applications\CertificateUpload;
 // use App\Http\Livewire\Authentication\Verification\Illustration as VerificationIllustration;
 use App\Http\Livewire\Transactions\AcceptanceInvoice;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
+use App\Http\Livewire\Transactions\PostutmeScreeningInvoice;
 
 /*
 |--------------------------------------------------------------------------
@@ -235,6 +236,8 @@ Route::middleware(['auth', 'verified', 'role:applicant'])->group(function () {
     Route::get('transactions', Payment::class)->name('transactions');
     Route::get('transactions/admission-invoice', AdmissionInvoice::class)->name('admission-invoice');
     Route::get('transactions/acceptance-invoice', AcceptanceInvoice::class)->name('acceptance-invoice');
+    Route::get('transactions/postutmescreening-invoice', PostutmeScreeningInvoice::class)->name('postutmescreening-invoice');
+
 
 
     // Normal Controller

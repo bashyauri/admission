@@ -13,6 +13,10 @@ return [
         'payment_redirect' => env('ACCEPTANCE_PAYMENT_REDIRECT'),
 
     ],
+    'postutme' => [
+        'fee' => env('POSTUTME_SCREENING_FEE'),
+        'description' => env('POSTUTME_SCREENING_DESCRIPTION'),
+    ],
     'schoolfees' => [
         'description' => env('SCHOOL_FEES_DESCRIPTION')
     ],

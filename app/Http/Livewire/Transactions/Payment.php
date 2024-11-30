@@ -12,7 +12,11 @@ class Payment extends Component
     public function mount()
     {
         if (auth()->user()->isUndergraduate()) {
-            to_route('search-utme');
+            if (!(auth()->user()->jamb_no && auth()->user()->surname && auth()->user()->firstname && auth()->user()->phone)) {
+                to_route('search-utme');
+            } else {
+                to_route('postutmescreening-invoice');
+            }
         }
     }
     public string $selected;
