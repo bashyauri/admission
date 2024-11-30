@@ -91,5 +91,10 @@
 @push('js')
 <script src="{{ asset('assets') }}/js/plugins/choices.min.js"></script>
 <script src="{{ asset('assets') }}/js/plugins/flatpickr.min.js"></script>
+<script>
+    Livewire.on('refreshComponent', () => {
+        Livewire.emit('$refresh'); // Trigger refresh
+    });
+</script>
 @endpush
 

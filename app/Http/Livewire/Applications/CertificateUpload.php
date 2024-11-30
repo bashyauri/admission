@@ -5,15 +5,16 @@ namespace App\Http\Livewire\Applications;
 use App\Models\School;
 use Livewire\Component;
 use Livewire\WithFileUploads;
+use App\Services\PaymentService;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Validate;
-use Jantinnerezo\LivewireAlert\LivewireAlert;
-use Illuminate\Validation\ValidationException;
-use App\Models\CertificateUpload as ModelsCertificateUpload;
 use App\Models\OlevelSubjectGrade;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Collection;
-
+use Jantinnerezo\LivewireAlert\LivewireAlert;
+use Illuminate\Validation\ValidationException;
+use App\Models\CertificateUpload as ModelsCertificateUpload;
+use App\Models\PostUtmeCredentials;
 
 class CertificateUpload extends Component
 {
@@ -30,9 +31,9 @@ class CertificateUpload extends Component
     #[Validate('required|file|mimes:pdf|max:1024')]
     public $certificate;
 
-    public function mount()
+    public function mount(PaymentService $paymentService)
     {
-        if (!auth()->user()->hasPaid(config('remita.admission.description'))) {
+        if (!auth()->user()->hasPaid($paymentService->getAdmissionResource())) {
             to_route('transactions');
         }
         if (OlevelSubjectGrade::where('user_id', auth()->id())->count() === 0) {
@@ -89,6 +90,9 @@ class CertificateUpload extends Component
     #[Computed()]
     public function certificates(): Collection
     {
+        if (auth()->user()->isUndergraduate()) {
+            return PostUtmeCredentials::query()->get(['certificate_name']);
+        }
         return School::where('user_id', auth()->user()->id)->get(['certificate_name']);
     }
     #[Computed()]

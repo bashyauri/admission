@@ -1,10 +1,10 @@
 
 <div class="flex-auto px-0 pt-0 pb-2">
     <div class="p-0 overflow-x-auto">
-      <table class="w-96 items-center mb-0 align-top border-gray-200 text-slate-500">
+      <table class="items-center mb-0 align-top border-gray-200 w-96 text-slate-500">
         <thead class="align-bottom">
           <tr>
-            <th class="px-3 py-3 leading-normal text-sm">Qualification</th>
+            <th class="px-3 py-3 text-sm leading-normal">Credentials</th>
             <th class="px-6 py-3 font-semibold capitalize align-middle bg-transparent border-b border-gray-200 border-solid shadow-none tracking-none whitespace-nowrap text-slate-400 opacity-70"></th>
           </tr>
         </thead>
@@ -17,7 +17,7 @@
                     <div class="flex px-2 py-1">
 
                       <div class="flex flex-col justify-center">
-                        <h6 class="mb-0 leading-normal text-sm">{{ucwords($certificate->name)}}</h6>
+                        <h6 class="mb-0 text-sm leading-normal">{{ucwords($certificate->name)}}</h6>
 
                       </div>
                     </div>
@@ -25,7 +25,7 @@
                   <td class="p-2 align-middle bg-transparent border-b whitespace-nowrap shadow-transparent">
 
 
-                      <p class="mb-0 font-semibold leading-tight text-xs">
+                      <p class="mb-0 text-xs font-semibold leading-tight">
                           <a target="_blank" href="{{ asset('storage/' . $certificate->path) }}" aria-label="View Certificate">
                               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
                                   <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
@@ -39,7 +39,7 @@
 
 
                   <td class="p-2 align-middle bg-transparent border-b whitespace-nowrap shadow-transparent">
-                      <button wire:click="delete({{$certificate->id}})" class="text-sm text-red-500 font-semibold rounded hover:text-teal-800 mr-1">
+                      <button wire:click="delete({{$certificate->id}})" class="mr-1 text-sm font-semibold text-red-500 rounded hover:text-teal-800">
                           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                               stroke="currentColor" class="w-4 h-4">
                               <path stroke-linecap="round" stroke-linejoin="round"
@@ -51,7 +51,7 @@
               </div>
             @empty
             <td class="p-2 align-middle bg-transparent border-b whitespace-nowrap shadow-transparent">
-            <p class="mb-0 font-semibold leading-tight text-xs">
+            <p class="mb-0 text-xs font-semibold leading-tight">
                 No Record(s)
             </p>
             </td>

@@ -44,7 +44,7 @@ class OlevelGrade extends Component
                 'toast' => true,
             ]);
             $this->dispatch('modalClosed');
-            $this->reset('form');
+            $this->emitSelf('refreshComponent');
             // return to_route('olevel-grade');
         } catch (ValidationException $e) {
 

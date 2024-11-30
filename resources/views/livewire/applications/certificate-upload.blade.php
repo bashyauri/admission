@@ -16,12 +16,12 @@
             <div class="flex flex-wrap -mx-3">
                 <div class="w-6/12 max-w-full px-3 flex-0">
                     <label class="inline-block mb-2 ml-1 font-bold text-size-xs text-slate-700 dark:text-white/80"
-                        for="Start Date">Qualification</label>
+                        for="Start Date">Credentials</label>
 
                     <select wire:model="name" choices
                         class="focus:shadow-soft-primary-outline dark:bg-gray-950 dark:placeholder:text-white/80 dark:text-white/80 text-size-sm leading-5.6 ease-soft block w-full appearance-none rounded-lg border border-solid border-gray-300 bg-white bg-clip-padding px-3 py-2 font-normal text-gray-700 outline-none transition-all placeholder:text-gray-500 focus:border-fuchsia-300 focus:outline-none"
                         data-input >
-                        <option value="">Select Certificate</option>
+                        <option value="">Select Credential</option>
                         @foreach ($this->certificates as $certificate)
 
 
@@ -29,7 +29,7 @@
 
                         @endforeach
                     </select>
-                    @error('name') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+                    @error('name') <span class="text-xs text-red-500">{{ $message }}</span> @enderror
                 </div>
                 <div class="w-6/12 max-w-full px-3 flex-0">
                     <label class="inline-block mb-2 ml-1 font-bold text-size-xs text-slate-700 dark:text-white/80"
@@ -37,7 +37,7 @@
                     <input wire:model="certificate"
                         class="focus:shadow-soft-primary-outline dark:bg-gray-950 dark:placeholder:text-white/80 dark:text-white/80 text-size-sm leading-5.6 ease-soft block w-full appearance-none rounded-lg border border-solid border-gray-300 bg-white bg-clip-padding px-3 py-2 font-normal text-gray-700 outline-none transition-all placeholder:text-gray-500 focus:border-fuchsia-300 focus:outline-none"
                         type="file" accept=".pdf" placeholder="Please select end date"  />
-                        @error('certificate') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+                        @error('certificate') <span class="text-xs text-red-500">{{ $message }}</span> @enderror
                 </div>
             </div>
 
