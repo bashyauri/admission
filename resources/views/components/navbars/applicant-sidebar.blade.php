@@ -268,7 +268,8 @@
                       <span class="transition-all duration-100 pointer-events-none ease-soft"> Profile </span>
                     </a>
                   </li>
-              <li class="w-full">
+                  @if (auth()->user()->isPostgraduate())
+                        <li class="w-full">
                 <a class="ease-soft-in-out py-1.6 ml-5.4 pl-4 text-size-sm relative my-0 mr-4 flex items-center whitespace-nowrap bg-transparent pr-4 shadow-none transition-colors before:absolute before:top-1/2 before:-translate-y-1/2 before:rounded-3xl before:content-[''] dark:text-white dark:before:bg-white dark:before:opacity-80 {{ Route::currentRouteName() == 'school-attended' ? 'before:-left-5 rounded-lg font-semibold text-slate-800 before:h-2 before:w-2 before:bg-slate-800 dark:opacity-100' : 'before:-left-4.5 before:h-1.25 before:w-1.25 font-medium text-slate-800/50 before:bg-slate-800/50 dark:opacity-60' }}"
                   href="{{ route('school-attended') }}">
                   <span
@@ -278,6 +279,8 @@
                   <span class="transition-all duration-100 pointer-events-none ease-soft"> School Attended </span>
                 </a>
               </li>
+                  @endif
+
 
               <li class="w-full">
                 <a class="ease-soft-in-out py-1.6 ml-5.4 pl-4 text-size-sm relative my-0 mr-4 flex items-center whitespace-nowrap bg-transparent pr-4 shadow-none transition-colors before:absolute before:top-1/2 before:-translate-y-1/2 before:rounded-3xl before:content-[''] dark:text-white dark:before:bg-white dark:before:opacity-80 {{ Route::currentRouteName() == 'olevel' ? 'before:-left-5 rounded-lg font-semibold text-slate-800 before:h-2 before:w-2 before:bg-slate-800 dark:opacity-100' : 'before:-left-4.5 before:h-1.25 before:w-1.25 font-medium text-slate-800/50 before:bg-slate-800/50 dark:opacity-60' }}"
@@ -342,6 +345,13 @@
     </div>
 
     <div class="pt-4 mx-4 mt-4">
+           <form method="POST" action="{{ route('logout') }}" class="inline-block w-full">
+    @csrf
+    <button type="submit"
+        class="w-full px-6 py-3 my-4 font-bold text-center text-white uppercase align-middle transition-all ease-in border-0 rounded-lg select-none shadow-soft-md bg-150 bg-x-25 leading-pro text-size-xs bg-gradient-fuchsia hover:shadow-soft-2xl hover:scale-102">
+        Logout
+    </button>
+</form>
 
     </div>
   </aside>

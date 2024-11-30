@@ -2,12 +2,13 @@
 
 namespace App\Http\Livewire\Applications;
 
-use App\Livewire\Forms\SchoolAttendedForm;
 use App\Models\School;
-use Illuminate\Validation\ValidationException;
-use Jantinnerezo\LivewireAlert\LivewireAlert;
-use Livewire\Attributes\Computed;
 use Livewire\Component;
+use App\Services\PaymentService;
+use Livewire\Attributes\Computed;
+use App\Livewire\Forms\SchoolAttendedForm;
+use Jantinnerezo\LivewireAlert\LivewireAlert;
+use Illuminate\Validation\ValidationException;
 
 class SchoolAttended extends Component
 {
@@ -17,9 +18,9 @@ class SchoolAttended extends Component
     public $editingSchoolId;
 
 
-    public function mount()
+    public function mount(PaymentService $paymentService)
     {
-        if (!auth()->user()->hasPaid(config('remita.admission.description'))) {
+        if (!auth()->user()->hasPaid($paymentService->getAdmissionResource())) {
             to_route('transactions');
         }
     }

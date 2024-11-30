@@ -1,9 +1,9 @@
 <div class="w-full max-w-full px-3 lg:flex-0 shrink-0">
     <div class="relative flex flex-col w-full min-w-0 mb-0 break-words bg-white border-0 border-transparent border-solid shadow-soft-xl rounded-2xl bg-clip-border">
-        <div class="p-6 pb-0 mb-0 bg-white rounded-t-2xl mb-12">
+        <div class="p-6 pb-0 mb-0 mb-12 bg-white rounded-t-2xl">
             <h6>Subject Grade</h6>
-            <div class="mt-4 flex justify-end">
-              <button type="button" data-toggle="modal" data-target="#add-subject-grade" class="inline-block px-8 py-2 font-bold text-center uppercase align-middle transition-all  border border-solid rounded-lg shadow-none cursor-pointer active:opacity-85 leading-pro text-xs ease-soft-in tracking-tight-soft bg-150 bg-x-25 hover:scale-102 active:shadow-soft-xs border-teal-500 text-teal-500 hover:text-teal-900 hover:opacity-75 hover:shadow-none active:scale-100 active:border-fuchsia-500 active:bg-fuchsia-500 active:text-white hover:active:border-fuchsia-500 hover:active:bg-transparent hover:active:text-fuchsia-500 hover:active:opacity-75">
+            <div class="flex justify-end mt-4">
+              <button type="button" data-toggle="modal" data-target="#add-subject-grade" class="inline-block px-8 py-2 text-xs font-bold text-center text-teal-500 uppercase align-middle transition-all border border-teal-500 border-solid rounded-lg shadow-none cursor-pointer active:opacity-85 leading-pro ease-soft-in tracking-tight-soft bg-150 bg-x-25 hover:scale-102 active:shadow-soft-xs hover:text-teal-900 hover:opacity-75 hover:shadow-none active:scale-100 active:border-fuchsia-500 active:bg-fuchsia-500 active:text-white hover:active:border-fuchsia-500 hover:active:bg-transparent hover:active:text-fuchsia-500 hover:active:opacity-75">
                 Add Grades
               </button>
             </div>

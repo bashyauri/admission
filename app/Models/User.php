@@ -74,6 +74,11 @@ class User extends Authenticatable implements MustVerifyEmail
 
         return $this->programme_id === ProgrammesEnum::Undergraduate->value;
     }
+    public function isPostgraduate(): bool
+    {
+
+        return $this->programme_id === ProgrammesEnum::PG->value;
+    }
 
     /**
      * Check if the user is member

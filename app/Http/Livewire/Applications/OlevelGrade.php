@@ -9,18 +9,21 @@ use App\Models\OlevelExam;
 use Livewire\Attributes\Computed;
 use App\Models\OlevelSubjectGrade;
 use App\Livewire\Forms\OlevelGradeForm;
+use App\Services\PaymentService;
 use Jantinnerezo\LivewireAlert\LivewireAlert;
 use Illuminate\Validation\ValidationException;
 
 class OlevelGrade extends Component
 {
     use LivewireAlert;
-
+    public $showForm = false;
+    public $successMessage = null;
     public OlevelGradeForm $form;
 
-    public function mount()
+    public function mount(PaymentService $paymentService)
     {
-        if (!auth()->user()->hasPaid(config('remita.admission.description'))) {
+        $user = auth()->user();
+        if (!auth()->user()->hasPaid($paymentService->getAdmissionResource())) {
             to_route('transactions');
         }
         if (OlevelExam::where('user_id', auth()->id())->count() === 0) {
@@ -40,7 +43,9 @@ class OlevelGrade extends Component
                 'timer' => 1000,
                 'toast' => true,
             ]);
-            return to_route('olevel-grade');
+            $this->dispatch('modalClosed');
+            $this->reset('form');
+            // return to_route('olevel-grade');
         } catch (ValidationException $e) {
 
             // Display validation errors
@@ -56,8 +61,10 @@ class OlevelGrade extends Component
             ]);
 
 
+
             // Set validation errors in Livewire's error bag
             $this->setErrorBag($e->validator->errors());
+
             $this->redirect(route('olevel-grade'));
         } catch (\Exception $e) {
             report($e);
@@ -66,8 +73,10 @@ class OlevelGrade extends Component
                 'timer' => 3000,
                 'toast' => true,
             ]);
+
             return to_route('olevel-grade');
         }
+        $this->showForm = false;
     }
     public function confirmed()
     {

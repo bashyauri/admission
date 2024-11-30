@@ -2,11 +2,12 @@
 
 namespace App\Http\Livewire\Applications;
 
+use App\Models\School;
 use Livewire\Component;
 use App\Models\OlevelExam;
+use App\Services\PaymentService;
 use Livewire\Attributes\Computed;
 use App\Livewire\Forms\OlevelExamForm;
-use App\Models\School;
 use Jantinnerezo\LivewireAlert\LivewireAlert;
 use Illuminate\Validation\ValidationException;
 
@@ -17,14 +18,17 @@ class Olevel extends Component
     public OlevelExamForm $form;
     public $editingOlevelExamId;
 
-    public function mount()
+    public function mount(PaymentService $paymentService)
     {
-        if (!auth()->user()->hasPaid(config('remita.admission.description'))) {
+        $user = auth()->user();
+        if (!auth()->user()->hasPaid($paymentService->getAdmissionResource())) {
             to_route('transactions');
         }
-        if (School::where('user_id', auth()->id())->count() < 2) {
+        if ($user->isPostgraduate()) {
+            if (School::where('user_id', auth()->id())->count() < 2) {
 
-            to_route('school-attended')->with('info', 'Please Select School Attended');
+                to_route('school-attended')->with('info', 'Please Select School Attended');
+            }
         }
     }
     public function save()

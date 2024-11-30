@@ -55,6 +55,10 @@ class Profile extends Component
                 'timer' => 1000,
                 'toast' => true,
             ]);
+            if ($user->isUndergraduate()) { // Assuming `isUndergraduate` is a method or property
+                return to_route('olevel');
+            }
+
             return to_route('school-attended');
         } catch (ValidationException $e) {
 

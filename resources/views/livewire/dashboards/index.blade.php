@@ -6,7 +6,7 @@
 @endphp
     <div class="flex flex-wrap -mx-3">
     @if (Auth::user()->hasPaid(config('remita.acceptance.description')))
-          <div class="w-full max-w-full px-3 mt-6 shrink-0 sm:mt-0 sm:flex-0 sm:w-3/12 mb-3">
+          <div class="w-full max-w-full px-3 mt-6 mb-3 shrink-0 sm:mt-0 sm:flex-0 sm:w-3/12">
             <div
                 class="relative flex flex-col min-w-0 break-words bg-white border-0 dark:bg-gray-950 dark:shadow-soft-dark-xl shadow-soft-xl rounded-2xl bg-clip-border">
 
@@ -26,7 +26,7 @@
                     <div class="flex justify-end mt-6 mb-4">
 
                     <button type="submit"
-                        class="inline-block px-6 py-3 m-0 ml-2 text-xs font-bold text-center text-white uppercase align-middle transition-all border-0 rounded-lg cursor-pointer ease-soft-in leading-pro tracking-tight-soft bg-teal-500 shadow-soft-md bg-150 bg-x-25 hover:scale-102 active:opacity-85">Save</button>
+                        class="inline-block px-6 py-3 m-0 ml-2 text-xs font-bold text-center text-white uppercase align-middle transition-all bg-teal-500 border-0 rounded-lg cursor-pointer ease-soft-in leading-pro tracking-tight-soft shadow-soft-md bg-150 bg-x-25 hover:scale-102 active:opacity-85">Save</button>
                 </div>
                 </form>
 
