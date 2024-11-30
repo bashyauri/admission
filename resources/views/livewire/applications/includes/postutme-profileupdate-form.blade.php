@@ -5,59 +5,59 @@ $parts = explode(' ', $result->name);
 
 [$surname, $firstname, $middlename] = array_pad($parts, 3, null);
     @endphp
-   <form wire:submit.prevent="generateInvoice" class="p-6 space-y-6">
+   <form wire:submit.prevent="updateProfile" class="p-6 space-y-6">
     <div class="grid grid-cols-1 gap-6 md:grid-cols-3">
         <!-- Jamb Number -->
         <div>
             <label for="jambNumber" class="block text-sm font-medium text-gray-700">Jamb Number</label>
-            <input type="text" wire:model="jambNumber" value="{{$result->jamb_no}}" id="jambNumber"
+            <input type="text" value="{{$result->jamb_no}}" id="jambNumber"
                 class="block w-full px-3 py-2 mt-1 text-sm italic text-gray-600 bg-gray-100 border border-gray-300 rounded-md shadow-sm cursor-not-allowed focus:ring-indigo-500 focus:border-indigo-500"
-                disabled>
-            @error('jambNo') <span class="text-xs text-red-500">{{ $message }}</span> @enderror
+               readonly >
+
         </div>
 
         <!-- Surname -->
         <div>
             <label for="surname" class="block text-sm font-medium text-gray-700">Surname</label>
-            <input type="text" wire:model="surname" value="{{$surname}}" id="surname"
+            <input type="text" value="{{$surname}}" id="surname"
                 class="block w-full px-3 py-2 mt-1 text-sm italic text-gray-600 bg-gray-100 border border-gray-300 rounded-md shadow-sm cursor-not-allowed focus:ring-indigo-500 focus:border-indigo-500"
-                disabled>
-            @error('surname') <span class="text-xs text-red-500">{{ $message }}</span> @enderror
+                readonly>
+
         </div>
 
         <!-- Firstname -->
         <div>
             <label for="firstname" class="block text-sm font-medium text-gray-700">Firstname</label>
-            <input type="text" wire:model="firstname" value="{{$firstname}}" id="firstname"
+            <input type="text"  value="{{$firstname}}" id="firstname"
                 class="block w-full px-3 py-2 mt-1 text-sm italic text-gray-600 bg-gray-100 border border-gray-300 rounded-md shadow-sm cursor-not-allowed focus:ring-indigo-500 focus:border-indigo-500"
-                disabled>
-            @error('firstname') <span class="text-xs text-red-500">{{ $message }}</span> @enderror
+                readonly>
+
         </div>
 
         <!-- Middlename -->
         <div>
             <label for="middlename" class="block text-sm font-medium text-gray-700">Middlename</label>
-            <input type="text" wire:model="middlename" value="{{$middlename}}" id="middlename"
+            <input type="text"  value="{{$middlename}}" id="middlename"
                 class="block w-full px-3 py-2 mt-1 text-sm italic text-gray-600 bg-gray-100 border border-gray-300 rounded-md shadow-sm cursor-not-allowed focus:ring-indigo-500 focus:border-indigo-500"
-                disabled>
-            @error('middlename') <span class="text-xs text-red-500">{{ $message }}</span> @enderror
+                readonly>
+
         </div>
 
         <!-- Email -->
         <div>
             <label for="email" class="block text-sm font-medium text-gray-700">Email</label>
-            <input type="email" wire:model="email" value="{{auth()->user()->email}}" id="email"
+            <input type="email"  value="{{auth()->user()->email}}" id="email"
                 class="block w-full px-3 py-2 mt-1 text-sm italic text-gray-600 bg-gray-100 border border-gray-300 rounded-md shadow-sm cursor-not-allowed focus:ring-indigo-500 focus:border-indigo-500"
-                disabled>
-            @error('email') <span class="text-xs text-red-500">{{ $message }}</span> @enderror
+                readonly>
+
         </div>
 
         <!-- Phone Number -->
         <div>
-            <label for="phone_number" class="block text-sm font-medium text-gray-700">Phone Number</label>
-            <input type="text" wire:model="phone_number" id="phone_number"
+            <label for="phoneNumber" class="block text-sm font-medium text-gray-700">Phone Number</label>
+            <input type="text" wire:model="phoneNumber"
                 class="block w-full px-3 py-2 mt-1 text-sm border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
-            @error('phone_number') <span class="text-xs text-red-500">{{ $message }}</span> @enderror
+            @error('phoneNumber') <span class="text-xs text-red-500">{{ $message }}</span> @enderror
         </div>
     </div>
 

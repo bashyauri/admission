@@ -19,6 +19,7 @@ return new class extends Migration
         Schema::create('users', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->foreignIdFor(Programme::class);
+            $table->string('jamb_no')->unique()->nullable();
             $table->string('picture')->nullable();
             $table->string('surname')->nullable();
             $table->string('firstname')->nullable();
