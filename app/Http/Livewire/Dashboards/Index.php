@@ -6,6 +6,7 @@ use App\Livewire\Forms\AcademicDetailForm;
 use App\Models\User;
 use Livewire\Component;
 use App\Models\Transaction;
+use App\Services\PaymentService;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Locked;
 use Livewire\Attributes\Validate;
@@ -14,9 +15,9 @@ class Index extends Component
 {
     public AcademicDetailForm $form;
 
-    public function mount()
+    public function mount(PaymentService $paymentService)
     {
-        if (!auth()->user()->hasPaid(config('remita.admission.description'))) {
+        if (!auth()->user()->hasPaid($paymentService->getAdmissionResource())) {
             to_route('transactions');
         }
     }
