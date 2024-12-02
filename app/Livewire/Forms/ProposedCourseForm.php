@@ -19,6 +19,23 @@ class ProposedCourseForm extends Form
         $this->departmentID = $course->department_id;
         $this->courseID = $course->course_id;
     }
+    public function storeUnderGraduate($jambData)
+    {
+        $this->validate();
+        ProposedCourse::updateOrCreate(
+            ['user_id' => auth()->id()],
+            [
+
+                'department_id' => $this->departmentID,
+                'course_id' => $this->courseID,
+                'jamb_no' => $jambData->jamb_no,
+                'course' => $jambData->course,
+                'jamb_score' => $jambData->jamb_score,
+                'acad_session_id' => config('remita.settings.academic_session')
+
+            ]
+        );
+    }
 
     public function store()
     {

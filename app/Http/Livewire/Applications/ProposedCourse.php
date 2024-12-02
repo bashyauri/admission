@@ -8,16 +8,18 @@ use App\Models\Programme;
 use Livewire\Attributes\Computed;
 use App\Livewire\Forms\ProposedCourseForm;
 use App\Models\CertificateUpload;
+use App\Models\PostUtmeUpload;
 use App\Models\ProposedCourse as ModelsProposedCourse;
+use App\Services\PaymentService;
 use Jantinnerezo\LivewireAlert\LivewireAlert;
 
 class ProposedCourse extends Component
 {
     use LivewireAlert;
     public ProposedCourseForm $form;
-    public function mount()
+    public function mount(PaymentService $paymentService)
     {
-        if (!auth()->user()->hasPaid(config('remita.admission.description'))) {
+        if (!auth()->user()->hasPaid($paymentService->getAdmissionResource())) {
             to_route('transactions');
         }
         if (CertificateUpload::where('user_id', auth()->user()->id)->count() < 2) {
@@ -31,7 +33,14 @@ class ProposedCourse extends Component
 
     public function save()
     {
-        $this->form->store();
+        if (auth()->user()->isUndergraduate()) {
+            $jambData = PostUtmeUpload::query()->where('jamb_no', auth()->user()->jamb_no)->firstOrFail();
+            $this->form->storeUndergraduate($jambData);
+        } else {
+            $this->form->store();
+        }
+
+
         $this->alert('success', 'Saved Successfully', [
             'position' => 'center',
             'timer' => 1000,
@@ -49,7 +58,7 @@ class ProposedCourse extends Component
     #[Computed()]
     public function courses()
     {
-        return Course::where(['department_id' => $this->form->departmentID, 'programme_id' => 6])->get();
+        return Course::where(['department_id' => $this->form->departmentID, 'programme_id' => auth()->user()->programme_id])->get();
     }
     public function updatedDepartmentID()
     {
