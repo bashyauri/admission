@@ -10,12 +10,15 @@ use App\Models\Department;
 use App\Models\Transaction;
 use Illuminate\Http\Request;
 use App\Models\ProposedCourse;
+use App\Services\PaymentService;
 
 class PrintForm extends Controller
 {
     /**
      * Handle the incoming request.
      */
+    public function __construct(private PaymentService $paymentService) {}
+
 
     public function __invoke(Request $request)
     {
@@ -24,20 +27,24 @@ class PrintForm extends Controller
             return $validationResult; // Return redirect if checks fail
         }
 
-        $transaction = Transaction::where(['user_id' => auth()->id(), 'resource' => config('remita.admission.description')])->first();
-
-        return view('print.print-form', [
+        $transaction = Transaction::where(['user_id' => auth()->id(), 'resource' => $this->paymentService->getAdmissionResource()])->first();
+        $data = [
             'RRR' => $transaction->RRR,
             'lga' => Lga::find(auth()->user()->lga_id)->name,
             'state' => State::find(auth()->user()->state_id)->name,
             'programme' => Programme::find(auth()->user()->programme_id)->name,
             'department' => Department::find(auth()->user()->proposedCourse?->department_id)->name,
             'course' => Course::find(auth()->user()->proposedCourse?->course_id)->name
-        ]);
+        ];
+        if (auth()->user()->isUndergraduate()) {
+            $student = auth()->user();
+            return view('print.acknowledgement-slip', $data);
+        }
+        return view('print.print-form', $data);
     }
     private function validateAdmissionForm()
     {
-        if (!auth()->user()->hasPaid(config('remita.admission.description'))) {
+        if (!auth()->user()->hasPaid($this->paymentService->getAdmissionResource())) {
             return to_route('transactions')->with('error', 'You have not made payment');
         }
 
