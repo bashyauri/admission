@@ -24,6 +24,9 @@ class PostUtmeImport implements ToModel, WithHeadingRow, WithBatchInserts, WithU
         return new PostUtmeUpload([
             'jamb_no' => $row['rg_num'],
             'name'    => $row['rg_candname'],
+            'course' => $row['co_name'],
+            'jamb_score' => $row['rg_aggregate'],
+            'acad_session' => config('remita.settings.academic_session')
         ]);
     }
 

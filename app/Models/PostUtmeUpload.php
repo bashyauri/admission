@@ -8,5 +8,5 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 class PostUtmeUpload extends Model
 {
     use HasUuids;
-    protected $fillable = ['jamb_no', 'name'];
+    protected $fillable = ['jamb_no', 'name', 'jamb_score', 'course', 'acad_session'];
 }

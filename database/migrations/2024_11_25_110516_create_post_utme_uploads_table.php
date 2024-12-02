@@ -15,6 +15,9 @@ return new class extends Migration
             $table->uuid('id')->primary();
             $table->string('jamb_no')->unique();
             $table->string('name');
+            $table->string('course');
+            $table->string('jamb_score')->nullable();
+            $table->string('acad_session');
             $table->timestamps();
         });
     }
