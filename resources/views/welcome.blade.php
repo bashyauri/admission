@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>University Landing Page</title>
+  <title>DHS Wufpbk</title>
   <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
@@ -18,16 +18,16 @@
     }
   </style>
 </head>
-<body class="bg-gray-50 text-gray-800">
+<body class="text-gray-800 bg-gray-50">
 
   <!-- Hero Section -->
-  <section class="relative bg-gradient-to-r from-green-500 via-teal-400 to-green-500 text-white py-16">
-    <div class="container mx-auto px-6 py-12 text-center">
-      <h1 class="text-4xl font-bold md:text-6xl leading-tight">
+  <section class="relative py-16 text-white bg-gradient-to-r from-green-500 via-teal-400 to-green-500">
+    <div class="container px-6 py-12 mx-auto text-center">
+      <h1 class="text-4xl font-bold leading-tight md:text-6xl">
         Welcome to <span class="text-yellow-300">Directorate of Higher Studies</span>
       </h1>
       <p class="mt-4 text-lg md:text-xl">
-        Your gateway to quality education and a brighter future.
+        Waziri Umaru Federal Polytechnic Birnin Kebbi.
       </p>
       <div class="mt-6 space-x-4">
         <a href="#contact-us" class="rounded-md bg-white px-3.5 py-2.5 text-sm font-semibold text-gray-900 shadow-sm hover:bg-gray-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white">Contact Us</a>
@@ -38,8 +38,8 @@
   </section>
 
   <!-- Programs Section -->
-  <section id="programs" class="bg-white py-12">
-    <div class="container mx-auto px-6 text-center">
+  <section id="programs" class="py-12 bg-white">
+    <div class="container px-6 mx-auto text-center">
       <h2 class="text-3xl font-bold text-green-600">Our Programs</h2>
       <p class="mt-4 text-lg text-gray-600">
         Choose the program that's right for you!
@@ -47,47 +47,48 @@
       <div class="mt-8 space-x-4" x-data="{ showInfo: null }">
         <!-- Buttons -->
         <button
+          @click="showInfo = 'degree'"
+          class="rounded-md  px-3.5 py-2.5 text-sm font-semibold shadow-sm hover:bg-green-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+    :class="showInfo === 'degree' ? 'bg-green-700 text-white' : ''"
+>
+
+          Undergraduate Program
+        </button>
+        <button
     @click="showInfo = 'postgraduate'"
-    class="rounded-md bg-green-200 px-3.5 py-2.5 text-sm font-semibold shadow-sm hover:bg-green-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
-    :class="showInfo === 'postgraduate' ? 'bg-green-700 text-white' : 'bg-green-500 text-white'"
+    class="rounded-md  px-3.5 py-2.5 text-sm font-semibold shadow-sm hover:bg-green-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+    :class="showInfo === 'postgraduate' ? 'bg-green-700 text-white' : ''"
 >
     Postgraduate Diploma
 </button>
-        <button
-          @click="showInfo = 'degree'"
-          class="rounded-md bg-green-200 px-3.5 py-2.5 text-sm font-semibold shadow-sm hover:bg-green-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
-    :class="showInfo === 'degree' ? 'bg-green-700 text-white' : 'bg-green-500 text-white'"
->
 
-          Degree Program
-        </button>
 
         <!-- Program Details -->
-        <div x-show="showInfo === 'postgraduate'" class="mt-6 card text-left">
+        <div x-show="showInfo === 'postgraduate'" class="mt-6 text-left card">
           <h3 class="text-xl font-bold text-green-600">Postgraduate Diploma</h3>
           <p class="mt-2 text-gray-700">
             Our postgraduate diploma program is designed for professionals who want to advance their careers and expand their knowledge.
           </p>
-          <ul class="mt-4 list-disc list-inside text-gray-700">
+          <ul class="mt-4 text-gray-700 list-disc list-inside">
             <li>Duration: 1 Year</li>
             <li>Eligibility: Bachelor’s degree or equivalent</li>
             <li>Specializations in multiple fields</li>
           </ul>
 
-          <a href="/postgraduate-login" class="btn-green mt-4 inline-block text-teal-700 font-semibold">Login to Postgraduate Program</a>
+          <a href="/sign-in" class="inline-block mt-4 font-semibold text-teal-700 btn-green">Login to Postgraduate Program</a>
         </div>
 
-        <div x-show="showInfo === 'degree'" class="mt-6 card text-left">
+        <div x-show="showInfo === 'degree'" class="mt-6 text-left card">
           <h3 class="text-xl font-bold text-green-600">Degree Program</h3>
           <p class="mt-2 text-gray-700">
             Our degree programs provide comprehensive education, equipping you with the skills for a successful career.
           </p>
-          <ul class="mt-4 list-disc list-inside text-gray-700">
+          <ul class="mt-4 text-gray-700 list-disc list-inside">
             <li>Duration: 3-4 Years</li>
             <li>Eligibility: High school diploma or equivalent</li>
             <li>Wide range of disciplines</li>
           </ul>
-          <a href="/degree-login" class="btn-green mt-4 inline-block text-teal-700 font-semibold">Login to Degree Program</a>
+          <a href="/degree-signin" class="inline-block mt-4 font-semibold text-teal-700 btn-green">Login to Degree Program</a>
         </div>
       </div>
     </div>
@@ -95,13 +96,13 @@
 
   <!-- Contact Us Section -->
 
-<section id="contact-us" class="py-16 px-20 bg-gradient-to-r from-green-600 via-teal-400 to-green-600 text-white">
-  <div class="container mx-auto px-6">
-    <h2 class="text-4xl font-bold text-center mb-8">Start Your Journey</h2>
-    <p class="sub-title text-center mb-12">Have any questions? We'd love to hear from you!</p>
+<section id="contact-us" class="px-20 py-16 text-white bg-gradient-to-r from-green-600 via-teal-400 to-green-600">
+  <div class="container px-6 mx-auto">
+    <h2 class="mb-8 text-4xl font-bold text-center">Start Your Journey</h2>
+    <p class="mb-12 text-center sub-title">Have any questions? We'd love to hear from you!</p>
 
     <!-- Grid Layout -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 items-center justify-center"> <!-- Centered items -->
+    <div class="grid items-center justify-center grid-cols-1 gap-4 lg:grid-cols-2"> <!-- Centered items -->
 
       <!-- Contact Info -->
       <div class="space-y-2 text-center lg:text-left"> <!-- Center text on smaller screens -->
@@ -120,26 +121,26 @@
   <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 0 0 2.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 0 1-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 0 0-1.091-.852H4.5A2.25 2.25 0 0 0 2.25 4.5v2.25Z" />
 </svg>
 
-            <span>+1 (555) 234-5678</span>
+            <span class="ml-1">08038272560</span>
           </div>
           <div class="flex items-center justify-center lg:justify-start">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
   <path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75" />
 </svg>
 
-            <span>hello@example.com</span>
+            <span>bumar@wufpbk.edu.ng</span>
           </div>
         </div>
       </div>
 
       <!-- Form -->
       <form class="space-y-2 text-center lg:text-left">
-        <input type="text" placeholder="Your Name" class="w-full px-6 py-3 rounded-lg shadow-md text-gray-800" required>
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <input type="email" placeholder="Your Email" class="w-full px-6 py-3 rounded-lg shadow-md text-gray-800" required>
-          <input type="tel" placeholder="Your Phone Number" class="w-full px-6 py-3 rounded-lg shadow-md text-gray-800" required>
+        <input type="text" placeholder="Your Name" class="w-full px-6 py-3 text-gray-800 rounded-lg shadow-md" required>
+        <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <input type="email" placeholder="Your Email" class="w-full px-6 py-3 text-gray-800 rounded-lg shadow-md" required>
+          <input type="tel" placeholder="Your Phone Number" class="w-full px-6 py-3 text-gray-800 rounded-lg shadow-md" required>
         </div>
-        <textarea placeholder="Your Message" class="w-full px-6 py-3 rounded-lg shadow-md text-gray-800" rows="4" required></textarea>
+        <textarea placeholder="Your Message" class="w-full px-6 py-3 text-gray-800 rounded-lg shadow-md" rows="4" required></textarea>
         <button type="submit" class="block w-full rounded-md bg-green-600 px-3.5 py-2.5 text-center text-sm font-semibold text-white shadow-sm hover:bg-green-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-600">
           Send Message
         </button>
@@ -152,10 +153,10 @@
 
 
   <!-- Footer -->
-  <footer class="bg-gray-800 text-white py-6">
-    <div class="container mx-auto px-6 text-center">
+  <footer class="py-6 text-white bg-gray-800">
+    <div class="container px-6 mx-auto text-center">
       <p class="text-sm">
-        &copy; 2024 XYZ University. All Rights Reserved.
+        &copy; {{date('Y')}} CIT Wufpbk. All Rights Reserved.
       </p>
     </div>
   </footer>

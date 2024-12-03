@@ -7,7 +7,7 @@
         <div class="flex flex-wrap justify-center -mx-3">
           <div class="w-full max-w-full px-3 mx-auto text-center shrink-0 lg:flex-0 lg:w-5/12">
             <h1 class="mt-12 mb-2 text-white">Welcome</h1>
-            <p class="text-white ">{{config('app.name')}} Degree Portal</p>
+            <p class="text-white ">{{config('app.name')}} Postgraduate Portal</p>
           </div>
         </div>
       </div>
@@ -18,7 +18,10 @@
           <div
             class="relative z-0 flex flex-col min-w-0 break-words bg-white border-0 lg:py-4 dark:bg-gray-950 dark:shadow-soft-dark-xl shadow-soft-xl rounded-2xl bg-clip-border">
             <div class="text-center border-black/12.5 rounded-t-2xl border-b-0 border-solid p-6">
-              <h5>Register</h5>
+              <h5>Postgraduate Registration</h5>
+                <p class="mt-4 mb-0 font-bold leading-normal border-red-400 text-size-md">For Undergraduate Registration click <a href="{{ route('degree-login') }}"
+                    class="font-bold text-teal-700">here</a></p>
+
             </div>
 
             <div class="flex-auto p-6 text-center">
