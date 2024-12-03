@@ -40,18 +40,18 @@
     <div class="main">
 
         <div class="top-container container-fluid border-bottom border-dark row">
-            <div class="log0-container col-2 border-right border-dark text-center mb-3 mt-3">
+            <div class="mt-3 mb-3 text-center log0-container col-2 border-right border-dark">
                 <img src="{{ asset('assets/img') }}/logo-ct.png" alt="logo-image" height="100px" />
             </div>
 
-            <div class="top-container-title col-8 text-center">
+            <div class="text-center top-container-title col-8">
                 <h5 class="mb-4 font-weight-bolder">WAZIRI UMARU FEDERAL POLYTECHNIC, BIRNIN KEBBI</h5>
                 <h5 class="mb-4 font-weight-bold">ADMISSION SCREENING FORM</h5>
                 <h6 class="font-weight-bold">{{strtoupper(config('remita.settings.academic_session'))}} ACADEMIC SESSION
                 </h6>
             </div>
 
-            {{-- <div class="log0-container col-2 border-left border-dark text-center mb-3 p-3">
+            {{-- <div class="p-3 mb-3 text-center log0-container col-2 border-left border-dark">
 
                     {!! QrCode::size(100)->generate($fullName . ' Remita:' . $rrr) !!}
 
@@ -172,6 +172,8 @@
                                 <hr />
                     </div>
                 </div>
+                @if (auth()->user()->isPosgraduate())
+
 
                 <div class="row-fluid school-section">
                     <div class="span12">
@@ -201,6 +203,7 @@
                         </table>
                     </div>
                 </div>
+                  @endif
                 <div class="row-fluid">
                     <div class="span6">
                         <table class="table table-condensed">
@@ -313,6 +316,7 @@
                             </tr>
 
                             <tr>
+
                                 <th>Department</th>
                                 <th colspan="3">
                                     <h4> Course of Study</h4>

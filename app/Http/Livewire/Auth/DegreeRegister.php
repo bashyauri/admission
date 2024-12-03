@@ -22,7 +22,7 @@ class DegreeRegister extends Component
         $user = $this->form->store();
         try {
             $user->sendEmailVerificationNotification();
-            return redirect()->route('verification.notice')
+            return redirect()->route('degree-login')
                 ->with('success', 'An Email Verification has been sent to your Email. Please check your inbox/spam folder.');
         } catch (\Exception $e) {
             return redirect()->back()->with('error', 'Failed to send verification email. Please try again.');

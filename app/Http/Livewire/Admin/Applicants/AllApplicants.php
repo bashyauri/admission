@@ -10,7 +10,7 @@ class AllApplicants extends Component
 {
     public $getAllApplicants;
 
-    public function mount(ApplicantReportService $applicantReportService)
+    public function mount(ApplicantReportService $applicantReportService): void
     {
         $this->getAllApplicants = $applicantReportService->getAllApplicants();
     }

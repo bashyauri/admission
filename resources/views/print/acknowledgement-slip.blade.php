@@ -45,17 +45,14 @@
             </div>
 
             <div class="text-center top-container-title col-8">
+                <h5 class="mb-4 font-weight-bolder">DIRECTORATE OF HIGHER STUDIES</h5>
                 <h5 class="mb-4 font-weight-bolder">WAZIRI UMARU FEDERAL POLYTECHNIC, BIRNIN KEBBI</h5>
-                <h5 class="mb-4 font-weight-bold">POSTUTME SCREENING FORM</h5>
+                <h6 class="mb-4 font-weight-bold">UNDERGRADUATE SCREENING FORM</h5>
                 <h6 class="font-weight-bold">{{strtoupper(config('remita.settings.academic_session'))}} ACADEMIC SESSION
                 </h6>
             </div>
 
-            {{-- <div class="p-3 mb-3 text-center log0-container col-2 border-left border-dark">
 
-                    {!! QrCode::size(100)->generate($fullName . ' Remita:' . $rrr) !!}
-
-                </div> --}}
         </div>
 
         <div class="row" style="margin:0% 3% 0% 3%; width:95%">

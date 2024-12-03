@@ -17,11 +17,16 @@
                     <div class="flex flex-wrap -mx-3 ">
                         <div class="w-7/12 max-w-full px-3 text-left flex-0">
                             <p class="mb-1 font-semibold leading-normal capitalize text-size-sm">Generate Payment</p>
-                            <h5 class="mb-0 font-bold dark:text-white">Admission Fee</h5>
+                            <h5 class="mb-0 font-bold dark:text-white">{{auth()->user()->isPostgraduate() ? 'Admission Fee' : 'Post UTME Screening'}}</h5>
                             <span class="mt-auto mb-0 font-bold leading-normal text-right text-lime-500 text-size-sm">
 
+                                 @if(auth()->user()->isPostgraduate())
                                 <a href="{{route('admission-invoice')}}"
                                     class="inline-block px-6 py-3 mt-4 font-bold text-center uppercase align-middle transition-all border-0 rounded-lg cursor-pointer hover:scale-102 active:opacity-85 hover:shadow-soft-xs bg-gradient-gray leading-pro text-size-xs ease-soft-in tracking-tight-soft shadow-soft-md bg-150 bg-x-25 text-slate-500">Generate Invoice</a>
+                            @else
+                            <a href="{{route('postutmescreening-invoice')}}"
+                                    class="inline-block px-6 py-3 mt-4 font-bold text-center uppercase align-middle transition-all border-0 rounded-lg cursor-pointer hover:scale-102 active:opacity-85 hover:shadow-soft-xs bg-gradient-gray leading-pro text-size-xs ease-soft-in tracking-tight-soft shadow-soft-md bg-150 bg-x-25 text-slate-500">Generate Invoice</a>
+                            @endif
                             </span>
                         </div>
                         <div class="w-5/12 max-w-full px-3 flex-0">

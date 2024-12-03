@@ -46,22 +46,27 @@
       </p>
       <div class="mt-8 space-x-4" x-data="{ showInfo: null }">
         <!-- Buttons -->
-        <button
+        <a
+         href={{route('degree-login')}}
+          class="rounded-md  px-3.5 py-2.5 text-sm font-semibold shadow-sm hover:bg-green-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white">Undergraduate</a>
+        {{-- <a href
           @click="showInfo = 'degree'"
           class="rounded-md  px-3.5 py-2.5 text-sm font-semibold shadow-sm hover:bg-green-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
     :class="showInfo === 'degree' ? 'bg-green-700 text-white' : ''"
 >
 
           Undergraduate Program
-        </button>
-        <button
+        </a> --}}
+        {{-- <button
     @click="showInfo = 'postgraduate'"
     class="rounded-md  px-3.5 py-2.5 text-sm font-semibold shadow-sm hover:bg-green-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
     :class="showInfo === 'postgraduate' ? 'bg-green-700 text-white' : ''"
 >
     Postgraduate Diploma
-</button>
-
+</button> --}}
+<a
+         href={{route('login')}}
+          class="rounded-md  px-3.5 py-2.5 text-sm font-semibold shadow-sm hover:bg-green-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white">Postgraduate</a>
 
         <!-- Program Details -->
         <div x-show="showInfo === 'postgraduate'" class="mt-6 text-left card">
