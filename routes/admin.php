@@ -8,6 +8,7 @@ use App\Http\Livewire\Admin\Applicants\NotRecommended;
 use App\Http\Livewire\Admin\Settings;
 use App\Http\Livewire\Admin\Applicants\ShortlistedApplicants;
 use App\Http\Livewire\Admin\Applicants\UploadApplicants;
+use App\Http\Livewire\Admin\Applicants\Utme\AllApplicants as UtmeAllApplicants;
 use App\Http\Livewire\Dashboards\AdminIndex;
 use Illuminate\Support\Facades\Route;
 
@@ -18,3 +19,5 @@ Route::get('not-recommended-applicants', NotRecommended::class)->name('not-recom
 Route::get('shortlisted-applicants', ShortlistedApplicants::class)->name('shortlisted-applicants');
 Route::get('upload-applicants', UploadApplicants::class)->name('upload-applicants');
 Route::get('imported-applicants', ImportedApplicants::class)->name('imported-applicants');
+
+Route::get('all-utme-applicants', UtmeAllApplicants::class)->name('all-utme-applicants');

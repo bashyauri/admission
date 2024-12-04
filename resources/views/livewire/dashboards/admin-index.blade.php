@@ -137,11 +137,11 @@
                 <div class="relative flex-auto p-4">
                     <div class="flex flex-wrap -mx-3 ">
                         <div class="w-7/12 max-w-full px-3 text-left flex-0">
-                            <p class="mb-1 font-semibold leading-normal capitalize text-size-sm">Total Applicants</p>
+                            <p class="mb-1 font-semibold leading-normal capitalize text-size-sm">Total UTME Applicants</p>
                             <h5 class="mb-0 font-bold dark:text-white">{{$totalUTMEApplicants}}</h5>
                             <span class="mt-auto mb-0 font-bold leading-normal text-right text-lime-500 text-size-sm">
 
-                                <a href="{{route('admin.all-applicants')}}"
+                                <a href="{{route('admin.all-utme-applicants')}}"
                                     class="inline-block px-6 py-3 mt-4 font-bold text-center uppercase align-middle transition-all border-0 rounded-lg cursor-pointer hover:scale-102 active:opacity-85 hover:shadow-soft-xs bg-gradient-gray leading-pro text-size-xs ease-soft-in tracking-tight-soft shadow-soft-md bg-150 bg-x-25 text-slate-800">View More</a>
                             </span>
                         </div>
@@ -180,7 +180,7 @@
                 <div class="relative flex-auto p-4">
                     <div class="flex flex-wrap -mx-3 ">
                         <div class="w-7/12 max-w-full px-3 text-left flex-0">
-                            <p class="mb-1 font-semibold leading-normal capitalize text-size-sm">Not Recommended</p>
+                            <p class="mb-1 font-semibold leading-normal capitalize text-size-sm">Not Recommended UTME</p>
                             <h5 class="mb-0 font-bold dark:text-white">{{$totalUTMERecommendedApplicants}}</h5>
                             <span class="mt-auto mb-0 font-bold leading-normal text-right text-lime-500 text-size-sm">
 
@@ -221,7 +221,7 @@
                 <div class="relative flex-auto p-4">
                     <div class="flex flex-wrap -mx-3 ">
                         <div class="w-7/12 max-w-full px-3 text-left flex-0">
-                            <p class="mb-1 font-semibold leading-normal capitalize text-size-sm">Shortlisted Applicants</p>
+                            <p class="mb-1 font-semibold leading-normal capitalize text-size-sm">Shortlisted UTME Applicants</p>
                             <h5 class="mb-0 font-bold dark:text-white">{{$totalUTMEShortlistedApplicants}}</h5>
                               <span class="mt-auto mb-0 font-bold leading-normal text-right text-lime-500 text-size-sm">
 
