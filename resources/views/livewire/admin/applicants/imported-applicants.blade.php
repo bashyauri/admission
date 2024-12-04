@@ -1,3 +1,4 @@
+@use('Carbon\Carbon')
 <div class="flex flex-wrap -mx-3">
     <div class="w-full max-w-full px-3 flex-0">
         <div
@@ -19,8 +20,10 @@
                                 <th>Full Name</th>
 
                                 <th>Jamb Number</th>
-
-
+                                  <th>Course Selected</th>
+                                    <th>Jamb Score</th>
+                                     <th>Created</th>
+                                    <th>Last Updated</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -36,10 +39,10 @@
                                     </div>
                                 </td>
                                 <td class="leading-normal text-size-sm">{{$applicant->jamb_no}}</td>
-
-
-
-
+                                 <td class="leading-normal text-size-sm">{{$applicant->course}}</td>
+                                   <td class="leading-normal text-size-sm">{{$applicant->jamb_score}}</td>
+                                 <td class="leading-normal text-size-sm">{{ $applicant->created_at->diffForHumans() }}</td>
+                                 <td class="leading-normal text-size-sm">{{ $applicant->updated_at->diffForHumans() }}</td>
 
                             </tr>
                               @endforeach
@@ -50,6 +53,10 @@
                                <th>Jamb Number</th>
 
                                 <th>Name</th>
+                                <th>Course Selected</th>
+                                    <th>Jamb Score</th>
+                                     <th>Created</th>
+                                    <th>Last Updated</th>
 
                             </tr>
                         </tfoot>

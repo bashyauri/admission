@@ -18,6 +18,6 @@ class UtmeService
     }
     public function getImportedApplicants(): Collection
     {
-        return PostUtmeUpload::query()->latest()->get(["jamb_no", "name", "updated_at"]);
+        return PostUtmeUpload::query()->get(["jamb_no", "name", "course", "jamb_score", "created_at", "updated_at"]);
     }
 }
