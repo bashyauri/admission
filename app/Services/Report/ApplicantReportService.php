@@ -50,6 +50,7 @@ class ApplicantReportService
     }
     public function getApplicants($status)
     {
+
         $query = ProposedCourse::select(
             'proposed_courses.*',
             'users.surname as surname',

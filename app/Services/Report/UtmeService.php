@@ -52,4 +52,27 @@ class UtmeService
             })
             ->count();
     }
+    public function getAllUTMEApplicants($status)
+    {
+        $query = ProposedCourse::select(
+            'proposed_courses.*',
+            'users.surname as surname',
+            'users.firstname as firstname',
+            'users.m_name as middlename',
+            'users.picture as picture',
+            'users.phone as phone',
+            'courses.name AS course_name'
+
+        )
+            ->join('users', 'proposed_courses.user_id', '=', 'users.id')
+            ->join('courses', 'proposed_courses.course_id', '=', 'courses.id')
+            ->where('proposed_courses.status', $status)
+            ->where('users.programme_id', ProgrammesEnum::Undergraduate->value);
+
+
+
+
+
+        return $query->latest()->get();
+    }
 }
