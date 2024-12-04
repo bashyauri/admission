@@ -7,6 +7,7 @@ namespace App\Http\Livewire\Dashboards;
 use Livewire\Component;
 
 use App\Services\Report\ApplicantReportService;
+use App\Services\Report\UtmeService;
 
 class AdminIndex extends Component
 {
@@ -16,8 +17,11 @@ class AdminIndex extends Component
     public int $paidAdmissionFees;
     public int $paidAcceptanceFees;
     public int $totalCandidatesUploded;
+    public int $totalUTMEApplicants;
+    public int $totalUTMERecommendedApplicants;
+    public int $totalUTMEShortlistedApplicants;
 
-    public function mount(ApplicantReportService $applicantReportService)
+    public function mount(ApplicantReportService $applicantReportService, UtmeService $utmeService)
     {
 
 
@@ -26,6 +30,9 @@ class AdminIndex extends Component
         $this->shortlistedApplicants = $applicantReportService->applicantsShortlisted();
         $this->paidAdmissionFees = $applicantReportService->getPaidAdmissionFees();
         $this->paidAcceptanceFees = $applicantReportService->getPaidAcceptanceFees();
+        $this->totalUTMEApplicants = $utmeService->getUTMEApplicants();
+        $this->totalUTMERecommendedApplicants = $utmeService->getUTMERecommendedApplicants();
+        $this->totalUTMEShortlistedApplicants = $utmeService->getUTMEShortlistedApplicants();
     }
 
     public function render()
@@ -37,6 +44,7 @@ class AdminIndex extends Component
             'shortlistedApplicants' => $this->shortlistedApplicants,
             'paidAdmissionFees' => $this->paidAdmissionFees,
             'paidAcceptanceFees' => $this->paidAcceptanceFees,
+
 
         ]);
     }

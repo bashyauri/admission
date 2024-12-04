@@ -1,8 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Services\Report;
 
 use App\Enums\ApplicationStatus;
+use App\Enums\ProgrammesEnum;
 use App\Enums\TransactionStatus;
 use App\Models\ProposedCourse;
 use Illuminate\Support\Facades\DB;
@@ -27,6 +30,7 @@ class ApplicantReportService
     }
     public function applicantsNotRecommended($departmentId = null): int
     {
+
         if ($departmentId) {
             $query = ProposedCourse::where(['department_id' => $departmentId, 'status' => ApplicationStatus::PENDING, 'academic_session' => config('remita.settings.academic_session')])->count();
         } else {
