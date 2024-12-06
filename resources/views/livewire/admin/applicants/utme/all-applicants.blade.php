@@ -5,7 +5,7 @@
             <div class="border-black/12.5 rounded-t-2xl border-b-0 border-solid p-6 pb-0">
                 <div class="lg:flex">
                     <div>
-                        <h5 class="mb-0 dark:text-white">All Applicants</h5>
+                        <h5 class="mb-0 dark:text-white">All UTME Applicants</h5>
 
                     </div>
                     <div class="my-auto mt-6 ml-auto lg:mt-0">
@@ -27,6 +27,7 @@
                                 <th>Full Name</th>
 
                                 <th>Course</th>
+                                 <th>Jamb no</th>
                                 <th>Phone</th>
 
                                 <th>Status</th>
@@ -48,6 +49,7 @@
                                     </div>
                                 </td>
                                 <td class="leading-normal text-size-sm">{{$applicant->course_name}}</td>
+                                 <td class="leading-normal text-size-sm">{{$applicant->jamb_no}}</td>
 
                                 <td class="leading-normal text-size-sm">{{$applicant->phone}}</td>
 
@@ -60,7 +62,7 @@
                                 </td>
                                 <td class="leading-normal text-size-sm">
 
-                                     <a href="{{ route('hod.edit-applicant', $applicant->user_id)}}" class="mx-4">
+                                     <a href="{{ route('admin.edit-utme-applicant', $applicant->user_id)}}" class="mx-4">
 
                                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="ml-2 size-4">
   <path d="m5.433 13.917 1.262-3.155A4 4 0 0 1 7.58 9.42l6.92-6.918a2.121 2.121 0 0 1 3 3l-6.92 6.918c-.383.383-.84.685-1.343.886l-3.154 1.262a.5.5 0 0 1-.65-.65Z" />

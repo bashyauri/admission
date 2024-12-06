@@ -139,6 +139,10 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return $this->proposedCourse()->where(['status' => ApplicationStatus::SHORTLISTED])->count();
     }
+    public function isRecommended(): bool
+    {
+        return $this->proposedCourse()->where(['status' => ApplicationStatus::RECOMMENDED->toString()])->exists();
+    }
     public function hodDetails()
     {
         return $this->hasOne(HodUser::class, 'user_id');
