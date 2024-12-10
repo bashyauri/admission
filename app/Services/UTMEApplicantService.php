@@ -26,13 +26,14 @@ class UTMEApplicantService
             ]
         );
     }
-    public function recommendApplicant($userId, $remark)
+    public function recommendApplicant($userId, array $attributes)
     {
 
         ProposedCourse::query()->where('user_id', $userId)->firstOrFail()->update(
             [
-                'remark' => $remark,
-                'status' => ApplicationStatus::RECOMMENDED
+                'remark' => $attributes['remark'],
+                'status' => $attributes['status'],
+                'comment' => $attributes['comment'] ?? null
             ]
         );
     }

@@ -97,6 +97,7 @@ class UtmeService
                 'departments.name as department',
                 'courses.name as course',
                 'proposed_courses.jamb_score',
+                'proposed_courses.comment',
                 'proposed_courses.jamb_no',
                 'states.name as state',
                 'lgas.name as lga'
@@ -112,6 +113,7 @@ class UtmeService
             ->groupBy('proposed_courses.jamb_score')
             ->groupBy('proposed_courses.jamb_no')
             ->groupBy('states.name')
+            ->groupBy('proposed_courses.comment')
             ->groupBy('lga')
             ->groupBy('proposed_courses.remark')
             ->groupBy('proposed_courses.course_id')

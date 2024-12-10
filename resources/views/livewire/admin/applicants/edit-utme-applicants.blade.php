@@ -133,6 +133,15 @@
             @enderror
         </div>
     </div>
+     <div class="w-full px-3 md:w-4/12">
+        <label class="mb-2 ml-1 font-bold text-size-xs text-slate-700 dark:text-white/80" for="comment">Comment</label>
+        <div class="relative flex flex-wrap items-stretch w-full rounded-lg">
+            <input wire:model="comment" class="focus:shadow-soft-primary-outline dark:bg-gray-950 dark:placeholder:text-white/80 dark:text-white/80 text-sm leading-5.6 ease-soft block w-full appearance-none rounded-lg border border-solid border-gray-300 bg-white bg-clip-padding px-3 py-2 font-normal text-gray-700 outline-none transition-all placeholder:text-gray-500 focus:border-fuchsia-300 focus:outline-none" />
+            @error('comment')
+                <p class="text-red-500 text-size-sm">{{ $message }}</p>
+            @enderror
+        </div>
+    </div>
 </div>
 
 

@@ -64,6 +64,7 @@
                 <th scope="col">Course</th>
             <th scope="col">Criteria</th>
             <th scope="col">Remark</th>
+             <th scope="col">Comment</th>
 
         </tr>
         <tbody>
@@ -96,6 +97,7 @@
 
                     <td style="width: 10%">{{ ucfirst($applicant->remark) }}</td>
                     <td style="width: 10%">{{ ucfirst($applicant->status) }}</td>
+                    <td style="width: 10%">{{ ucfirst($applicant->comment) }}</td>
 
 
                 </tr>

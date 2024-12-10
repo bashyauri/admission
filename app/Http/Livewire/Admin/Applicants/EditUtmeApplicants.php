@@ -20,6 +20,7 @@ class EditUtmeApplicants extends Component
     public $user;
     public $proposedCourse;
     public $remark;
+    public $comment;
     public $utmeService;
 
     public function mount(User $user)
@@ -35,6 +36,12 @@ class EditUtmeApplicants extends Component
                 'remark' => 'required',
             ]);
         }
+        $attributes = [
+            'remark' => $this->remark,
+            'comment' => $this->comment,
+            'status' => ApplicationStatus::RECOMMENDED,
+            'proposed_course_id' => ProposedCourse::where('user_id', $this->userId)->firstOrFail()->id,
+        ];
 
 
         try {
@@ -42,7 +49,7 @@ class EditUtmeApplicants extends Component
 
             $this->user->isRecommended()
                 ? $uTMEApplicantService->dropApplicant($this->userId)
-                : $uTMEApplicantService->recommendApplicant($this->userId, $this->remark);
+                : $uTMEApplicantService->recommendApplicant($this->userId, $attributes);
 
             $this->alert('success', 'Updated Successfully', [
                 'position' => 'center',
