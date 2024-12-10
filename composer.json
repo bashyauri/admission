@@ -9,6 +9,7 @@
     "license": "MIT",
     "require": {
         "php": "^8.2|^8.3",
+        "barryvdh/laravel-dompdf": "^3.0",
         "guzzlehttp/guzzle": "^7.2",
         "jantinnerezo/livewire-alert": "^3.0",
         "juanparati/brevosuite": "^11.0",
