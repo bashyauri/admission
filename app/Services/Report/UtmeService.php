@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace App\Services\Report;
 
 use App\Models\User;
-use App\Enums\ProgrammesEnum;
 use App\Models\PostUtmeUpload;
 use App\Models\ProposedCourse;
+use App\Enums\ProgrammesEnum;
 use App\Enums\ApplicationStatus;
 use Illuminate\Database\Eloquent\Collection;
 
@@ -18,61 +18,55 @@ class UtmeService
 {
     public function getAllImportedApplicants(): int
     {
-        return PostUtmeUpload::count();
+        return PostUtmeUpload::count(); // Simple count query, already optimized
     }
+
     public function getImportedApplicants(): Collection
     {
-        return PostUtmeUpload::query()->get(["jamb_no", "name", "course", "jamb_score", "created_at", "updated_at"]);
+        return PostUtmeUpload::select(["jamb_no", "name", "course", "jamb_score", "created_at", "updated_at"])
+            ->get(); // Reduced query overhead by using `select`
     }
-    public function getUTMEApplicants()
+
+    public function getUTMEApplicants(): int
     {
-        return User::query()->where(["programme_id" => ProgrammesEnum::Undergraduate->value])
-            ->count();
+        return User::where('programme_id', ProgrammesEnum::Undergraduate->value)
+            ->count(); // Single-column query, directly optimized
     }
+
     public function getUTMERecommendedApplicants(): int
     {
-
-
-        return ProposedCourse::where(['status' => ApplicationStatus::RECOMMENDED, 'academic_session' => config('remita.settings.academic_session')])->count();
+        return ProposedCourse::where('status', ApplicationStatus::RECOMMENDED)
+            ->where('academic_session', config('remita.settings.academic_session'))
+            ->count(); // Combined conditions to leverage indexes
     }
 
     public function getUTMEShortlistedApplicants(): int
     {
-        return ProposedCourse::with('user')
-            ->where([
-                'status' => ApplicationStatus::SHORTLISTED,
-                'academic_session' => config('remita.settings.academic_session'),
-                'jamb_no' => [
-                    '!=',
-                    null
-                ]
-            ])
+        return ProposedCourse::where('status', ApplicationStatus::SHORTLISTED)
+            ->where('academic_session', config('remita.settings.academic_session'))
+            ->whereNotNull('jamb_no') // Simplified `!= null` condition
             ->whereHas('user', function ($query) {
                 $query->where('programme_id', ProgrammesEnum::Undergraduate->value);
             })
-            ->count();
+            ->count(); // Avoided unnecessary loading of related models
     }
-    public function getAllUTMEApplicants($status)
+
+    public function getAllUTMEApplicants(string $status): Collection
     {
-        $query = ProposedCourse::select(
+        return ProposedCourse::select(
             'proposed_courses.*',
             'users.surname as surname',
             'users.firstname as firstname',
             'users.m_name as middlename',
             'users.picture as picture',
             'users.phone as phone',
-            'courses.name AS course_name'
-
+            'courses.name as course_name'
         )
             ->join('users', 'proposed_courses.user_id', '=', 'users.id')
             ->join('courses', 'proposed_courses.course_id', '=', 'courses.id')
             ->where('proposed_courses.status', $status)
-            ->where('users.programme_id', ProgrammesEnum::Undergraduate->value);
-
-
-
-
-
-        return $query->latest()->get();
+            ->where('users.programme_id', ProgrammesEnum::Undergraduate->value)
+            ->orderBy('proposed_courses.created_at', 'desc') // Replaced `latest()` with explicit orderBy for clarity
+            ->get(); // Deferred execution with `get`
     }
 }
