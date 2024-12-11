@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services\Report;
 
-use App\Models\User;
+
 use App\Enums\ProgrammesEnum;
 use App\Models\PostUtmeUpload;
 use App\Models\ProposedCourse;
@@ -30,15 +30,22 @@ class UtmeService
 
     public function getUTMEApplicants(): int
     {
-        return User::where('programme_id', ProgrammesEnum::Undergraduate->value)
+        return ProposedCourse::query()
+            ->whereHas('user', function ($query) {
+                $query->where('programme_id', ProgrammesEnum::Undergraduate->value);
+            })
             ->count(); // Single-column query, directly optimized
     }
 
     public function getUTMERecommendedApplicants(): int
     {
+
         return ProposedCourse::where('status', ApplicationStatus::RECOMMENDED)
             ->where('academic_session', config('remita.settings.academic_session'))
-            ->count(); // Combined conditions to leverage indexes
+            ->whereHas('user', function ($query) {
+                $query->where('programme_id', ProgrammesEnum::Undergraduate->value);
+            })
+            ->count();
     }
 
     public function getUTMEShortlistedApplicants(): int
@@ -61,15 +68,16 @@ class UtmeService
             'users.m_name as middlename',
             'users.picture as picture',
             'users.phone as phone',
-            'courses.name as course_name'
+            'courses.name as course_name',
+            'users.id as user',
         )
             ->join('users', 'proposed_courses.user_id', '=', 'users.id')
             ->join('courses', 'proposed_courses.course_id', '=', 'courses.id')
             ->where('users.programme_id', ProgrammesEnum::Undergraduate->value)
             ->orderBy('proposed_courses.created_at', 'desc'); // Replaced `latest()` with explicit orderBy for clarity
-        if ($status !== null) {
-            $query->where('proposed_courses.status', $status);
-        }
+
+        $query->where('proposed_courses.status', $status);
+
         return $query->get();
     }
     public function recommendedUTMEApplicantsDetails()

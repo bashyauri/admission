@@ -7,10 +7,13 @@ namespace App\Http\Livewire\Admin\Applicants;
 use App\Models\User;
 use Livewire\Component;
 use App\Enums\ApplicationStatus;
+use App\Http\Livewire\Hod\Applicants\ApplicantEdit;
 use App\Models\ProposedCourse;
+use App\Services\SendSMS;
 use App\Services\UTMEApplicantService;
 use Illuminate\Support\Facades\Log;
 use Jantinnerezo\LivewireAlert\LivewireAlert;
+use Livewire\Attributes\On;
 
 class EditUtmeApplicants extends Component
 {
@@ -28,7 +31,6 @@ class EditUtmeApplicants extends Component
         $this->user = $user;
         $this->userId = $this->user->id;
     }
-
     public function recommendUTMEApplicant(UTMEApplicantService $uTMEApplicantService)
     {
         if (!$this->user->isRecommended()) {
@@ -69,7 +71,6 @@ class EditUtmeApplicants extends Component
         }
         $this->reset('remark');
     }
-
     public function render()
     {
         return view('livewire.admin.applicants.edit-utme-applicants');

@@ -37,4 +37,14 @@ class UTMEApplicantService
             ]
         );
     }
+    public function shortlist($id)
+    {
+
+        ProposedCourse::query()->where('id', $id)->firstOrFail()->update(
+            [
+                'remark' => ApplicationStatus::SHORTLISTED->toString(),
+
+            ]
+        );
+    }
 }
