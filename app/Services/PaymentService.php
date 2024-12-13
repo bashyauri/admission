@@ -14,7 +14,23 @@ class PaymentService
         if (auth()->user()->isUndergraduate()) {
             return config('remita.postutme.description');
         } else {
-            return config('remita.admission.description');
+            return config('remita.admission.description'); //for postgraduate
+        }
+    }
+    public function getAcceptanceResource(): string
+    {
+        if (auth()->user()->isUndergraduate()) {
+            return config('remita.postutme.acceptance_description');
+        } else {
+            return config('remita.acceptance.description'); //for postgraduate
+        }
+    }
+    public function getAcceptanceFee(): int
+    {
+        if (auth()->user()->isUndergraduate()) {
+            return config('remita.postutme.acceptance_fee');
+        } else {
+            return config('remita.acceptance.fee'); //for postgraduate
         }
     }
 }

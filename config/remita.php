@@ -16,7 +16,11 @@ return [
     'postutme' => [
         'fee' => env('POSTUTME_SCREENING_FEE'),
         'description' => env('POSTUTME_SCREENING_DESCRIPTION'),
+        'acceptance_description' => env('POSTUTME_ACCEPTANCE_DESCRIPTION'),
+        'acceptance_fee' => env('POSTUTME_ACCEPTANCE_FEE'),
+
     ],
+
     'schoolfees' => [
         'description' => env('SCHOOL_FEES_DESCRIPTION')
     ],

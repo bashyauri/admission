@@ -135,7 +135,7 @@ class User extends Authenticatable implements MustVerifyEmail
             ['resource' => $paymentType]
         )->count() ?? false;
     }
-    public function isShortlisted()
+    public function isShortlisted(): int
     {
         return $this->proposedCourse()->where(['status' => ApplicationStatus::SHORTLISTED])->count();
     }

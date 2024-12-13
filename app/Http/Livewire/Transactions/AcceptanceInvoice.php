@@ -5,6 +5,7 @@ namespace App\Http\Livewire\Transactions;
 use App\Models\User;
 use Livewire\Component;
 use App\Models\Transaction;
+use App\Services\PaymentService;
 use App\Services\TransactionService;
 
 class AcceptanceInvoice extends Component
@@ -14,20 +15,20 @@ class AcceptanceInvoice extends Component
     public $description;
     public $serviceid;
     protected $transactionService;
-    public function mount()
+    public function mount(PaymentService $paymentService)
     {
 
         $this->transactionService = new TransactionService();
-        if ($this->transactionService->hasInvoice(config('remita.acceptance.description'))) {
+        if ($this->transactionService->hasInvoice($paymentService->getAcceptanceResource())) {
             $data = Transaction::where([
                 'user_id' => auth()->user()->id,
-                'resource' => config('remita.acceptance.description')
+                'resource' => $paymentService->getAcceptanceResource()
             ])->first();
             to_route('payment', ['transaction' => $data])->with('success', $data->status);
         }
         $this->transactionId = $this->transactionService->generateTransactionId("WUFPDHS");
-        $this->amount = config('remita.acceptance.fee');
-        $this->description = config('remita.acceptance.description');
+        $this->amount = $paymentService->getAcceptanceFee();
+        $this->description = $paymentService->getAcceptanceResource();
         $this->serviceid = config('remita.settings.serviceid');
     }
     public function render()
