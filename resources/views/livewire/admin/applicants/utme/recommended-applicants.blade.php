@@ -32,6 +32,7 @@
 
                                 <th>Status</th>
                                 <th>Shortlist</th>
+                                  <th>Drop</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -60,7 +61,9 @@
   {{ $applicant->status ?? 'Pending' }}
 </span>
                                 </td>
-                                <td class="leading-normal text-size-sm">
+
+
+                                                <td class="leading-normal text-size-sm">
                                   <div class="min-h-6 mb-0.5 flex items-center">
     <input
 
@@ -74,6 +77,18 @@
 
 
                                 </td>
+                                 <td class="leading-normal text-size-sm">
+    <div class="min-h-6 mb-0.5 flex items-center">
+        <!-- Refactored checkbox -->
+        <label class="inline-flex items-center cursor-pointer">
+            <input
+                type="checkbox"
+                class="w-5 h-5 transition duration-300 ease-in-out border-gray-300 form-checkbox text-slate-800 focus:ring-slate-800"
+                wire:click="drop({{$applicant->id}})"
+            >
+        </label>
+    </div>
+</td>
                             </tr>
                               @endforeach
 
@@ -89,6 +104,7 @@
 
                                 <th>Status</th>
                                 <th>Shortlist</th>
+                                <th>Drop</th>
                             </tr>
                         </tfoot>
                     </table>

@@ -47,4 +47,15 @@ class UTMEApplicantService
             ]
         );
     }
+    public function drop($id): void
+    {
+        ProposedCourse::query()->where('id', $id)->firstOrFail()->update(
+            attributes: [
+                'remark' => null,
+                'status' => ApplicationStatus::PENDING,
+                'comment' => null,
+
+            ]
+        );
+    }
 }

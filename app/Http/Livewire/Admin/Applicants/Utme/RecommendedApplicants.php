@@ -7,6 +7,7 @@ use App\Models\ProposedCourse;
 use App\Enums\ApplicationStatus;
 use Illuminate\Support\Facades\Log;
 use App\Services\Report\UtmeService;
+use App\Services\UTMEApplicantService;
 use Jantinnerezo\LivewireAlert\LivewireAlert;
 
 class RecommendedApplicants extends Component
@@ -44,6 +45,31 @@ class RecommendedApplicants extends Component
             return;
         }
     }
+
+    public function drop(ProposedCourse $proposedCourse, UtmeService $utmeService, UTMEApplicantService $uTMEApplicantService)
+    {
+        try {
+            $uTMEApplicantService->drop(id: $proposedCourse->id);
+            $this->recommendedApplicants = $utmeService->getAllUTMEApplicants(ApplicationStatus::RECOMMENDED->toString());
+
+
+
+            $this->alert('success', 'Status Updated Successfully', [
+                'position' => 'center',
+                'timer' => 3000,
+                'toast' => true,
+            ]);
+        } catch (\Exception $e) {
+            Log::error($e->getMessage());
+            $this->alert('error', 'An error occurred while updating the status.', [
+                'position' => 'center',
+                'timer' => 3000,
+                'toast' => true,
+            ]);
+            return;
+        }
+    }
+
 
     public function render()
     {
