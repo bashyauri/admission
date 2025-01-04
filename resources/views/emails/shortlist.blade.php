@@ -3,7 +3,7 @@
 
 Dear {{$candidateName}},
 
-Congratulations! You have been offered provisional admission to study **{{$programme_name}}** in the **{{$department_name}}** at **WUFEDPOLY**.
+You have been offered provisional admission to study **{{$programme_name}}** in the **{{$department_name}}** at **WUFEDPOLY**.
 
 To proceed, kindly log in to your account to generate a Remita payment slip for the acceptance fee and print your admission offer letter. After printing your offer, proceed to the **Directorate of Higher Studies** at WUFEDPOLY with your original credentials for physical screening.
 

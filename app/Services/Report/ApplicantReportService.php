@@ -20,10 +20,15 @@ class ApplicantReportService
     public function totalApplicants($departmentId = null): int
     {
         if ($departmentId) {
-            $query = ProposedCourse::where(['department_id' => $departmentId, 'academic_session' => config('remita.settings.academic_session')])->count();
+            $query = ProposedCourse::where(['department_id' => $departmentId, 'academic_session' => config('remita.settings.academic_session')])
+                ->whereHas('user', function ($query) {
+                    $query->where('programme_id', ProgrammesEnum::PG->value);
+                })->count();
         } else {
 
-            $query = ProposedCourse::where('academic_session', config('remita.settings.academic_session'))->count();
+            $query = ProposedCourse::where('academic_session', config('remita.settings.academic_session'))->whereHas('user', function ($query) {
+                $query->where('programme_id', ProgrammesEnum::PG->value);
+            })->count();
         }
 
         return $query;
@@ -32,9 +37,14 @@ class ApplicantReportService
     {
 
         if ($departmentId) {
-            $query = ProposedCourse::where(['department_id' => $departmentId, 'status' => ApplicationStatus::PENDING, 'academic_session' => config('remita.settings.academic_session')])->count();
+            $query = ProposedCourse::where(['department_id' => $departmentId, 'status' => ApplicationStatus::PENDING, 'academic_session' => config('remita.settings.academic_session')])
+                ->whereHas('user', function ($query) {
+                    $query->where('programme_id', ProgrammesEnum::PG->value);
+                })->count();
         } else {
-            $query = ProposedCourse::where(['status' => ApplicationStatus::PENDING, 'academic_session' => config('remita.settings.academic_session')])->count();
+            $query = ProposedCourse::where(['status' => ApplicationStatus::PENDING, 'academic_session' => config('remita.settings.academic_session')])->whereHas('user', function ($query) {
+                $query->where('programme_id', ProgrammesEnum::PG->value);
+            })->count();
         }
 
         return $query;
@@ -42,9 +52,13 @@ class ApplicantReportService
     public function applicantsShortlisted($departmentId = null): int
     {
         if ($departmentId) {
-            $query = ProposedCourse::where(['department_id' => $departmentId, 'status' => ApplicationStatus::SHORTLISTED, 'academic_session' => config('remita.settings.academic_session')])->count();
+            $query = ProposedCourse::where(['department_id' => $departmentId, 'status' => ApplicationStatus::SHORTLISTED, 'academic_session' => config('remita.settings.academic_session')])->whereHas('user', function ($query) {
+                $query->where('programme_id', ProgrammesEnum::PG->value);
+            })->count();
         } else {
-            $query = ProposedCourse::where(['status' => ApplicationStatus::SHORTLISTED, 'academic_session' => config('remita.settings.academic_session')])->count();
+            $query = ProposedCourse::where(['status' => ApplicationStatus::SHORTLISTED, 'academic_session' => config('remita.settings.academic_session')])->whereHas('user', function ($query) {
+                $query->where('programme_id', ProgrammesEnum::PG->value);
+            })->count();
         }
         return $query;
     }
@@ -54,6 +68,7 @@ class ApplicantReportService
         $query = ProposedCourse::select(
             'proposed_courses.*',
             'users.surname as surname',
+            'users.programme_id as programme_id',
             'users.firstname as firstname',
             'users.m_name as middlename',
             'users.picture as picture',
@@ -62,7 +77,9 @@ class ApplicantReportService
         )
             ->join('users', 'proposed_courses.user_id', '=', 'users.id')
             ->join('courses', 'proposed_courses.course_id', '=', 'courses.id')
+            ->where('users.programme_id', ProgrammesEnum::PG->value)
             ->where('proposed_courses.status', $status);
+
 
         // Add department filter if the user is a HOD
         if ($departmentId = auth()->user()->hodDetails?->department_id) {
@@ -88,6 +105,7 @@ class ApplicantReportService
             'proposed_courses.*',
             'users.surname as surname',
             'users.firstname as firstname',
+            'users.programme_id as programme_id',
             'users.m_name as middlename',
             'users.picture as picture',
             'users.phone as phone',
@@ -98,7 +116,7 @@ class ApplicantReportService
 
         // Add department filter if the user is a HOD
         if ($departmentId = auth()->user()->hodDetails?->department_id) {
-            $query->where('proposed_courses.department_id', $departmentId);
+            $query->where('proposed_courses.department_id', $departmentId)->where('users.programme_id', ProgrammesEnum::PG->value);
         }
 
 
@@ -151,6 +169,6 @@ class ApplicantReportService
                 'transactions.resource' => config('remita.acceptance.description'),
                 'transactions.status' => TransactionStatus::APPROVED,
                 'transactions.acad_session' => config('remita.settings.academic_session')
-            ])->count();
+            ])->count();;
     }
 }

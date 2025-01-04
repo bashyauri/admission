@@ -40,13 +40,12 @@ class Shortlist extends Notification implements ShouldQueue
 
         return (new MailMessage)
             ->from('info@wufpbk.edu.ng', 'WUFPBK')
-            ->subject('Congratulations! You have been shortlisted.')
+            ->subject('Notification of Admission.')
             ->markdown('emails.shortlist', [
                 'candidateName' => $notifiable->full_name,
                 'url' => $url,
                 'programme_name' => $notifiable->programme->name,
                 'department_name' => $notifiable->proposedCourse->department->name,
-
 
             ]);
     }
