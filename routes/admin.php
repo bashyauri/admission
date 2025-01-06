@@ -14,6 +14,7 @@ use App\Http\Livewire\Admin\Applicants\ImportedApplicants;
 use App\Http\Livewire\Admin\Applicants\ShortlistedApplicants;
 use App\Http\Livewire\Admin\Applicants\Utme\RecommendedApplicants;
 use App\Http\Livewire\Admin\Applicants\Utme\AllApplicants as UtmeAllApplicants;
+use App\Http\Livewire\Admin\Applicants\Utme\ShortlistedApplicants as UtmeShortlistedApplicants;
 
 Route::get('dashboard', AdminIndex::class)->name('dashboard');
 Route::get('settings', Settings::class)->name('settings');
@@ -26,4 +27,5 @@ Route::get('edit-utme-applicant/{user}', EditUtmeApplicants::class)->name('edit-
 
 Route::get('all-utme-applicants', UtmeAllApplicants::class)->name('all-utme-applicants');
 Route::get('recommended-utme-applicants', RecommendedApplicants::class)->name('recommended-utme-applicants');
+Route::get('shortlisted-utme-applicants', UtmeShortlistedApplicants::class)->name('shortlisted-utme-applicants');
 Route::get('/export-recommended-pdf', [ReportController::class, 'exportRecommendedApplicants'])->name('export-recommended-pdf');
