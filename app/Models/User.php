@@ -6,6 +6,7 @@ namespace App\Models;
 
 use App\Enums\ProgrammesEnum;
 use App\Enums\ApplicationStatus;
+use App\Enums\Role;
 use App\Enums\TransactionStatus;
 use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Notifications\Notifiable;
@@ -86,6 +87,10 @@ class User extends Authenticatable implements MustVerifyEmail
     public function isApplicant(): bool
     {
         return $this->role === 'applicant';
+    }
+    public function isCit(): bool
+    {
+        return $this->role === Role::CIT->value;
     }
 
     public function programme()

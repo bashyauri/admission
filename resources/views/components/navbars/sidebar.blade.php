@@ -10,3 +10,7 @@
 @include('components.navbars.admin-sidebar')
 
 @endif
+@if (auth()->user()->isCit())
+@include('components.navbars.cit-sidebar')
+
+@endif
