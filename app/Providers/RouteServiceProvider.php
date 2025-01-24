@@ -34,6 +34,7 @@ class RouteServiceProvider extends ServiceProvider
             $this->mapAdminRoutes();
             $this->mapHodRoutes();
             $this->mapStudentRoutes();
+            $this->mapCitRoutes();
         });
     }
 
@@ -72,6 +73,13 @@ class RouteServiceProvider extends ServiceProvider
             ->prefix('student')
             ->as('student.')
             ->group(base_path('routes/student.php'));
+    }
+    protected function mapCitRoutes()
+    {
+        Route::middleware(['web', 'auth', 'verified', 'role:cit'])
+            ->prefix('cit')
+            ->as('cit.')
+            ->group(base_path('routes/cit.php'));
     }
 
 

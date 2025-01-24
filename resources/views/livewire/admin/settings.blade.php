@@ -100,7 +100,7 @@
                                         </g>
                                     </svg>
                                 </div>
-                                <span class="leading-normal text-size-sm dark:text-white">Create Hod</span>
+                                <span class="leading-normal text-size-sm dark:text-white">Create User</span>
                             </a>
                         </li>
 
@@ -265,9 +265,9 @@
                 <div class="relative flex flex-col min-w-0 mt-6 break-words bg-white border-0 dark:bg-gray-950 dark:shadow-soft-dark-xl shadow-soft-xl rounded-2xl bg-clip-border"
                     id="create-hod">
                     <div class="p-6 mb-0 rounded-t-2xl">
-                        <h5 class="dark:text-white">Create Hod</h5>
+                        <h5 class="dark:text-white">Create User</h5>
                     </div>
-                    <form wire:submit.prevent='createHod'>
+                    <form wire:submit.prevent='createUser'>
                     <div class="flex-auto p-6 pt-0">
                         <div class="flex flex-wrap -mx-3">
                             <div class="w-6/12 max-w-full px-3 flex-0">
@@ -304,6 +304,32 @@
                                         class="focus:shadow-soft-primary-outline dark:bg-gray-950 dark:placeholder:text-white/80 dark:text-white/80 text-size-sm leading-5.6 ease-soft block w-full appearance-none rounded-lg border border-solid border-gray-300 bg-white bg-clip-padding px-3 py-2 font-normal text-gray-700 outline-none transition-all placeholder:text-gray-500 focus:border-fuchsia-300 focus:outline-none" />
                                 </div>
                             </div>
+                        </div>
+                         <div class="flex flex-wrap -mx-3">
+                            <div class="w-full max-w-full px-3 flex-0">
+                                <label class="mt-6 mb-2 ml-1 font-bold text-size-xs text-slate-700 dark:text-white/80"
+                                    for="users">Role</label>
+                                    <div wire:ignore x-data x-init="
+                  choices = new Choices($refs.users, {
+                      searchEnabled: false
+                  });
+                  $refs.roles.addEventListener('change', function (event) {
+                      values = event.detail.value;
+                      @this.set('form.role', values);
+                  })">
+                                <select wire:model="form.role" choice name="choices-users" id="choices-gender" x-ref="users">
+                                    <option value="">Select Roles</option>
+                                   
+
+                                    @foreach ($roles as $role)
+        <option value="{{ $role['value'] }}">{{ $role['name'] }}</option>
+    @endforeach
+
+                                    
+                                </select>
+                    </div>
+                            </div>
+
                         </div>
                         <div class="flex flex-wrap -mx-3">
                             <div class="w-full max-w-full px-3 flex-0">

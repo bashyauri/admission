@@ -2,17 +2,18 @@
 
 namespace App\Http\Livewire\Admin;
 
+use App\Enums\Role;
+use Livewire\Component;
 use App\Models\Department;
+use App\Livewire\Forms\CreateUserForm;
 use Jantinnerezo\LivewireAlert\LivewireAlert;
 use Illuminate\Validation\ValidationException;
-use App\Livewire\Forms\CreateHodForm;
-use Livewire\Component;
 
 class Settings extends Component
 {
     use LivewireAlert;
-    public CreateHodForm $form;
-    public function createHod()
+    public CreateUserForm $form;
+    public function createUser()
     {
         try {
             $this->form->store();
@@ -50,7 +51,8 @@ class Settings extends Component
     public function render()
     {
         return view('livewire.admin.settings', [
-            'departments' => Department::get(['id', 'name'])
+            'departments' => Department::get(['id', 'name']),
+            'roles' => Role::getRoles(),
         ]);
     }
 }

@@ -35,6 +35,9 @@ class RedirectIfAuthenticated
         $dashboardRoutes = [
             'hod' => 'hod.dashboard',
             'admin' => 'admin.dashboard',
+            'cit' => 'cit.dashboard',
+
+
         ];
 
         if (array_key_exists($role, $dashboardRoutes)) {

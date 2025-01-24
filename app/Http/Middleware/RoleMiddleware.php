@@ -20,6 +20,8 @@ class RoleMiddleware
                 'hod' => 'hod.dashboard',
                 'admin' => 'admin.dashboard',
                 'student' => 'student.dashboard',
+                'cit' => 'cit.dashboard',
+
                 default => 'analytics',
             };
 
