@@ -1,11 +1,15 @@
 <div>@php
     use App\Enums\TransactionStatus;
+    use App\Services\PaymentService;
+
+    $paymentService = new PaymentService();
+
     $approved = TransactionStatus::APPROVED;
      $activated = TransactionStatus::ACTIVATED;
     $pending = TransactionStatus::PENDING;
 @endphp
     <div class="flex flex-wrap -mx-3">
-    @if (Auth::user()->hasPaid(config('remita.acceptance.description')))
+    @if (Auth::user()->hasPaid($paymentService->getAcceptanceResource()))
           <div class="w-full max-w-full px-3 mt-6 mb-3 shrink-0 sm:mt-0 sm:flex-0 sm:w-3/12">
             <div
                 class="relative flex flex-col min-w-0 break-words bg-white border-0 dark:bg-gray-950 dark:shadow-soft-dark-xl shadow-soft-xl rounded-2xl bg-clip-border">
@@ -74,9 +78,13 @@
                             <p class="mb-1 font-semibold leading-normal capitalize text-size-sm">Generate Invoice</p>
                             <h5 class="mb-0 font-bold dark:text-white">Acceptance Fee</h5>
                             <span class="mt-auto mb-0 font-bold leading-normal text-right text-lime-500 text-size-sm">
-                            @if (Auth::user()->hasPaid(config('remita.acceptance.description')))
-                                 <a href="{{route('print-acceptance')}}"
-                                   class="inline-block px-8 py-2 mt-2 mb-0 text-xs font-bold text-center text-teal-500 uppercase align-middle transition-all bg-transparent border border-teal-500 border-solid rounded-lg shadow-none cursor-pointer leading-pro ease-soft-in hover:scale-102 active:shadow-soft-xs tracking-tight-soft hover:border-teal-500 hover:bg-transparent hover:text-teal-700 hover:opacity-75 hover:shadow-none active:bg-teal-500 active:text-white active:hover:bg-transparent active:hover:text-teal-500">Print Acceptance</a>
+
+                            @if (Auth::user()->hasPaid($paymentService->getAcceptanceResource()))
+                         
+
+                                 <a href="{{Auth::user()->isUndergraduate() ? "" : route('print-acceptance')}}"
+                                   class="inline-block px-8 py-2 mt-2 mb-0 text-xs font-bold text-center text-teal-500 uppercase align-middle transition-all bg-transparent border border-teal-500 border-solid rounded-lg shadow-none cursor-pointer leading-pro ease-soft-in hover:scale-102 active:shadow-soft-xs tracking-tight-soft hover:border-teal-500 hover:bg-transparent hover:text-teal-700 hover:opacity-75 hover:shadow-none active:bg-teal-500 active:text-white active:hover:bg-transparent active:hover:text-teal-500">{{Auth::user()->isUndergraduate() ? "The  date and time for School screening will be communicated Shortly" : "Print Acceptance"}}</a>
+                                  
                             @else
                              <a href="{{route('acceptance-invoice')}}"
                                     class="inline-block px-6 py-3 mt-4 font-bold text-center uppercase align-middle transition-all border-0 rounded-lg cursor-pointer hover:scale-102 active:opacity-85 hover:shadow-soft-xs bg-gradient-gray leading-pro text-size-xs ease-soft-in tracking-tight-soft shadow-soft-md bg-150 bg-x-25 text-slate-500">Generate Invoice</a>

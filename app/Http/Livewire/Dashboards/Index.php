@@ -23,9 +23,10 @@ class Index extends Component
     }
     public function addStudent()
     {
-
-        $this->form->store();
-        $this->redirect(route('student.dashboard'));
+        if (auth()->user()->isPosgraduate()) {
+            $this->form->store();
+            $this->redirect(route('student.dashboard'));
+        }
     }
     #[Computed(persist: true)]
     public function transactions()
