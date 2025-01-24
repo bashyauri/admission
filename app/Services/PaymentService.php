@@ -4,6 +4,10 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Models\Transaction;
+use App\Enums\TransactionStatus;
+use Illuminate\Support\Collection;
+
 /**
  * Class PaymentService.
  */
@@ -32,5 +36,14 @@ class PaymentService
         } else {
             return config('remita.acceptance.fee'); //for postgraduate
         }
+    }
+    public function getPaidAcceptanceFeePayments(): Collection
+    {
+        return Transaction::select('transactions.*', 'users.surname', 'users.firstname', 'users.m_name', 'users.jamb_no', 'users.phone')
+            ->join('users', 'transactions.user_id', '=', 'users.id')
+            ->where([
+                'transactions.resource' => config('remita.postutme.acceptance_description'),
+                'transactions.status' => TransactionStatus::APPROVED->toString()
+            ])->get();
     }
 }

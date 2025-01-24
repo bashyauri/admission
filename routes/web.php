@@ -179,11 +179,11 @@ Route::middleware(['auth', 'verified', 'role:applicant'])->group(function () {
     // Dashboards
 
     Route::get('dashboard/analytics', Index::class)->name('analytics');
-    Route::get('dashboard/automotive', Automotive::class)->name('automotive');
-    Route::Get('dashboard/smart-home', SmartHome::class)->name('smart-home');
-    Route::get('dashboard/crm', Crm::class)->name('crm');
-    Route::Get('dashboard/vr/vr-default', VrDefault::class)->name('vr-default');
-    Route::get('dashboard/vr/vr-info', VrInfo::class)->name('vr-info');
+    // Route::get('dashboard/automotive', Automotive::class)->name('automotive');
+    // Route::Get('dashboard/smart-home', SmartHome::class)->name('smart-home');
+    // Route::get('dashboard/crm', Crm::class)->name('crm');
+    // Route::Get('dashboard/vr/vr-default', VrDefault::class)->name('vr-default');
+    // Route::get('dashboard/vr/vr-info', VrInfo::class)->name('vr-info');
 
 
 
