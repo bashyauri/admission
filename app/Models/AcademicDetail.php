@@ -22,4 +22,8 @@ class AcademicDetail extends Model
     {
         return $this->hasMany(StudentTransaction::class);
     }
+    public function ugStudentLevel()
+    {
+        return $this->belongsTo(UgStudentLevel::class);
+    }
 }

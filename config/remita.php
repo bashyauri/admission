@@ -22,7 +22,8 @@ return [
     ],
 
     'schoolfees' => [
-        'description' => env('SCHOOL_FEES_DESCRIPTION')
+        'description' => env('SCHOOL_FEES_DESCRIPTION'),
+        'ug_schoolfees_description' => env('UG_SCHOOLFEES_DESCRIPTION'),
     ],
     'settings' => [
         'serviceid' => env('SERVICEID'),

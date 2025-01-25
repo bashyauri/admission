@@ -6,6 +6,7 @@ namespace App\Services;
 
 use App\Models\Transaction;
 use App\Enums\TransactionStatus;
+use App\Models\SchoolFeesPayment;
 use Illuminate\Support\Collection;
 
 /**
@@ -37,6 +38,7 @@ class PaymentService
             return config('remita.acceptance.fee'); //for postgraduate
         }
     }
+
     public function getPaidAcceptanceFeePayments(): Collection
     {
         return Transaction::select('transactions.*', 'users.surname', 'users.firstname', 'users.m_name', 'users.jamb_no', 'users.phone')
@@ -45,5 +47,9 @@ class PaymentService
                 'transactions.resource' => config('remita.postutme.acceptance_description'),
                 'transactions.status' => TransactionStatus::APPROVED->toString()
             ])->get();
+    }
+    public function getUgStudentLevel(string $userId): int
+    {
+        return SchoolFeesPayment::where('user_id', $userId)->count() + 1;
     }
 }
