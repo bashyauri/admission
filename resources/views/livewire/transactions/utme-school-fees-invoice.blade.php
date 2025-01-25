@@ -6,7 +6,7 @@
             <div class="w-full max-w-full px-3 mx-auto sm:flex-0 shrink-0 sm:w-10/12 md:w-8/12">
                 @include('flash-messages')
 
-                <form action="{{route('student.invoice')}}" method="POST">
+                <form action="{{route('cit.invoice')}}" method="POST">
                     @csrf
                     <div
                         class="relative flex flex-col min-w-0 break-words bg-white border-0 dark:bg-gray-950 dark:shadow-soft-dark-xl shadow-soft-xl rounded-2xl bg-clip-border sm:my-12">
@@ -78,18 +78,18 @@
                                                 <tr>
                                                     <th scope="col"
                                                     class="px-2 py-3 font-semibold text-left capitalize bg-transparent border-b border-solid shadow-none tracking-none whitespace-nowrap border-b-gray-200 dark:border-white/40 dark:text-white">
-                                                    Transaction ID:</th>
+                                                    Course:</th>
                                                     <td
                                                         class="p-2 text-left border-b whitespace-nowrap dark:border-white/40 dark:text-white/60">
-                                                        {{$transactionId ?? 'Not Available'}}</td>
+                                                        {{$user->proposedCourse->course->name}}</td>
                                                 </tr>
                                                 <tr>
                                                     <th scope="col"
                                                     class="px-2 py-3 font-semibold text-left capitalize bg-transparent border-b border-solid shadow-none tracking-none whitespace-nowrap border-b-gray-200 dark:border-white/40 dark:text-white">
-                                                    RRR:</th>
+                                                    Department:</th>
                                                     <td
                                                         class="p-2 text-left border-b whitespace-nowrap dark:border-white/40 dark:text-white/60">
-                                                        Not Available</td>
+                                                       {{$user->proposedCourse->department->name}}</td>
                                                 </tr>
                                                 <tr>
                                                     <th scope="col"
@@ -104,7 +104,7 @@
                                                     class="px-2 py-3 font-semibold text-left capitalize bg-transparent border-b border-solid shadow-none tracking-none whitespace-nowrap border-b-gray-200 dark:border-white/40 dark:text-white">
                                                     Amount:</th>
                                                     <td class="p-2 pl-6 border-b whitespace-nowrap dark:border-white/40 dark:text-white/60"
-                                                    ></td>
+                                                    >{{'₦' . number_format($amount, 2)}}</td>
 
                                                 </tr>
 
@@ -119,6 +119,8 @@
                                                 <input id="payerName" name="payerName"
                                                 value="{{$user->full_name}}"
                                                 type="hidden" />
+                                                 <input name="student_level_id" value="{{$currentLevel}}" type="hidden" />
+                                                 <input name="userId" value="{{$user->id}}" type="hidden" />
                                                 <input name="amount" value="{{$amount ?? ""}}" type="hidden" />
                                                 <input name="service"
                                                 value="{{$description ?? ""}}" type="hidden" />
@@ -151,8 +153,11 @@
                                     <button onclick="window.print()" type="button"
                                         class="inline-block px-6 py-3 mb-0 font-bold text-right text-white uppercase align-middle transition-all border-0 rounded-lg cursor-pointer hover:scale-102 active:opacity-85 hover:shadow-soft-xs bg-gradient-cyan leading-pro text-size-xs ease-soft-in tracking-tight-soft shadow-soft-md bg-150 bg-x-25 lg:mt-24">Print</button>
                                     @else
+                                    <a  href="{{route('cit.dashboard')}}" class="inline-block px-6 py-3 mb-0 font-bold text-right text-white uppercase align-middle transition-all border-0 rounded-lg cursor-pointer hover:scale-102 active:opacity-85 hover:shadow-soft-xs bg-gradient-fuchsia leading-pro text-size-xs ease-soft-in tracking-tight-soft shadow-soft-md bg-150 bg-x-25 lg:mt-24">Back</a>
                                     <button  type="submit"
                                         class="inline-block px-6 py-3 mb-0 font-bold text-right text-white uppercase align-middle transition-all border-0 rounded-lg cursor-pointer hover:scale-102 active:opacity-85 hover:shadow-soft-xs bg-gradient-cyan leading-pro text-size-xs ease-soft-in tracking-tight-soft shadow-soft-md bg-150 bg-x-25 lg:mt-24">Generate Invoice</button>
+                                          <button  type="submit"
+       
                                     @endif
 
                                 </div>
@@ -165,3 +170,7 @@
 
     </div>
 </div>
+@push('js')
+<script src="{{ asset('assets') }}/js/plugins/datatables.min.js"></script>
+@endpush
+

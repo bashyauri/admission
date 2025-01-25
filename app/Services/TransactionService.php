@@ -27,7 +27,7 @@ class TransactionService
         $tran = strtoupper($transcId);
         return $alias . date("Ymd") . $tran;
     }
-    public function generateInvoice(array $data)
+    public function generateInvoice(array $data, $customFields = null)
     {
         $response = Http::withHeaders([
             'Content-Type' => 'application/json',
@@ -40,7 +40,24 @@ class TransactionService
                 "payerName" => $data['payerName'],
                 "payerEmail" => $data['payerEmail'],
                 "payerPhone" => $data['payerPhone'],
-                "description" => $data['description']
+                "description" => $data['description'],
+                $customFields = [
+                    [
+                        "Department" => "Payer TIN",
+                        "value" => "1234567890",
+                        "type" => "ALL",
+                    ],
+                    [
+                        "name" => "Contract Date",
+                        "value" => "2018/06/27",
+                        "type" => "ALL",
+                    ],
+                    [
+                        "name" => "Tax Period",
+                        "value" => "2018/06/20",
+                        "type" => "ALL",
+                    ],
+                ]
             ]);
 
 

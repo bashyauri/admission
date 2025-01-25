@@ -17,7 +17,7 @@ use Illuminate\Support\Facades\Config;
 class StudentTransactionService extends TransactionService
 {
 
-    public function generateInvoice(array $data)
+    public function generateInvoice(array $data, $customFields = [])
     {
         $response = Http::withHeaders([
             'Content-Type' => 'application/json',

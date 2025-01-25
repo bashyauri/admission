@@ -4,10 +4,14 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Models\User;
 use App\Models\Transaction;
+use App\Models\FeeStructure;
 use App\Enums\TransactionStatus;
 use App\Models\SchoolFeesPayment;
+use App\Models\StudentTransaction;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Http;
 
 /**
  * Class PaymentService.
@@ -51,5 +55,100 @@ class PaymentService
     public function getUgStudentLevel(string $userId): int
     {
         return SchoolFeesPayment::where('user_id', $userId)->count() + 1;
+    }
+    public function getStudentFee(string $userId): FeeStructure
+    {
+        $student = User::find($userId);
+        if ($student->isApplicant()) {
+            $departmentId = $student->proposedCourse->department_id;
+            $programmeId = $student->programme_id;
+            $level = $this->getUgStudentLevel($student->id);
+        } else {
+            // Student that are not freshers (100,or 200 level DE)
+            $departmentId = $student->academicDetail->department_id;
+            $programmeId = $student->programme_id;
+            $level = $student->proposedCourse->student_levels_id;
+        }
+        return  FeeStructure::where(['department_id' => $departmentId, 'programme_id' => $programmeId, 'student_level_id' => $level])->first();
+    }
+    public function getStudentInvoice(string $studentId, string $paymentType): StudentTransaction |null
+    {
+
+        return StudentTransaction::where('user_id', $studentId)
+            ->where('resource', $paymentType)
+            ->where('status', '!==', TransactionStatus::APPROVED->toString())
+            ->first();
+    }
+    public function generateInvoice(array $data, $customFields = [])
+    {
+
+        $response = Http::withHeaders([
+            'Content-Type' => 'application/json',
+            'Authorization' => 'remitaConsumerKey=' . config('remita.settings.merchantid') . ',remitaConsumerToken=' . $data['apiHash']
+        ])
+            ->post(config('remita.settings.invoice_url'), [
+                "serviceTypeId" => config('remita.settings.serviceid'),
+                "amount" => $data['amount'],
+                "orderId" => $data['transactionId'],
+                "payerName" => $data['payerName'],
+                "payerEmail" => $data['payerEmail'],
+                "payerPhone" => $data['payerPhone'],
+                "description" => $data['description'],
+                "customFields" => $customFields
+
+
+            ]);
+
+        return TransactionService::convertJsonToArray($response->body());
+    }
+    public function createPayment($data)
+    {
+        $values = $this->generateInvoice($data);
+        if (!empty($values)) {
+            return  StudentTransaction::create(
+                [
+                    'transaction_id' => $data['transactionId'],
+                    'user_id' => $data['userId'],
+                    'student_levels_id' => $data['student_level_id'],
+                    'amount' => $data['amount'],
+                    'date' => now(),
+                    'status' => $data['statuscode'],
+                    'resource' => $data['description'],
+                    'RRR' => $data['RRR'],
+                    'acad_session' => config('remita.settings.academic_session')
+                ]
+            );
+        }
+    }
+    public function getSchoolFeesCustomFields($userId): array
+    {
+
+        $user = User::find($userId);
+        return
+            [
+                [
+                    "name" => "Academic Session",
+                    "value" => config('remita.settings.academic_session'),
+                    "type" => "ALL",
+                ],
+                [
+                    "name" => "Course",
+                    "value" => $user->proposedCourse->course->name,
+                    "type" => "ALL",
+                ],
+                [
+                    "name" => "Department",
+                    "value" => $user->proposedCourse->department->name,
+                    "type" => "ALL",
+                ],
+                [
+                    "name" => "Payment",
+                    "value" => config('remita.schoolfees.ug_schoolfees_description'),
+                    "type" => "ALL",
+                ],
+
+
+
+            ];
     }
 }

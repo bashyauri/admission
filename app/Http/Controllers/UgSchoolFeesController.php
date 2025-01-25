@@ -2,30 +2,31 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\PaymentService;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Request;
 use App\Models\StudentTransaction;
-use Illuminate\Support\Facades\Log;
-use App\Services\StudentTransactionService;
+use App\Models\User;
+use App\Services\TransactionService;
 
-class SchoolFeesTransactionController extends Controller
+class UgSchoolFeesController extends Controller
 {
-    public function __construct(protected StudentTransactionService $transactionService) {}
+    public function __construct(protected PaymentService $paymentService) {}
     public function index(StudentTransaction $studenttransaction)
     {
 
 
-
-
         $valuesToHash  = config('remita.settings.merchantid') . $studenttransaction->RRR . config('remita.settings.apikey');
-        $studenttransaction['apiHash'] = hash('sha512', $valuesToHash);
+        $studenttransaction->apiHash = hash('sha512', $valuesToHash);
+        $studenttransaction->user = User::where('id', $studenttransaction->user_id)->first();
 
 
-        return view('payment.payment-slip')->with(json_decode($studenttransaction, true));
+        return view('payment.ugpayment-slip')->with(['studenttransaction' => $studenttransaction]);
     }
     public function generateInvoice(Request $request)
     {
 
-        $data = $request->only(['transactionId', 'amount', 'description', 'payerName', 'payerPhone', 'payerEmail', 'student_level_id']);
+        $data = $request->only(['userId', 'transactionId', 'amount', 'description', 'payerName', 'payerPhone', 'payerEmail', 'student_level_id']);
 
 
         $valuesToHash = config('remita.settings.merchantid') . config('remita.settings.serviceid') .
@@ -33,26 +34,27 @@ class SchoolFeesTransactionController extends Controller
         $data['apiHash'] = hash('sha512', $valuesToHash);
 
 
+
         try {
-            $response = $this->transactionService->generateInvoice($data);
+            $customFields = $this->paymentService->getSchoolFeesCustomFields($data['userId']);
+            $response = $this->paymentService->generateInvoice($data, $customFields);
 
 
             $data['RRR'] = $response->RRR;
             $data['statuscode'] = $response->statuscode;
             $data['status'] = $response->status;
-            $studenttransaction = $this->transactionService->createPayment($data);
+            $studenttransaction = $this->paymentService->createPayment($data);
 
 
 
 
-
-            return to_route('student.payment', ['studenttransaction' => $studenttransaction])->with('success', 'Remita Generated ' . $response->status);
+            return to_route('cit.payment', ['studenttransaction' => $studenttransaction])->with('success', 'Remita Generated ' . $response->status);
         } catch (\Exception $ex) {
             Log::alert($ex->getMessage());
             return redirect()->back()->with('error', 'Something went wrong:');
         }
     }
-    public function checkTransactionStatus($rrr)
+    public function checkTransactionStatus($rrr, TransactionService $service)
     {
 
 
@@ -61,9 +63,9 @@ class SchoolFeesTransactionController extends Controller
             $studenttransaction = StudentTransaction::where('RRR', $rrr)->first();
 
 
-            $response = $this->transactionService->getTransactionStatus($rrr);
+            $response = $service->getTransactionStatus($rrr);
 
-            $this->transactionService->updateTransactionStatus($response->status, $response->RRR);
+            $service->updateTransactionStatus($response->status, $response->RRR);
 
 
 

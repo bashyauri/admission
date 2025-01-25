@@ -16,13 +16,18 @@ use App\Services\StudentTransactionService;
 class UtmeSchoolFeesInvoice extends Component
 {
     #[Locked]
-    public  $user;
+    public $user;
     #[Locked]
-    public  $currentLevel;
+    public $currentLevel;
     #[Locked]
     public $description;
+    #[Locked]
+    public $amount;
+    #[Locked]
+    public $transactionId;
     private $paymentService;
     private $transactionService;
+
 
     public function mount(User $user): void
     {
@@ -33,18 +38,20 @@ class UtmeSchoolFeesInvoice extends Component
 
 
 
-        if ($this->transactionService->hasInvoice($this->description)) {
-            $data =
-                StudentTransaction::where('user_id', $this->user->id)
-                ->where('resource', $this->description)
-                ->where('status', '!=', TransactionStatus::APPROVED)
-                ->first();
 
-            to_route('student.payment', ['studenttransaction' => $data])->with('success', $data->status);
+
+        if ($data = $this->paymentService->getStudentInvoice($this->user->id, $this->description)) {
+
+
+            to_route('cit.payment', ['studenttransaction' => $data])->with('success', $data->status);
         }
 
         $this->currentLevel = $this->paymentService->getUgStudentLevel($this->user->id);
+        $paymentDetail = $this->paymentService->getStudentFee($this->user->id);
+        $this->amount = $paymentDetail->fee_amount;
+        $this->transactionId = $this->transactionService->generateTransactionId("WUFPDHS");
     }
+
 
     public function render(): View
     {
