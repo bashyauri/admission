@@ -93,8 +93,8 @@
 
                             <td class="p-2 text-sm leading-normal text-center align-middle bg-transparent border-b whitespace-nowrap shadow-transparent">
                                 <span class="px-3.6 text-xs rounded-1.8 py-2.2 inline-block whitespace-nowrap text-center align-baseline font-bold uppercase leading-none text-white
-                                {{ $transaction->status === $transaction->status === $approved->toString() ? 'bg-gradient-to-tl from-green-600 to-lime-400' : 'bg-yellow-500' }}">
-                                {{ $transaction->status === $transaction->status ===$approved->toString() ? 'success' : 'pending' }}
+                                {{ $transaction->status === $approved->toString() ? 'bg-gradient-to-tl from-green-600 to-lime-400' : 'bg-yellow-500' }}">
+                                {{ $transaction->status ===$approved->toString() ? 'success' : 'pending' }}
                             </span>
 
                             </td>

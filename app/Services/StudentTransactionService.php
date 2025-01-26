@@ -124,6 +124,7 @@ class StudentTransactionService extends TransactionService
             $this->updateStudentLevel($level);
         });
     }
+
     private function updateStudentLevel($level): void
     {
         auth()->user()->AcademicDetail->update(['student_level_id' => $level]);

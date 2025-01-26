@@ -34,7 +34,7 @@ class PaymentService
             return config('remita.acceptance.description'); //for postgraduate
         }
     }
-    public function getAcceptanceFee(): int
+    public function getAcceptanceFee(): string
     {
         if (auth()->user()->isUndergraduate()) {
             return config('remita.postutme.acceptance_fee');
@@ -150,5 +150,9 @@ class PaymentService
 
 
             ];
+    }
+    public function getStudentPayments(string $studentId): Collection
+    {
+        return StudentTransaction::where('user_id', $studentId)->get();
     }
 }
