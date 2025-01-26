@@ -9,9 +9,7 @@ use App\Services\TransactionService;
 
 class TransactionController extends Controller
 {
-    public function __construct(protected TransactionService $transactionService)
-    {
-    }
+    public function __construct(protected TransactionService $transactionService) {}
     public function index(?Transaction $transaction)
     {
 
@@ -60,7 +58,7 @@ class TransactionController extends Controller
 
             $response = $this->transactionService->getTransactionStatus($rrr);
 
-            $this->transactionService->updateTransactionStatus($response->status, $response->RRR);
+            $this->transactionService->updateTransactionStatus($response->status, $response->rrr);
 
 
 

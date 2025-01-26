@@ -65,7 +65,7 @@ class UgSchoolFeesController extends Controller
 
             $response = $service->getTransactionStatus($rrr);
 
-            $service->updateTransactionStatus($response->status, $response->RRR);
+            $service->updateTransactionStatus($response->status, $response->rrr);
 
 
 

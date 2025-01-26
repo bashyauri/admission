@@ -49,7 +49,7 @@
                 <div class="relative flex-auto p-4">
                     <div class="flex flex-wrap -mx-3 ">
                         <div class="w-7/12 max-w-full px-3 text-left flex-0">
-                            <p class="mb-1 font-semibold leading-normal capitalize text-size-sm">Not Recommended</p>
+                            {{-- <p class="mb-1 font-semibold leading-normal capitalize text-size-sm">Not Recommended</p> --}}
                             <h5 class="mb-0 font-bold dark:text-white"></h5>
                             <span class="mt-auto mb-0 font-bold leading-normal text-right text-lime-500 text-size-sm">
 

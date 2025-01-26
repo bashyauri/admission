@@ -63,7 +63,7 @@ class SchoolFeesTransactionController extends Controller
 
             $response = $this->transactionService->getTransactionStatus($rrr);
 
-            $this->transactionService->updateTransactionStatus($response->status, $response->RRR);
+            $this->transactionService->updateTransactionStatus($response->status, $response->rrr);
 
 
 
