@@ -14,8 +14,8 @@ class FirstSchoolFees extends Component
 
     public function mount(UTMEApplicantService $uTMEApplicantService): void
     {
+        abort_unless(auth()->user()->isCit(), 403, 'You must be logged in as a CIT Staff to view this page');
         $this->schoolFees = $uTMEApplicantService->getUtmeFirstSchoolFeesPayment();
-        dd($this->schoolFees);
     }
     public function render()
     {
