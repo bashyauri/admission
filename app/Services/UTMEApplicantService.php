@@ -7,6 +7,8 @@ namespace App\Services;
 use App\Models\User;
 use App\Enums\ApplicationStatus;
 use App\Models\ProposedCourse;
+use App\Models\StudentTransaction;
+use Illuminate\Database\Eloquent\Collection;
 
 /**
  * Class UTMEApplicantService.
@@ -57,5 +59,13 @@ class UTMEApplicantService
 
             ]
         );
+    }
+    public function getUtmeFirstSchoolFeesPayment(): Collection
+    {
+        return StudentTransaction::select('student_transactions.*', 'users.surname', 'users.firstname', 'users.m_name', 'users.jamb_no', 'users.phone')
+            ->join('users', 'student_transactions.user_id', '=', 'users.id')
+            ->where([
+                'student_transactions.resource' => config('remita.schoolfees.ug_schoolfees_description'),
+            ])->get();
     }
 }

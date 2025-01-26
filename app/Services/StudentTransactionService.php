@@ -93,7 +93,7 @@ class StudentTransactionService extends TransactionService
         $transaction->update(['status' => $status]);
 
         // If transaction is approved, check if it's a valid payment and add to school fees if necessary
-        if ($status !== TransactionStatus::APPROVED->toString()) {
+        if ($status != TransactionStatus::APPROVED->toString()) {
             return;
         }
 

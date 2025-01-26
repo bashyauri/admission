@@ -48,7 +48,7 @@
                                     <div class="flex">
 
                                       
-                                        <h6 class="my-auto ml-4 dark:text-white">{{$applicant->surname.' '.$applicant->firstname.' '.$applicant->middlename}}</h6>
+                                        <h6 class="my-auto ml-4 dark:text-white">{{$applicant->surname.' '.$applicant->firstname.' '.$applicant->m_name}}</h6>
                                     </div>
                                 </td>
                                  <td class="leading-normal text-size-sm">{{$applicant->jamb_no}}</td>

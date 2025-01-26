@@ -169,6 +169,6 @@ class ApplicantReportService
                 'transactions.resource' => config('remita.acceptance.description'),
                 'transactions.status' => TransactionStatus::APPROVED,
                 'transactions.acad_session' => config('remita.settings.academic_session')
-            ])->count();;
+            ])->count();
     }
 }

@@ -8,6 +8,7 @@ use App\Http\Livewire\Cit\PaidAcceptanceFees;;
 
 use App\Http\Controllers\SchoolFeesTransactionController;
 use App\Http\Controllers\UgSchoolFeesController;
+use App\Http\Livewire\Cit\FirstSchoolFees;
 use App\Http\Livewire\Transactions\UtmeSchoolFeesInvoice;
 
 Route::get('dashboard', CitIndex::class)->name('dashboard');
@@ -16,3 +17,4 @@ Route::post('/transactions/generate-invoice', [UgSchoolFeesController::class, 'g
 Route::get('transactions/utme-school-fees/{user}', UtmeSchoolFeesInvoice::class)->name('utme-school-fees');
 Route::get('/transactions/generate-invoice/{studenttransaction}', [UgSchoolFeesController::class, 'index'])->name('payment');
 Route::get('/payment/status/{rrr}', [UgSchoolFeesController::class, 'checkTransactionStatus'])->name('payment.status');
+Route::get('first-school-fees', FirstSchoolFees::class)->name('first-school-fees');

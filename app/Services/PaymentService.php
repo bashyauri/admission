@@ -76,7 +76,7 @@ class PaymentService
 
         return StudentTransaction::where('user_id', $studentId)
             ->where('resource', $paymentType)
-            ->where('status', '!==', TransactionStatus::APPROVED->toString())
+            ->where('status', '!=', TransactionStatus::APPROVED->value)
             ->first();
     }
     public function generateInvoice(array $data, $customFields = [])
