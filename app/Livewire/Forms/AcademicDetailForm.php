@@ -7,8 +7,7 @@ use App\Enums\StudentLevel;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Livewire\Form;
-use Illuminate\Validation\Rule;
-use Livewire\Attributes\Validate;
+
 
 class AcademicDetailForm extends Form
 {

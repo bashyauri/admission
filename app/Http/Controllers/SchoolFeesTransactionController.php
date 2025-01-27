@@ -10,7 +10,7 @@ use App\Services\StudentTransactionService;
 class SchoolFeesTransactionController extends Controller
 {
     public function __construct(protected StudentTransactionService $transactionService) {}
-    public function index(StudentTransaction $studenttransaction)
+    public function index(?StudentTransaction $studenttransaction)
     {
 
 

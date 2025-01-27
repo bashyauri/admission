@@ -12,7 +12,7 @@ use App\Services\TransactionService;
 class UgSchoolFeesController extends Controller
 {
     public function __construct(protected PaymentService $paymentService) {}
-    public function index(StudentTransaction $studenttransaction)
+    public function index(?StudentTransaction $studenttransaction)
     {
 
 

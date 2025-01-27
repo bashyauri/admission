@@ -42,7 +42,6 @@ class UtmeSchoolFeesInvoice extends Component
 
         if ($data = $this->paymentService->getStudentInvoice($this->user->id, $this->description)) {
 
-
             to_route('cit.payment', ['studenttransaction' => $data])->with('success', $data->status);
         }
 
