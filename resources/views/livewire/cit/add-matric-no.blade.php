@@ -34,7 +34,7 @@
                  <div class="flex justify-end mt-6 mb-4">
                     <a href="{{route('cit.first-school-fees')}}"
                         class="inline-block px-6 py-3 m-0 font-bold text-center uppercase align-middle transition-all bg-gray-200 border-0 rounded-lg cursor-pointer hover:scale-102 active:opacity-85 hover:shadow-soft-xs leading-pro text-size-xs ease-soft-in tracking-tight-soft shadow-soft-md bg-150 bg-x-25 text-slate-800">Back</a>
-                        @if($user->academicDetail->matric_no)
+                        @if($user->academicDetail?->matric_no)
                         <div class="text-center text-green-600 font-bold text-xs m-4 bg-gradient-lime text-white">
                                         Matric number has already been issued.
                                     </div>
