@@ -9,7 +9,7 @@
     $pending = TransactionStatus::PENDING;
 @endphp
     <div class="flex flex-wrap -mx-3">
-    @if (Auth::user()->hasPaid($paymentService->getAcceptanceResource()))
+    @if (Auth::user()->hasPaid($paymentService->getAcceptanceResource()) && Auth::user()->isPostgraduate())
           <div class="w-full max-w-full px-3 mt-6 mb-3 shrink-0 sm:mt-0 sm:flex-0 sm:w-3/12">
             <div
                 class="relative flex flex-col min-w-0 break-words bg-white border-0 dark:bg-gray-950 dark:shadow-soft-dark-xl shadow-soft-xl rounded-2xl bg-clip-border">
@@ -83,7 +83,7 @@
                          
 
                                  <a href="{{Auth::user()->isUndergraduate() ? "" : route('print-acceptance')}}"
-                                   class="inline-block px-8 py-2 mt-2 mb-0 text-xs font-bold text-center text-teal-500 uppercase align-middle transition-all bg-transparent border border-teal-500 border-solid rounded-lg shadow-none cursor-pointer leading-pro ease-soft-in hover:scale-102 active:shadow-soft-xs tracking-tight-soft hover:border-teal-500 hover:bg-transparent hover:text-teal-700 hover:opacity-75 hover:shadow-none active:bg-teal-500 active:text-white active:hover:bg-transparent active:hover:text-teal-500">{{Auth::user()->isUndergraduate() ? "The  date and time for School screening will be communicated Shortly" : "Print Acceptance"}}</a>
+                                   class="inline-block px-8 py-2 mt-2 mb-0 text-xs font-bold text-center text-teal-500 uppercase align-middle transition-all bg-transparent border border-teal-500 border-solid rounded-lg shadow-none cursor-pointer leading-pro ease-soft-in hover:scale-102 active:shadow-soft-xs tracking-tight-soft hover:border-teal-500 hover:bg-transparent hover:text-teal-700 hover:opacity-75 hover:shadow-none active:bg-teal-500 active:text-white active:hover:bg-transparent active:hover:text-teal-500">{{Auth::user()->isUndergraduate() ? "Screening Starts on Tuesday, 28th January 2025" : "Print Acceptance"}}</a>
                                   
                             @else
                              <a href="{{route('acceptance-invoice')}}"
