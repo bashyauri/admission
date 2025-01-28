@@ -40,7 +40,12 @@ class UtmeSchoolFeesInvoice extends Component
 
 
 
-        if ($data = $this->paymentService->getStudentInvoice($this->user->id, $this->description)) {
+        if ($this->paymentService->hasInvoice($this->description, $this->user->id)) {
+            $data =
+                StudentTransaction::where('user_id', $this->user->id)
+                ->where('resource', config('remita.schoolfees.ug_schoolfees_description'))
+                ->where('status', '!=', TransactionStatus::APPROVED->value)
+                ->first();
 
             to_route('cit.payment', ['studenttransaction' => $data])->with('success', $data->status);
         }

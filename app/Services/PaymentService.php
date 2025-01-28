@@ -52,6 +52,10 @@ class PaymentService
                 'transactions.status' => TransactionStatus::APPROVED->toString()
             ])->get();
     }
+    public function hasInvoice(string $paymentType, string $userId)
+    {
+        return StudentTransaction::where(['user_id' => $userId, 'resource' => $paymentType])->exists();
+    }
     public function getUgStudentLevel(string $userId): int
     {
         return SchoolFeesPayment::where('user_id', $userId)->count() + 1;
@@ -119,6 +123,11 @@ class PaymentService
                 ]
             );
         }
+    }
+    public function updateTransactionStatus(string $status, string $rrr)
+    {
+
+        StudentTransaction::where('RRR', $rrr)->update(['status' => $status]);
     }
     public function getSchoolFeesCustomFields($userId): array
     {

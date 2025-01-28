@@ -21,21 +21,23 @@
 <body class="text-gray-800 bg-gray-50">
 
   <!-- Hero Section -->
-  <section class="relative py-16 text-white bg-gradient-to-r from-green-500 via-teal-400 to-green-500">
-    <div class="container px-6 py-12 mx-auto text-center">
-      <h1 class="text-4xl font-bold leading-tight md:text-6xl">
-        Welcome to <span class="text-yellow-300">Directorate of Higher Studies</span>
-      </h1>
-      <p class="mt-4 text-lg md:text-xl">
-        Waziri Umaru Federal Polytechnic Birnin Kebbi.
-      </p>
-      <div class="mt-6 space-x-4">
-        <a href="#contact-us" class="rounded-md bg-white px-3.5 py-2.5 text-sm font-semibold text-gray-900 shadow-sm hover:bg-gray-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white">Contact Us</a>
-        <a href="#programs" class="btn-green">Explore Programs</a>
+<section class="relative py-12 text-white bg-gradient-to-r from-green-500 via-teal-400 to-green-500"> 
+    <div class="container px-6 py-8 mx-auto text-center"> 
+        <img class="w-32 md:w-40 lg:w-48 h-auto p-3 mx-auto m-3" alt="Image placeholder" src="{{ asset('assets') }}/img/wufp-logo.png">
 
-      </div>
+        <h1 class="text-4xl font-bold leading-tight md:text-5xl"> 
+            Welcome to <span class="text-yellow-300">Directorate of Higher Studies</span>
+        </h1>
+        <p class="mt-4 text-lg md:text-xl">
+            Waziri Umaru Federal Polytechnic Birnin Kebbi.
+        </p>
+        <div class="mt-6 space-x-4">
+            <a href="#contact-us" class="rounded-md bg-white px-3.5 py-2.5 text-sm font-semibold text-gray-900 shadow-sm hover:bg-gray-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white">Contact Us</a>
+            <a href="#programs" class="btn-green">Explore Programs</a>
+        </div>
     </div>
-  </section>
+</section>
+ 
 
   <!-- Programs Section -->
   <section id="programs" class="py-12 bg-white">
@@ -98,6 +100,30 @@
       </div>
     </div>
   </section>
+ 
+<!-- Announcement Section -->
+<section class="py-12 bg-yellow-100">
+    <div class="container px-6 mx-auto">
+        <h2 class="text-3xl font-bold text-red-600 text-center">Important Announcement</h2>
+        <p class="mt-4 text-lg text-gray-800">
+            This is to inform all candidates who have been offered admission into Degree Programmes of WUFPBK in affiliation with FUBK that the screening exercise for the 2024/2025 Academic Session is scheduled to commence as follows:
+        </p>
+        <div class="mt-4 text-left">
+            <p class="text-lg text-gray-800"><strong>Date:</strong> Tuesday 28th January, 2025</p>
+            <p class="text-lg text-gray-800"><strong>Time:</strong> 10:00am</p>
+            <p class="text-lg text-gray-800"><strong>Venue:</strong> Board Room Academic Office</p>
+        </div>
+        <p class="mt-6 text-lg text-gray-800 font-bold">
+            Candidates are to come along with the following:
+        </p>
+        <ul class="mt-2 text-lg text-gray-800 list-disc list-inside text-left">
+            <li>Original Credentials</li>
+            <li>2 copies of Provisional JAMB Admission letter</li>
+            <li>Evidence of payment of acceptance fee</li>
+            <li>Scratch card or token for results verification</li>
+        </ul>
+    </div>
+</section>
 
   <!-- Contact Us Section -->
 

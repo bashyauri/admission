@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Request;
 use App\Models\StudentTransaction;
 use App\Models\User;
+use App\Services\StudentTransactionService;
 use App\Services\TransactionService;
 
 class UgSchoolFeesController extends Controller
@@ -54,7 +55,7 @@ class UgSchoolFeesController extends Controller
             return redirect()->back()->with('error', 'Something went wrong:');
         }
     }
-    public function checkTransactionStatus($rrr, TransactionService $service)
+    public function checkTransactionStatus($rrr, StudentTransactionService $service)
     {
 
 
@@ -65,7 +66,7 @@ class UgSchoolFeesController extends Controller
 
             $response = $service->getTransactionStatus($rrr);
 
-            $service->updateTransactionStatus($response->status, $response->rrr);
+            $this->paymentService->updateTransactionStatus($response->status, $response->rrr);
 
 
 
