@@ -11,7 +11,7 @@ enum ProgrammesEnum: int
     case PD = 5;
     case PG = 6;
     case Undergraduate = 7;
-    function getProgrammeValue(ProgrammesEnum $programme): int
+    public function getProgrammeValue(ProgrammesEnum $programme): int
     {
         return $programme->value;
     }

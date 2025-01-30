@@ -48,6 +48,7 @@ class Settings extends Component
             ]);
         }
     }
+    public function createCoordinator() {}
     public function render()
     {
         return view('livewire.admin.settings', [

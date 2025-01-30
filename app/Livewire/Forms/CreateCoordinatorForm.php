@@ -2,19 +2,13 @@
 
 namespace App\Livewire\Forms;
 
-use App\Enums\Role;
 use Livewire\Form;
 use App\Models\User;
-use App\Models\HodUser;
-use Illuminate\Validation\Rule;
 use Livewire\Attributes\Validate;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Log;
 
-class CreateUserForm extends Form
+class CreateCoordinatorForm extends Form
 {
-
-
     public $surName;
 
     public $firstName;
@@ -53,9 +47,9 @@ class CreateUserForm extends Form
         ]);
 
 
-        $this->storeHod($user, $this->department_id["value"]);
+        $this->storeCoordinator($user, $this->department_id["value"]);
     }
-    public function storeHod(User $user, $department_id)
+    public function storeCoordinator(User $user, $department_id)
     {
         return   HodUser::create([
             'user_id' => $user->id,
