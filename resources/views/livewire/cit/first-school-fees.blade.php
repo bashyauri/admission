@@ -72,7 +72,7 @@
                                     @else
 
 
-                                     <a href="{{ route('cit.payment.status', $applicant->RRR)}}" class="py-1.8-em px-3-em bg-fuchsia-500 text-size-xxs-em rounded-1 inline-block whitespace-nowrap text-center align-baseline font-bold uppercase leading-none text-white">
+                                     <a href="{{ route('admin.payment.status', $applicant->RRR)}}" class="py-1.8-em px-3-em bg-fuchsia-500 text-size-xxs-em rounded-1 inline-block whitespace-nowrap text-center align-baseline font-bold uppercase leading-none text-white">
 
                                        Confirm Payment
 

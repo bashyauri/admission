@@ -70,7 +70,7 @@ class UgSchoolFeesController extends Controller
 
 
 
-            return to_route('cit.payment', ['studenttransaction' => $studenttransaction])->with('info', $response->message);
+            return to_route('admin.payment', ['studenttransaction' => $studenttransaction])->with('info', $response->message);
         } catch (\Exception $ex) {
             Log::alert($ex->getMessage());
             return redirect()->back()->with('error', 'Something went wrong: Try again later');

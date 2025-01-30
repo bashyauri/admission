@@ -2,14 +2,16 @@
 
 namespace App\Http\Livewire\Cit;
 
+use Livewire\Component;
+use App\Models\Transaction;
+use Livewire\Attributes\Locked;
 use App\Enums\ApplicationStatus;
 use App\Enums\TransactionStatus;
-use App\Models\Transaction;
 use App\Services\PaymentService;
-use Livewire\Component;
 
 class PaidAcceptanceFees extends Component
 {
+    #[Locked]
     public $paidAcceptanceFees;
 
     public function mount(PaymentService $paymentService)

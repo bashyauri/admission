@@ -35,3 +35,4 @@ Route::get('/export-recommended-pdf', [ReportController::class, 'exportRecommend
 Route::get('/payment/status/{rrr}', [UgSchoolFeesController::class, 'checkTransactionStatus'])->name('payment.status');
 Route::get('first-school-fees', FirstSchoolFees::class)->name('first-school-fees');
 Route::get('add-matric-number/{user}', AddMatricNo::class)->name('add-matric-number');
+Route::get('/transactions/generate-invoice/{studenttransaction}', [UgSchoolFeesController::class, 'index'])->name('payment');
