@@ -3,6 +3,7 @@
 namespace App\Http\Livewire\Admin;
 
 use App\Enums\Role;
+use App\Enums\StudentLevel;
 use App\Livewire\Forms\CreateCoordinatorForm;
 use Livewire\Component;
 use App\Models\Department;
@@ -79,6 +80,7 @@ class Settings extends Component
         return view('livewire.admin.settings', [
             'departments' => Department::get(['id', 'name']),
             'roles' => Role::getRoles(),
+            'levels' => StudentLevel::getLevels()
         ]);
     }
 }

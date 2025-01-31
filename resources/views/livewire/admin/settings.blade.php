@@ -136,7 +136,7 @@
                             </a>
                         </li>
                         <li class="pt-2">
-                            <a href="#2FA"
+                            <a href="#add-course"
                                 class="block px-4 py-2 transition-colors rounded-lg ease-soft-in-out text-slate-500 hover:bg-gray-200">
                                 <div class="inline-block mr-2 text-black fill-current h-4-em w-4-em stroke-none">
                                     <svg class="mb-1 text-dark" width="16px" height="16px" viewBox="0 0 40 44"
@@ -160,7 +160,7 @@
                                         </g>
                                     </svg>
                                 </div>
-                                <span class="leading-normal text-size-sm dark:text-white">2FA</span>
+                                <span class="leading-normal text-size-sm dark:text-white">Add Course</span>
                             </a>
                         </li>
                         <li class="pt-2">
@@ -265,6 +265,7 @@
 
                 @include('livewire.admin.partials.create-hod')
                 {{-- end --}}
+
                 <div class="relative flex flex-col min-w-0 mt-6 break-words bg-white border-0 dark:bg-gray-950 dark:shadow-soft-dark-xl shadow-soft-xl rounded-2xl bg-clip-border"
                     id="password">
                     <div class="p-6 mb-0 rounded-t-2xl">
@@ -741,10 +742,13 @@
                             account</button>
                     </div>
                 </div>
-
                 {{-- create Coordinator --}}
                 @include('livewire.admin.partials.create-coordinator')
-                {{-- create Hod --}}
+                {{-- create Coordinator --}}
+
+                {{-- create Coordinator --}}
+                @include('livewire.admin.partials.create-course')
+                {{-- create Coordinator --}}
             </div>
         </div>
 
