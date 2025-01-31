@@ -27,14 +27,18 @@ class AddMatricNo extends Component
             $modeOfEntry = "10";
             $departmentCode = $this->user->proposedCourse->department->code;
             $facultyCode = "90";
+            $departmentId = $this->user->proposedCourse->department_id;
             $year = config('remita.settings.academic_session');
 
             $this->matricNo = $uTMEApplicantService->generateUgRegistrationNumber(
                 year: $year,
                 modeOfEntry: $modeOfEntry,
                 facultyCode: $facultyCode,
-                departmentCode: $departmentCode
+                departmentCode: $departmentCode,
+                departmentId: $departmentId
             );
+
+
 
             DB::transaction(function () use ($uTMEApplicantService) {
                 $this->form->store($this->user, $this->matricNo);

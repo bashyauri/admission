@@ -9,6 +9,7 @@ enum Role: string
     case ADMIN = 'admin';
     case STUDENT = 'student';
     case CIT = 'cit';
+    case COORDINATOR = 'coordinator';
     public function toString(): string
     {
         return match ($this) {
@@ -17,6 +18,8 @@ enum Role: string
             self::ADMIN => 'Admin',
             self::STUDENT => 'Student',
             self::CIT => 'Cit',
+            self::COORDINATOR => 'Coordinator',
+
             default => null,
         };
     }
