@@ -19,35 +19,14 @@ class Settings extends Component
     {
         try {
             $this->form->store();
-            $this->alert('success', 'User Created', [
-                'position' => 'center',
-                'timer' => 1000,
-                'toast' => true,
-            ]);
+            $this->showSuccessAlert('User Created');
             $this->form->reset();
         } catch (ValidationException $e) {
-
-            // Display validation errors
-            $errorMessages = implode(' ', $e->validator->errors()->all());
-
-            $this->alert('error', "$errorMessages", [
-                'position' => 'center',
-                'timer' => 3000,
-                'toast' => true,
-
-
-            ]);
-
-
-            // Set validation errors in Livewire's error bag
+            $this->showValidationErrors($e);
             $this->setErrorBag($e->validator->errors());
         } catch (\Exception $e) {
             report($e);
-            $this->alert('error', 'Save failed.', [
-                'position' => 'center',
-                'timer' => 3000,
-                'toast' => true,
-            ]);
+            $this->showErrorAlert('Save failed.');
         }
     }
     public function createCoordinator()
@@ -55,37 +34,46 @@ class Settings extends Component
 
         try {
             $this->coordinatorForm->store();
-            $this->alert('success', 'Coordinator Created', [
-                'position' => 'center',
-                'timer' => 1000,
-                'toast' => true,
-            ]);
+            $this->showSuccessAlert('Coordinator Created');
             $this->coordinatorForm->reset();
         } catch (ValidationException $e) {
 
-            // Display validation errors
-            $errorMessages = implode(' ', $e->validator->errors()->all());
 
-            $this->alert('error', "$errorMessages", [
-                'position' => 'center',
-                'timer' => 3000,
-                'toast' => true,
-
-
-            ]);
-
-
-            // Set validation errors in Livewire's error bag
+            // // Set validation errors in Livewire's error bag
             $this->setErrorBag($e->validator->errors());
+            $this->showValidationErrors($e);
         } catch (\Exception $e) {
             report($e);
-            $this->alert('error', 'Save failed.', [
-                'position' => 'center',
-                'timer' => 3000,
-                'toast' => true,
-            ]);
+            $this->showErrorAlert('Save failed.');
         }
     }
+    private function showSuccessAlert($message)
+    {
+        $this->alert('success', $message, [
+            'position' => 'center',
+            'timer' => 1000,
+            'toast' => true,
+        ]);
+    }
+
+    private function showValidationErrors(ValidationException $e)
+    {
+        $this->alert('error', 'Validation Error', [
+            'position' => 'center',
+            'timer' => 3000,
+            'toast' => true,
+            'text' => $e->getMessage(),
+        ]);
+    }
+    private function showErrorAlert($message)
+    {
+        $this->alert('error', $message, [
+            'position' => 'center',
+            'timer' => 3000,
+            'toast' => true,
+        ]);
+    }
+
     public function render()
     {
         return view('livewire.admin.settings', [
