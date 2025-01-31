@@ -84,7 +84,7 @@
                     wire:loading.class="bg-gradient-gray text-slate-800"
                     wire:loading.class.remove="bg-gradient-fuchsia text-slate-800"
                     class="inline-block px-6 py-3 m-0 ml-2 text-xs font-bold text-center text-white uppercase align-middle transition-all border-0 rounded-lg cursor-pointer ease-soft-in leading-pro tracking-tight-soft bg-gradient-fuchsia shadow-soft-md bg-150 bg-x-25 hover:scale-102 active:opacity-85">
-                    <span wire:loading.remove wire:target="createCoordinator">Save</span>
+                    <span wire:loading.remove wire:target="createCoordinator">Save Coordinator</span>
                     <span wire:loading wire:target="createCoordinator">Loading...</span>
                 </button>
             </div>

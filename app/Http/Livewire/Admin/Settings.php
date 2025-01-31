@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Livewire\Admin;
 
 use App\Enums\Role;
@@ -8,6 +10,7 @@ use App\Livewire\Forms\CreateCoordinatorForm;
 use Livewire\Component;
 use App\Models\Department;
 use App\Livewire\Forms\CreateUserForm;
+use App\Livewire\Forms\StudentCourseForm;
 use Jantinnerezo\LivewireAlert\LivewireAlert;
 use Illuminate\Validation\ValidationException;
 
@@ -16,7 +19,8 @@ class Settings extends Component
     use LivewireAlert;
     public CreateUserForm $form;
     public CreateCoordinatorForm $coordinatorForm;
-    public function createUser()
+    public StudentCourseForm $courseForm;
+    public function createUser(): void
     {
         try {
             $this->form->store();
@@ -30,7 +34,7 @@ class Settings extends Component
             $this->showErrorAlert('Save failed.');
         }
     }
-    public function createCoordinator()
+    public function createCoordinator(): void
     {
 
         try {
@@ -48,7 +52,24 @@ class Settings extends Component
             $this->showErrorAlert('Save failed.');
         }
     }
-    private function showSuccessAlert($message)
+    public function createCourse(): void
+    {
+        try {
+            $this->courseForm->store();
+            $this->showSuccessAlert('Course Created');
+            $this->courseForm->reset();
+        } catch (ValidationException $e) {
+
+
+            // // Set validation errors in Livewire's error bag
+            $this->setErrorBag($e->validator->errors());
+            $this->showValidationErrors($e);
+        } catch (\Exception $e) {
+            report($e);
+            $this->showErrorAlert('Save failed.');
+        }
+    }
+    private function showSuccessAlert($message): void
     {
         $this->alert('success', $message, [
             'position' => 'center',
@@ -57,7 +78,7 @@ class Settings extends Component
         ]);
     }
 
-    private function showValidationErrors(ValidationException $e)
+    private function showValidationErrors(ValidationException $e): void
     {
         $this->alert('error', 'Validation Error', [
             'position' => 'center',
@@ -66,7 +87,7 @@ class Settings extends Component
             'text' => $e->getMessage(),
         ]);
     }
-    private function showErrorAlert($message)
+    private function showErrorAlert($message): void
     {
         $this->alert('error', $message, [
             'position' => 'center',

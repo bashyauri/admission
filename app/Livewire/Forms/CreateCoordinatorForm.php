@@ -6,8 +6,7 @@ use Livewire\Form;
 use App\Enums\Role;
 use App\Models\User;
 use App\Models\Coordinator;
-use Livewire\Attributes\Locked;
-use Livewire\Attributes\Validate;
+
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 
