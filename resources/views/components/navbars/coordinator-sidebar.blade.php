@@ -133,8 +133,8 @@
                 <li class="mt-0.5 w-full">
                     <a {{ in_array_r(request()->route()->getName(), getCategoriesArray('applications')) ? 'active_primary
             aria-expanded=true' :
-    'aria-expanded=false' }} collapse_trigger="primary" href="javascript:;"
-                        class="ease-soft-in-out
+    'aria-expanded=false' }} collapse_trigger="primary"
+                        href="javascript:;" class="ease-soft-in-out
             text-size-sm
             py-2.7 active after:ease-soft-in-out after:font-awesome-5-free my-0 mx-4 flex items-center whitespace-nowrap
             px-4 {{ in_array_r(request()->route()->getName(), getCategoriesArray('applications')) ? 'font-semibold
@@ -216,8 +216,8 @@
                 <li class="mt-0.5 w-full">
                     <a {{ in_array_r(request()->route()->getName(), getCategoriesArray('applications')) ? 'active_primary
             aria-expanded=true' :
-    'aria-expanded=false' }} collapse_trigger="primary" href="javascript:;"
-                        class="ease-soft-in-out
+    'aria-expanded=false' }} collapse_trigger="primary"
+                        href="javascript:;" class="ease-soft-in-out
             text-size-sm
             py-2.7 active after:ease-soft-in-out after:font-awesome-5-free my-0 mx-4 flex items-center whitespace-nowrap
             px-4 {{ in_array_r(request()->route()->getName(), getCategoriesArray('applications')) ? 'font-semibold

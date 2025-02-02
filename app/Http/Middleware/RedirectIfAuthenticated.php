@@ -36,6 +36,9 @@ class RedirectIfAuthenticated
             'hod' => 'hod.dashboard',
             'admin' => 'admin.dashboard',
             'cit' => 'cit.dashboard',
+            'student' => 'student.dashboard',
+            'coordinator' => 'coordinator.dashboard',
+
 
 
         ];

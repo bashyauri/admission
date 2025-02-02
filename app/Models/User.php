@@ -92,6 +92,10 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return $this->role === Role::CIT->value;
     }
+    public function isCoordinator(): bool
+    {
+        return $this->role === Role::COORDINATOR->value;
+    }
 
     public function programme()
     {

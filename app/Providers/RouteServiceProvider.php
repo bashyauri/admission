@@ -35,6 +35,7 @@ class RouteServiceProvider extends ServiceProvider
             $this->mapHodRoutes();
             $this->mapStudentRoutes();
             $this->mapCitRoutes();
+            $this->mapCoordinatorRoutes();
         });
     }
 
@@ -80,6 +81,13 @@ class RouteServiceProvider extends ServiceProvider
             ->prefix('cit')
             ->as('cit.')
             ->group(base_path('routes/cit.php'));
+    }
+    protected function mapCoordinatorRoutes()
+    {
+        Route::middleware(['web', 'auth', 'verified', 'role:cordinator'])
+            ->prefix('coordinator')
+            ->as('coordinator.')
+            ->group(base_path('routes/coordinator.php'));
     }
 
 

@@ -4,9 +4,8 @@ declare(strict_types=1);
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Livewire\Dashboards\CitIndex;
-use App\Http\Livewire\Cit\PaidAcceptanceFees;;
+use App\Http\Livewire\Cit\PaidAcceptanceFees;
 
-use App\Http\Controllers\SchoolFeesTransactionController;
 use App\Http\Controllers\UgSchoolFeesController;
 use App\Http\Livewire\Cit\AddMatricNo;
 use App\Http\Livewire\Cit\FirstSchoolFees;
