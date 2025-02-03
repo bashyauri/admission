@@ -18,4 +18,8 @@ class Department extends Model
     {
         return $this->hasMany(Course::class)->withDefaults();
     }
+    public function departmentCourses()
+    {
+        return $this->hasMany(DepartmentCourse::class);
+    }
 }
