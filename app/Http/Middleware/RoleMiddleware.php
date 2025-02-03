@@ -19,11 +19,6 @@ class RoleMiddleware
 
         if ($userRole !== $role) {
             $redirectRoute = $this->getRedirectRoute($userRole);
-
-            // Prevent redirection loop
-            // if ($request->route()->getName() !== $redirectRoute) {
-            //     return redirect()->route($redirectRoute);
-            // }
         }
 
         return $next($request);
