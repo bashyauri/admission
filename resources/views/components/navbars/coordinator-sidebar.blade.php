@@ -102,7 +102,7 @@
 
                             <li class="w-full">
                                 <a class="ease-soft-in-out py-1.6 ml-5.4 pl-4 text-size-sm relative my-0 mr-4 flex items-center whitespace-nowrap bg-transparent pr-4 shadow-none transition-colors before:absolute before:top-1/2 before:-translate-y-1/2 before:rounded-3xl before:content-[''] dark:text-white dark:before:bg-white dark:before:opacity-80 {{ Route::currentRouteName() == 'hod.dashboard' ? 'before:-left-5 rounded-lg font-semibold text-slate-800 before:h-2 before:w-2 before:bg-slate-800 dark:opacity-100' : 'before:-left-4.5 before:h-1.25 before:w-1.25 font-medium text-slate-800/50 before:bg-slate-800/50 dark:opacity-60' }}"
-                                    href="{{ route('cit.dashboard') }}">
+                                    href="{{ route('coordinator.dashboard') }}">
                                     <span
                                         class="w-0 text-center transition-all duration-200 opacity-0 pointer-events-none ease-soft-in-out">
                                         D
@@ -207,7 +207,7 @@
 
                 <li class="w-full mt-4">
                     <h6 class="pl-6 ml-2 font-bold leading-tight uppercase text-size-xs opacity-60 dark:text-white">
-                        ADMISSION
+                        Student
                     </h6>
                 </li>
 
@@ -259,7 +259,7 @@
                         </div>
 
                         <span
-                            class="ml-1 duration-300 opacity-100 pointer-events-none ease-soft {{ in_array_r(request()->route()->getName(), getCategoriesArray('applications')) ? 'text-slate-700' : '' }}">Applicants</span>
+                            class="ml-1 duration-300 opacity-100 pointer-events-none ease-soft {{ in_array_r(request()->route()->getName(), getCategoriesArray('applications')) ? 'text-slate-700' : '' }}">Course</span>
                     </a>
 
                     <div class="h-auto overflow-hidden transition-all duration-200 ease-soft-in-out max-h-0"
@@ -268,18 +268,18 @@
                             class="flex flex-wrap pl-4 mb-0 ml-6 list-none transition-all duration-200 ease-soft-in-out">
                             <li class="w-full">
                                 <a class="ease-soft-in-out py-1.6 ml-5.4 pl-4 text-size-sm relative my-0 mr-4 flex items-center whitespace-nowrap bg-transparent pr-4 shadow-none transition-colors before:absolute before:top-1/2 before:-translate-y-1/2 before:rounded-3xl before:content-[''] dark:text-white dark:before:bg-white dark:before:opacity-80 {{ Route::currentRouteName() == 'hod.all-applicants' ? 'before:-left-5 rounded-lg font-semibold text-slate-800 before:h-2 before:w-2 before:bg-slate-800 dark:opacity-100' : 'before:-left-4.5 before:h-1.25 before:w-1.25 font-medium text-slate-800/50 before:bg-slate-800/50 dark:opacity-60' }}"
-                                    href="{{ route('cit.paid-acceptance-fees') }}">
+                                    href="{{ route('coordinator.add-course') }}">
                                     <span
                                         class="w-0 text-center transition-all duration-200 opacity-0 pointer-events-none ease-soft-in-out">
                                         K
                                     </span>
-                                    <span class="transition-all duration-100 pointer-events-none ease-soft">Generate
-                                        School fees Invoice</span>
+                                    <span class="transition-all duration-100 pointer-events-none ease-soft">Add
+                                        Courses</span>
                                 </a>
                             </li>
                             <li class="w-full">
                                 <a class="ease-soft-in-out py-1.6 ml-5.4 pl-4 text-size-sm relative my-0 mr-4 flex items-center whitespace-nowrap bg-transparent pr-4 shadow-none transition-colors before:absolute before:top-1/2 before:-translate-y-1/2 before:rounded-3xl before:content-[''] dark:text-white dark:before:bg-white dark:before:opacity-80 {{ Route::currentRouteName() == 'cit.first-school-fees' ? 'before:-left-5 rounded-lg font-semibold text-slate-800 before:h-2 before:w-2 before:bg-slate-800 dark:opacity-100' : 'before:-left-4.5 before:h-1.25 before:w-1.25 font-medium text-slate-800/50 before:bg-slate-800/50 dark:opacity-60' }}"
-                                    href="{{ route('cit.first-school-fees') }}">
+                                    href="{{ route('coordinator.add-course') }}">
                                     <span
                                         class="w-0 text-center transition-all duration-200 opacity-0 pointer-events-none ease-soft-in-out">
                                         K
