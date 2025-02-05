@@ -1,6 +1,5 @@
+@use('App\Models\StudentCourse')
 <div>
-
-
 
     <div class="flex flex-wrap -mx-3 mt-6">
         <div class="w-full max-w-full px-3 md:w-4/12 flex-0">
@@ -12,7 +11,7 @@
                         class="focus:shadow-soft-primary-outline dark:bg-gray-950 dark:placeholder:text-white/80 dark:text-white/80 text-size-sm leading-5.6 ease-soft block w-full appearance-none rounded-lg border border-solid border-gray-300 bg-white bg-clip-padding px-3 py-2 font-normal text-gray-700 outline-none transition-all placeholder:text-gray-500 focus:border-fuchsia-300 focus:outline-none"
                         wire:model.live="search" />
                 </div>
-                <div class="flex justify-center items-center p-4" wire:loading>
+                <div class="flex justify-center items-center p-4" wire:loading wire:target="search">
                     <div
                         class="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-fuchsia-500 dark:border-fuchsia-300">
                     </div>
@@ -47,217 +46,106 @@
             </div>
 
         </div>
-        <div class="w-full max-w-full px-3 md:w-8/12 flex-0">
+        <div class="w-full max-w-full px-3 flex-0 lg:w-8/12">
             <div
-                class="relative flex flex-col min-w-0 mb-12 break-words bg-white border-0 max-h-70-screen lg:mb-0 bg-white/80 shadow-blur dark:bg-gray-950 dark:shadow-soft-dark-xl rounded-2xl bg-clip-border">
-                <div class="border-black/12.5 rounded-t-2xl border-b-0 border-solid p-6 shadow-soft-3xl">
+                class="relative flex flex-col min-w-0 break-words bg-white border-0 dark:bg-gray-950 dark:shadow-soft-dark-xl shadow-soft-xl rounded-2xl bg-clip-border">
+                <div class="border-black/12.5 rounded-t-2xl border-b-0 border-solid p-4">
                     <div class="flex flex-wrap -mx-3">
-                        <div class="w-full max-w-full px-3 shrink-0 md:w-10/12 md:flex-0">
-                            <div class="flex items-center">
-                                <img src="../../assets/img/team-2.jpg" alt="avatar-img"
-                                    class="inline-flex items-center justify-center w-12 h-12 text-white transition-all duration-200 text-size-base ease-soft-in-out rounded-xl">
-                                <div class="ml-4">
-                                    <h6 class="block mb-0 dark:text-white">Charlie Watson</h6>
-                                    <span class="leading-normal text-size-sm opacity-80 text-slate-700">last seen
-                                        today at 1:53am</span>
-                                </div>
+                        <div class="w-full max-w-full px-3 md:flex-0 shrink-0 md:w-6/12">
+                            <h6 class="mb-0 dark:text-white">Courses List</h6>
+                        </div>
+                        <div class="flex justify-center items-center p-4" wire:loading wire:target="addCourse">
+                            <div
+                                class="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-fuchsia-500 dark:border-fuchsia-300">
                             </div>
+                            <span class="ml-2 text-fuchsia-500 dark:text-fuchsia-300">Adding Course</span>
                         </div>
-                        <div class="w-1/12 max-w-full px-3 pr-0 my-auto flex-0">
-                            <button type="button"
-                                class="inline-block w-9 h-9 p-2.8 mb-0 text-slate-700 mr-4 sm:mr-0 font-bold text-center uppercase align-middle transition-all bg-transparent border border-transparent border-solid rounded-lg cursor-pointer leading-pro text-size-xs ease-soft-in tracking-tight-soft shadow-none bg-150 bg-x-25 active:opacity-85">
-                                <i class="ni ni-camera-compact"></i>
-                            </button>
 
-                        </div>
-                        <div class="w-1/12 max-w-full px-3 pl-0 my-auto flex-0">
-                            <div>
-
-                                <button type="button" dropdown-trigger aria-expanded="false"
-                                    class="inline-block w-9 h-9 p-2.8 mb-0 text-slate-700 mr-4 sm:mr-0 font-bold text-center uppercase align-middle transition-all bg-transparent border border-transparent border-solid rounded-lg cursor-pointer leading-pro text-size-xs ease-soft-in tracking-tight-soft shadow-none bg-150 bg-x-25 active:opacity-85">
-                                    <i class="ni ni-settings"></i>
-                                </button>
-                                <ul dropdown-menu
-                                    class="z-100 min-w-44 text-size-sm shadow-soft-3xl duration-250 transform-dropdown before:duration-350 before:font-awesome before:ease-soft before:text-5.5 dark:bg-gray-950 pointer-events-none absolute top-6 right-16 bottom-auto left-auto m-0 mt-2 block origin-top cursor-pointer list-none rounded-lg border-0 border-solid border-transparent bg-white bg-clip-padding p-2 text-left text-slate-500 opacity-0 transition-all will-change-transform before:absolute before:top-0 before:right-5 before:left-auto before:z-40 before:text-white before:transition-all before:content-['\f0d8'] sm:-mr-6">
-                                    <li class="relative"><a
-                                            class="py-1.2 lg:ease-soft clear-both block w-full whitespace-nowrap rounded-lg px-4 font-normal text-slate-500 transition-colors hover:bg-gray-200 hover:text-slate-700 focus:bg-gray-200 focus:text-slate-700 dark:text-white dark:hover:bg-gray-200/80 dark:hover:text-slate-700 lg:duration-300"
-                                            href="javascript:;">Profile</a></li>
-                                    <li class="relative"><a
-                                            class="py-1.2 lg:ease-soft clear-both block w-full whitespace-nowrap rounded-lg px-4 font-normal text-slate-500 transition-colors hover:bg-gray-200 hover:text-slate-700 focus:bg-gray-200 focus:text-slate-700 dark:text-white dark:hover:bg-gray-200/80 dark:hover:text-slate-700 lg:duration-300"
-                                            href="javascript:;">Mute conversation</a></li>
-                                    <li class="relative"><a
-                                            class="py-1.2 lg:ease-soft clear-both block w-full whitespace-nowrap rounded-lg px-4 font-normal text-slate-500 transition-colors hover:bg-gray-200 hover:text-slate-700 focus:bg-gray-200 focus:text-slate-700 dark:text-white dark:hover:bg-gray-200/80 dark:hover:text-slate-700 lg:duration-300"
-                                            href="javascript:;">Block</a></li>
-                                    <li class="relative"><a
-                                            class="py-1.2 lg:ease-soft clear-both block w-full whitespace-nowrap rounded-lg px-4 font-normal text-slate-500 transition-colors hover:bg-gray-200 hover:text-slate-700 focus:bg-gray-200 focus:text-slate-700 dark:text-white dark:hover:bg-gray-200/80 dark:hover:text-slate-700 lg:duration-300"
-                                            href="javascript:;">Clear chat</a></li>
-                                    <li class="relative">
-                                        <hr class="h-px my-2 bg-gradient-horizontal-dark" />
-                                    </li>
-                                    <li class="relative"><a
-                                            class="py-1.2 text-danger lg:ease-soft clear-both block w-full whitespace-nowrap rounded-lg px-4 font-normal text-red-600 transition-colors hover:bg-gray-200 focus:bg-gray-200 dark:hover:bg-gray-200/80 lg:duration-300"
-                                            href="javascript:;">Delete chat</a></li>
-                                </ul>
-                            </div>
-                        </div>
                     </div>
+                    <hr
+                        class="h-px mx-0 my-4 mb-0 bg-transparent border-0 opacity-25 bg-gradient-horizontal-dark dark:bg-gradient-horizontal-light" />
                 </div>
 
-                <div class="flex-auto p-6 overflow-auto overflow-x-hidden">
-                    <div class="flex flex-wrap justify-start mb-6 -mx-3">
-                        <div class="w-auto max-w-full px-3 flex-0">
-                            <div
-                                class="relative flex flex-col min-w-0 break-words bg-white border-0 dark:bg-gray-950 dark:shadow-soft-dark-xl shadow-soft-xl rounded-2xl bg-clip-border">
-                                <div class="flex-auto px-4 py-2">
-                                    <p class="mb-1">It contains a lot of good lessons about effective practices</p>
-                                    <div class="flex items-center leading-normal text-size-sm opacity-60">
-                                        <i class="mr-1 leading-normal ni ni-check-bold text-size-sm"></i>
-                                        <small>3:14am</small>
-                                    </div>
-                                </div>
-                            </div>
+                <div class="flex-auto p-4 pt-0">
+                    <div class="flex justify-center items-center p-4" wire:loading wire:target="deleteCourse">
+                        <div class="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-fuchsia-500 dark:border-fuchsia-300">
                         </div>
+                        <span class="ml-2 text-fuchsia-500 dark:text-fuchsia-300">Deleting...</span>
                     </div>
-                    <div class="flex flex-wrap justify-end mb-6 -mx-3 text-right">
-                        <div class="w-auto max-w-full px-3 flex-0">
-                            <div
-                                class="relative flex flex-col min-w-0 break-words bg-gray-200 border-0 dark:bg-gray-950 dark:shadow-soft-dark-xl shadow-soft-xl rounded-2xl bg-clip-border">
-                                <div class="flex-auto px-4 py-2">
-                                    <p class="mb-1"> Can it generate daily design links that include essays and data
-                                        visualizations ?</p>
-                                    <div class="flex items-center justify-end leading-normal text-size-sm opacity-60">
-                                        <i class="mr-1 leading-normal ni ni-check-bold text-size-sm"></i>
-                                        <small>4:42pm</small>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="flex flex-wrap mt-6 -mx-3">
-                        <div class="w-full max-w-full px-3 text-center shrink-0 md:flex-0 md:w-full">
-                            <span
-                                class="py-2.2-em px-3.6-em text-size-xs-em rounded-1.8 inline-block whitespace-nowrap text-center align-baseline font-bold uppercase leading-none text-slate-700">Wed,
-                                3:27pm</span>
-                        </div>
-                    </div>
-                    <div class="flex flex-wrap justify-start mb-6 -mx-3">
-                        <div class="w-auto max-w-full px-3 flex-0">
-                            <div
-                                class="relative flex flex-col min-w-0 break-words bg-white border-0 dark:bg-gray-950 dark:shadow-soft-dark-xl shadow-soft-xl rounded-2xl bg-clip-border">
-                                <div class="flex-auto px-4 py-2">
-                                    <p class="mb-1"> Yeah! Responsive Design is geared towards those trying to build
-                                        web apps </p>
-                                    <div class="flex items-center leading-normal text-size-sm opacity-60">
-                                        <i class="mr-1 leading-normal ni ni-check-bold text-size-sm"></i>
-                                        <small>4:31pm</small>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="flex flex-wrap justify-end mb-6 -mx-3 text-right">
-                        <div class="w-auto max-w-full px-3 flex-0">
-                            <div
-                                class="relative flex flex-col min-w-0 break-words bg-gray-200 border-0 dark:bg-gray-950 dark:shadow-soft-dark-xl shadow-soft-xl rounded-2xl bg-clip-border">
-                                <div class="flex-auto px-4 py-2">
-                                    <p class="mb-1"> Excellent, I want it now ! </p>
-                                    <div class="flex items-center justify-end leading-normal text-size-sm opacity-60">
-                                        <i class="mr-1 leading-normal ni ni-check-bold text-size-sm"></i>
-                                        <small>4:42pm</small>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="flex flex-wrap justify-start mb-6 -mx-3">
-                        <div class="w-auto max-w-full px-3 flex-0">
-                            <div
-                                class="relative flex flex-col min-w-0 break-words bg-white border-0 dark:bg-gray-950 dark:shadow-soft-dark-xl shadow-soft-xl rounded-2xl bg-clip-border">
-                                <div class="flex-auto px-4 py-2">
-                                    <p class="mb-1"> You can easily get it; The content here is all free </p>
-                                    <div class="flex items-center leading-normal text-size-sm opacity-60">
-                                        <i class="mr-1 leading-normal ni ni-check-bold text-size-sm"></i>
-                                        <small>4:42pm</small>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="flex flex-wrap justify-end mb-6 -mx-3 text-right">
-                        <div class="w-auto max-w-full px-3 flex-0">
-                            <div
-                                class="relative flex flex-col min-w-0 break-words bg-gray-200 border-0 dark:bg-gray-950 dark:shadow-soft-dark-xl shadow-soft-xl rounded-2xl bg-clip-border">
-                                <div class="flex-auto px-4 py-2">
-                                    <p class="mb-1">
-                                        Awesome, blog is important source material for anyone who creates apps?
-                                        <br>
-                                        Beacuse these blogs offer a lot of information about website development.
-                                    </p>
-                                    <div class="flex items-center justify-end leading-normal text-size-sm opacity-60">
-                                        <i class="mr-1 leading-normal ni ni-check-bold text-size-sm"></i>
-                                        <small>4:42pm</small>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="flex flex-wrap justify-start mb-6 -mx-3">
-                        <div class="w-5/12 max-w-full px-3 flex-0">
-                            <div
-                                class="relative flex flex-col min-w-0 break-words bg-white border-0 dark:bg-gray-950 dark:shadow-soft-dark-xl shadow-soft-xl rounded-2xl bg-clip-border">
-                                <div class="flex-auto p-2">
-                                    <div class="w-full max-w-full p-0 flex-0">
-                                        <img class="h-auto max-w-full mb-2 rounded-xl"
-                                            src="https://images.unsplash.com/photo-1602142946018-34606aa83259?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1762&q=80"
-                                            alt="Rounded Image">
-                                    </div>
-                                    <div class="flex items-center leading-normal text-size-sm opacity-60">
-                                        <i class="mr-1 leading-normal ni ni-check-bold text-size-sm"></i>
-                                        <small>4:47pm</small>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="flex flex-wrap justify-end mb-6 -mx-3 text-right">
-                        <div class="w-auto max-w-full px-3 flex-0">
-                            <div
-                                class="relative flex flex-col min-w-0 break-words bg-gray-200 border-0 dark:bg-gray-950 dark:shadow-soft-dark-xl shadow-soft-xl rounded-2xl bg-clip-border">
-                                <div class="flex-auto px-4 py-2">
-                                    <p class="mb-0"> At the end of the day … the native dev apps is where users are
-                                    </p>
-                                    <div class="flex items-center justify-end leading-normal text-size-sm opacity-60">
-                                        <i class="mr-1 leading-normal ni ni-check-bold text-size-sm"></i>
-                                        <small>4:47pm</small>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="flex flex-wrap justify-start -mx-3">
-                        <div class="w-auto max-w-full px-3 flex-0">
-                            <div
-                                class="relative flex flex-col min-w-0 break-words bg-white border-0 dark:bg-gray-950 dark:shadow-soft-dark-xl shadow-soft-xl rounded-2xl bg-clip-border">
-                                <div class="flex-auto px-4 py-2">
-                                    <p class="mb-0">Charlie is typing... </p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                    <ul class="flex flex-col pl-0 mb-0 rounded-none" wire:poll.visible wire:target="addCourse" >
 
-                <div class="border-black/12.5 rounded-b-2xl border-t-0 border-solid p-6 block">
-                    <form class="items-center">
-                        <div class="flex">
-                            <input type="text" placeholder="Type here"
-                                class="focus:shadow-soft-primary-outline dark:bg-gray-950 dark:placeholder:text-white/80 dark:text-white/80 text-size-sm leading-5.6 ease-soft block w-full appearance-none rounded-lg border border-solid border-gray-300 bg-white bg-clip-padding px-3 py-2 font-normal text-gray-700 outline-none transition-all placeholder:text-gray-500 focus:border-fuchsia-300 focus:outline-none" />
-                            <button type="button"
-                                class="inline-block px-6 py-3 mb-0 ml-2 font-bold text-center text-white uppercase align-middle transition-all border-0 rounded-lg cursor-pointer hover:scale-102 active:opacity-85 hover:shadow-soft-xs bg-gradient-fuchsia leading-pro text-size-xs ease-soft-in tracking-tight-soft shadow-soft-md bg-150 bg-x-25">
-                                <i class="ni ni-send"></i>
-                            </button>
 
-                        </div>
-                    </form>
+                        @foreach ($selectedCourses as $pickedCourse)
+                                                @php
+    $course = StudentCourse::find($pickedCourse->student_course_id);
+    $lastDigit = substr($course->code, -1);
+    $semester = $lastDigit % 2 === 0 ? 2 : 1;
+
+                                                @endphp
+                                                <li
+                                                    class="border-black/12.5 rounded-t-inherit relative mb-4 block flex-col items-center border-0 border-solid px-4 py-0 pl-0 text-inherit">
+                                                    <div
+                                                        class="before:w-0.75 before:rounded-1 ml-4 pl-2 before:absolute before:top-0 before:left-0 before:h-full before:bg-slate-700 before:content-['']">
+                                                        <div class="flex items-center">
+
+                                                            <h6
+                                                                class="mb-0 font-semibold leading-normal text-size-sm text-slate-700 dark:text-white">
+                                                                {{$course->code . '  ' . $course->title}}
+                                                            </h6>
+
+                                                        </div>
+                                                        <div class="flex items-center pl-1 mt-4 ml-6">
+                                                            <div>
+                                                                <p
+                                                                    class="mb-0 font-semibold leading-tight text-size-xs text-slate-400 dark:text-white/80">
+                                                                    Level</p>
+                                                                <span
+                                                                    class="font-bold leading-tight text-size-xs">{{ number_format($course->student_level_id) . '00' }}</span>
+                                                            </div>
+                                                            <div class="ml-auto">
+                                                                <p
+                                                                    class="mb-0 font-semibold leading-tight text-size-xs text-slate-400 dark:text-white/80">
+                                                                    Semester
+                                                                </p>
+                                                                <span class="font-bold leading-tight text-size-xs">{{ $semester }}</span>
+                                                            </div>
+                                                            <div class="mx-auto">
+                                                                <p
+                                                                    class="mb-0 font-semibold leading-tight text-size-xs text-slate-400 dark:text-white/80">
+                                                                    Units
+                                                                </p>
+                                                                <span
+                                                                    class="font-bold leading-tight text-size-xs">{{$pickedCourse->units}}</span>
+                                                            </div>
+                                                            <div class="flex items-center space-x-2">
+                                                                <button wire:click=""
+                                                                    class="text-sm text-teal-500 font-semibold rounded hover:text-teal-800">
+                                                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                                                        stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
+                                                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                                                            d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
+                                                                    </svg>
+                                                                </button>
+                                                                <button wire:click="deleteCourse({{$pickedCourse->id}})"
+                                                                    class="text-sm text-red-500 font-semibold rounded hover:text-teal-800 mr-1">
+                                                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                                                        stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
+                                                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                                                            d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
+                                                                    </svg>
+                                                                </button>
+                                                            </div>
+                                                        </div>
+
+                                                    </div>
+                                                    <hr
+                                                        class="h-px mx-0 my-6 mb-0 bg-transparent border-0 opacity-25 bg-gradient-horizontal-dark dark:bg-gradient-horizontal-light" />
+                                                </li>
+
+                        @endforeach
+
+
+                    </ul>
                 </div>
             </div>
         </div>

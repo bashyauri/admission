@@ -84,7 +84,7 @@ class RouteServiceProvider extends ServiceProvider
     }
     protected function mapCoordinatorRoutes()
     {
-        Route::middleware(['web', 'auth', 'verified', 'role:cordinator'])
+        Route::middleware(['web', 'auth', 'verified', 'role:coordinator'])
             ->prefix('coordinator')
             ->as('coordinator.')
             ->group(base_path('routes/coordinator.php'));

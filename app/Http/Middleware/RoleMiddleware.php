@@ -18,27 +18,21 @@ class RoleMiddleware
         $userRole = $request->user()->role;
 
         if ($userRole !== $role) {
-            $redirectRoute = $this->getRedirectRoute($userRole);
+            $redirectRoute = match ($userRole) {
+                'hod' => 'hod.dashboard',
+                'admin' => 'admin.dashboard',
+                'student' => 'student.dashboard',
+                'cit' => 'cit.dashboard',
+                'coordinator' => 'coordinator.dashboard',
+                default => 'analytics',
+            };
+
+            // Prevent redirection loop
+            if ($request->route()->getName() !== $redirectRoute) {
+                return redirect()->route($redirectRoute);
+            }
         }
 
         return $next($request);
-    }
-
-    /**
-     * Get the redirect route based on the user's role.
-     *
-     * @param  string  $role
-     * @return string
-     */
-    private function getRedirectRoute(string $role): string
-    {
-        return match ($role) {
-            'hod' => 'hod.dashboard',
-            'admin' => 'admin.dashboard',
-            'student' => 'student.dashboard',
-            'cit' => 'cit.dashboard',
-            'coordinator' => 'coordinator.dashboard',
-            default => 'analytics',
-        };
     }
 }
