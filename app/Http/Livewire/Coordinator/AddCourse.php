@@ -2,15 +2,22 @@
 
 namespace App\Http\Livewire\Coordinator;
 
+use App\Livewire\Forms\EditUnitForm;
 use App\Models\DepartmentCourse;
 use App\Models\StudentCourse;
+use Jantinnerezo\LivewireAlert\LivewireAlert;
 use Livewire\Component;
 
 class AddCourse extends Component
 {
+    use LivewireAlert;
     public $search = '';
     public $departmentId;
     public $levelId;
+    public $editingCourseId;
+    public EditUnitForm $form;
+
+
 
     public function mount()
     {
@@ -29,6 +36,36 @@ class AddCourse extends Component
     {
         DepartmentCourse::findOrFail($id)->delete();
     }
+    public function editCourse($id)
+    {
+        $this->editingCourseId = $id;
+        $departmentCourse = DepartmentCourse::findOrFail($id);
+        $this->form->unit = $departmentCourse->units;
+    }
+    public function saveUnit()
+    {
+        try {
+
+            $this->form->update($this->editingCourseId);
+            $this->alert('success', 'Updated Successfully', [
+                'position' => 'top-end',
+                'timer' => 3000,
+                'toast' => true,
+            ]);
+        } catch (\Exception $e) {
+            report($e);
+            $this->alert('error', 'Update failed.', [
+                'position' => 'top-end',
+                'timer' => 3000,
+                'toast' => true,
+            ]);
+        }
+        $this->cancelEdit();
+    }
+    public function cancelEdit()
+    {
+        $this->editingCourseId = null;
+    }
 
     public function render()
     {
@@ -44,7 +81,7 @@ class AddCourse extends Component
 
         $coursesPicked = DepartmentCourse::query()
             ->where('department_id', $this->departmentId)
-            ->with('studentCourse') // Add relationship if available
+            ->with('studentCourse')
             ->orderBy('created_at', 'desc')
             ->get();
 

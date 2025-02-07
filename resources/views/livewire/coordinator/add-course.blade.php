@@ -68,18 +68,19 @@
 
                 <div class="flex-auto p-4 pt-0">
                     <div class="flex justify-center items-center p-4" wire:loading wire:target="deleteCourse">
-                        <div class="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-fuchsia-500 dark:border-fuchsia-300">
+                        <div
+                            class="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-fuchsia-500 dark:border-fuchsia-300">
                         </div>
                         <span class="ml-2 text-fuchsia-500 dark:text-fuchsia-300">Deleting...</span>
                     </div>
-                    <ul class="flex flex-col pl-0 mb-0 rounded-none" wire:poll.visible wire:target="addCourse" >
+                    <ul class="flex flex-col pl-0 mb-0 rounded-none" wire:poll.visible wire:target="addCourse">
 
 
                         @foreach ($selectedCourses as $pickedCourse)
                                                 @php
-    $course = StudentCourse::find($pickedCourse->student_course_id);
-    $lastDigit = substr($course->code, -1);
-    $semester = $lastDigit % 2 === 0 ? 2 : 1;
+                                                    $course = StudentCourse::find($pickedCourse->student_course_id);
+                                                    $lastDigit = substr($course->code, -1);
+                                                    $semester = $lastDigit % 2 === 0 ? 2 : 1;
 
                                                 @endphp
                                                 <li
@@ -114,11 +115,48 @@
                                                                     class="mb-0 font-semibold leading-tight text-size-xs text-slate-400 dark:text-white/80">
                                                                     Units
                                                                 </p>
-                                                                <span
-                                                                    class="font-bold leading-tight text-size-xs">{{$pickedCourse->units}}</span>
+                                                                @if ($editingCourseId === $pickedCourse->id)
+                                                                    <div class="relative flex-auto p-4">
+                                                                        <form>
+                                                                            <input wire:model="form.unit" type="text"
+                                                                                class="dark:bg-gray-950 mb-2 focus:shadow-soft-success-outline dark:placeholder:text-white/80 dark:text-white/80 text-xs leading-5 ease-soft block w-full appearance-none rounded-lg border border-solid border-gray-300 bg-white bg-clip-padding px-2 py-1 font-normal text-gray-700 outline-none transition-all placeholder:text-gray-500 focus:border-teal-300 focus:outline-none"
+                                                                                placeholder="units...">
+                                                                            @error('form.unit')
+                                                                                <p class="text-xs text-red-500">{{ $message }} </p>
+                                                                            @enderror
+
+                                                                            <button wire:click.prevent="saveUnit"
+                                                                                class="mt-3 text-teal-500 hover:text-teal-600">
+                                                                                <svg xmlns="http://www.w3.org/2000/svg" fill="none"
+                                                                                    viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
+                                                                                    class="w-5 h-5">
+                                                                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                                                                        d="M5 13l4 4L19 7" />
+                                                                                </svg>
+                                                                            </button>
+                                                                            <button wire:click="cancelEdit"
+                                                                                class="mt-3 text-red-500 hover:text-red-600">
+                                                                                <svg xmlns="http://www.w3.org/2000/svg" fill="none"
+                                                                                    viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
+                                                                                    class="w-5 h-5">
+                                                                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                                                                        d="M6 18L18 6M6 6l12 12" />
+                                                                                </svg>
+                                                                            </button>
+                                                                        </form>
+
+                                                                    </div>
+
+
+                                                                @else
+
+                                                                    <span
+                                                                        class="font-bold leading-tight text-size-xs">{{$pickedCourse->units}}</span>
+                                                                @endif
+
                                                             </div>
                                                             <div class="flex items-center space-x-2">
-                                                                <button wire:click=""
+                                                                <button wire:click="editCourse({{$pickedCourse->id}})"
                                                                     class="text-sm text-teal-500 font-semibold rounded hover:text-teal-800">
                                                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                                                                         stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
