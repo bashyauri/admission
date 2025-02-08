@@ -77,7 +77,7 @@ class AddCourse extends Component
             ->whereNull('department_courses.id')
             ->where('student_courses.code', 'like', "%{$this->search}%")
             ->select('student_courses.*')
-            ->get();
+            ->paginate(10);
 
         $coursesPicked = DepartmentCourse::query()
             ->where('department_id', $this->departmentId)

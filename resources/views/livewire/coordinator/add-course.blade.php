@@ -1,7 +1,9 @@
 @use('App\Models\StudentCourse')
 <div>
+   
 
     <div class="flex flex-wrap -mx-3 mt-6">
+     
         <div class="w-full max-w-full px-3 md:w-4/12 flex-0">
             <div
                 class="relative flex flex-col min-w-0 mb-12 overflow-auto overflow-x-hidden break-words bg-white border-0 max-h-70-screen lg:mb-0 bg-white/80 shadow-blur dark:bg-gray-950 dark:shadow-soft-dark-xl rounded-2xl bg-clip-border">
@@ -41,7 +43,7 @@
                     @empty
                         <p>No courses found</p>
                     @endforelse
-
+                    
                 </div>
             </div>
 
@@ -78,9 +80,9 @@
 
                         @foreach ($selectedCourses as $pickedCourse)
                                                 @php
-                                                    $course = StudentCourse::find($pickedCourse->student_course_id);
-                                                    $lastDigit = substr($course->code, -1);
-                                                    $semester = $lastDigit % 2 === 0 ? 2 : 1;
+    $course = StudentCourse::find($pickedCourse->student_course_id);
+    $lastDigit = substr($course->code, -1);
+    $semester = $lastDigit % 2 === 0 ? 2 : 1;
 
                                                 @endphp
                                                 <li
@@ -116,6 +118,13 @@
                                                                     Units
                                                                 </p>
                                                                 @if ($editingCourseId === $pickedCourse->id)
+                                                                    <div class="flex justify-center items-center p-4" wire:loading
+                                                                        wire:target="editCourse">
+                                                                        <div
+                                                                            class="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-fuchsia-500 dark:border-fuchsia-300">
+                                                                        </div>
+                                                                        <span class="ml-2 text-fuchsia-500 dark:text-fuchsia-300">Deleting...</span>
+                                                                    </div>
                                                                     <div class="relative flex-auto p-4">
                                                                         <form>
                                                                             <input wire:model="form.unit" type="text"
@@ -188,4 +197,6 @@
             </div>
         </div>
     </div>
+
+    
 </div>
