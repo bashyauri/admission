@@ -7,7 +7,7 @@
                 <div class="border-black/12.5 rounded-t-2xl border-b-0 border-solid p-4">
 
                     <h6 class="dark:text-white">Student</h6>
-                    <input type="text" placeholder="Search Contact"
+                    <input type="text" placeholder="Registration number"
                         class="focus:shadow-soft-primary-outline dark:bg-gray-950 dark:placeholder:text-white/80 dark:text-white/80 text-size-sm leading-5.6 ease-soft block w-full appearance-none rounded-lg border border-solid border-gray-300 bg-white bg-clip-padding px-3 py-2 font-normal text-gray-700 outline-none transition-all placeholder:text-gray-500 focus:border-fuchsia-300 focus:outline-none"
                         wire:model.live="search" />
                 </div>
@@ -17,8 +17,15 @@
                     </div>
                     <span class="ml-2 text-fuchsia-500 dark:text-fuchsia-300">Searching...</span>
                 </div>
+
+
                 <div class="flex-auto p-2">
                     @if ($search !== '')
+                        @if($generatedPin)
+                            <h6 class="mb-0 dark:text-white text-center text-lime-500">
+                                The pin is {{$generatedPin}}
+                            </h6>
+                        @endif
                         @forelse ($students as $student)
 
                             <a href="javascript:;" class="block p-2">
@@ -30,14 +37,17 @@
                                             {{ User::find($student->user_id)->full_name }}
                                         </h6>
                                         <p class="mb-2 leading-tight text-slate-500 text-size-xs">{{ $student->matric_no }}</p>
-                                        <button wire:click.prevent="generatePin({{ $student->id }})" {{-- Added student ID --}}
-                                            class="inline-block px-4 py-2 m-0 ml-2 mr-2 text-xs font-bold text-center text-white uppercase align-middle transition-all border-0 rounded-lg cursor-pointer ease-soft-in leading-pro tracking-tight-soft bg-gradient-lime shadow-soft-md bg-150 bg-x-25 hover:scale-102 active:opacity-85">
-                                            Generate Pin
+                                        <button wire:click.prevent="generatePin({{ $student->id }})"
+                                            wire:target="generatePin({{ $student->id }})" wire:loading.attr="disabled"
+                                            wire:loading.class="bg-gradient-gray text-slate-800"
+                                            wire:loading.class.remove="bg-gradient-lime text-slate-800"
+                                            class="inline-block px-2 py-2 m-0 ml-2 text-xs font-bold text-center text-white align-middle transition-all border-0 rounded-lg cursor-pointer ease-soft-in leading-pro tracking-tight-soft bg-gradient-lime shadow-soft-md bg-150 bg-x-25 hover:scale-102 active:opacity-85">
+                                            <span wire:loading.remove wire:target="generatePin">Generate Pin</span>
+                                            <span wire:loading wire:target="generatePin" class="text-gray-800">Loading...</span>
                                         </button>
-                                        <div wire:loading wire:target="generatePin({{ $student->id }})"> {{-- Targeted the
-                                            specific button --}}
-                                            Updating status...
-                                        </div>
+                                        <button type="button" wire:click="close"
+                                            class="inline-block px-2 py-2 ml-2 font-bold text-center  align-middle transition-all bg-gray-200 border-0 rounded-lg cursor-pointer hover:scale-102 active:opacity-85 hover:shadow-soft-xs leading-pro text-size-xs ease-soft-in tracking-tight-soft shadow-soft-md bg-150 bg-x-25 text-slate-800">Reset</button>
+
                                     </div>
                                 </div>
                             </a>

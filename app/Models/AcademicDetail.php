@@ -26,4 +26,8 @@ class AcademicDetail extends Model
     {
         return $this->belongsTo(UgStudentLevel::class);
     }
+    public function coordinator()
+    {
+        return $this->belongsTo(Coordinator::class);
+    }
 }
