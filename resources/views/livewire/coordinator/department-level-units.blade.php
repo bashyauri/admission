@@ -5,7 +5,7 @@
             <div class="p-6 mb-0 rounded-t-2xl justify-center items-center">
                 <h5 class="dark:text-white">Add max unit</h5>
             </div>
-            <form wire:submit.prevent='createCourse'>
+            <form wire:submit.prevent='addMaxUnit'>
                 <div class="flex-auto p-6 pt-0 mr-5">
 
                     <div class="flex flex-wrap -mx-3">
@@ -21,7 +21,7 @@
                                                                           values = event.detail.value;
                                                                           @this.set('form.level_id', values);
                                                                       })">
-                                <select wire:model="form.level_id" choice name="choices-level" id="choices-level"
+                                <select wire:model="form.level" choice name="choices-level" id="choices-level"
                                     x-ref="levels">
                                     <option value="">Select Level</option>
                                     @foreach ($levels as $level)
@@ -31,15 +31,17 @@
                                     @endforeach
                                 </select>
                             </div>
+                            @error('form.level') <span class="text-xs text-red-500">{{ $message }}</span> @enderror
                         </div>
                         <div class="w-4/12 max-w-full px-3 flex-0">
                             <label class="mt-6 mb-2 ml-1 font-bold text-size-xs text-slate-700 dark:text-white/80"
                                 for="Email">Max Credit
                                 Unit</label>
                             <div class="relative flex flex-wrap items-stretch w-full rounded-lg">
-                                <input type="number" wire:model='courseForm.units' placeholder="Credit Unit"
+                                <input type="number" wire:model='form.units' placeholder="Credit Unit"
                                     class="focus:shadow-soft-primary-outline dark:bg-gray-950 dark:placeholder:text-white/80 dark:text-white/80 text-size-sm leading-5.6 ease-soft block w-full appearance-none rounded-lg border border-solid border-gray-300 bg-white bg-clip-padding px-3 py-2 font-normal text-gray-700 outline-none transition-all placeholder:text-gray-500 focus:border-fuchsia-300 focus:outline-none" />
                             </div>
+                            @error('form.units') <span class="text-xs text-red-500">{{ $message }}</span> @enderror
                         </div>
 
                     </div>

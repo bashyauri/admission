@@ -78,7 +78,7 @@ class Settings extends Component
         ]);
     }
 
-    private function showValidationErrors(ValidationException $e): void
+    public function showValidationErrors(ValidationException $e): void
     {
         $this->alert('error', 'Validation Error', [
             'position' => 'center',
