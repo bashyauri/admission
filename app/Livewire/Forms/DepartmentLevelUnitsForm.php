@@ -15,10 +15,14 @@ class DepartmentLevelUnitsForm extends Form
     public function store(): void
     {
         $this->validate();
-        DepartmentMaxUnit::create([
-            'department_id' => auth()->user()->coordinator->department_id,
-            'student_level_id' => $this->level['value'],
-            'max_units' => $this->units,
-        ]);
+        DepartmentMaxUnit::updateOrCreate(
+            [
+                'department_id' => auth()->user()->coordinator->department_id,
+                'student_level_id' => $this->level['value'],
+            ],
+            [
+                'max_units' => $this->units,
+            ]
+        );
     }
 }

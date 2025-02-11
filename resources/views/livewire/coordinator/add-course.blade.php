@@ -22,23 +22,29 @@
                     <span class="ml-2 text-fuchsia-500 dark:text-fuchsia-300">Searching...</span>
                 </div>
                 <div class="flex-auto p-2">
-
+                    <div class="flex justify-center items-center p-4" wire:loading wire:target="addCourse">
+                        <div class="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-fuchsia-500 dark:border-fuchsia-300">
+                        </div>
+                        <span class="ml-2 text-fuchsia-500 dark:text-fuchsia-300">hold on...</span>
+                    </div>
                     @forelse ($courses as $course)
 
-                        <div href="javascript:;" class="cursor-pointer block p-2 bg-gradient-lime rounded-xl mb-2">
+                        <div  class=" block p-2 bg-gradient-lime rounded-xl mb-2">
                             <div class="flex p-2">
 
-                                <div wire:click="addCourse({{ $course->id }})" class="ml-4">
-                                    <div class="items-center justify-between">
-                                        <h6 class="mb-0 text-white dark:text-white">
-                                            {{$course->code}}
-                                        </h6>
-                                        <p class="mb-0 leading-normal text-white text-size-sm">{{$course->title}}</p>
-                                        <input type="hidden" wire:model="form.code" value="{{$course->code}}">
-                                        <input type="hidden" wire:model="form.title" value="{{$course->title}}">
-                                        <input type="hidden" wire:model="form.course_id" value="{{$course->id}}">
-                                    </div>
+                            <div wire:click="addCourse({{ $course->id }})" class="ml-4 cursor-pointer" wire:target="addCourse({{ $course->id }})"
+                                wire:loading.class="cursor-not-allowed opacity-50" wire:loading.attr="disabled" wire:loading.class.remove="cursor-pointer">
+                                <div class="items-center justify-between">
+                                    <h6 class="mb-0 text-white dark:text-white">
+                                        {{$course->code}}
+                                    </h6>
+                                    <p class="mb-0 leading-normal text-white text-size-sm">{{$course->title}}</p>
+                                    <input type="hidden" wire:model="form.code" value="{{$course->code}}">
+                                    <input type="hidden" wire:model="form.title" value="{{$course->title}}">
+                                    <input type="hidden" wire:model="form.course_id" value="{{$course->id}}">
                                 </div>
+                            </div>
+
                             </div>
                         </div>
 

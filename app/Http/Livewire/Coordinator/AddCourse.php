@@ -19,6 +19,7 @@ class AddCourse extends Component
 
 
 
+
     public function mount()
     {
         $this->departmentId = auth()->user()->coordinator->department_id;
@@ -26,12 +27,31 @@ class AddCourse extends Component
 
     public function addCourse(StudentCourse $course)
     {
-        DepartmentCourse::create([
-            'student_course_id' => $course->id,
-            'department_id' => $this->departmentId,
-            'units' => $course->units,
-        ]);
+        try {
+            DepartmentCourse::create([
+                'student_course_id' => $course->id,
+                'department_id' => $this->departmentId,
+                'units' => $course->units,
+            ]);
+
+            // Provide success feedback
+            $this->alert('success', 'Course added successfully!', [
+                'position' => 'top-end',
+                'timer' => 3000,
+                'toast' => true,
+            ]);
+        } catch (\Exception $e) {
+            report($e);
+            // Provide error feedback
+            $this->alert('error', 'Failed to add course.', [
+                'position' => 'top-end',
+                'timer' => 3000,
+                'toast' => true,
+            ]);
+        }
     }
+
+
     public function deleteCourse($id)
     {
         DepartmentCourse::findOrFail($id)->delete();
