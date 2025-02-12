@@ -42,6 +42,14 @@ class PaymentService
             return config('remita.acceptance.fee'); //for postgraduate
         }
     }
+    public function getSchoolFeesResource(): string
+    {
+        if (auth()->user()->isUndergraduate()) {
+            return config('remita.schoolfees.ug_schoolfees_description');
+        } else {
+            return config('remita.schoolfees.description'); //for postgraduate
+        }
+    }
 
     public function getPaidAcceptanceFeePayments(): Collection
     {
@@ -54,7 +62,7 @@ class PaymentService
     }
     public function hasInvoice(string $paymentType, string $userId)
     {
-        return StudentTransaction::where(['user_id' => $userId, 'resource' => $paymentType])->exists();
+        return StudentTransaction::where(['user_id' => $userId, 'resource' => $paymentType, 'acad_session' => config('remita.settings.academic_session')])->exists();
     }
     public function getUgStudentLevel(string $userId): int
     {

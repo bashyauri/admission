@@ -10,9 +10,9 @@
                             <h5 class="mb-0 font-bold dark:text-white"></h5> --}}
                             <span class="mt-auto mb-0 font-bold leading-normal text-right text-lime-500 text-size-sm">
 
-                                <a href="{{route('cit.paid-acceptance-fees')}}"
-                                    class="inline-block px-6 py-3 mt-4 font-bold text-center uppercase align-middle transition-all border-0 rounded-lg cursor-pointer hover:scale-102 active:opacity-85 hover:shadow-soft-xs bg-gradient-gray leading-pro text-size-xs ease-soft-in tracking-tight-soft shadow-soft-md bg-150 bg-x-25 text-slate-800">Generate
-                                    School Fees Invoice</a>
+                                <a href="{{route('coordinator.add-course')}}"
+                                    class="inline-block px-6 py-3 mt-4 font-bold text-center uppercase align-middle transition-all border-0 rounded-lg cursor-pointer hover:scale-102 active:opacity-85 hover:shadow-soft-xs bg-gradient-lime leading-pro text-size-xs ease-soft-in tracking-tight-soft shadow-soft-md bg-150 bg-x-25 text-white">Manage
+                                    Courses</a>
                             </span>
                         </div>
                         <div class="w-5/12 max-w-full px-3 flex-0">
@@ -54,15 +54,15 @@
                             {{-- <p class="mb-1 font-semibold leading-normal capitalize text-size-sm">Not Recommended
                             </p> --}}
                             <h5 class="mb-0 font-bold dark:text-white"></h5>
-                            <span class="mt-auto mb-0 font-bold leading-normal text-right text-lime-500 text-size-sm">
+                            <span class="mt-auto mb-0 font-bold leading-normal text-center text-lime-500 text-size-sm">
 
-                                <a href="{{route('cit.first-school-fees')}}"
-                                    class="inline-block px-6 py-3 mt-4 font-bold text-center uppercase align-middle transition-all border-0 rounded-lg cursor-pointer hover:scale-102 active:opacity-85 hover:shadow-soft-xs bg-gradient-gray leading-pro text-size-xs ease-soft-in tracking-tight-soft shadow-soft-md bg-150 bg-x-25 text-slate-800">Confirm
-                                    School Fees</a>
+                                <a href="{{route('coordinator.department-level-units')}}"
+                                    class="inline-block px-6 py-3 mt-4 font-bold text-center uppercase align-middle transition-all border-0 rounded-lg cursor-pointer hover:scale-102 active:opacity-85 hover:shadow-soft-xs bg-gradient-lime leading-pro text-size-xs ease-soft-in tracking-tight-soft shadow-soft-md bg-150 bg-x-25 text-white">Add
+                                    Max Units</a>
                             </span>
                         </div>
                         <div class="w-5/12 max-w-full px-3 flex-0">
-                            <div class="relative text-right">
+                            <div class="relative text-center">
                                 <a href="javascript:;" class="cursor-pointer" dropdown-trigger aria-expanded="false">
                                     <span
                                         class="leading-tight text-size-xs text-slate-400">{{config('remita.settings.academic_session')}}</span>

@@ -88,6 +88,10 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return $this->role === 'applicant';
     }
+    public function isStudent(): bool
+    {
+        return $this->role === Role::STUDENT->value;
+    }
     public function isCit(): bool
     {
         return $this->role === Role::CIT->value;

@@ -43,17 +43,22 @@ class UtmeSchoolFeesInvoice extends Component
         if ($this->paymentService->hasInvoice($this->description, $this->user->id)) {
             $data =
                 StudentTransaction::where('user_id', $this->user->id)
-                ->where('resource', config('remita.schoolfees.ug_schoolfees_description'))
-                ->where('status', '!=', TransactionStatus::APPROVED->value)
+                ->where([
+                    'resource' => config('remita.schoolfees.ug_schoolfees_description'),
+                    'acad_session' => config('remita.settings.academic_session')
+                ])
                 ->first();
-
-            to_route('cit.payment', ['studenttransaction' => $data])->with('success', $data->status);
+            if ($user->isStudent()) {
+                to_route('student.ug-payment', ['studenttransaction' => $data])->with('success', $data->status);
+            } else {
+                to_route('cit.payment', ['studenttransaction' => $data])->with('success', $data->status);
+            }
+        } else {
+            $this->currentLevel = $this->paymentService->getUgStudentLevel($this->user->id);
+            $paymentDetail = $this->paymentService->getStudentFee($this->user->id);
+            $this->amount = $paymentDetail->fee_amount;
+            $this->transactionId = $this->transactionService->generateTransactionId("WUFPDHS");
         }
-
-        $this->currentLevel = $this->paymentService->getUgStudentLevel($this->user->id);
-        $paymentDetail = $this->paymentService->getStudentFee($this->user->id);
-        $this->amount = $paymentDetail->fee_amount;
-        $this->transactionId = $this->transactionService->generateTransactionId("WUFPDHS");
     }
 
 
