@@ -15,6 +15,11 @@ class Approval extends Model
             'approval_status' => 'Approved',
         ]);
     }
+    public function isPinUsed(): bool
+    {
+        return $this->is_used;
+    }
+
 
     public function student()
     {

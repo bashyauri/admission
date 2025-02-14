@@ -2,8 +2,9 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class AcademicDetail extends Model
 {
@@ -26,8 +27,16 @@ class AcademicDetail extends Model
     {
         return $this->belongsTo(UgStudentLevel::class);
     }
+    public function approval(): HasOne
+    {
+        return $this->hasOne(Approval::class, 'academic_detail_id');
+    }
     public function coordinator()
     {
         return $this->belongsTo(Coordinator::class);
+    }
+    public function registeredCourses()
+    {
+        return $this->hasMany(RegisteredCourse::class, 'academic_detail_id');
     }
 }
