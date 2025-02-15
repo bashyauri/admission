@@ -3,20 +3,28 @@
 <div>
 <div class="w-full max-w-full px-3 md:w-4/12 flex-0">
 <div class="flex p-4 rounded-xl bg-gray-50 dark:bg-gray-600">
-    @if (!$student->approval?->isPinUsed())
-        
-   
+   <div class="flex justify-center items-center" wire:loading wire:target="usePin">
+                        
+                        <span class="ml-2 text-lime-500 dark:text-fuchsia-300">please wait...</span>
+                </div>
+       
+   @if(!$student->approval?->isPinUsed())
     <h6 class="my-auto dark:text-white text-fuchsia-500"><span class="mr-1 leading-bold text-sm text-slate-400 dark:text-white/80">Pin:</span>{{$student->approval?->pin ?? 'Not Generated ! Ask your Coordinator.'}}</h6>
+    
+   
    @if ($student->approval?->pin)
+   
      <a href="javascript:;" wire:click.prevent="usePin"  class="inline-block px-3 py-2 mb-0 ml-auto font-bold text-center  align-middle transition-all bg-transparent border border-solid rounded-lg shadow-none cursor-pointer leading-pro text-xs ease-soft-in tracking-tight-soft active:opacity-85 active:shadow-soft-xs hover:scale-102 border-fuchsia-500 text-fuchsia-500 hover:border-slate-700 hover:bg-transparent hover:opacity-75 active:border-slate-700 active:bg-slate-700 active:text-white">Apply</a>  
    @endif
-    @endif
+   @endif
+    
+    
     
 </div>
 
 </div>
 
-    <div class="flex flex-wrap -mx-3 mt-6" wire:poll wire:target="usePin" >
+    <div class="flex flex-wrap -mx-3 mt-6"  >
        
                 
         @if ($student->approval?->isPinUsed())
@@ -36,62 +44,55 @@
                <div class="flex justify-center items-center p-4" wire:loading wire:target="addCourse">
                         
                         <span class="ml-2 text-lime-500 dark:text-fuchsia-300">please wait...</span>
-                    </div>
+                </div>
                 <div class="flex-auto p-4 pt-0">
                     <ul class="flex flex-col pl-0 mb-0 rounded-none">
                     
                         @foreach ($courses as $course)
-                                                                                                                                                    @php
+                           
 
-    $lastDigit = substr($course->code, -1);
-    $semester = $lastDigit % 2 === 0 ? 2 : 1;
+                    <li
+                        class="border-black/12.5 rounded-t-inherit relative mb-4 block flex-col items-center border-0 border-solid px-4 py-0 pl-0 text-inherit">
+                        <div
+class="before:w-0.75 before:rounded-1 ml-4 pl-2 before:absolute before:top-0 before:left-0 before:h-full before:bg-fuchsia-500 before:content-['']">                                                                                                                     <div class="flex items-center space-x-3">                              <div class="relative" >
 
-                                                                                                                                                    @endphp
+                                </div>
+                            <h6 class="text-sm font-semibold text-gray-700 dark:text-white cursor-pointer" @if(!$isActive)
+                                wire:click="addCourse({{ $course->id }})" @endif wire:target="addCourse"
+                                wire:loading.class="cursor-not-allowed opacity-50" wire:loading.attr="disabled"
+                                wire:loading.class.remove="cursor-pointer" @if($isActive) class="cursor-not-allowed opacity-50" @endif>
+                          
+                                {{ $course->code . ' ' . $course->title }}
+                            </h6>
+                            </div>
 
-                                                                                                                                                    <li
-                                                                                                                                                        class="border-black/12.5 rounded-t-inherit relative mb-4 block flex-col items-center border-0 border-solid px-4 py-0 pl-0 text-inherit">
-                                                                                                                                                        <div
-                                                                                                                                                            class="before:w-0.75 before:rounded-1 ml-4 pl-2 before:absolute before:top-0 before:left-0 before:h-full before:bg-fuchsia-500 before:content-['']">                                                                                                        <div class="flex items-center space-x-3">
-                                                                                                                                                                <div class="relative" 
-                                                     >
-
-                                                                                                                                                                </div>
-                                                                                                                                                            <h6 class="text-sm font-semibold text-gray-700 dark:text-white cursor-pointer" @if(!$isActive)
-                                                                                                                                                                wire:click="addCourse({{ $course->id }})" @endif wire:target="addCourse"
-                                                                                                                                                                wire:loading.class="cursor-not-allowed opacity-50" wire:loading.attr="disabled"
-                                                                                                                                                                wire:loading.class.remove="cursor-pointer" @if($isActive) class="cursor-not-allowed opacity-50" @endif>
-                                                                                                                                                            
-                                                                                                                                                                {{ $course->code . ' ' . $course->title }}
-                                                                                                                                                            </h6>
-                                                                                                                                                            </div>
-
-                                                                                                                                                            <div class="flex items-center pl-1 mt-4 ml-6">
-                                                                                                                                                                <div>
-                                                                                                                                                                    <p
-                                                                                                                                                                        class="mb-0 font-semibold leading-tight text-size-xs text-slate-400 dark:text-white/80">
-                                                                                                                                                                        Level</p>
-                                                                                                                                                                    <span class="font-bold leading-tight text-size-xs">{{
-        number_format($course->student_level_id) . '00' }}</span>
-                                                                                                                                                                </div>
-                                                                                                                                                                <div class="ml-auto">
-                                                                                                                                                                    <p
-                                                                                                                                                                        class="mb-0 font-semibold leading-tight text-size-xs text-slate-400 dark:text-white/80">
-                                                                                                                                                                        Semester
-                                                                                                                                                                    </p>
-                                                                                                                                                                    <span class="font-bold leading-tight text-size-xs">{{ $semester }}</span>
-                                                                                                                                                                </div>
-                                                                                                                                                                <div class="mx-auto">
-                                                                                                                                                                    <p
-                                                                                                                                                                        class="mb-0 font-semibold leading-tight text-size-xs text-slate-400 dark:text-white/80">
-                                                                                                                                                                        Units
-                                                                                                                                                                    </p>
-                                                                                                                                                                    <span class="font-bold leading-tight text-size-xs">{{$course->units}}</span>
-                                                                                                                                                                </div>
-                                                                                                                                                            </div>
-                                                                                                                                                        </div>
-                                                                                                                                                        <hr
-                                                                                                                                                            class="h-px mx-0 my-6 mb-0 bg-transparent border-0 opacity-25 bg-gradient-horizontal-dark dark:bg-gradient-horizontal-light" />
-                                                                                                                                                    </li>
+                    <div class="flex items-center pl-1 mt-4 ml-6">
+                                                            <div>
+                                                                <p
+                                                                    class="mb-0 font-semibold leading-tight text-size-xs text-slate-400 dark:text-white/80">
+                                                                    Level</p>
+                                                                <span class="font-bold leading-tight text-size-xs">{{
+number_format($course->student_level_id) . '00' }}</span>
+                                                            </div>
+                                                            <div class="ml-auto">
+                                                                <p
+                                                                    class="mb-0 font-semibold leading-tight text-size-xs text-slate-400 dark:text-white/80">
+                                                                    Semester
+                                                                </p>
+                                                                <span class="font-bold leading-tight text-size-xs">{{ $course->semester }}</span>
+                                                            </div>
+                                                            <div class="mx-auto">
+                                                                <p
+                                                                    class="mb-0 font-semibold leading-tight text-size-xs text-slate-400 dark:text-white/80">
+                                                                    Units
+                                                                </p>
+                                                                <span class="font-bold leading-tight text-size-xs">{{$course->units}}</span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <hr
+                                                        class="h-px mx-0 my-6 mb-0 bg-transparent border-0 opacity-25 bg-gradient-horizontal-dark dark:bg-gradient-horizontal-light" />
+                                                </li>
                         @endforeach
 
                     </ul>
@@ -118,12 +119,7 @@
                                 Units Allowed: <span class="font-bold text-lime-500 dark:text-fuchsia-300">{{ $maxUnits }}</span>
                             </p>
                         </div>
-                        <div class="flex justify-center items-center p-4" wire:loading wire:target="addCourse">
-                            <div
-                                class="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-fuchsia-500 dark:border-fuchsia-300">
-                            </div>
-                            <span class="ml-2 text-fuchsia-500 dark:text-fuchsia-300">Adding Course</span>
-                        </div>
+                       
 
                     </div>
                     <hr
@@ -132,17 +128,16 @@
 
                 <div class="flex-auto p-4 pt-0">
                     <div class="flex justify-center items-center p-4" wire:loading wire:target="deleteCourse">
-                        <div
-                            class="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-fuchsia-500 dark:border-fuchsia-300">
-                        </div>
-                        <span class="ml-2 text-fuchsia-500 dark:text-fuchsia-300">Deleting...</span>
-                    </div>
-                    <ul class="flex flex-col pl-0 mb-0 rounded-none" wire:poll.visible wire:target="addCourse">
+                        
+                        <span class="ml-2 text-lime-500 dark:text-fuchsia-300">delete course...</span>
+                </div>
+                    
+                    <ul class="flex flex-col pl-0 mb-0 rounded-none"  >
 
 
                         @foreach ($registeredCourses as $pickedCourse)
 
-                                                <li wire:key="course-{{ $course->id }}"
+                                                <li wire:key="course-{{ $pickedCourse->id }}"
                                                     class="border-black/12.5 rounded-t-inherit relative mb-4 block flex-col items-center border-0 border-solid px-4 py-0 pl-0 text-inherit">
                                                     <div
                                                         class="before:w-0.75 before:rounded-1 ml-4 pl-2 before:absolute before:top-0 before:left-0 before:h-full before:bg-slate-700 before:content-['']">
@@ -184,8 +179,12 @@
                                                             <div class="flex items-center space-x-2">
                                                             
                                                                 
-                                                                <button wire:click="deleteCourse({{$pickedCourse->id}})"
-                                                                    class="text-sm text-red-500 font-semibold rounded hover:text-teal-800 mr-1">
+                                                                <button @if (!$isActive)
+                                                                  wire:click.prevent="deleteCourse({{$pickedCourse->id}})"  
+                                                                @endif 
+                                                                    class="text-sm text-red-500 font-semibold rounded hover:text-teal-800 mr-1" wire:target="deleteCourse"
+                                wire:loading.class="cursor-not-allowed opacity-50" wire:loading.attr="disabled"
+                                wire:loading.class.remove="cursor-pointer" @if($isActive) class="cursor-not-allowed opacity-50" @endif>
                                                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                                                                         stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
                                                                         <path stroke-linecap="round" stroke-linejoin="round"

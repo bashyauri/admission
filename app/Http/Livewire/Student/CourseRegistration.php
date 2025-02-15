@@ -2,96 +2,122 @@
 
 namespace App\Http\Livewire\Student;
 
+use Jantinnerezo\LivewireAlert\LivewireAlert;
 use Livewire\Component;
-use App\Models\StudentCourse;
-use Livewire\Attributes\Locked;
 use App\Models\DepartmentCourse;
 use App\Models\RegisteredCourse;
 use App\Services\CourseRegistrationService;
+use Livewire\Attributes\Locked;
 use Livewire\Attributes\Computed;
+use Illuminate\Support\Collection;
 
 class CourseRegistration extends Component
 {
+    use LivewireAlert;
     #[Locked]
     public $student;
     #[Locked]
     public $departmentId;
+
     public $studentLevelId;
     public $editingCourseId;
-    public  $isActive = false;
-    public $registeredCourses;
-    public $maxUnits;
+    public bool $isActive = false;
+    public Collection $registeredCourses;
+    public int $maxUnits;
+    protected $listeners = ['pinUsed' => '$refresh'];
 
-
+    protected $courseService;
 
     public function mount()
     {
-        $this->departmentId = auth()->user()->academicDetail->department_id;
-        $this->studentLevelId = auth()->user()->academicDetail->student_level_id;
-        $this->student = auth()->user()->academicDetail;
-    }
-    public function deleteCourse(RegisteredCourse $registeredCourse): void
-    {
 
-        $registeredCourse->delete();
+        $this->courseService = new CourseRegistrationService();
+
+        $this->student = auth()->user()->academicDetail;
+        $this->departmentId = $this->student->department_id;
+        $this->studentLevelId = $this->student->student_level_id;
+
+
+        $this->loadCourses(); // Load data into the properties
+    }
+
+    private function loadCourses(): void
+    {
+        $service = new CourseRegistrationService();
+        $registeredCourses = $service->getRegisteredCourses(
+            $this->student->id,
+            config('remita.settings.academic_session')
+        );
+
+        $this->registeredCourses = collect($registeredCourses);
+        $this->maxUnits = $service->getMaxUnits($this->departmentId, $this->studentLevelId);
+    }
+
+    #[Computed]
+    public function getAvailableCourses(): Collection
+    {
+        $service = new CourseRegistrationService();
+        return $service->getAvailableCourses(
+            $this->departmentId,
+            $this->studentLevelId,
+            $this->student->id,
+            config('remita.settings.academic_session')
+        );
     }
     #[Computed]
-    public function getTotalRegisteredUnitsProperty()
+    public function totalRegisteredUnits(): int
     {
-        return $this->registeredCourses->sum('units');
+        return $this->registeredCourses ? $this->registeredCourses->sum('units') : 0;
     }
 
-    public function addCourse(DepartmentCourse $course, CourseRegistrationService $courseRegistrationService): void
+    public function addCourse(DepartmentCourse $course): void
     {
-        if ($this->hasUnits()) {
-            $this->isActive = true;
 
-
-            $studentCourse = StudentCourse::find($course->student_course_id);
-            $semester = $courseRegistrationService->calculateSemester($studentCourse->code);
-
-
-            auth()->user()->academicDetail->registeredCourses()->create([
-                'department_course_id' => $course->id,
-                'semester' => $semester,
-                'units' => $course->units,
-                'student_level_id' => $studentCourse->student_level_id,
-                'academic_session' => config('remita.settings.academic_session')
-            ]);
-            $this->isActive = false;
+        if (!$this->canAddCourse($course->units)) {
+            $this->alert('error', 'Adding this course would exceed the maximum allowed units.');
+            return;
         }
+
+        $this->isActive = true;
+
+        $studentCourse = $course->load('studentCourse')->studentCourse;
+
+
+        $this->student->registeredCourses()->create([
+            'department_course_id' => $course->id,
+            'semester' => $studentCourse->semester,
+            'units' => $course->units,
+            'student_level_id' => $studentCourse->student_level_id,
+            'academic_session' => config('remita.settings.academic_session')
+        ]);
+
+        $this->loadCourses();
+        $this->isActive = false;
     }
-    public function usePin()
+    private function canAddCourse(int $courseUnits): bool
+    {
+        return ($this->totalRegisteredUnits + $courseUnits) <= $this->maxUnits;
+    }
+
+    public function deleteCourse(RegisteredCourse $registeredCourse): void
+    {
+        $this->isActive = true;
+        $registeredCourse->delete();
+        $this->isActive = false;
+        $this->loadCourses();
+    }
+
+    public function usePin(): void
     {
         $this->student->approval->markAsUsed();
-    }
-    private function hasUnits(): bool
-    {
-        return $this->totalRegisteredUnits < $this->maxUnits;
+        $this->dispatch('pinUsed')->self();
     }
 
     public function render()
     {
-        $service = new CourseRegistrationService();
-
-        $courses = $service->getAvailableCourses(
-            departmentId: $this->departmentId,
-            studentLevelId: $this->studentLevelId,
-            studentId: $this->student->id,
-            academicSession: config('remita.settings.academic_session')
-        );
-
-        $registeredCourses = $service->getRegisteredCourses(
-            studentId: $this->student->id,
-            academicSession: config('remita.settings.academic_session')
-        );
-        $this->registeredCourses = collect($registeredCourses);
-        $this->maxUnits = $service->getMaxUnits($this->departmentId, $this->studentLevelId);
-
-
         return view('livewire.student.course-registration', [
-            'courses' => $courses,
-            'registeredCourses' => $registeredCourses
+            'courses' => $this->getAvailableCourses,
+            'registeredCourses' => $this->registeredCourses
         ]);
     }
 }
