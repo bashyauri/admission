@@ -54,6 +54,10 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         $this->notify(new SendVerificationEmail);
     }
+    public function profilePicture()
+    {
+        return asset('public/storage/' . $this->picture);
+    }
 
     /**
      * Check if the user is admin

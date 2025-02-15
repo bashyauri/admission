@@ -72,6 +72,10 @@ class CourseRegistration extends Component
 
     public function addCourse(DepartmentCourse $course): void
     {
+        if ($this->registeredCourses->contains('department_course_id', $course->id)) {
+            $this->alert('error', 'You have already registered for this course.');
+            return;
+        }
 
         if (!$this->canAddCourse($course->units)) {
             $this->alert('error', 'Adding this course would exceed the maximum allowed units.');

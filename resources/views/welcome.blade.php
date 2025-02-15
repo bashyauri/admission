@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,34 +11,41 @@
     .btn-green {
       @apply bg-green-600 text-white px-8 py-3 rounded-full shadow-lg transition-all duration-300 ease-in-out transform hover:bg-green-700 hover:scale-105;
     }
+
     .btn-green:hover {
-      @apply bg-green-700; /* Darker shade on hover */
+      @apply bg-green-700;
+      /* Darker shade on hover */
     }
+
     .card {
       @apply p-6 border rounded-lg bg-gray-100 transition-shadow duration-300 ease-in-out hover:shadow-lg;
     }
   </style>
 </head>
+
 <body class="text-gray-800 bg-gray-50">
 
   <!-- Hero Section -->
-<section class="relative py-12 text-white bg-gradient-to-r from-green-500 via-teal-400 to-green-500"> 
-    <div class="container px-6 py-8 mx-auto text-center"> 
-        <img class="w-32 md:w-40 lg:w-48 h-auto p-3 mx-auto m-3" alt="Image placeholder" src="{{ asset('assets') }}/img/wufp-logo.png">
+  <section class="relative py-12 text-white bg-gradient-to-r from-green-500 via-teal-400 to-green-500">
+    <div class="container px-6 py-8 mx-auto text-center">
+      <img class="w-32 md:w-40 lg:w-48 h-auto p-3 mx-auto m-3" alt="Image placeholder"
+        src="{{ asset('assets') }}/img/wufp-logo.png">
 
-        <h1 class="text-4xl font-bold leading-tight md:text-5xl"> 
-            Welcome to <span class="text-yellow-300">Directorate of Higher Studies</span>
-        </h1>
-        <p class="mt-4 text-lg md:text-xl">
-            Waziri Umaru Federal Polytechnic Birnin Kebbi.
-        </p>
-        <div class="mt-6 space-x-4">
-            <a href="#contact-us" class="rounded-md bg-white px-3.5 py-2.5 text-sm font-semibold text-gray-900 shadow-sm hover:bg-gray-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white">Contact Us</a>
-            <a href="#programs" class="btn-green">Explore Programs</a>
-        </div>
+      <h1 class="text-4xl font-bold leading-tight md:text-5xl">
+        Welcome to <span class="text-yellow-300">Directorate of Higher Studies</span>
+      </h1>
+      <p class="mt-4 text-lg md:text-xl">
+        Waziri Umaru Federal Polytechnic Birnin Kebbi.
+      </p>
+      <div class="mt-6 space-x-4">
+        <a href="#contact-us"
+          class="rounded-md bg-white px-3.5 py-2.5 text-sm font-semibold text-gray-900 shadow-sm hover:bg-gray-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white">Contact
+          Us</a>
+        <a href="#programs" class="btn-green">Explore Programs</a>
+      </div>
     </div>
-</section>
- 
+  </section>
+
 
   <!-- Programs Section -->
   <section id="programs" class="py-12 bg-white">
@@ -48,33 +56,28 @@
       </p>
       <div class="mt-8 space-x-4" x-data="{ showInfo: null }">
         <!-- Buttons -->
-        <a
-         href={{route('degree-login')}}
+        <a href={{route('degree-login')}}
           class="rounded-md  px-3.5 py-2.5 text-sm font-semibold shadow-sm hover:bg-green-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white">Undergraduate</a>
-        {{-- <a href
-          @click="showInfo = 'degree'"
+        {{-- <a href @click="showInfo = 'degree'"
           class="rounded-md  px-3.5 py-2.5 text-sm font-semibold shadow-sm hover:bg-green-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
-    :class="showInfo === 'degree' ? 'bg-green-700 text-white' : ''"
->
+          :class="showInfo === 'degree' ? 'bg-green-700 text-white' : ''">
 
           Undergraduate Program
         </a> --}}
-        {{-- <button
-    @click="showInfo = 'postgraduate'"
-    class="rounded-md  px-3.5 py-2.5 text-sm font-semibold shadow-sm hover:bg-green-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
-    :class="showInfo === 'postgraduate' ? 'bg-green-700 text-white' : ''"
->
-    Postgraduate Diploma
-</button> --}}
-<a
-         href={{route('login')}}
+        {{-- <button @click="showInfo = 'postgraduate'"
+          class="rounded-md  px-3.5 py-2.5 text-sm font-semibold shadow-sm hover:bg-green-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+          :class="showInfo === 'postgraduate' ? 'bg-green-700 text-white' : ''">
+          Postgraduate Diploma
+        </button> --}}
+        <a href={{route('login')}}
           class="rounded-md  px-3.5 py-2.5 text-sm font-semibold shadow-sm hover:bg-green-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white">Postgraduate</a>
 
         <!-- Program Details -->
         <div x-show="showInfo === 'postgraduate'" class="mt-6 text-left card">
           <h3 class="text-xl font-bold text-green-600">Postgraduate Diploma</h3>
           <p class="mt-2 text-gray-700">
-            Our postgraduate diploma program is designed for professionals who want to advance their careers and expand their knowledge.
+            Our postgraduate diploma program is designed for professionals who want to advance their careers and expand
+            their knowledge.
           </p>
           <ul class="mt-4 text-gray-700 list-disc list-inside">
             <li>Duration: 1 Year</li>
@@ -82,7 +85,8 @@
             <li>Specializations in multiple fields</li>
           </ul>
 
-          <a href="/sign-in" class="inline-block mt-4 font-semibold text-teal-700 btn-green">Login to Postgraduate Program</a>
+          <a href="/sign-in" class="inline-block mt-4 font-semibold text-teal-700 btn-green">Login to Postgraduate
+            Program</a>
         </div>
 
         <div x-show="showInfo === 'degree'" class="mt-6 text-left card">
@@ -95,90 +99,95 @@
             <li>Eligibility: High school diploma or equivalent</li>
             <li>Wide range of disciplines</li>
           </ul>
-          <a href="/degree-signin" class="inline-block mt-4 font-semibold text-teal-700 btn-green">Login to Degree Program</a>
+          <a href="/degree-signin" class="inline-block mt-4 font-semibold text-teal-700 btn-green">Login to Degree
+            Program</a>
         </div>
       </div>
     </div>
   </section>
- 
-<!-- Announcement Section -->
-<section class="py-12 bg-yellow-100">
-    <div class="container px-6 mx-auto">
-        <h2 class="text-3xl font-bold text-red-600 text-center">Important Announcement</h2>
-        <p class="mt-4 text-lg text-gray-800">
-            This is to inform all candidates who have been offered admission into Degree Programmes of WUFPBK in affiliation with FUBK that the screening exercise for the 2024/2025 Academic Session is scheduled to commence as follows:
-        </p>
-        <div class="mt-4 text-left">
-            <p class="text-lg text-gray-800"><strong>Date:</strong> Tuesday 28th January, 2025</p>
-            <p class="text-lg text-gray-800"><strong>Time:</strong> 10:00am</p>
-            <p class="text-lg text-gray-800"><strong>Venue:</strong> Board Room Academic Office</p>
-        </div>
-        <p class="mt-6 text-lg text-gray-800 font-bold">
-            Candidates are to come along with the following:
-        </p>
-        <ul class="mt-2 text-lg text-gray-800 list-disc list-inside text-left">
-            <li>Original Credentials</li>
-            <li>2 copies of Provisional JAMB Admission letter</li>
-            <li>Evidence of payment of acceptance fee</li>
-            <li>Scratch card or token for results verification</li>
-        </ul>
-    </div>
-</section>
+
+  <!-- Announcement Section -->
+  <div
+    class="max-w-3xl mx-auto bg-blue-50 border-l-4 border-blue-500 text-blue-900 p-6 rounded-lg shadow-md mb-5 sm:w-8/12">
+    <h2 class="text-lg font-semibold mb-4 sm:">📢 Important Registration Notice</h2>
+    <p class="text-sm leading-relaxed">
+      You are <span class="font-bold">DIRECTED</span> to complete your online course registration between
+      <span class="font-bold text-blue-700">Monday, 17th February 2025</span> and
+      <span class="font-bold text-blue-700">Tuesday, 18th February 2025</span>.
+      Lectures will commence on <span class="font-bold text-blue-700">Wednesday, 19th February 2025</span>.
+    </p>
+    <p class="mt-4 text-sm leading-relaxed">
+      <span class="font-bold">Note:</span> Students can contact their <span class="font-bold">level
+        coordinators</span> at
+      each department for proper guidance.
+    </p>
+  </div>
 
   <!-- Contact Us Section -->
 
-<section id="contact-us" class="px-20 py-16 text-white bg-gradient-to-r from-green-600 via-teal-400 to-green-600">
-  <div class="container px-6 mx-auto">
-    <h2 class="mb-8 text-4xl font-bold text-center">Start Your Journey</h2>
-    <p class="mb-12 text-center sub-title">Have any questions? We'd love to hear from you!</p>
+  <section id="contact-us" class="px-20 py-16 text-white bg-gradient-to-r from-green-600 via-teal-400 to-green-600">
+    <div class="container px-6 mx-auto">
+      <h2 class="mb-8 text-4xl font-bold text-center">Start Your Journey</h2>
+      <p class="mb-12 text-center sub-title">Have any questions? We'd love to hear from you!</p>
 
-    <!-- Grid Layout -->
-    <div class="grid items-center justify-center grid-cols-1 gap-4 lg:grid-cols-2"> <!-- Centered items -->
+      <!-- Grid Layout -->
+      <div class="grid items-center justify-center grid-cols-1 gap-4 lg:grid-cols-2"> <!-- Centered items -->
 
-      <!-- Contact Info -->
-      <div class="space-y-2 text-center lg:text-left"> <!-- Center text on smaller screens -->
-        <h3 class="text-2xl font-bold">Contact Information</h3>
-        <p>Feel free to reach us via the details below or by filling out the form.</p>
-        <div class="space-y-3">
-          <div class="flex items-center justify-center lg:justify-start">
-           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
-  <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21m-3.75 3.75h.008v.008h-.008v-.008Zm0 3h.008v.008h-.008v-.008Zm0 3h.008v.008h-.008v-.008Z" />
-</svg>
+        <!-- Contact Info -->
+        <div class="space-y-2 text-center lg:text-left"> <!-- Center text on smaller screens -->
+          <h3 class="text-2xl font-bold">Contact Information</h3>
+          <p>Feel free to reach us via the details below or by filling out the form.</p>
+          <div class="space-y-3">
+            <div class="flex items-center justify-center lg:justify-start">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                stroke="currentColor" class="size-6">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                  d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21m-3.75 3.75h.008v.008h-.008v-.008Zm0 3h.008v.008h-.008v-.008Zm0 3h.008v.008h-.008v-.008Z" />
+              </svg>
 
-            <span>545 Mavis Island, Chicago, IL 99191</span>
-          </div>
-          <div class="flex items-center justify-center lg:justify-start">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
-  <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 0 0 2.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 0 1-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 0 0-1.091-.852H4.5A2.25 2.25 0 0 0 2.25 4.5v2.25Z" />
-</svg>
+              <span>545 Mavis Island, Chicago, IL 99191</span>
+            </div>
+            <div class="flex items-center justify-center lg:justify-start">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                stroke="currentColor" class="size-6">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                  d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 0 0 2.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 0 1-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 0 0-1.091-.852H4.5A2.25 2.25 0 0 0 2.25 4.5v2.25Z" />
+              </svg>
 
-            <span class="ml-1">08038272560</span>
-          </div>
-          <div class="flex items-center justify-center lg:justify-start">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
-  <path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75" />
-</svg>
+              <span class="ml-1">08038272560</span>
+            </div>
+            <div class="flex items-center justify-center lg:justify-start">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                stroke="currentColor" class="size-6">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                  d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75" />
+              </svg>
 
-            <span>bumar@wufpbk.edu.ng</span>
+              <span>bumar@wufpbk.edu.ng</span>
+            </div>
           </div>
         </div>
+
+        <!-- Form -->
+        <form class="space-y-2 text-center lg:text-left">
+          <input type="text" placeholder="Your Name" class="w-full px-6 py-3 text-gray-800 rounded-lg shadow-md"
+            required>
+          <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <input type="email" placeholder="Your Email" class="w-full px-6 py-3 text-gray-800 rounded-lg shadow-md"
+              required>
+            <input type="tel" placeholder="Your Phone Number"
+              class="w-full px-6 py-3 text-gray-800 rounded-lg shadow-md" required>
+          </div>
+          <textarea placeholder="Your Message" class="w-full px-6 py-3 text-gray-800 rounded-lg shadow-md" rows="4"
+            required></textarea>
+          <button type="submit"
+            class="block w-full rounded-md bg-green-600 px-3.5 py-2.5 text-center text-sm font-semibold text-white shadow-sm hover:bg-green-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-600">
+            Send Message
+          </button>
+        </form>
       </div>
-
-      <!-- Form -->
-      <form class="space-y-2 text-center lg:text-left">
-        <input type="text" placeholder="Your Name" class="w-full px-6 py-3 text-gray-800 rounded-lg shadow-md" required>
-        <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
-          <input type="email" placeholder="Your Email" class="w-full px-6 py-3 text-gray-800 rounded-lg shadow-md" required>
-          <input type="tel" placeholder="Your Phone Number" class="w-full px-6 py-3 text-gray-800 rounded-lg shadow-md" required>
-        </div>
-        <textarea placeholder="Your Message" class="w-full px-6 py-3 text-gray-800 rounded-lg shadow-md" rows="4" required></textarea>
-        <button type="submit" class="block w-full rounded-md bg-green-600 px-3.5 py-2.5 text-center text-sm font-semibold text-white shadow-sm hover:bg-green-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-600">
-          Send Message
-        </button>
-      </form>
     </div>
-  </div>
-</section>
+  </section>
 
 
 
@@ -193,4 +202,5 @@
   </footer>
 
 </body>
+
 </html>
