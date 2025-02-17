@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\PrintCourseForm;
 use Illuminate\Support\Facades\Route;
 use App\Http\Livewire\Dashboards\StudentIndex;
 use App\Http\Controllers\UgSchoolFeesController;
@@ -15,6 +16,7 @@ Route::get('transactions/ug-school-fees/{user}', UtmeSchoolFeesInvoice::class)->
 Route::get('/transactions/ug-generate-invoice/{studenttransaction}', [UgSchoolFeesController::class, 'index'])->name('ug-payment');
 // courses
 Route::get('course-registration', CourseRegistration::class)->name('course-registration');
+Route::get('print-course-form/{user}', [PrintCourseForm::class, 'print'])->name('print-course-form');
 // Normal Controller
 Route::post('/transactions/generate-invoice', [SchoolFeesTransactionController::class, 'generateInvoice'])->name('invoice');
 Route::get('/transactions/generate-invoice/{studenttransaction}', [SchoolFeesTransactionController::class, 'index'])->name('payment');

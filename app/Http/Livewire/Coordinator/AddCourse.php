@@ -27,6 +27,7 @@ class AddCourse extends Component
 
     public function addCourse(StudentCourse $course)
     {
+
         try {
             DepartmentCourse::create([
                 'student_course_id' => $course->id,

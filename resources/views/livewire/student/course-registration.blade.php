@@ -50,7 +50,7 @@
                     
                         @foreach ($courses as $course)
                            
-
+                     
                     <li
                         class="border-black/12.5 rounded-t-inherit relative mb-4 block flex-col items-center border-0 border-solid px-4 py-0 pl-0 text-inherit">
                         <div
@@ -100,7 +100,7 @@ number_format($course->student_level_id) . '00' }}</span>
             </div>
 
         </div>
-        @endif
+     
       
         <div class="w-full max-w-full px-3 flex-0 lg:w-6/12">
              
@@ -112,8 +112,9 @@ number_format($course->student_level_id) . '00' }}</span>
                             <h6 class="mb-0 dark:text-white">Registered Courses</h6>
                         </div>
                         <div class="w-full max-w-full px-3 md:flex-0 shrink-0 md:w-6/12 text-right">
+                            
                             <p class="mb-2 font-semibold leading-tight text-size-sm text-slate-700 dark:text-white">
-                                Units Selected: <span class="font-bold text-lime-500 dark:text-fuchsia-300">{{ $this->totalRegisteredUnits }}</span>
+                                Units Selected: <span class="font-bold text-lime-500 dark:text-fuchsia-300">{{ $registeredCourses->sum('units') }}</span>
                             </p>
                             <p class="mb-0 font-semibold leading-tight text-size-sm text-slate-700 dark:text-white">
                                 Units Allowed: <span class="font-bold text-lime-500 dark:text-fuchsia-300">{{ $maxUnits }}</span>
@@ -125,14 +126,28 @@ number_format($course->student_level_id) . '00' }}</span>
                     <hr
                         class="h-px mx-0 my-4 mb-0 bg-transparent border-0 opacity-25 bg-gradient-horizontal-dark dark:bg-gradient-horizontal-light" />
                 </div>
+              <div class="flex justify-center mb-2">
+    <!-- Clickable Link -->
+    @if ($registeredCourses->count() && $student->approval?->isPinUsed())
+        <a href="{{ route('student.print-course-form', ['user' => $student->user_id]) }}" 
+           target="_blank" 
+           class="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-fuchsia-500 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400 md:text-base">
+            Print
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 md:w-6 md:h-6">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0 1 10.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0 .229 2.523a1.125 1.125 0 0 1-1.12 1.227H7.231c-.662 0-1.18-.568-1.12-1.227L6.34 18m11.318 0h1.091A2.25 2.25 0 0 0 21 15.75V9.456c0-1.081-.768-2.015-1.837-2.175a48.055 48.055 0 0 0-1.913-.247M6.34 18H5.25A2.25 2.25 0 0 1 3 15.75V9.456c0-1.081.768-2.015 1.837-2.175a48.041 48.041 0 0 1 1.913-.247m10.5 0a48.536 48.536 0 0 0-10.5 0m10.5 0V3.375c0-.621-.504-1.125-1.125-1.125h-8.25c-.621 0-1.125.504-1.125 1.125v3.659M18 10.5h.008v.008H18V10.5Zm-3 0h.008v.008H15V10.5Z" />
+            </svg>
+        </a>
+    @endif
+</div>
+
 
                 <div class="flex-auto p-4 pt-0">
                     <div class="flex justify-center items-center p-4" wire:loading wire:target="deleteCourse">
                         
                         <span class="ml-2 text-lime-500 dark:text-fuchsia-300">delete course...</span>
                 </div>
-                    
-                    <ul class="flex flex-col pl-0 mb-0 rounded-none"  >
+                    @if ($student->approval?->isPinUsed())
+                        <ul class="flex flex-col pl-0 mb-0 rounded-none"  >
 
 
                         @foreach ($registeredCourses as $pickedCourse)
@@ -203,9 +218,12 @@ number_format($course->student_level_id) . '00' }}</span>
 
 
                     </ul>
+                    @endif
+                    
                 </div>
             </div>
         </div>
+           @endif
     </div>
 
 

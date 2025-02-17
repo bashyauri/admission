@@ -36,6 +36,7 @@ class CourseRegistration extends Component
         $this->student = auth()->user()->academicDetail;
         $this->departmentId = $this->student->department_id;
         $this->studentLevelId = $this->student->student_level_id;
+        $this->maxUnits = $this->courseService->getMaxUnits($this->departmentId, $this->studentLevelId);
 
 
         $this->loadCourses(); // Load data into the properties
@@ -44,13 +45,10 @@ class CourseRegistration extends Component
     private function loadCourses(): void
     {
         $service = new CourseRegistrationService();
-        $registeredCourses = $service->getRegisteredCourses(
+        $this->registeredCourses = collect($service->getRegisteredCourses(
             $this->student->id,
             config('remita.settings.academic_session')
-        );
-
-        $this->registeredCourses = collect($registeredCourses);
-        $this->maxUnits = $service->getMaxUnits($this->departmentId, $this->studentLevelId);
+        ));
     }
 
     #[Computed]
@@ -63,11 +61,6 @@ class CourseRegistration extends Component
             $this->student->id,
             config('remita.settings.academic_session')
         );
-    }
-    #[Computed]
-    public function totalRegisteredUnits(): int
-    {
-        return $this->registeredCourses ? $this->registeredCourses->sum('units') : 0;
     }
 
     public function addCourse(DepartmentCourse $course): void
@@ -84,7 +77,7 @@ class CourseRegistration extends Component
 
         $this->isActive = true;
 
-        $studentCourse = $course->load('studentCourse')->studentCourse;
+        $studentCourse = $course->studentCourse;
 
 
         $this->student->registeredCourses()->create([
@@ -95,12 +88,13 @@ class CourseRegistration extends Component
             'academic_session' => config('remita.settings.academic_session')
         ]);
 
+
         $this->loadCourses();
         $this->isActive = false;
     }
     private function canAddCourse(int $courseUnits): bool
     {
-        return ($this->totalRegisteredUnits + $courseUnits) <= $this->maxUnits;
+        return ($this->registeredCourses->sum('units') + $courseUnits) <= $this->maxUnits;
     }
 
     public function deleteCourse(RegisteredCourse $registeredCourse): void

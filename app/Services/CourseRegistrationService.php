@@ -24,15 +24,13 @@ class CourseRegistrationService
      */
     public function getAvailableCourses($departmentId, $studentLevelId, $studentId, $academicSession)
     {
-        return DepartmentCourse::query()
+        return DepartmentCourse::with('studentCourse') // Eager load the relationship
             ->where('department_courses.department_id', $departmentId)
             ->whereHas('studentCourse', fn($query) => $query->where('student_level_id', $studentLevelId))
-            ->leftJoin('registered_courses', function ($join) use ($studentId, $academicSession) {
-                $join->on('registered_courses.department_course_id', '=', 'department_courses.id')
-                    ->where('registered_courses.academic_detail_id', '=', $studentId)
-                    ->where('registered_courses.academic_session', '=', $academicSession);
+            ->whereDoesntHave('registeredCourses', function ($query) use ($studentId, $academicSession) {
+                $query->where('academic_detail_id', $studentId)
+                    ->where('academic_session', $academicSession);
             })
-            ->whereNull('registered_courses.id') // Only courses not yet registered
             ->join('student_courses', 'student_courses.id', '=', 'department_courses.student_course_id')
             ->orderBy('student_courses.semester')
             ->select([
@@ -54,9 +52,9 @@ class CourseRegistrationService
      * @param string $academicSession
      * @return \Illuminate\Database\Eloquent\Collection
      */
-    public function getRegisteredCourses($studentId, $academicSession)
+    public function getRegisteredCourses($studentId, $academicSession, $order = null)
     {
-        return RegisteredCourse::with([
+        $query = RegisteredCourse::with([
             'departmentCourse' => function ($query) {
                 $query->select('id', 'student_course_id', 'units');
             },
@@ -64,10 +62,26 @@ class CourseRegistrationService
                 $query->select('id', 'code', 'semester', 'title', 'student_level_id');
             }
         ])
-            ->where('academic_session', $academicSession)
-            ->where('academic_detail_id', $studentId)
-            ->orderByDesc('created_at')
-            ->get();
+            ->where(['academic_session' => $academicSession, 'academic_detail_id' => $studentId]);
+
+        if ($order === null) {
+            $query->orderBy('created_at', 'desc'); // Default order
+        } else {
+
+            if ($order === 'semester') {
+                $query->join('department_courses', 'registered_courses.department_course_id', '=', 'department_courses.id')
+                    ->join('student_courses', 'department_courses.student_course_id', '=', 'student_courses.id')
+                    ->orderBy('student_courses.semester');
+            } elseif ($order === 'title') {
+                $query->join('department_courses', 'registered_courses.department_course_id', '=', 'department_courses.id')
+                    ->join('student_courses', 'department_courses.student_course_id', '=', 'student_courses.id')
+                    ->orderBy('student_courses.title');
+            } else {
+                $query->orderBy($order); // Order by the provided column if valid.  Be cautious about allowing arbitrary column names to prevent SQL injection vulnerabilities.
+            }
+        }
+
+        return $query->get();
     }
 
 

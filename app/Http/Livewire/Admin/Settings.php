@@ -56,6 +56,7 @@ class Settings extends Component
     {
         try {
             $this->courseForm->store();
+
             $this->showSuccessAlert('Course Created');
             $this->courseForm->reset();
         } catch (ValidationException $e) {
