@@ -7,35 +7,44 @@ use App\Models\DepartmentCourse;
 use App\Models\StudentCourse;
 use Jantinnerezo\LivewireAlert\LivewireAlert;
 use Livewire\Component;
+use Livewire\WithPagination;
 
 class AddCourse extends Component
 {
-    use LivewireAlert;
+    use LivewireAlert, WithPagination;
+
     public $search = '';
     public $departmentId;
-    public $levelId;
     public $editingCourseId;
     public EditUnitForm $form;
 
-
-
-
-    public function mount()
+    // Initialize the department ID when the component mounts
+    public function mount(): void
     {
         $this->departmentId = auth()->user()->coordinator->department_id;
     }
 
-    public function addCourse(StudentCourse $course)
+    // Add a course to the department
+    public function addCourse(StudentCourse $course): void
     {
-
         try {
+            // Check if the course already exists in the department
+            if ($this->isCourseAlreadyAdded($course->id)) {
+                $this->alert('warning', 'This course has already been added to the department!', [
+                    'position' => 'top-end',
+                    'timer' => 3000,
+                    'toast' => true,
+                ]);
+                return;
+            }
+
+            // Add the course to the department
             DepartmentCourse::create([
                 'student_course_id' => $course->id,
                 'department_id' => $this->departmentId,
                 'units' => $course->units,
             ]);
 
-            // Provide success feedback
             $this->alert('success', 'Course added successfully!', [
                 'position' => 'top-end',
                 'timer' => 3000,
@@ -43,7 +52,6 @@ class AddCourse extends Component
             ]);
         } catch (\Exception $e) {
             report($e);
-            // Provide error feedback
             $this->alert('error', 'Failed to add course.', [
                 'position' => 'top-end',
                 'timer' => 3000,
@@ -52,30 +60,47 @@ class AddCourse extends Component
         }
     }
 
-
-    public function deleteCourse($id)
-    {
-        DepartmentCourse::findOrFail($id)->delete();
-    }
-    public function editCourse($id)
-    {
-        $this->editingCourseId = $id;
-        $departmentCourse = DepartmentCourse::findOrFail($id);
-        $this->form->unit = $departmentCourse->units;
-    }
-    public function saveUnit()
+    // Delete a course from the department
+    public function deleteCourse(int $id): void
     {
         try {
-
-            $this->form->update($this->editingCourseId);
-            $this->alert('success', 'Updated Successfully', [
+            DepartmentCourse::findOrFail($id)->delete();
+            $this->alert('success', 'Course deleted successfully!', [
                 'position' => 'top-end',
                 'timer' => 3000,
                 'toast' => true,
             ]);
         } catch (\Exception $e) {
             report($e);
-            $this->alert('error', 'Update failed.', [
+            $this->alert('error', 'Failed to delete course.', [
+                'position' => 'top-end',
+                'timer' => 3000,
+                'toast' => true,
+            ]);
+        }
+    }
+
+    // Start editing a course's units
+    public function editCourse(int $id): void
+    {
+        $this->editingCourseId = $id;
+        $departmentCourse = DepartmentCourse::findOrFail($id);
+        $this->form->unit = $departmentCourse->units;
+    }
+
+    // Save the updated units for a course
+    public function saveUnit(): void
+    {
+        try {
+            $this->form->update($this->editingCourseId);
+            $this->alert('success', 'Units updated successfully!', [
+                'position' => 'top-end',
+                'timer' => 3000,
+                'toast' => true,
+            ]);
+        } catch (\Exception $e) {
+            report($e);
+            $this->alert('error', 'Failed to update units.', [
                 'position' => 'top-end',
                 'timer' => 3000,
                 'toast' => true,
@@ -83,14 +108,37 @@ class AddCourse extends Component
         }
         $this->cancelEdit();
     }
-    public function cancelEdit()
+
+    // Cancel the editing process
+    public function cancelEdit(): void
     {
         $this->editingCourseId = null;
     }
 
+    // Check if a course is already added to the department
+    private function isCourseAlreadyAdded(int $courseId): bool
+    {
+        return DepartmentCourse::where('student_course_id', $courseId)
+            ->where('department_id', $this->departmentId)
+            ->exists();
+    }
+
+    // Render the component view
     public function render()
     {
-        $coursesNotPicked = StudentCourse::query()
+        $coursesNotPicked = $this->getCoursesNotPicked();
+        $coursesPicked = $this->getCoursesPicked();
+
+        return view('livewire.coordinator.add-course', [
+            'courses' => $coursesNotPicked,
+            'selectedCourses' => $coursesPicked,
+        ]);
+    }
+
+    // Get courses not yet picked by the department
+    private function getCoursesNotPicked()
+    {
+        return StudentCourse::query()
             ->leftJoin('department_courses', function ($join) {
                 $join->on('student_courses.id', '=', 'department_courses.student_course_id')
                     ->where('department_courses.department_id', $this->departmentId);
@@ -99,16 +147,15 @@ class AddCourse extends Component
             ->where('student_courses.code', 'like', "%{$this->search}%")
             ->select('student_courses.*')
             ->paginate(10);
+    }
 
-        $coursesPicked = DepartmentCourse::query()
+    // Get courses already picked by the department
+    private function getCoursesPicked()
+    {
+        return DepartmentCourse::query()
             ->where('department_id', $this->departmentId)
             ->with('studentCourse')
             ->orderBy('created_at', 'desc')
             ->get();
-
-        return view('livewire.coordinator.add-course', [
-            'courses' => $coursesNotPicked,
-            'selectedCourses' => $coursesPicked,
-        ]);
     }
 }

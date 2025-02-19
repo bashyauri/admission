@@ -1,0 +1,1 @@
+<livewire:authentication.error.error500 />

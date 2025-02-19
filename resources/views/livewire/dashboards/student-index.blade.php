@@ -7,21 +7,7 @@
 <div>
   @livewire('student.student-profile')
 
-  <div
-    class="max-w-3xl mx-auto bg-blue-50 border-l-4 border-blue-500 text-blue-900 p-6 rounded-lg shadow-md mb-5 sm:w-8/12">
-    <h2 class="text-lg font-semibold mb-4 sm:">📢 Important Registration Notice</h2>
-    <p class="text-sm leading-relaxed">
-      You are <span class="font-bold">DIRECTED</span> to complete your online course registration between
-      <span class="font-bold text-blue-700">Monday, 17th February 2025</span> and
-      <span class="font-bold text-blue-700">Tuesday, 18th February 2025</span>.
-      Lectures will commence on <span class="font-bold text-blue-700">Wednesday, 19th February 2025</span>.
-    </p>
-    <p class="mt-4 text-sm leading-relaxed">
-      <span class="font-bold">Note:</span> Students can contact their <span class="font-bold">level
-        coordinators</span> at
-      each department for proper guidance.
-    </p>
-  </div>
+
   <div class="flex flex-wrap -mx-3">
 
     @include('flash-messages')

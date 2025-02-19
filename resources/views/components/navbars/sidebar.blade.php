@@ -18,3 +18,7 @@
     @include('components.navbars.coordinator-sidebar')
 
 @endif
+@if (auth()->user()->isStudent())
+    @include('components.navbars.student-sidebar')
+
+@endif
