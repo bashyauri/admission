@@ -23,12 +23,16 @@ class PrintCourseForm extends Controller
                 config('remita.settings.academic_session'),
                 'semester'
             );
+            $totalUnits = $this->service->getTotalUnitsOfRegisteredCourses(
+                $user->academicDetail->id,
+                config('remita.settings.academic_session'),
+            );
         } catch (Exception $e) {
             Log::info("Something went wrong: " . $e->getMessage());
             return redirect()->back()->with(['error_message' => 'Something went wrong. Please contact CIT.']);
         }
 
-        return view('student.print-course-form', ['courses' => $registeredCourses, 'user' => $user]);
+        return view('student.print-course-form', ['courses' => $registeredCourses, 'user' => $user, 'totalUnits' => $totalUnits]);
 
 
         // $pdf = PDF::loadView(

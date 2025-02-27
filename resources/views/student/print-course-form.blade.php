@@ -310,7 +310,8 @@
             </table>
         </section>
         <div class="total-credits">
-            Total Credit Units: {{ $courses->sum('units') }}
+
+            Total Credit Units: {{ $totalUnits }}
         </div>
         <div class="signature-section">
             <div class="signature-block">

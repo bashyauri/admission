@@ -83,6 +83,15 @@ class CourseRegistrationService
 
         return $query->get();
     }
+    public function getTotalUnitsOfRegisteredCourses($studentId, $academicSession): int
+    {
+        return (int)RegisteredCourse::where([
+            'academic_session' => $academicSession,
+            'academic_detail_id' => $studentId
+        ])
+            ->sum('units');
+    }
+
 
 
     public function getMaxUnits($departmentId, $level): int
