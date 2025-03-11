@@ -4,12 +4,13 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\StudentTransaction;
+use App\Services\PaymentService;
 use Illuminate\Support\Facades\Log;
 use App\Services\StudentTransactionService;
 
 class SchoolFeesTransactionController extends Controller
 {
-    public function __construct(protected StudentTransactionService $transactionService) {}
+    public function __construct(protected StudentTransactionService $transactionService, protected PaymentService $paymentService) {}
     public function index(?StudentTransaction $studenttransaction)
     {
 
@@ -54,20 +55,27 @@ class SchoolFeesTransactionController extends Controller
     }
     public function checkTransactionStatus($rrr)
     {
-
-
-
         try {
-            $studenttransaction = StudentTransaction::where('RRR', $rrr)->first();
+
+            $studentTransaction = StudentTransaction::where('RRR', $rrr)->first();
+
+            if (!$studentTransaction) {
+                return redirect()->back()->with('error', 'Transaction not found.');
+            }
 
 
             $response = $this->transactionService->getTransactionStatus($rrr);
 
-            $this->transactionService->updateTransactionStatus($response->status, $response->rrr);
+
+            $isPostgraduate = $studentTransaction->load('user')->user->isPostgraduate();
+            $service = $isPostgraduate ? $this->transactionService : $this->paymentService;
 
 
+            $service->updateTransactionStatus($response->status, $response->rrr);
 
-            return to_route('student.payment', ['studenttransaction' => $studenttransaction])->with('info', $response->message);
+
+            return to_route('student.payment', ['studenttransaction' => $studentTransaction])
+                ->with('info', $response->message);
         } catch (\Exception $ex) {
             Log::alert($ex->getMessage());
             return redirect()->back()->with('error', 'Something went wrong: Try again later');
