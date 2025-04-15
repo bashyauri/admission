@@ -52,7 +52,7 @@ class CourseRegistrationService
      * @param string $academicSession
      * @return \Illuminate\Database\Eloquent\Collection
      */
-    public function getRegisteredCourses($studentId, $academicSession, $order = null)
+    public function getRegisteredCourses($studentId, $academicSession, $order = null): Collection
     {
         $query = RegisteredCourse::with([
             'departmentCourse' => function ($query) {
@@ -83,6 +83,10 @@ class CourseRegistrationService
 
         return $query->get();
     }
+
+
+
+
     public function getTotalUnitsOfRegisteredCourses($studentId, $academicSession): int
     {
         return (int)RegisteredCourse::where([

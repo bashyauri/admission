@@ -160,7 +160,7 @@ number_format($course->student_level_id) . '00' }}</span>
 
                                                             <h6
                                                                 class="mb-0 font-semibold leading-normal text-size-sm text-slate-700 dark:text-white">
-                                                                {{$pickedCourse->departmentCourse->StudentCourse->code . ' ' . $pickedCourse->departmentCourse->StudentCourse->title}}
+                                                                {{$pickedCourse->code . ' ' . $pickedCourse->title}}
                                                             </h6>
 
                                                         </div>
@@ -177,7 +177,7 @@ number_format($course->student_level_id) . '00' }}</span>
                                                                     class="mb-0 font-semibold leading-tight text-size-xs text-slate-400 dark:text-white/80">
                                                                     Semester
                                                                 </p>
-                                                                <span class="font-bold leading-tight text-size-xs">{{$pickedCourse->departmentCourse->StudentCourse->semester }}</span>
+                                                                <span class="font-bold leading-tight text-size-xs">{{$pickedCourse->semester }}</span>
                                                             </div>
                                                             <div class="mx-auto">
                                                                 <p

@@ -38,8 +38,10 @@ class UtmeSchoolFeesInvoice extends Component
         $existingInvoice = $this->getExistingInvoice();
 
         if ($existingInvoice) {
+
             $this->redirectToPayment($existingInvoice);
         } else {
+
             $this->generateNewInvoice();
         }
     }

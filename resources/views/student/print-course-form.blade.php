@@ -299,6 +299,7 @@
                 </thead>
                 <tbody>
                     @foreach ($courses as $course)
+
                         <tr>
                             <td>{{ $course->departmentCourse->studentCourse->code }}</td>
                             <td>{{ $course->departmentCourse->studentCourse->title }}</td>
