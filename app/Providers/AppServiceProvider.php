@@ -8,6 +8,7 @@ use App\Models\Category;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -16,9 +17,7 @@ class AppServiceProvider extends ServiceProvider
      *
      * @return void
      */
-    public function register()
-    {
-    }
+    public function register() {}
 
     /**
      * Bootstrap any application services.
@@ -97,5 +96,6 @@ class AppServiceProvider extends ServiceProvider
                 return $this;
             }
         });
+        Model::preventLazyLoading();
     }
 }

@@ -8,7 +8,7 @@ use App\Models\User;
 use App\Models\Transaction;
 use App\Models\FeeStructure;
 use App\Enums\TransactionStatus;
-use App\Models\SchoolFeesPayment;
+use App\Models\AcademicDetail;
 use App\Models\StudentTransaction;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Http;
@@ -66,7 +66,10 @@ class PaymentService
     }
     public function getUgStudentLevel(string $userId): int
     {
-        return SchoolFeesPayment::where('user_id', $userId)->count() + 1;
+        $academicDetail = AcademicDetail::where('user_id', $userId)->first();
+
+
+        return $academicDetail?->student_level_id ?? 0 + 1;
     }
     public function getStudentFee(string $userId): FeeStructure
     {
@@ -79,7 +82,7 @@ class PaymentService
             // Student that are not freshers (100,or 200 level DE)
             $departmentId = $student->academicDetail->department_id;
             $programmeId = $student->programme_id;
-            $level = $student->proposedCourse->student_levels_id;
+            $level = $this->getUgStudentLevel($student->id);
         }
         return  FeeStructure::where(['department_id' => $departmentId, 'programme_id' => $programmeId, 'student_level_id' => $level])->first();
     }

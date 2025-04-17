@@ -33,16 +33,5 @@ class PrintCourseForm extends Controller
         }
 
         return view('student.print-course-form', ['courses' => $registeredCourses, 'user' => $user, 'totalUnits' => $totalUnits]);
-
-
-        // $pdf = PDF::loadView(
-        //     'student.print-course-form',
-        //     ['courses' => $registeredCourses]
-        // );
-        // $pdf->getDomPDF()->set_option("enable_php", true);
-        // $pdf->getDomPDF()->set_option('isPhpEnabled', true);
-
-
-        // return $pdf->stream('course-form.pdf');
     }
 }
