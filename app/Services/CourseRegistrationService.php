@@ -10,6 +10,7 @@ use App\Models\DepartmentCourse;
 use App\Models\DepartmentMaxUnit;
 use App\Models\RegisteredCourse;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Facades\DB;
 
 class CourseRegistrationService
 {
@@ -110,5 +111,41 @@ class CourseRegistrationService
     {
         $lastDigit = substr($courseCode, -1);
         return $lastDigit % 2 === 0 ? 2 : 1;
+    }
+    public function getExamCard($studentId)
+    {
+        return DB::table('registered_courses')
+            ->join('department_courses', 'registered_courses.department_course_id', '=', 'department_courses.id')
+            ->join('student_courses', 'department_courses.student_course_id', '=', 'student_courses.id')
+            ->where('registered_courses.academic_detail_id', $studentId)
+            ->select(
+                'registered_courses.academic_session',
+                'student_courses.semester',
+                DB::raw('MAX(student_courses.student_level_id) as student_level_id') // aggregate function
+            )
+            ->groupBy(
+                'registered_courses.academic_session',
+                'student_courses.semester'
+            )
+            ->orderBy('registered_courses.academic_session')
+            ->get();
+    }
+    public function getRegisteredCoursesBySemester($studentId, $academicSession, $semester)
+    {
+        return DB::table('registered_courses')
+            ->join('department_courses', 'registered_courses.department_course_id', '=', 'department_courses.id')
+            ->join('student_courses', 'department_courses.student_course_id', '=', 'student_courses.id')
+            ->where([
+                'registered_courses.academic_detail_id' => $studentId,
+                'registered_courses.academic_session' => $academicSession,
+                'student_courses.semester' => $semester
+            ])
+            ->select(
+                'registered_courses.*',
+                'student_courses.code',
+                'student_courses.title',
+                'department_courses.units'
+            )
+            ->get();
     }
 }

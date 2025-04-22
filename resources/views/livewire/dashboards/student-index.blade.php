@@ -7,52 +7,76 @@
 <div>
   @livewire('student.student-profile')
 
-  <!--<div-->
-  <!--  class="max-w-3xl mx-auto bg-blue-50 border-l-4 border-blue-500 text-blue-900 p-6 rounded-lg shadow-md mb-5 sm:w-8/12">-->
-  <!--  <h2 class="text-lg font-semibold mb-4 sm:">ðŸ“¢ Important Registration Notice</h2>-->
-  <!--  <p class="text-sm leading-relaxed">-->
-  <!--    You are <span class="font-bold">DIRECTED</span> to complete your online course registration between-->
-  <!--    <span class="font-bold text-blue-700">Monday, 17th February 2025</span> and-->
-  <!--    <span class="font-bold text-blue-700">Tuesday, 18th February 2025</span>.-->
-  <!--    Lectures will commence on <span class="font-bold text-blue-700">Wednesday, 19th February 2025</span>.-->
-  <!--  </p>-->
-  <!--  <p class="mt-4 text-sm leading-relaxed">-->
-  <!--    <span class="font-bold">Note:</span> Students can contact their <span class="font-bold">level-->
-  <!--      coordinators</span> at-->
-  <!--    each department for proper guidance.-->
-  <!--  </p>-->
-  <!--</div>-->
+
   <div class="flex flex-wrap -mx-3">
 
     @include('flash-messages')
 
 
 
-
-    <div class="w-full max-w-full px-3 shrink-0 sm:flex-0 sm:w-4/12">
+    <div class="w-full max-w-full px-3 shrink-0 sm:flex-0 sm:w-4/12 mb-2">
       <div
         class="relative flex flex-col min-w-0 break-words bg-white border-0 dark:bg-gray-950 dark:shadow-soft-dark-xl shadow-soft-xl rounded-2xl bg-clip-border">
         <div class="relative flex-auto p-4">
           <div class="flex flex-wrap -mx-3 ">
             <div class="w-7/12 max-w-full px-3 text-left flex-0">
               <p class="mb-1 font-semibold leading-normal capitalize text-size-sm">Generate Payment</p>
-
               <span class="mt-auto mb-0 font-bold leading-normal text-right text-lime-500 text-size-sm">
+
                 @if (auth()->user()->isUndergraduate())
-          <a href="{{route('student.ug-school-fees', ['user' => auth()->user()->id])}}"
-            class="inline-block px-6 py-3 mt-4 font-bold text-center uppercase align-middle transition-all border-0 rounded-lg cursor-pointer hover:scale-102 active:opacity-85 hover:shadow-soft-xs bg-gradient-lime leading-pro text-size-xs ease-soft-in tracking-tight-soft shadow-soft-md bg-150 bg-x-25 text-white">Pay
-            School Fees</a>
+
+          <a href="{{ route('student.ug-school-fees', ['user' => auth()->user()->id]) }}"
+            class="inline-flex items-center px-6 py-3 mt-4 font-bold text-center uppercase align-middle transition-all border-0 rounded-lg cursor-pointer hover:scale-102 active:opacity-85 hover:shadow-soft-xs bg-gradient-lime leading-pro text-size-xs ease-soft-in tracking-tight-soft shadow-soft-md bg-150 bg-x-25 text-white">
+
+            <!-- Icon positioned left -->
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+            stroke="currentColor" class="w-5 h-5 mr-2">
+            <path stroke-linecap="round" stroke-linejoin="round"
+              d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 0 0 2.25-2.25V6.75A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25v10.5A2.25 2.25 0 0 0 4.5 19.5Z" />
+            </svg>
+
+            Pay School Fees
+          </a>
         @else
       <a href="{{route('student.school-fees-invoice')}}"
-        class="inline-block px-6 py-3 mt-4 font-bold text-center uppercase align-middle transition-all border-0 rounded-lg cursor-pointer hover:scale-102 active:opacity-85 hover:shadow-soft-xs bg-gradient-lime leading-pro text-size-xs ease-soft-in tracking-tight-soft shadow-soft-md bg-150 bg-x-25 text-white">Generate
-        Invoice</a>
+        class="inline-flex items-center px-6 py-3 mt-4 font-bold text-center uppercase align-middle transition-all border-0 rounded-lg cursor-pointer hover:scale-102 active:opacity-85 hover:shadow-soft-xs bg-gradient-lime leading-pro text-size-xs ease-soft-in tracking-tight-soft shadow-soft-md bg-150 bg-x-25 text-white">
+        <!-- Icon positioned left -->
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+        stroke="currentColor" class="w-5 h-5 mr-2">
+        <path stroke-linecap="round" stroke-linejoin="round"
+          d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 0 0 2.25-2.25V6.75A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25v10.5A2.25 2.25 0 0 0 4.5 19.5Z" />
+        </svg>
+
+        Generate Invoice
+      </a>
     @endif
-
-
               </span>
             </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="w-full max-w-full px-3 shrink-0 sm:flex-0 sm:w-4/12 mb-2">
+      <div
+        class="relative flex flex-col min-w-0 break-words bg-white border-0 dark:bg-gray-950 dark:shadow-soft-dark-xl shadow-soft-xl rounded-2xl bg-clip-border">
+        <div class="relative flex-auto p-4">
+          <div class="flex flex-wrap -mx-3 ">
+            <div class="w-7/12 max-w-full px-3 text-left flex-0">
+              <p class="mb-1 font-semibold leading-normal capitalize text-size-sm">Manage Courses</p>
+              <span class="mt-auto mb-0 font-bold leading-normal text-right text-lime-500 text-size-sm">
+                <a href="{{route('student.course-registration')}}"
+                  class="inline-flex items-center px-6 py-3 mt-4 font-bold text-center uppercase align-middle transition-all border-0 rounded-lg cursor-pointer hover:scale-102 active:opacity-85 hover:shadow-soft-xs bg-gradient-lime leading-pro text-size-xs ease-soft-in tracking-tight-soft shadow-soft-md bg-150 bg-x-25 text-white">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                    stroke="currentColor" class="h-5 w-5 mr-2">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 0 0 2.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 0 0-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75 2.25 2.25 0 0 0-.1-.664m-5.8 0A2.251 2.251 0 0 1 13.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25ZM6.75 12h.008v.008H6.75V12Zm0 3h.008v.008H6.75V15Zm0 3h.008v.008H6.75V18Z" />
+                  </svg>
 
 
+                  Add/drop
+                </a>
+              </span>
+            </div>
           </div>
         </div>
       </div>
@@ -62,20 +86,22 @@
         class="relative flex flex-col min-w-0 break-words bg-white border-0 dark:bg-gray-950 dark:shadow-soft-dark-xl shadow-soft-xl rounded-2xl bg-clip-border">
         <div class="relative flex-auto p-4">
           <div class="flex flex-wrap -mx-3 ">
-            <div class="w-7/12 max-w-full px-3 text-left flex-0">
-              <p class="mb-1 font-semibold leading-normal capitalize text-size-sm">Manage Courses</p>
-
+            <div class="w-6/12 max-w-full px-3 text-left flex-0">
+              <p class="mb-1 font-semibold leading-normal capitalize text-size-sm">Generate Exam Card</p>
               <span class="mt-auto mb-0 font-bold leading-normal text-right text-lime-500 text-size-sm">
+                <a href="{{route('student.exam-card')}}"
+                  class="inline-flex items-center px-6 py-3 mt-4 font-bold text-center uppercase align-middle transition-all border-0 rounded-lg cursor-pointer hover:scale-102 active:opacity-85 hover:shadow-soft-xs bg-gradient-lime leading-pro text-size-xs ease-soft-in tracking-tight-soft shadow-soft-md bg-150 bg-x-25 text-white">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                    stroke="currentColor" class="w-5 h-5 mr-2">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
+                  </svg>
 
-                <a href="{{route('student.course-registration')}}"
-                  class="inline-block px-6 py-3 mt-4 font-bold text-center uppercase align-middle transition-all border-0 rounded-lg cursor-pointer hover:scale-102 active:opacity-85 hover:shadow-soft-xs bg-gradient-lime leading-pro text-size-xs ease-soft-in tracking-tight-soft shadow-soft-md bg-150 bg-x-25 text-white">Add/drop</a>
 
-
-
+                  Exam Card
+                </a>
               </span>
             </div>
-
-
           </div>
         </div>
       </div>
