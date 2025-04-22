@@ -151,7 +151,8 @@ number_format($course->student_level_id) . '00' }}</span>
 
 
                         @foreach ($registeredCourses as $pickedCourse)
-
+                        
+                           
                                                 <li wire:key="course-{{ $pickedCourse->id }}"
                                                     class="border-black/12.5 rounded-t-inherit relative mb-4 block flex-col items-center border-0 border-solid px-4 py-0 pl-0 text-inherit">
                                                     <div
@@ -160,7 +161,7 @@ number_format($course->student_level_id) . '00' }}</span>
 
                                                             <h6
                                                                 class="mb-0 font-semibold leading-normal text-size-sm text-slate-700 dark:text-white">
-                                                                {{$pickedCourse->code . ' ' . $pickedCourse->title}}
+                                                                {{$pickedCourse->departmentCourse->studentCourse->code }}
                                                             </h6>
 
                                                         </div>
@@ -177,7 +178,7 @@ number_format($course->student_level_id) . '00' }}</span>
                                                                     class="mb-0 font-semibold leading-tight text-size-xs text-slate-400 dark:text-white/80">
                                                                     Semester
                                                                 </p>
-                                                                <span class="font-bold leading-tight text-size-xs">{{$pickedCourse->semester }}</span>
+                                                                <span class="font-bold leading-tight text-size-xs">{{$pickedCourse->departmentCourse->studentCourse->semester }}</span>
                                                             </div>
                                                             <div class="mx-auto">
                                                                 <p
