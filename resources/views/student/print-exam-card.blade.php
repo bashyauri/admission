@@ -222,11 +222,12 @@
         <!-- Header Section -->
         <div class="header-with-logos">
             <div class="left-logo">
-                <img src="{{ asset('assets/img') }}/logo-ct.png" alt="Institution Logo" style="height: 80px;">
+                <img src="{{ asset('assets/img') }}/logo-ct.png" alt="Institution Logo" style="height: 100px;">
             </div>
             <div class="header-title">
-                <h1>WAZIRI UMARU FEDERAL POLYTECHNIC, BIRNIN KEBBI</h1>
-                <h2>IN AFFILIATION WITH FEDERAL UNIVERSITY BIRNIN KEBBI</h2>
+                <h1>DIRECTORATE OF HIGHER STUDIES</h1>
+                <h2>WAZIRI UMARU FEDERAL POLYTECHNIC, BIRNIN KEBBI</h2>
+                <h2>IN AFFILIATION WITH FEDERAL UNIVERSITY, BIRNIN KEBBI</h2>
                 <h2>OFFICIAL EXAMINATION CARD - {{ $session }} SESSION</h2>
             </div>
             <div class="right-logo">
@@ -281,26 +282,13 @@
                     <div class="course-code">{{ $course->code }}</div>
 
                 @endforeach
-                <!-- Column 1 -->
-                {{-- <div class="course-code">CSC 301</div>
-                <div class="course-code">CSC 303</div>
-                <div class="course-code">CSC 305</div>
 
-                <!-- Column 2 -->
-                <div class="course-code">CSC 307</div>
-                <div class="course-code">MAT 301</div>
-                <div class="course-code">STA 301</div>
-
-                <!-- Column 3 -->
-                <div class="course-code">GST 303</div>
-                <div class="course-code">ENT 301</div>
-                <div class="course-code">CSC 309</div> --}}
             </div>
         </div>
 
         <!-- Barcode -->
         <div class="barcode">
-            FIRST SEMESTER {{ $session }} SESSION
+            {{ $semester == '1' ? 'First' : 'Second' }} SEMESTER {{ $session }} SESSION
         </div>
 
         <!-- Signature Area -->
@@ -311,7 +299,7 @@
             </div>
             <div class="signature-box">
                 <div class="signature-line"></div>
-                <p>HOD/Coordinator's Signature & Date</p>
+                <p>HOD's Signature & Date</p>
             </div>
         </div>
 
