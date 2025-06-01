@@ -4,22 +4,26 @@ namespace App\Services;
 
 use App\Enums\TransactionStatus;
 use App\Models\Transaction;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
 
 class TransactionService
 {
+
     public static function hasPaid(string $paymentType): bool
     {
         return  Transaction::where([
             'resource' => $paymentType,
-            'user_id' => auth()->user()->id,
-            'status' => TransactionStatus::APPROVED
+            'user_id' => Auth::id(),
+            'status' => TransactionStatus::APPROVED,
+            'acad_session' => app(AcademicSessionService::class)->getAcademicSession(Auth::user())
+
         ])->exists();
     }
 
     public function hasInvoice(string $paymentType)
     {
-        return Transaction::where(['user_id' => auth()->id(), 'resource' => $paymentType])->exists();
+        return Transaction::where(['user_id' => Auth::id(), 'resource' => $paymentType, 'acad_session' => app(AcademicSessionService::class)->getAcademicSession(Auth::user())])->exists();
     }
     public function generateTransactionId(string $alias): string
     {
@@ -69,7 +73,7 @@ class TransactionService
                     'status' => $data['statuscode'],
                     'resource' => $data['description'],
                     'RRR' => $data['RRR'],
-                    'acad_session' => config('remita.settings.academic_session')
+                    'acad_session' => app(AcademicSessionService::class)->getAcademicSession(auth()->user()->id)
                 ]
             );
         }

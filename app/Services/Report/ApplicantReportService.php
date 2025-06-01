@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace App\Services\Report;
 
-use App\Enums\ApplicationStatus;
 use App\Enums\ProgrammesEnum;
-use App\Enums\TransactionStatus;
 use App\Models\ProposedCourse;
+use App\Enums\ApplicationStatus;
+use App\Enums\TransactionStatus;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
+use App\Services\AcademicSessionService;
 
 /**
  * Class ApplicantReportService.
@@ -19,30 +21,29 @@ class ApplicantReportService
 
     public function totalApplicants($departmentId = null): int
     {
-        if ($departmentId) {
-            $query = ProposedCourse::where(['department_id' => $departmentId, 'academic_session' => config('remita.settings.academic_session')])
-                ->whereHas('user', function ($query) {
-                    $query->where('programme_id', ProgrammesEnum::PG->value);
-                })->count();
-        } else {
-
-            $query = ProposedCourse::where('academic_session', config('remita.settings.academic_session'))->whereHas('user', function ($query) {
+        return $departmentId
+            ? ProposedCourse::where([
+                'department_id' => $departmentId,
+                'academic_session' => config('remita.settings.pg_academic_session')
+            ])
+            ->whereHas('user', function ($query) {
+                $query->where('programme_id', ProgrammesEnum::PG->value);
+            })->count()
+            : ProposedCourse::where('academic_session', config('remita.settings.pg_academic_session'))
+            ->whereHas('user', function ($query) {
                 $query->where('programme_id', ProgrammesEnum::PG->value);
             })->count();
-        }
-
-        return $query;
     }
     public function applicantsNotRecommended($departmentId = null): int
     {
 
         if ($departmentId) {
-            $query = ProposedCourse::where(['department_id' => $departmentId, 'status' => ApplicationStatus::PENDING, 'academic_session' => config('remita.settings.academic_session')])
+            $query = ProposedCourse::where(['department_id' => $departmentId, 'status' => ApplicationStatus::PENDING, 'academic_session' => config('remita.settings.pg_academic_session')])
                 ->whereHas('user', function ($query) {
                     $query->where('programme_id', ProgrammesEnum::PG->value);
                 })->count();
         } else {
-            $query = ProposedCourse::where(['status' => ApplicationStatus::PENDING, 'academic_session' => config('remita.settings.academic_session')])->whereHas('user', function ($query) {
+            $query = ProposedCourse::where(['status' => ApplicationStatus::PENDING, 'academic_session' => config('remita.settings.pg_academic_session')])->whereHas('user', function ($query) {
                 $query->where('programme_id', ProgrammesEnum::PG->value);
             })->count();
         }
@@ -52,11 +53,11 @@ class ApplicantReportService
     public function applicantsShortlisted($departmentId = null): int
     {
         if ($departmentId) {
-            $query = ProposedCourse::where(['department_id' => $departmentId, 'status' => ApplicationStatus::SHORTLISTED, 'academic_session' => config('remita.settings.academic_session')])->whereHas('user', function ($query) {
+            $query = ProposedCourse::where(['department_id' => $departmentId, 'status' => ApplicationStatus::SHORTLISTED, 'academic_session' => config('remita.settings.pg_academic_session')])->whereHas('user', function ($query) {
                 $query->where('programme_id', ProgrammesEnum::PG->value);
             })->count();
         } else {
-            $query = ProposedCourse::where(['status' => ApplicationStatus::SHORTLISTED, 'academic_session' => config('remita.settings.academic_session')])->whereHas('user', function ($query) {
+            $query = ProposedCourse::where(['status' => ApplicationStatus::SHORTLISTED, 'academic_session' => config('remita.settings.pg_academic_session')])->whereHas('user', function ($query) {
                 $query->where('programme_id', ProgrammesEnum::PG->value);
             })->count();
         }
@@ -78,7 +79,8 @@ class ApplicantReportService
             ->join('users', 'proposed_courses.user_id', '=', 'users.id')
             ->join('courses', 'proposed_courses.course_id', '=', 'courses.id')
             ->where('users.programme_id', ProgrammesEnum::PG->value)
-            ->where('proposed_courses.status', $status);
+            ->where('proposed_courses.status', $status)
+            ->where('proposed_courses.academic_session', config('remita.settings.pg_academic_session'));
 
 
         // Add department filter if the user is a HOD
@@ -112,7 +114,8 @@ class ApplicantReportService
             'courses.name AS course_name'
         )
             ->join('users', 'proposed_courses.user_id', '=', 'users.id')
-            ->join('courses', 'proposed_courses.course_id', '=', 'courses.id');
+            ->join('courses', 'proposed_courses.course_id', '=', 'courses.id')
+            ->where('proposed_courses.academic_session', config('remita.settings.pg_academic_session'));
 
         // Add department filter if the user is a HOD
         if ($departmentId = auth()->user()->hodDetails?->department_id) {
@@ -138,7 +141,7 @@ class ApplicantReportService
                     'proposed_courses.department_id' => $departmentId,
                     'transactions.resource' => config('remita.admission.description'),
                     'transactions.status' => TransactionStatus::APPROVED,
-                    'transactions.acad_session' => config('remita.settings.academic_session')
+                    'transactions.acad_session' => config('remita.settings.pg_academic_session')
                 ])->count();
         }
         return
@@ -147,7 +150,7 @@ class ApplicantReportService
             ->where([
                 'transactions.resource' => config('remita.admission.description'),
                 'transactions.status' => TransactionStatus::APPROVED,
-                'transactions.acad_session' => config('remita.settings.academic_session')
+                'transactions.acad_session' => config('remita.settings.pg_academic_session')
             ])->count();
     }
     public function getPaidAcceptanceFees($departmentId = null): int
@@ -159,7 +162,7 @@ class ApplicantReportService
                     'proposed_courses.department_id' => $departmentId,
                     'transactions.resource' => config('remita.acceptance.description'),
                     'transactions.status' => TransactionStatus::APPROVED,
-                    'transactions.acad_session' => config('remita.settings.academic_session')
+                    'transactions.acad_session' => config('remita.settings.pg_academic_session')
                 ])->count();
         }
         return
@@ -168,7 +171,7 @@ class ApplicantReportService
             ->where([
                 'transactions.resource' => config('remita.acceptance.description'),
                 'transactions.status' => TransactionStatus::APPROVED,
-                'transactions.acad_session' => config('remita.settings.academic_session')
+                'transactions.acad_session' => config('remita.settings.pg_academic_session')
             ])->count();
     }
 }

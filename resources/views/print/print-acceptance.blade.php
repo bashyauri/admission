@@ -1,3 +1,4 @@
+@use('App\Services\AcademicSessionService;')
 <style>
     /*! normalize.css v8.0.1 | MIT License | github.com/necolas/normalize.css */
 
@@ -524,9 +525,11 @@
     .fees-header {
         page-break-after: always;
     }
-    .heading{
+
+    .heading {
         text-align: center;
     }
+
     .heading h2 {
         color: #116530;
     }
@@ -571,7 +574,8 @@
         <section>
             <header>
 
-                <h5>PROVISIONAL OFFER OF ADMISSION {{ config('remita.settings.academic_session') }} ACADEMIC
+                <h5>PROVISIONAL OFFER OF ADMISSION
+                    {{ app(AcademicSessionService::class)->getAcademicSession(auth()->user())}} ACADEMIC
                     SESSION</h5>
             </header>
             <article>
@@ -617,8 +621,7 @@
                 <p><span>Please accept our congratulations.</span></p>
                 <footer>
                     <div class="stamp-div">
-                        <div><img src="{{ asset('assets/img/logos/stamped.png') }}" alt="stamped-image"
-                                height="40px" />
+                        <div><img src="{{ asset('assets/img/logos/stamped.png') }}" alt="stamped-image" height="40px" />
                         </div>
                         <br>
                         Official Stamp
@@ -639,36 +642,36 @@
     <h1>Schedule Fees</h1>
     <hr>
     @if ($scheduleFees)
-        <table>
-            <thead>
-                <tr>
-                    <th>Fee Name</th>
-                    <th>Amount (₦)</th>
-                </tr>
-            </thead>
-            <tbody>
-                @php
-                    $totalFees = 0;
-                @endphp
-                @foreach ($scheduleFees as $feeName => $feeAmount)
-                    @php
+    <table>
+        <thead>
+            <tr>
+                <th>Fee Name</th>
+                <th>Amount (₦)</th>
+            </tr>
+        </thead>
+        <tbody>
+            @php
+            $totalFees = 0;
+            @endphp
+            @foreach ($scheduleFees as $feeName => $feeAmount)
+            @php
 
-                        $feeName = preg_replace('/_/', ' ', strtoupper($feeName));
-                        $totalFees += $feeAmount;
+            $feeName = preg_replace('/_/', ' ', strtoupper($feeName));
+            $totalFees += $feeAmount;
 
-                    @endphp
-                    <tr>
+            @endphp
+            <tr>
 
-                        <td>{{ $feeName }}</td>
-                        <td>{{ number_format($feeAmount, 2, '.', ',') }}</td>
-                    </tr>
-                @endforeach
-                <tr>
-                    <td><strong>TOTAL</strong></td>
-                    <td><strong>{{ number_format($totalFees, 2, '.', ',') }}</strong></td>
-                </tr>
-            </tbody>
-        </table>
+                <td>{{ $feeName }}</td>
+                <td>{{ number_format($feeAmount, 2, '.', ',') }}</td>
+            </tr>
+            @endforeach
+            <tr>
+                <td><strong>TOTAL</strong></td>
+                <td><strong>{{ number_format($totalFees, 2, '.', ',') }}</strong></td>
+            </tr>
+        </tbody>
+    </table>
     @endif --}}
 </body>
 <script>

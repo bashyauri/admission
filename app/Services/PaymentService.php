@@ -130,7 +130,7 @@ class PaymentService
                     'status' => $data['statuscode'],
                     'resource' => $data['description'],
                     'RRR' => $data['RRR'],
-                    'acad_session' => config('remita.settings.academic_session')
+                    'acad_session' => app(AcademicSessionService::class)->getAcademicSession($data['user_id'])
                 ]
             );
         }

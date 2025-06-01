@@ -2,9 +2,11 @@
 
 namespace App\Livewire\Forms;
 
+use Livewire\Form;
 use App\Models\ProposedCourse;
 use Livewire\Attributes\Validate;
-use Livewire\Form;
+use Illuminate\Support\Facades\Auth;
+use App\Services\AcademicSessionService;
 
 class ProposedCourseForm extends Form
 {
@@ -31,7 +33,7 @@ class ProposedCourseForm extends Form
                 'jamb_no' => $jambData->jamb_no,
                 'course' => $jambData->course,
                 'jamb_score' => $jambData->jamb_score,
-                'acad_session_id' => config('remita.settings.academic_session')
+                'acad_session_id' => app(AcademicSessionService::class)->getAcademicSession(Auth::user()),
 
             ]
         );

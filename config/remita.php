@@ -30,6 +30,7 @@ return [
         'merchantid' => env('MERCHANTID'),
         'apikey' => env('APIKEY'),
         'academic_session' => env('ACADEMIC_SESSION'),
+        'pg_academic_session' => env('PG_ACADEMIC_SESSION'),
         'invoice_url' => env('REMITA_PAYMENT_INIT_URL'),
         'base_url' => env('BASE_URL '),
         'address' => env('INSTITUTION_ADDRESS'),

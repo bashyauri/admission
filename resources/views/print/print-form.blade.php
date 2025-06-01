@@ -1,4 +1,5 @@
 @use('Carbon\Carbon;')
+@use('App\Services\AcademicSessionService;')
 
 <!DOCTYPE html>
 <html lang="en">
@@ -9,30 +10,33 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous">
-    </script>
+        </script>
     <link id="pagestyle" href="../assets/css/soft-ui-dashboard.css" rel="stylesheet" />
 
 
 
     <style type="text/css">
-    body {
-        /*padding: 2% 1% 2% 1%;
+        body {
+            /*padding: 2% 1% 2% 1%;
       color: #111111;
         background-image:url(image/bg2.jpg);
         background-repeat:repeat;
              width: 210mm;
              height: 297mm;*/
-        margin-left: auto;
-        margin-right: auto;
-        padding: 0px;
-        ;
-        color: #111111;
-        background-image: url(image/bg2.jpg);
-        background-repeat: repeat;
-    }
-    @media print {
-  .school-section {page-break-before: always;}
-}
+            margin-left: auto;
+            margin-right: auto;
+            padding: 0px;
+            ;
+            color: #111111;
+            background-image: url(image/bg2.jpg);
+            background-repeat: repeat;
+        }
+
+        @media print {
+            .school-section {
+                page-break-before: always;
+            }
+        }
     </style>
 </head>
 
@@ -47,15 +51,16 @@
             <div class="text-center top-container-title col-8">
                 <h5 class="mb-4 font-weight-bolder">WAZIRI UMARU FEDERAL POLYTECHNIC, BIRNIN KEBBI</h5>
                 <h5 class="mb-4 font-weight-bold">ADMISSION SCREENING FORM</h5>
-                <h6 class="font-weight-bold">{{strtoupper(config('remita.settings.academic_session'))}} ACADEMIC SESSION
+                <h6 class="font-weight-bold">
+                    {{ app(AcademicSessionService::class)->getAcademicSession(auth()->user())}} ACADEMIC SESSION
                 </h6>
             </div>
 
             {{-- <div class="p-3 mb-3 text-center log0-container col-2 border-left border-dark">
 
-                    {!! QrCode::size(100)->generate($fullName . ' Remita:' . $rrr) !!}
+                {!! QrCode::size(100)->generate($fullName . ' Remita:' . $rrr) !!}
 
-                </div> --}}
+            </div> --}}
         </div>
 
         <div class="row" style="margin:0% 3% 0% 3%; width:95%">
@@ -175,35 +180,35 @@
                 @if (auth()->user()->isPosgraduate())
 
 
-                <div class="row-fluid school-section">
-                    <div class="span12">
-                        <table class="table table-condensed ">
-                            <h4 ><b>SECTION B: SCHOOLS/COLLEGES ATTENDED</b></h4>
-                            <tr>
-                                <th rowspan="2">S/N</th>
-                                <th rowspan="2">School
+                    <div class="row-fluid school-section">
+                        <div class="span12">
+                            <table class="table table-condensed ">
+                                <h4><b>SECTION B: SCHOOLS/COLLEGES ATTENDED</b></h4>
+                                <tr>
+                                    <th rowspan="2">S/N</th>
+                                    <th rowspan="2">School
 
-                            </tr>
-                            <tr>
-                                <th>Certificate</th>
-                                <th>Date</th>
-                            </tr>
+                                </tr>
+                                <tr>
+                                    <th>Certificate</th>
+                                    <th>Date</th>
+                                </tr>
 
-                            @php
-                            $count= 0;
-                            @endphp
-                            @foreach (auth()->user()->schools as $school)
-                            <tr>
-                                <td>{{ $count = $count + 1 }}</td>
-                                <td>{{ ucwords($school->school_name) }}</td>
-                                <td>{{ ucwords($school->certificate_name) }}</td>
-                                <td>{{ Carbon::createFromFormat('Y-m-d', $school->date_obtained)->format('Y') }}</td>
-                            </tr>
-                            @endforeach
-                        </table>
+                                @php
+                                    $count = 0;
+                                @endphp
+                                @foreach (auth()->user()->schools as $school)
+                                    <tr>
+                                        <td>{{ $count = $count + 1 }}</td>
+                                        <td>{{ ucwords($school->school_name) }}</td>
+                                        <td>{{ ucwords($school->certificate_name) }}</td>
+                                        <td>{{ Carbon::createFromFormat('Y-m-d', $school->date_obtained)->format('Y') }}</td>
+                                    </tr>
+                                @endforeach
+                            </table>
+                        </div>
                     </div>
-                </div>
-                  @endif
+                @endif
                 <div class="row-fluid">
                     <div class="span6">
                         <table class="table table-condensed">
@@ -218,12 +223,12 @@
 
                             </tr>
                             @foreach (auth()->user()->olevelExams as $exam)
-                            <tr>
-                                <td colspan="2">{{ ucwords($exam->exam_name) }}</td>
-                                <td colspan="2">{{ ucwords($exam->exam_number) }}</td>
-                                <td colspan="2">{{ ucwords($exam->exam_year) }}</td>
+                                <tr>
+                                    <td colspan="2">{{ ucwords($exam->exam_name) }}</td>
+                                    <td colspan="2">{{ ucwords($exam->exam_number) }}</td>
+                                    <td colspan="2">{{ ucwords($exam->exam_year) }}</td>
 
-                            </tr>
+                                </tr>
                             @endforeach
                             <tr>
                                 <th>S/N</th>
@@ -232,19 +237,19 @@
                                 <th>Grade</th>
                             </tr>
                             @php
-                            $subjectCount=0;
+                                $subjectCount = 0;
                             @endphp
                             @foreach (auth()->user()->olevelSubjectGrades as $subject)
-                            <tr>
+                                <tr>
 
 
 
-                                <td>{{ $subjectCount = $subjectCount + 1 }}</td>
-                                <td>{{ ucwords($subject->subject_name) }}</td>
-                                <td>{{ ucwords($subject->exam_name) }}</td>
-                                <td><strong>{{ ucwords($subject->grade) }}</strong></td>
+                                    <td>{{ $subjectCount = $subjectCount + 1 }}</td>
+                                    <td>{{ ucwords($subject->subject_name) }}</td>
+                                    <td>{{ ucwords($subject->exam_name) }}</td>
+                                    <td><strong>{{ ucwords($subject->grade) }}</strong></td>
 
-                            </tr>
+                                </tr>
                             @endforeach
                         </table>
                     </div>
@@ -352,7 +357,7 @@
 
 </body>
 <script>
-window.print();
+    window.print();
 </script>
 
 </html>
