@@ -1,15 +1,19 @@
 <?php
 
-use App\Http\Controllers\PrintCourseForm;
-use App\Http\Controllers\PrintExamCard;
+use App\Http\Controllers\PrintForm;
+
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\PrintExamCard;
+use App\Http\Livewire\Student\ExamCard;
+
+use App\Http\Controllers\PrintAcceptance;
+use App\Http\Controllers\PrintCourseForm;
+use App\Http\Livewire\Applications\Profile;
 use App\Http\Livewire\Dashboards\StudentIndex;
 use App\Http\Controllers\UgSchoolFeesController;
-
+use App\Http\Livewire\Student\CourseRegistration;
 use App\Http\Livewire\Transactions\SchoolFeesInvoice;
 use App\Http\Controllers\SchoolFeesTransactionController;
-use App\Http\Livewire\Student\CourseRegistration;
-use App\Http\Livewire\Student\ExamCard;
 use App\Http\Livewire\Transactions\UtmeSchoolFeesInvoice;
 
 Route::get('dashboard', StudentIndex::class)->name('dashboard');
@@ -26,6 +30,10 @@ Route::get('print-exam-card/{session}/{semester}', PrintExamCard::class)
         'semester' => 'first|second'
     ])
     ->name('print-exam-card');
+
+Route::get('applications/print-form', PrintForm::class)->name('print-form');
+Route::get('applications/print-acceptance', PrintAcceptance::class)->name('print-acceptance');
+Route::get('applications/profile', Profile::class)->name('profile');
 
 // Normal Controller
 Route::post('/transactions/generate-invoice', [SchoolFeesTransactionController::class, 'generateInvoice'])->name('invoice');

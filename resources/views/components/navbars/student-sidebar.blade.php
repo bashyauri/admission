@@ -5,11 +5,11 @@
         id="sidenav-main">
 @else
 
-    <aside mini="false"
-        class="fixed inset-y-0 left-0 flex-wrap items-center justify-between block w-full p-0 my-4 overflow-y-auto transition-all duration-200 -translate-x-full bg-white border-0 shadow-none xl:ml-4 dark:bg-gray-950 ease-soft-in-out z-990 max-w-64 rounded-2xl xl:translate-x-0 xl:bg-transparent"
-        id="sidenav-main">
+        <aside mini="false"
+            class="fixed inset-y-0 left-0 flex-wrap items-center justify-between block w-full p-0 my-4 overflow-y-auto transition-all duration-200 -translate-x-full bg-white border-0 shadow-none xl:ml-4 dark:bg-gray-950 ease-soft-in-out z-990 max-w-64 rounded-2xl xl:translate-x-0 xl:bg-transparent"
+            id="sidenav-main">
 
-@endif
+    @endif
 
         <!-- header -->
 
@@ -228,20 +228,20 @@
 
                 <!-- Applications -->
 
-                {{-- <li class="mt-0.5 w-full">
+                <li class="mt-0.5 w-full">
                     <a {{ in_array_r(request()->route()->getName(), getCategoriesArray('applications')) ?
-                        'active_primary
+    'active_primary
                         aria-expanded=true' :
-                        'aria-expanded=false' }} collapse_trigger="primary"
+    'aria-expanded=false' }} collapse_trigger="primary"
                         href="javascript:;" class="ease-soft-in-out
                         text-size-sm
                         py-2.7 active after:ease-soft-in-out after:font-awesome-5-free my-0 mx-4 flex items-center
                         whitespace-nowrap
                         px-4 {{ in_array_r(request()->route()->getName(), getCategoriesArray('applications')) ?
-                        'font-semibold
+    'font-semibold
                         text-slate-700
                         xl:shadow-soft-xl rounded-lg bg-white transition-all after:text-slate-800 after:rotate-180' :
-                        'font-medium
+    'font-medium
                         text-slate-500 shadow-none transition-colors after:text-slate-800/50 dark:after:text-white/50
                         dark:after:text-white' }} after:ml-auto after:inline-block after:font-bold after:antialiased
                         after:transition-all after:duration-200 after:content-['\f107'] dark:text-white
@@ -279,90 +279,37 @@
                         </div>
 
                         <span
-                            class="ml-1 duration-300 opacity-100 pointer-events-none ease-soft {{ in_array_r(request()->route()->getName(), getCategoriesArray('applications')) ? 'text-slate-700' : '' }}">Course</span>
+                            class="ml-1 duration-300 opacity-100 pointer-events-none ease-soft {{ in_array_r(request()->route()->getName(), getCategoriesArray('applications')) ? 'text-slate-700' : '' }}">Admission</span>
                     </a>
 
                     <div class="h-auto overflow-hidden transition-all duration-200 ease-soft-in-out max-h-0"
                         id="applicationsExamples">
                         <ul
                             class="flex flex-wrap pl-4 mb-0 ml-6 list-none transition-all duration-200 ease-soft-in-out">
-                            <li class="w-full">
-                                <a class="ease-soft-in-out py-1.6 ml-5.4 pl-4 text-size-sm relative my-0 mr-4 flex items-center whitespace-nowrap bg-transparent pr-4 shadow-none transition-colors before:absolute before:top-1/2 before:-translate-y-1/2 before:rounded-3xl before:content-[''] dark:text-white dark:before:bg-white dark:before:opacity-80 {{ Route::currentRouteName() == 'profile' ? 'before:-left-5 rounded-lg font-semibold text-slate-800 before:h-2 before:w-2 before:bg-slate-800 dark:opacity-100' : 'before:-left-4.5 before:h-1.25 before:w-1.25 font-medium text-slate-800/50 before:bg-slate-800/50 dark:opacity-60' }}"
-                                    href="{{ route('profile') }}">
-                                    <span
-                                        class="w-0 text-center transition-all duration-200 opacity-0 pointer-events-none ease-soft-in-out">
-                                        K
-                                    </span>
-                                    <span class="transition-all duration-100 pointer-events-none ease-soft"> Profile
-                                    </span>
-                                </a>
-                            </li>
-                            @if (auth()->user()->isPostgraduate())
-                            <li class="w-full">
-                                <a class="ease-soft-in-out py-1.6 ml-5.4 pl-4 text-size-sm relative my-0 mr-4 flex items-center whitespace-nowrap bg-transparent pr-4 shadow-none transition-colors before:absolute before:top-1/2 before:-translate-y-1/2 before:rounded-3xl before:content-[''] dark:text-white dark:before:bg-white dark:before:opacity-80 {{ Route::currentRouteName() == 'school-attended' ? 'before:-left-5 rounded-lg font-semibold text-slate-800 before:h-2 before:w-2 before:bg-slate-800 dark:opacity-100' : 'before:-left-4.5 before:h-1.25 before:w-1.25 font-medium text-slate-800/50 before:bg-slate-800/50 dark:opacity-60' }}"
-                                    href="{{ route('school-attended') }}">
-                                    <span
-                                        class="w-0 text-center transition-all duration-200 opacity-0 pointer-events-none ease-soft-in-out">
-                                        K
-                                    </span>
-                                    <span class="transition-all duration-100 pointer-events-none ease-soft"> School
-                                        Attended </span>
-                                </a>
-                            </li>
-                            @endif
+
+
+
+
+
 
 
 
                             <li class="w-full">
-                                <a class="ease-soft-in-out py-1.6 ml-5.4 pl-4 text-size-sm relative my-0 mr-4 flex items-center whitespace-nowrap bg-transparent pr-4 shadow-none transition-colors before:absolute before:top-1/2 before:-translate-y-1/2 before:rounded-3xl before:content-[''] dark:text-white dark:before:bg-white dark:before:opacity-80 {{ Route::currentRouteName() == 'olevel' ? 'before:-left-5 rounded-lg font-semibold text-slate-800 before:h-2 before:w-2 before:bg-slate-800 dark:opacity-100' : 'before:-left-4.5 before:h-1.25 before:w-1.25 font-medium text-slate-800/50 before:bg-slate-800/50 dark:opacity-60' }}"
-                                    href="{{ route('olevel') }}">
+                                <a class="ease-soft-in-out py-1.6 ml-5.4 pl-4 text-size-sm relative my-0 mr-4 flex items-center whitespace-nowrap bg-transparent pr-4 shadow-none transition-colors before:absolute before:top-1/2 before:-translate-y-1/2 before:rounded-3xl before:content-[''] dark:text-white dark:before:bg-white dark:before:opacity-80 {{ Route::currentRouteName() == 'student.print-acceptance' ? 'before:-left-5 rounded-lg font-semibold text-slate-800 before:h-2 before:w-2 before:bg-slate-800 dark:opacity-100' : 'before:-left-4.5 before:h-1.25 before:w-1.25 font-medium text-slate-800/50 before:bg-slate-800/50 dark:opacity-60' }}"
+                                    target="_blank" href="{{ route('student.profile') }}">
                                     <span
                                         class="w-0 text-center transition-all duration-200 opacity-0 pointer-events-none ease-soft-in-out">
-                                        W
+                                        R
                                     </span>
-                                    <span class="transition-all duration-100 pointer-events-none ease-soft"> Olevel
+                                    <span class="transition-all duration-100 pointer-events-none ease-soft">
+                                        Profile
                                     </span>
                                 </a>
                             </li>
 
                             <li class="w-full">
-                                <a class="ease-soft-in-out py-1.6 ml-5.4 pl-4 text-size-sm relative my-0 mr-4 flex items-center whitespace-nowrap bg-transparent pr-4 shadow-none transition-colors before:absolute before:top-1/2 before:-translate-y-1/2 before:rounded-3xl before:content-[''] dark:text-white dark:before:bg-white dark:before:opacity-80 {{ Route::currentRouteName() == 'olevel-grade' ? 'before:-left-5 rounded-lg font-semibold text-slate-800 before:h-2 before:w-2 before:bg-slate-800 dark:opacity-100' : 'before:-left-4.5 before:h-1.25 before:w-1.25 font-medium text-slate-800/50 before:bg-slate-800/50 dark:opacity-60' }}"
-                                    href="{{ route('olevel-grade') }}">
-                                    <span
-                                        class="w-0 text-center transition-all duration-200 opacity-0 pointer-events-none ease-soft-in-out">
-                                        D
-                                    </span>
-                                    <span class="transition-all duration-100 pointer-events-none ease-soft"> Olevel
-                                        Grade </span>
-                                </a>
-                            </li>
-
-                            <li class="w-full">
-                                <a class="ease-soft-in-out py-1.6 ml-5.4 pl-4 text-size-sm relative my-0 mr-4 flex items-center whitespace-nowrap bg-transparent pr-4 shadow-none transition-colors before:absolute before:top-1/2 before:-translate-y-1/2 before:rounded-3xl before:content-[''] dark:text-white dark:before:bg-white dark:before:opacity-80 {{ Route::currentRouteName() == 'upload-certificate' ? 'before:-left-5 rounded-lg font-semibold text-slate-800 before:h-2 before:w-2 before:bg-slate-800 dark:opacity-100' : 'before:-left-4.5 before:h-1.25 before:w-1.25 font-medium text-slate-800/50 before:bg-slate-800/50 dark:opacity-60' }}"
-                                    href="{{ route('upload-certificate') }}">
-                                    <span
-                                        class="w-0 text-center transition-all duration-200 opacity-0 pointer-events-none ease-soft-in-out">
-                                        CO
-                                    </span>
-                                    <span class="transition-all duration-100 pointer-events-none ease-soft"> Certificate
-                                        Upload </span>
-                                </a>
-                            </li>
-
-                            <li class="w-full">
-                                <a class="ease-soft-in-out py-1.6 ml-5.4 pl-4 text-size-sm relative my-0 mr-4 flex items-center whitespace-nowrap bg-transparent pr-4 shadow-none transition-colors before:absolute before:top-1/2 before:-translate-y-1/2 before:rounded-3xl before:content-[''] dark:text-white dark:before:bg-white dark:before:opacity-80 {{ Route::currentRouteName() == 'proposed-course' ? 'before:-left-5 rounded-lg font-semibold text-slate-800 before:h-2 before:w-2 before:bg-slate-800 dark:opacity-100' : 'before:-left-4.5 before:h-1.25 before:w-1.25 font-medium text-slate-800/50 before:bg-slate-800/50 dark:opacity-60' }}"
-                                    href="{{ route('proposed-course') }}">
-                                    <span
-                                        class="w-0 text-center transition-all duration-200 opacity-0 pointer-events-none ease-soft-in-out">
-                                        A
-                                    </span>
-                                    <span class="transition-all duration-100 pointer-events-none ease-soft"> Select
-                                        Course </span>
-                                </a>
-                            </li>
-                            <li class="w-full">
-                                <a class="ease-soft-in-out py-1.6 ml-5.4 pl-4 text-size-sm relative my-0 mr-4 flex items-center whitespace-nowrap bg-transparent pr-4 shadow-none transition-colors before:absolute before:top-1/2 before:-translate-y-1/2 before:rounded-3xl before:content-[''] dark:text-white dark:before:bg-white dark:before:opacity-80 {{ Route::currentRouteName() == 'print-form' ? 'before:-left-5 rounded-lg font-semibold text-slate-800 before:h-2 before:w-2 before:bg-slate-800 dark:opacity-100' : 'before:-left-4.5 before:h-1.25 before:w-1.25 font-medium text-slate-800/50 before:bg-slate-800/50 dark:opacity-60' }}"
-                                    target="_blank" href="{{ route('print-form') }}">
+                                <a class="ease-soft-in-out py-1.6 ml-5.4 pl-4 text-size-sm relative my-0 mr-4 flex items-center whitespace-nowrap bg-transparent pr-4 shadow-none transition-colors before:absolute before:top-1/2 before:-translate-y-1/2 before:rounded-3xl before:content-[''] dark:text-white dark:before:bg-white dark:before:opacity-80 {{ Route::currentRouteName() == 'student.print-form' ? 'before:-left-5 rounded-lg font-semibold text-slate-800 before:h-2 before:w-2 before:bg-slate-800 dark:opacity-100' : 'before:-left-4.5 before:h-1.25 before:w-1.25 font-medium text-slate-800/50 before:bg-slate-800/50 dark:opacity-60' }}"
+                                    target="_blank" href="{{ route('student.print-form') }}">
                                     <span
                                         class="w-0 text-center transition-all duration-200 opacity-0 pointer-events-none ease-soft-in-out">
                                         R
@@ -371,9 +318,24 @@
                                     </span>
                                 </a>
                             </li>
+                            @if (auth()->user()->isPostgraduate())
+                                <li class="w-full">
+                                    <a class="ease-soft-in-out py-1.6 ml-5.4 pl-4 text-size-sm relative my-0 mr-4 flex items-center whitespace-nowrap bg-transparent pr-4 shadow-none transition-colors before:absolute before:top-1/2 before:-translate-y-1/2 before:rounded-3xl before:content-[''] dark:text-white dark:before:bg-white dark:before:opacity-80 {{ Route::currentRouteName() == 'student.print-acceptance' ? 'before:-left-5 rounded-lg font-semibold text-slate-800 before:h-2 before:w-2 before:bg-slate-800 dark:opacity-100' : 'before:-left-4.5 before:h-1.25 before:w-1.25 font-medium text-slate-800/50 before:bg-slate-800/50 dark:opacity-60' }}"
+                                        target="_blank" href="{{ route('student.print-acceptance') }}">
+                                        <span
+                                            class="w-0 text-center transition-all duration-200 opacity-0 pointer-events-none ease-soft-in-out">
+                                            R
+                                        </span>
+                                        <span class="transition-all duration-100 pointer-events-none ease-soft">Print
+                                            Acceptance
+                                        </span>
+                                    </a>
+                                </li>
+                            @endif
+
                         </ul>
                     </div>
-                </li> --}}
+                </li>
 
                 <!-- Ecommerce  -->
 
