@@ -11,6 +11,8 @@ use App\Enums\ApplicationStatus;
 use App\Enums\ProgrammesEnum;
 use App\Models\StudentTransaction;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
+use App\Services\AcademicSessionService;
 use Illuminate\Database\Eloquent\Collection;
 
 /**
@@ -69,6 +71,7 @@ class UTMEApplicantService
             ->join('users', 'student_transactions.user_id', '=', 'users.id')
             ->where([
                 'student_transactions.resource' => config('remita.schoolfees.ug_schoolfees_description'),
+                'student_transactions.acad_session' => app(AcademicSessionService::class)->getAcademicSession(Auth::user())
             ])->get();
     }
     public function generateUgRegistrationNumber($year, $modeOfEntry, $facultyCode = "09", $departmentCode, $departmentId): string
@@ -82,6 +85,13 @@ class UTMEApplicantService
         $lastRegNumber = DB::table('academic_details')
             ->where('department_id', $departmentId)
             ->where('programme_id', ProgrammesEnum::Undergraduate)->count();
+
+
+
+        // Extract the last increment or default to 0
+        // $lastIncrement = $lastRegNumber ? intval(substr($lastRegNumber, -3)) : 0;
+        //     dd($lastIncrement);
+
 
         // Increment and pad to 3 digits
         $newIncrement = str_pad((string)($lastRegNumber + 1), 3, '0', STR_PAD_LEFT);

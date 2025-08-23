@@ -10,6 +10,8 @@ use App\Models\PostUtmeUpload;
 use App\Models\ProposedCourse;
 use App\Enums\ApplicationStatus;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
+use App\Services\AcademicSessionService;
 use Illuminate\Database\Eloquent\Collection;
 
 /**
@@ -31,6 +33,7 @@ class UtmeService
     public function getUTMEApplicants(): int
     {
         return ProposedCourse::query()
+            ->where('academic_session', app(AcademicSessionService::class)->getAcademicSession(Auth::user()))
             ->whereHas('user', function ($query) {
                 $query->where('programme_id', ProgrammesEnum::Undergraduate->value);
             })
@@ -41,7 +44,7 @@ class UtmeService
     {
 
         return ProposedCourse::where('status', ApplicationStatus::RECOMMENDED)
-            ->where('academic_session', config('remita.settings.academic_session'))
+            ->where('academic_session', app(AcademicSessionService::class)->getAcademicSession(Auth::user()))
             ->whereHas('user', function ($query) {
                 $query->where('programme_id', ProgrammesEnum::Undergraduate->value);
             })
@@ -51,7 +54,7 @@ class UtmeService
     public function getUTMEShortlistedApplicants(): int
     {
         return ProposedCourse::where('status', ApplicationStatus::SHORTLISTED)
-            ->where('academic_session', config('remita.settings.academic_session'))
+            ->where('academic_session', app(AcademicSessionService::class)->getAcademicSession(Auth::user()))
             ->whereNotNull('jamb_no') // Simplified `!= null` condition
             ->whereHas('user', function ($query) {
                 $query->where('programme_id', ProgrammesEnum::Undergraduate->value);
@@ -73,7 +76,9 @@ class UtmeService
         )
             ->join('users', 'proposed_courses.user_id', '=', 'users.id')
             ->join('courses', 'proposed_courses.course_id', '=', 'courses.id')
+
             ->where('users.programme_id', ProgrammesEnum::Undergraduate->value)
+            ->where('proposed_courses.academic_session', app(AcademicSessionService::class)->getAcademicSession(Auth::user()))
             ->orderBy('proposed_courses.created_at', 'desc'); // Replaced `latest()` with explicit orderBy for clarity
 
         $query->where('proposed_courses.status', $status);
@@ -92,6 +97,7 @@ class UtmeService
             ->leftJoin('olevel_subject_grades', 'olevel_subject_grades.user_id', 'users.id')
 
             ->where('proposed_courses.status', '=', ApplicationStatus::RECOMMENDED)
+            ->where('proposed_courses.academic_session', app(AcademicSessionService::class)->getAcademicSession(Auth::user()))
             ->select(
                 'users.id',
                 'users.surname',
@@ -100,6 +106,7 @@ class UtmeService
                 'users.phone',
                 'proposed_courses.status',
                 'proposed_courses.remark',
+                'proposed_courses.academic_session',
 
 
                 'departments.name as department',
@@ -124,6 +131,7 @@ class UtmeService
             ->groupBy('proposed_courses.comment')
             ->groupBy('lga')
             ->groupBy('proposed_courses.remark')
+            ->groupBy('proposed_courses.academic_session')
             ->groupBy('proposed_courses.course_id')
             // ->groupBy('application_form.comment')
 
