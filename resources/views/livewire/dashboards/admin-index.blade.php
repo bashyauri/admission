@@ -1,25 +1,31 @@
+@use('App\Services\AcademicSessionService')
+@use('Illuminate\Support\Facades\Auth')
+
 <div>
     <div class="flex flex-wrap -mx-3 mb-4">
-        
-        
-     <div class="w-full max-w-full px-3 mt-6 shrink-0 sm:mt-0 sm:flex-0 sm:w-4/12">
+
+
+        <div class="w-full max-w-full px-3 mt-6 shrink-0 sm:mt-0 sm:flex-0 sm:w-4/12">
             <div
                 class="relative flex flex-col min-w-0 break-words bg-white border-0 dark:bg-gray-950 dark:shadow-soft-dark-xl shadow-soft-xl rounded-2xl bg-clip-border">
                 <div class="relative flex-auto p-4">
                     <div class="flex flex-wrap -mx-3 ">
                         <div class="w-7/12 max-w-full px-3 text-left flex-0">
-                            {{-- <p class="mb-1 font-semibold leading-normal capitalize text-size-sm">Not Recommended</p> --}}
+                            {{-- <p class="mb-1 font-semibold leading-normal capitalize text-size-sm">Not Recommended
+                            </p> --}}
                             <h5 class="mb-0 font-bold dark:text-white"></h5>
                             <span class="mt-auto mb-0 font-bold leading-normal text-right text-lime-500 text-size-sm">
 
                                 <a href="{{route('admin.first-school-fees')}}"
-                                    class="inline-block px-6 py-3 mt-4 font-bold text-center uppercase align-middle transition-all border-0 rounded-lg cursor-pointer hover:scale-102 active:opacity-85 hover:shadow-soft-xs bg-gradient-gray leading-pro text-size-xs ease-soft-in tracking-tight-soft shadow-soft-md bg-150 bg-x-25 text-slate-800">Confirm School Fees</a>
+                                    class="inline-block px-6 py-3 mt-4 font-bold text-center uppercase align-middle transition-all border-0 rounded-lg cursor-pointer hover:scale-102 active:opacity-85 hover:shadow-soft-xs bg-gradient-gray leading-pro text-size-xs ease-soft-in tracking-tight-soft shadow-soft-md bg-150 bg-x-25 text-slate-800">Confirm
+                                    School Fees</a>
                             </span>
                         </div>
                         <div class="w-5/12 max-w-full px-3 flex-0">
                             <div class="relative text-right">
                                 <a href="javascript:;" class="cursor-pointer" dropdown-trigger aria-expanded="false">
-                                    <span class="leading-tight text-size-xs text-slate-400">{{config('remita.settings.academic_session')}}</span>
+                                    <span
+                                        class="leading-tight text-size-xs text-slate-400">{{app(AcademicSessionService::class)->getAcademicSession(Auth::user())}}</span>
                                 </a>
                                 <p class="hidden transform-dropdown-show"></p>
                                 <ul dropdown-menu
@@ -44,12 +50,12 @@
             </div>
         </div>
 
-      
-      
+
+
     </div>
     <div class="flex flex-wrap -mx-3">
-        
-        
+
+
         <div class="w-full max-w-full px-3 shrink-0 sm:flex-0 sm:w-4/12">
             <div
                 class="relative flex flex-col min-w-0 break-words bg-white border-0 dark:bg-gray-950 dark:shadow-soft-dark-xl shadow-soft-xl rounded-2xl bg-clip-border">
@@ -61,13 +67,15 @@
                             <span class="mt-auto mb-0 font-bold leading-normal text-right text-lime-500 text-size-sm">
 
                                 <a href="{{route('admin.all-applicants')}}"
-                                    class="inline-block px-6 py-3 mt-4 font-bold text-center uppercase align-middle transition-all border-0 rounded-lg cursor-pointer hover:scale-102 active:opacity-85 hover:shadow-soft-xs bg-gradient-gray leading-pro text-size-xs ease-soft-in tracking-tight-soft shadow-soft-md bg-150 bg-x-25 text-slate-800">View More</a>
+                                    class="inline-block px-6 py-3 mt-4 font-bold text-center uppercase align-middle transition-all border-0 rounded-lg cursor-pointer hover:scale-102 active:opacity-85 hover:shadow-soft-xs bg-gradient-gray leading-pro text-size-xs ease-soft-in tracking-tight-soft shadow-soft-md bg-150 bg-x-25 text-slate-800">View
+                                    More</a>
                             </span>
                         </div>
                         <div class="w-5/12 max-w-full px-3 flex-0">
                             <div class="relative text-right">
                                 <a href="javascript:;" class="cursor-pointer" dropdown-trigger aria-expanded="false">
-                                    <span class="leading-tight text-size-xs text-slate-400">{{config('remita.settings.academic_session')}}</span>
+                                    <span
+                                        class="leading-tight text-size-xs text-slate-400">{{app(AcademicSessionService::class)->getAcademicSession(Auth::user())}}</span>
                                 </a>
                                 <p class="hidden transform-dropdown-show"></p>
                                 <ul dropdown-menu
@@ -104,13 +112,15 @@
                             <span class="mt-auto mb-0 font-bold leading-normal text-right text-lime-500 text-size-sm">
 
                                 <a href="{{route('admin.not-recommended-applicants')}}"
-                                    class="inline-block px-6 py-3 mt-4 font-bold text-center uppercase align-middle transition-all border-0 rounded-lg cursor-pointer hover:scale-102 active:opacity-85 hover:shadow-soft-xs bg-gradient-gray leading-pro text-size-xs ease-soft-in tracking-tight-soft shadow-soft-md bg-150 bg-x-25 text-slate-800">View More</a>
+                                    class="inline-block px-6 py-3 mt-4 font-bold text-center uppercase align-middle transition-all border-0 rounded-lg cursor-pointer hover:scale-102 active:opacity-85 hover:shadow-soft-xs bg-gradient-gray leading-pro text-size-xs ease-soft-in tracking-tight-soft shadow-soft-md bg-150 bg-x-25 text-slate-800">View
+                                    More</a>
                             </span>
                         </div>
                         <div class="w-5/12 max-w-full px-3 flex-0">
                             <div class="relative text-right">
                                 <a href="javascript:;" class="cursor-pointer" dropdown-trigger aria-expanded="false">
-                                    <span class="leading-tight text-size-xs text-slate-400">{{config('remita.settings.academic_session')}}</span>
+                                    <span
+                                        class="leading-tight text-size-xs text-slate-400">{{app(AcademicSessionService::class)->getAcademicSession(Auth::user())}}</span>
                                 </a>
                                 <p class="hidden transform-dropdown-show"></p>
                                 <ul dropdown-menu
@@ -140,18 +150,21 @@
                 <div class="relative flex-auto p-4">
                     <div class="flex flex-wrap -mx-3 ">
                         <div class="w-7/12 max-w-full px-3 text-left flex-0">
-                            <p class="mb-1 font-semibold leading-normal capitalize text-size-sm">Shortlisted Applicants</p>
+                            <p class="mb-1 font-semibold leading-normal capitalize text-size-sm">Shortlisted Applicants
+                            </p>
                             <h5 class="mb-0 font-bold dark:text-white">{{$shortlistedApplicants}}</h5>
-                              <span class="mt-auto mb-0 font-bold leading-normal text-right text-lime-500 text-size-sm">
+                            <span class="mt-auto mb-0 font-bold leading-normal text-right text-lime-500 text-size-sm">
 
                                 <a href="{{route('admin.shortlisted-applicants')}}"
-                                    class="inline-block px-6 py-3 mt-4 font-bold text-center uppercase align-middle transition-all border-0 rounded-lg cursor-pointer hover:scale-102 active:opacity-85 hover:shadow-soft-xs bg-gradient-gray leading-pro text-size-xs ease-soft-in tracking-tight-soft shadow-soft-md bg-150 bg-x-25 text-slate-800">View More</a>
+                                    class="inline-block px-6 py-3 mt-4 font-bold text-center uppercase align-middle transition-all border-0 rounded-lg cursor-pointer hover:scale-102 active:opacity-85 hover:shadow-soft-xs bg-gradient-gray leading-pro text-size-xs ease-soft-in tracking-tight-soft shadow-soft-md bg-150 bg-x-25 text-slate-800">View
+                                    More</a>
                             </span>
                         </div>
                         <div class="w-5/12 max-w-full px-3 flex-0">
                             <div class="relative text-right">
                                 <a href="javascript:;" class="cursor-pointer" dropdown-trigger aria-expanded="false">
-                                    <span class="leading-tight text-size-xs text-slate-400">{{config('remita.settings.academic_session')}}</span>
+                                    <span
+                                        class="leading-tight text-size-xs text-slate-400">{{app(AcademicSessionService::class)->getAcademicSession(Auth::user())}}</span>
                                 </a>
                                 <p class="hidden transform-dropdown-show"></p>
                                 <ul dropdown-menu
@@ -177,7 +190,7 @@
 
         </div>
     </div>
-     <div class="flex flex-wrap mt-3 -mx-3">
+    <div class="flex flex-wrap mt-3 -mx-3">
 
         <div class="w-full max-w-full px-3 shrink-0 sm:flex-0 sm:w-4/12">
 
@@ -187,18 +200,21 @@
                 <div class="relative flex-auto p-4">
                     <div class="flex flex-wrap -mx-3 ">
                         <div class="w-7/12 max-w-full px-3 text-left flex-0">
-                            <p class="mb-1 font-semibold leading-normal capitalize text-size-sm">Total UTME Applicants</p>
+                            <p class="mb-1 font-semibold leading-normal capitalize text-size-sm">Total UTME Applicants
+                            </p>
                             <h5 class="mb-0 font-bold dark:text-white">{{$totalUTMEApplicants}}</h5>
                             <span class="mt-auto mb-0 font-bold leading-normal text-right text-lime-500 text-size-sm">
 
                                 <a href="{{route('admin.all-utme-applicants')}}"
-                                    class="inline-block px-6 py-3 mt-4 font-bold text-center uppercase align-middle transition-all border-0 rounded-lg cursor-pointer hover:scale-102 active:opacity-85 hover:shadow-soft-xs bg-gradient-gray leading-pro text-size-xs ease-soft-in tracking-tight-soft shadow-soft-md bg-150 bg-x-25 text-slate-800">View More</a>
+                                    class="inline-block px-6 py-3 mt-4 font-bold text-center uppercase align-middle transition-all border-0 rounded-lg cursor-pointer hover:scale-102 active:opacity-85 hover:shadow-soft-xs bg-gradient-gray leading-pro text-size-xs ease-soft-in tracking-tight-soft shadow-soft-md bg-150 bg-x-25 text-slate-800">View
+                                    More</a>
                             </span>
                         </div>
                         <div class="w-5/12 max-w-full px-3 flex-0">
                             <div class="relative text-right">
                                 <a href="javascript:;" class="cursor-pointer" dropdown-trigger aria-expanded="false">
-                                    <span class="leading-tight text-size-xs text-slate-400">{{config('remita.settings.academic_session')}}</span>
+                                    <span
+                                        class="leading-tight text-size-xs text-slate-400">{{app(AcademicSessionService::class)->getAcademicSession(Auth::user())}}</span>
                                 </a>
                                 <p class="hidden transform-dropdown-show"></p>
                                 <ul dropdown-menu
@@ -235,13 +251,15 @@
                             <span class="mt-auto mb-0 font-bold leading-normal text-right text-lime-500 text-size-sm">
 
                                 <a href="{{route('admin.recommended-utme-applicants')}}"
-                                    class="inline-block px-6 py-3 mt-4 font-bold text-center uppercase align-middle transition-all border-0 rounded-lg cursor-pointer hover:scale-102 active:opacity-85 hover:shadow-soft-xs bg-gradient-gray leading-pro text-size-xs ease-soft-in tracking-tight-soft shadow-soft-md bg-150 bg-x-25 text-slate-800">View More</a>
+                                    class="inline-block px-6 py-3 mt-4 font-bold text-center uppercase align-middle transition-all border-0 rounded-lg cursor-pointer hover:scale-102 active:opacity-85 hover:shadow-soft-xs bg-gradient-gray leading-pro text-size-xs ease-soft-in tracking-tight-soft shadow-soft-md bg-150 bg-x-25 text-slate-800">View
+                                    More</a>
                             </span>
                         </div>
                         <div class="w-5/12 max-w-full px-3 flex-0">
                             <div class="relative text-right">
                                 <a href="javascript:;" class="cursor-pointer" dropdown-trigger aria-expanded="false">
-                                    <span class="leading-tight text-size-xs text-slate-400">{{config('remita.settings.academic_session')}}</span>
+                                    <span
+                                        class="leading-tight text-size-xs text-slate-400">{{app(AcademicSessionService::class)->getAcademicSession(Auth::user())}}</span>
                                 </a>
                                 <p class="hidden transform-dropdown-show"></p>
                                 <ul dropdown-menu
@@ -271,18 +289,21 @@
                 <div class="relative flex-auto p-4">
                     <div class="flex flex-wrap -mx-3 ">
                         <div class="w-7/12 max-w-full px-3 text-left flex-0">
-                            <p class="mb-1 font-semibold leading-normal capitalize text-size-sm">Shortlisted UTME Applicants</p>
+                            <p class="mb-1 font-semibold leading-normal capitalize text-size-sm">Shortlisted UTME
+                                Applicants</p>
                             <h5 class="mb-0 font-bold dark:text-white">{{$totalUTMEShortlistedApplicants}}</h5>
-                              <span class="mt-auto mb-0 font-bold leading-normal text-right text-lime-500 text-size-sm">
+                            <span class="mt-auto mb-0 font-bold leading-normal text-right text-lime-500 text-size-sm">
 
                                 <a href="{{route('admin.shortlisted-utme-applicants')}}"
-                                    class="inline-block px-6 py-3 mt-4 font-bold text-center uppercase align-middle transition-all border-0 rounded-lg cursor-pointer hover:scale-102 active:opacity-85 hover:shadow-soft-xs bg-gradient-gray leading-pro text-size-xs ease-soft-in tracking-tight-soft shadow-soft-md bg-150 bg-x-25 text-slate-800">View More</a>
+                                    class="inline-block px-6 py-3 mt-4 font-bold text-center uppercase align-middle transition-all border-0 rounded-lg cursor-pointer hover:scale-102 active:opacity-85 hover:shadow-soft-xs bg-gradient-gray leading-pro text-size-xs ease-soft-in tracking-tight-soft shadow-soft-md bg-150 bg-x-25 text-slate-800">View
+                                    More</a>
                             </span>
                         </div>
                         <div class="w-5/12 max-w-full px-3 flex-0">
                             <div class="relative text-right">
                                 <a href="javascript:;" class="cursor-pointer" dropdown-trigger aria-expanded="false">
-                                    <span class="leading-tight text-size-xs text-slate-400">{{config('remita.settings.academic_session')}}</span>
+                                    <span
+                                        class="leading-tight text-size-xs text-slate-400">{{app(AcademicSessionService::class)->getAcademicSession(Auth::user())}}</span>
                                 </a>
                                 <p class="hidden transform-dropdown-show"></p>
                                 <ul dropdown-menu
@@ -770,94 +791,92 @@
     </div>
 </div>
 @push('js')
-<script src="{{ asset('assets') }}/js/plugins/chartjs.min.js"></script>
-<script>
-    // Define chartData globally
-    const chartData = {
-        totalApplicants: @json($totalApplicants),
-        paidAdmissionFees: @json($paidAdmissionFees),
-        paidAcceptanceFees: @json($paidAcceptanceFees)
-    };
+    <script src="{{ asset('assets') }}/js/plugins/chartjs.min.js"></script>
+    <script>
+        // Define chartData globally
+        const chartData = {
+            totalApplicants: @json($totalApplicants),
+            paidAdmissionFees: @json($paidAdmissionFees),
+            paidAcceptanceFees: @json($paidAcceptanceFees)
+        };
 
-    // Check if the element exists before accessing it
-    if (document.getElementById("chart-pie")) {
-        var ctx2 = document.getElementById("chart-pie").getContext("2d");
+        // Check if the element exists before accessing it
+        if (document.getElementById("chart-pie")) {
+            var ctx2 = document.getElementById("chart-pie").getContext("2d");
 
-        // Access the Livewire data that was passed from Blade
-        const totalApplicants = chartData.totalApplicants;
-        const paidAdmissionFees = chartData.paidAdmissionFees;
-        const paidAcceptanceFees = chartData.paidAcceptanceFees;
+            // Access the Livewire data that was passed from Blade
+            const totalApplicants = chartData.totalApplicants;
+            const paidAdmissionFees = chartData.paidAdmissionFees;
+            const paidAcceptanceFees = chartData.paidAcceptanceFees;
 
-        // Log chart data for debugging
-        console.log("Chart Data:", chartData);
+            // Log chart data for debugging
+            console.log("Chart Data:", chartData);
 
-        // Pie chart
-        new Chart(ctx2, {
-            type: "pie",
-            data: {
-                labels: [
-                    "Total Applicants",
-                    "Paid Admission Fees",
-                    "Paid Acceptance Fees",
-                ],
-                datasets: [
-                    {
-                        label: "Projects",
-                        weight: 9,
-                        cutout: 0,
-                        tension: 0.9,
-                        pointRadius: 2,
-                        borderWidth: 2,
-                        backgroundColor: ["#17c1e8", "#cb0c9f", "#3A416F"],
-                        data: [
-                            totalApplicants,
-                            paidAdmissionFees,
-                            paidAcceptanceFees,
-                        ], // Use Livewire values here
-                        fill: false,
+            // Pie chart
+            new Chart(ctx2, {
+                type: "pie",
+                data: {
+                    labels: [
+                        "Total Applicants",
+                        "Paid Admission Fees",
+                        "Paid Acceptance Fees",
+                    ],
+                    datasets: [
+                        {
+                            label: "Projects",
+                            weight: 9,
+                            cutout: 0,
+                            tension: 0.9,
+                            pointRadius: 2,
+                            borderWidth: 2,
+                            backgroundColor: ["#17c1e8", "#cb0c9f", "#3A416F"],
+                            data: [
+                                totalApplicants,
+                                paidAdmissionFees,
+                                paidAcceptanceFees,
+                            ], // Use Livewire values here
+                            fill: false,
+                        },
+                    ],
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false,
+                        },
                     },
-                ],
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        display: false,
+                    interaction: {
+                        intersect: false,
+                        mode: "index",
+                    },
+                    scales: {
+                        y: {
+                            grid: {
+                                drawBorder: false,
+                                display: false,
+                                drawOnChartArea: false,
+                                drawTicks: false,
+                            },
+                            ticks: {
+                                display: false,
+                            },
+                        },
+                        x: {
+                            grid: {
+                                drawBorder: false,
+                                display: false,
+                                drawOnChartArea: false,
+                                drawTicks: false,
+                            },
+                            ticks: {
+                                display: false,
+                            },
+                        },
                     },
                 },
-                interaction: {
-                    intersect: false,
-                    mode: "index",
-                },
-                scales: {
-                    y: {
-                        grid: {
-                            drawBorder: false,
-                            display: false,
-                            drawOnChartArea: false,
-                            drawTicks: false,
-                        },
-                        ticks: {
-                            display: false,
-                        },
-                    },
-                    x: {
-                        grid: {
-                            drawBorder: false,
-                            display: false,
-                            drawOnChartArea: false,
-                            drawTicks: false,
-                        },
-                        ticks: {
-                            display: false,
-                        },
-                    },
-                },
-            },
-        });
-    }
-</script>
+            });
+        }
+    </script>
 @endpush
-
-

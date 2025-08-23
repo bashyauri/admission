@@ -11,7 +11,7 @@ class AcademicSessionService
 {
     public function getAcademicSession(User $user): string
     {
-        if ($user->isApplicant() || $user->isHod()) {
+        if ($user->isApplicant() || $user->isHod() || $user->isAdmin()) {
             return config('remita.settings.pg_academic_session');
         }
         return config('remita.settings.academic_session');
