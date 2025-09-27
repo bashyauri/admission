@@ -125,8 +125,8 @@ class CertificateUpload extends Component
     protected function deleteCertificateFile($path): void
     {
 
-        if (file_exists(storage_path("app/public/  {$path}"))) {
-            unlink(storage_path("app/public/  {$path}"));
+        if (file_exists(storage_path("app/public/{$path}"))) {
+            unlink(storage_path("app/public/{$path}"));
         }
     }
 

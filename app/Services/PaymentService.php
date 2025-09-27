@@ -7,10 +7,11 @@ namespace App\Services;
 use App\Models\User;
 use App\Models\Transaction;
 use App\Models\FeeStructure;
-use App\Enums\TransactionStatus;
 use App\Models\AcademicDetail;
+use App\Enums\TransactionStatus;
 use App\Models\StudentTransaction;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
 
 /**
@@ -62,7 +63,7 @@ class PaymentService
     }
     public function hasInvoice(string $paymentType, string $userId)
     {
-        return StudentTransaction::where(['user_id' => $userId, 'resource' => $paymentType, 'acad_session' => config('remita.settings.academic_session')])->exists();
+        return StudentTransaction::where(['user_id' => $userId, 'resource' => $paymentType, 'acad_session' => app(AcademicSessionService::class)->getAcademicSession(Auth::user())])->exists();
     }
     public function getUgStudentLevel(string $userId): int
     {
@@ -130,7 +131,7 @@ class PaymentService
                     'status' => $data['statuscode'],
                     'resource' => $data['description'],
                     'RRR' => $data['RRR'],
-                    'acad_session' => app(AcademicSessionService::class)->getAcademicSession($data['user_id'])
+                    'acad_session' => app(AcademicSessionService::class)->getAcademicSession(User::find($data['user_id']))
                 ]
             );
         }
@@ -148,7 +149,7 @@ class PaymentService
             [
                 [
                     "name" => "Academic Session",
-                    "value" => config('remita.settings.academic_session'),
+                    "value" => app(AcademicSessionService::class)->getAcademicSession(Auth::user()),
                     "type" => "ALL",
                 ],
                 [

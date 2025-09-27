@@ -1,4 +1,6 @@
 @use('Carbon\Carbon;')
+@use('App\Services\AcademicSessionService')
+@use('Illuminate\Support\Facades\Auth')
 
 <!DOCTYPE html>
 <html lang="en">
@@ -51,7 +53,8 @@
                 <h5 class="mb-4 font-weight-bolder">DIRECTORATE OF HIGHER STUDIES</h5>
                 <h5 class="mb-4 font-weight-bolder">WAZIRI UMARU FEDERAL POLYTECHNIC, BIRNIN KEBBI</h5>
                 <h6 class="mb-4 font-weight-bold">UNDERGRADUATE SCREENING FORM</h6>
-                <h6 class="font-weight-bold">{{strtoupper(config('remita.settings.academic_session'))}} ACADEMIC SESSION
+                <h6 class="font-weight-bold">{{app(AcademicSessionService::class)->getAcademicSession(Auth::user())}}
+                    ACADEMIC SESSION
                 </h6>
             </div>
 
