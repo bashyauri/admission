@@ -1,7 +1,7 @@
 @php
-    use App\Enums\ApplicationStatus;
-    $shortlisted = ApplicationStatus::SHORTLISTED;
-    
+use App\Enums\ApplicationStatus;
+$shortlisted = ApplicationStatus::SHORTLISTED;
+
 @endphp
 <div class="flex flex-wrap -mx-3">
     <div class="w-full max-w-full px-3 flex-0">
@@ -35,6 +35,7 @@
                                 <th>Phone</th>
 
                                 <th>Status</th>
+                                <th>Drop</th>
 
                             </tr>
                         </thead>
@@ -42,27 +43,37 @@
                             @foreach ($shortlistedApplicants as $applicant)
 
 
-                            <tr>
-                                <td>
-                                    <div class="flex">
+                                                            <tr>
+                                                                <td>
+                                                                    <div class="flex">
 
 
-                                        <h6 class="my-auto ml-4 dark:text-white">{{$applicant->surname.' '.$applicant->firstname.' '.$applicant->middlename}}</h6>
-                                    </div>
-                                </td>
-                                <td class="leading-normal text-size-sm">{{$applicant->course_name}}</td>
+                                                                        <h6 class="my-auto ml-4 dark:text-white">{{$applicant->surname . ' ' . $applicant->firstname . ' ' . $applicant->middlename}}</h6>
+                                                                    </div>
+                                                                </td>
+                                                                <td class="leading-normal text-size-sm">{{$applicant->course_name}}</td>
 
-                                <td class="leading-normal text-size-sm">{{$applicant->phone}}</td>
+                                                                <td class="leading-normal text-size-sm">{{$applicant->phone}}</td>
 
-                                <td>
+                                                                <td>
 
-                                   <span class="py-1.8-em px-3-em text-size-xxs-em rounded-1 inline-block whitespace-nowrap text-center align-baseline font-bold uppercase leading-none
-  {{ $applicant->status === 'shortlisted' ? 'text-lime-500 bg-green-100' : 'text-gray-700 bg-gray-200' }}">
-  {{ $applicant->status ?? 'Pending' }}
-</span>
-                                </td>
+                                                                   <span class="py-1.8-em px-3-em text-size-xxs-em rounded-1 inline-block whitespace-nowrap text-center align-baseline font-bold uppercase leading-none
+                                  {{ $applicant->status === 'shortlisted' ? 'text-lime-500 bg-green-100' : 'text-gray-700 bg-gray-200' }}">
+                                  {{ $applicant->status ?? 'Pending' }}
+                                </span>
+                                                                </td>
+                                                                <td class="leading-normal text-size-sm">
+                                                                    <div class="min-h-6 mb-0.5 flex items-center">
+                                                                        <!-- Refactored checkbox -->
+                                                                        <label class="inline-flex items-center cursor-pointer">
+                                                                            <input type="checkbox"
+                                                                                class="w-5 h-5 transition duration-300 ease-in-out border-gray-300 form-checkbox text-slate-800 focus:ring-slate-800"
+                                                                                wire:click="drop({{$applicant->id}})">
+                                                                        </label>
+                                                                    </div>
+                                                                </td>
 
-                            </tr>
+                                                            </tr>
                               @endforeach
 
                         </tbody>
@@ -74,6 +85,7 @@
                                 <th>Phone</th>
 
                                 <th>Status</th>
+                                <th>Drop</th>
                             </tr>
                         </tfoot>
                     </table>
