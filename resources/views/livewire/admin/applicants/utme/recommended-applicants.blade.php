@@ -1,107 +1,208 @@
-<div class="flex flex-wrap -mx-3">
-    <div class="w-full max-w-full px-3 flex-0">
-        <div
-            class="relative flex flex-col min-w-0 break-words bg-white border-0 dark:bg-gray-950 dark:shadow-soft-dark-xl shadow-soft-xl rounded-2xl bg-clip-border">
-            <div class="border-black/12.5 rounded-t-2xl border-b-0 border-solid p-6 pb-0">
-                <div class="lg:flex">
-                    <div>
-                        <h5 class="mb-0 dark:text-white">All UTME Applicants</h5>
+<div class="flex flex-wrap -mx-3" x-data="applicantsTable({
+        applicants: {{ $recommendedApplicants->toJson() }},
+        perPage: 10
+    })">
 
-                    </div>
-                    <div class="my-auto mt-6 ml-auto lg:mt-0">
-                        <div class="my-auto ml-auto">
+    <div class="w-full max-w-full px-3">
+        <div class="relative flex flex-col min-w-0 break-words bg-white dark:bg-gray-950 rounded-2xl shadow-soft-xl">
 
+            <!-- Header -->
+            <div
+                class="border-black/12.5 rounded-t-2xl border-b p-6 pb-0 flex flex-col lg:flex-row justify-between gap-3">
+                <h5 class="mb-0 dark:text-white">Recommended UTME Applicants</h5>
 
+                <div class="flex flex-wrap items-center gap-3">
+                    <!-- Search -->
+                    <input type="text" x-model="search" placeholder="Search applicants..."
+                        class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-fuchsia-400">
 
-                            <a href="{{route('admin.export-recommended-pdf')}}" target="_blank"
-                                class="inline-block px-8 py-2 font-bold text-center uppercase align-middle transition-all bg-transparent border border-solid rounded-lg shadow-none cursor-pointer active:opacity-85 leading-pro text-size-xs ease-soft-in tracking-tight-soft bg-150 bg-x-25 hover:scale-102 active:shadow-soft-xs border-fuchsia-500 text-fuchsia-500 hover:text-fuchsia-500 hover:opacity-75 hover:shadow-none active:scale-100 active:border-fuchsia-500 active:bg-fuchsia-500 active:text-white hover:active:border-fuchsia-500 hover:active:bg-transparent hover:active:text-fuchsia-500 hover:active:opacity-75">Export
-                                Recommended Applicants</a>
-                        </div>
-                    </div>
+                    <!-- Per Page -->
+                    <select x-model.number="perPage"
+                        class="border border-gray-300 rounded-lg px-2 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-fuchsia-400">
+                        <option value="10">10 / page</option>
+                        <option value="20">20 / page</option>
+                        <option value="50">50 / page</option>
+                        <option value="100">100 / page</option>
+                    </select>
+
+                    <!-- Export Button -->
+                    <a href="{{ route('admin.export-recommended-pdf') }}" target="_blank"
+                        class="px-6 py-2 text-sm font-semibold text-fuchsia-500 border border-fuchsia-500 rounded-lg hover:bg-fuchsia-500 hover:text-white transition">
+                        Export PDF
+                    </a>
                 </div>
             </div>
+
+            <!-- Table -->
             <div class="flex-auto p-6 px-0 pb-0">
-                <div class="overflow-x-auto table-responsive">
-                    <table class="table" datatable id="products-list">
-                        <thead class="thead-light">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead class="bg-gray-100 dark:bg-gray-800">
                             <tr>
-                                <th>Full Name</th>
-
-                                <th>Course</th>
-                                <th>Jamb no</th>
-                                <th>Phone</th>
-
-                                <th>Status</th>
-                                <th>Shortlist</th>
-
+                                <th class="p-3">Full Name</th>
+                                <th class="p-3">Course</th>
+                                <th class="p-3">JAMB No</th>
+                                <th class="p-3">Phone</th>
+                                <th class="p-3">Status</th>
+                                <th class="p-3 text-center">Shortlist</th>
+                                <th class="p-3 text-center">Drop</th>
                             </tr>
                         </thead>
+
                         <tbody>
-                            @foreach ($recommendedApplicants as $applicant)
+                            <template x-for="applicant in paginatedApplicants" :key="applicant.id">
+                                <tr x-data="{ processing: false, dropped: false }" x-show="!dropped"
+                                    x-transition.opacity.duration.400ms
+                                    class="border-b hover:bg-gray-50 dark:hover:bg-gray-800 transition">
 
+                                    <td class="p-3">
+                                        <span class="font-semibold text-gray-700 dark:text-white"
+                                            x-text="applicant.surname + ' ' + applicant.firstname + ' ' + (applicant.middlename ?? '')"></span>
+                                    </td>
 
-                                                            <tr>
-                                                                <td>
-                                                                    <div class="flex">
+                                    <td class="p-3" x-text="applicant.course_name"></td>
+                                    <td class="p-3" x-text="applicant.jamb_no ?? '—'"></td>
+                                    <td class="p-3" x-text="applicant.phone ?? '—'"></td>
 
-                                                                        <img class="ml-4 w-1/10" src="{{asset('/storage/' . $applicant->picture)}}"
-                                                                            alt="user image">
-                                                                        <h6 class="my-auto ml-4 dark:text-white">
-                                                                            {{$applicant->surname . ' ' . $applicant->firstname . ' ' . $applicant->middlename}}
-                                                                        </h6>
-                                                                    </div>
-                                                                </td>
-                                                                <td class="leading-normal text-size-sm">{{$applicant->course_name}}</td>
-                                                                <td class="leading-normal text-size-sm">{{$applicant->jamb_no}}</td>
+                                    <td class="p-3">
+                                        <span class="px-3 py-1 text-xs font-bold uppercase rounded-full" :class="{
+                                                'bg-green-100 text-green-700': applicant.status === 'shortlisted',
+                                                'bg-gray-200 text-gray-700': applicant.status !== 'shortlisted'
+                                            }" x-text="applicant.status ?? 'Pending'">
+                                        </span>
+                                    </td>
 
-                                                                <td class="leading-normal text-size-sm">{{$applicant->phone}}</td>
+                                    <!-- ✅ Shortlist -->
+                                    <td class="text-center">
+                                        <template x-if="!processing">
+                                            <input type="checkbox" @click="processing = true;
+                                                    const checkbox = $event.target;
+                                                    $wire.shortlist(applicant.id)
+                                                        .then(() => {
+                                                            applicant.status = 'shortlisted';
+                                                            processing = false;
+                                                        })
+                                                        .catch(() => {
+                                                            checkbox.checked = false; // revert checkbox
+                                                            processing = false;
+                                                            window.dispatchEvent(new CustomEvent('alert', {
+                                                                detail: { type: 'error', message: 'Shortlisting failed. Try again.' }
+                                                            }));
+                                                        });" class="rounded-lg cursor-pointer accent-green-600">
+                                        </template>
 
-                                                                <td>
+                                        <template x-if="processing">
+                                            <span class="text-green-600 font-medium">Processing...</span>
+                                        </template>
+                                    </td>
 
-                                                                    <span class="py-1.8-em px-3-em text-size-xxs-em rounded-1 inline-block whitespace-nowrap text-center align-baseline font-bold uppercase leading-none
-                                  {{ $applicant->status === 'shortlisted' ? 'text-green-500 bg-green-100' : 'text-gray-700 bg-gray-200' }}">
-                                                                        {{ $applicant->status ?? 'Pending' }}
-                                                                    </span>
-                                                                </td>
+                                    <!-- Drop -->
+                                    <td class="text-center">
+                                        <template x-if="!processing">
+                                            <button @click="processing = true;
+                                                    $wire.drop(applicant.id)
+                                                        .then(() => dropped = true)
+                                                        .catch(() => {
+                                                            processing = false;
+                                                            window.dispatchEvent(new CustomEvent('alert', {
+                                                                detail: { type: 'error', message: 'Failed to drop applicant.' }
+                                                            }));
+                                                        });"
+                                                class="p-2 rounded-lg bg-red-50 hover:bg-red-100 text-red-600 transition">
+                                                ❌
+                                            </button>
+                                        </template>
 
+                                        <template x-if="processing">
+                                            <span class="text-red-600 font-medium">Processing...</span>
+                                        </template>
+                                    </td>
+                                </tr>
+                            </template>
 
-                                                                <td class="leading-normal text-size-sm">
-                                                                    <div class="min-h-6 mb-0.5 flex items-center">
-                                                                        <input
-                                                                            class="rounded-10 duration-300 ease-soft-in-out after:rounded-circle after:shadow-soft-2xl after:duration-300 checked:after:translate-x-5.3 h-5 mt-0.5 relative float-left w-10 cursor-pointer appearance-none border border-solid border-gray-200 bg-slate-800/10 bg-none bg-contain bg-left bg-no-repeat align-top transition-all after:absolute after:top-px after:h-4 after:w-4 after:translate-x-px after:bg-white after:content-[''] checked:border-slate-800/95 checked:bg-slate-800/95 checked:bg-none checked:bg-right"
-                                                                            type="checkbox" wire:click="shortlist({{$applicant->id}})" />
-                                                                    </div>
-
-
-
-
-                                                                </td>
-
-                                                            </tr>
-                            @endforeach
-
+                            <template x-if="paginatedApplicants.length === 0">
+                                <tr>
+                                    <td colspan="7" class="text-center p-6 text-gray-500 dark:text-gray-300">
+                                        No applicants found.
+                                    </td>
+                                </tr>
+                            </template>
                         </tbody>
-                        <tfoot>
-                            <tr>
-
-                                <th>Full Name</th>
-
-                                <th>Course</th>
-                                <th>Jamb no</th>
-                                <th>Phone</th>
-
-                                <th>Status</th>
-                                <th>Shortlist</th>
-                                <th>Drop</th>
-                            </tr>
-                        </tfoot>
                     </table>
+                </div>
+
+                <!-- Pagination Controls -->
+                <div class="flex flex-wrap justify-between items-center p-4 border-t mt-4 text-sm text-gray-600">
+                    <span
+                        x-text="`Showing ${startIndex + 1} - ${Math.min(endIndex, filteredApplicants.length)} of ${filteredApplicants.length}`"></span>
+
+                    <div class="flex items-center gap-2 mt-2 lg:mt-0">
+                        <button @click="prevPage" :disabled="page === 1"
+                            class="px-3 py-1 border rounded-lg disabled:opacity-50 hover:bg-gray-100">
+                            Prev
+                        </button>
+                        <span class="font-semibold" x-text="page"></span>
+                        <button @click="nextPage" :disabled="endIndex >= filteredApplicants.length"
+                            class="px-3 py-1 border rounded-lg disabled:opacity-50 hover:bg-gray-100">
+                            Next
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-@push('js')
-    <script src="{{ asset('assets') }}/js/plugins/datatables.min.js"></script>
-@endpush
+<!-- Alpine.js Table Logic -->
+<script>
+    function applicantsTable({ applicants, perPage }) {
+        return {
+            search: '',
+            applicants,
+            perPage,
+            page: 1,
+
+            get filteredApplicants() {
+                if (!this.search) return this.applicants;
+                return this.applicants.filter(a =>
+                    (a.surname + ' ' + a.firstname + ' ' + (a.middlename ?? '') + ' ' + (a.course_name ?? ''))
+                        .toLowerCase()
+                        .includes(this.search.toLowerCase())
+                );
+            },
+
+            get startIndex() {
+                return (this.page - 1) * this.perPage;
+            },
+
+            get endIndex() {
+                return this.page * this.perPage;
+            },
+
+            get paginatedApplicants() {
+                return this.filteredApplicants.slice(this.startIndex, this.endIndex);
+            },
+
+            nextPage() {
+                if (this.endIndex < this.filteredApplicants.length) this.page++;
+            },
+
+            prevPage() {
+                if (this.page > 1) this.page--;
+            },
+
+            init() {
+                this.$watch('perPage', () => this.page = 1);
+                this.$watch('search', () => this.page = 1);
+            }
+        }
+    }
+
+    // Optional: basic alert system using browser alert or your LivewireAlert
+    window.addEventListener('alert', e => {
+        const { type, message } = e.detail;
+        if (type === 'error') {
+            alert(message);
+        }
+    });
+</script>

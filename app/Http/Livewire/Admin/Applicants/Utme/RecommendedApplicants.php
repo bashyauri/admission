@@ -5,19 +5,18 @@ namespace App\Http\Livewire\Admin\Applicants\Utme;
 use Livewire\Component;
 use App\Models\ProposedCourse;
 use App\Enums\ApplicationStatus;
-use App\Notifications\Shortlist;
 use Illuminate\Support\Facades\Log;
 use App\Services\Report\UtmeService;
-use App\Services\UTMEApplicantService;
-use Illuminate\Support\Facades\DB;
+use App\Notifications\Shortlist;
 use Jantinnerezo\LivewireAlert\LivewireAlert;
+use Illuminate\Support\Facades\DB;
+use App\Services\UTMEApplicantService;
 
 class RecommendedApplicants extends Component
 {
     use LivewireAlert;
 
     public $recommendedApplicants;
-    public $utmeService;
 
     public function mount(UtmeService $utmeService)
     {
@@ -31,7 +30,6 @@ class RecommendedApplicants extends Component
                 $proposedCourse->update(['status' => ApplicationStatus::SHORTLISTED]);
                 $proposedCourse->user->notify(new Shortlist());
                 $this->recommendedApplicants = $utmeService->getAllUTMEApplicants(ApplicationStatus::RECOMMENDED->toString());
-
 
                 $this->alert('success', 'Status Updated Successfully', [
                     'position' => 'center',
@@ -49,7 +47,6 @@ class RecommendedApplicants extends Component
             }
         });
     }
-
     public function drop(ProposedCourse $proposedCourse, UtmeService $utmeService, UTMEApplicantService $uTMEApplicantService)
     {
         try {

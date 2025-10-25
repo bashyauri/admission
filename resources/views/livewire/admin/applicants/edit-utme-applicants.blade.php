@@ -61,7 +61,8 @@
                                                             class="p-2 text-left border-b whitespace-nowrap dark:border-white/40 dark:text-white/60">
                                                             {{ucwords($subject->subject_name)}}
                                                             <p class="mb-0 text-xs leading-tight text-slate-400">
-                                                                {{ucwords($subject->exam_name)}}</p>
+                                                                {{ucwords($subject->exam_name)}}
+                                                            </p>
                                                         </td>
                                                         <td
                                                             class="p-2 pl-6 border-b whitespace-nowrap dark:border-white/40 dark:text-white/60">
@@ -98,7 +99,8 @@
                                                                     <div class="flex px-2 py-1">
                                                                         <div class="flex flex-col justify-center">
                                                                             <h6 class="mb-0 text-sm leading-normal">
-                                                                                {{ ucwords($certificate->name) }}</h6>
+                                                                                {{ ucwords($certificate->name) }}
+                                                                            </h6>
                                                                         </div>
                                                                     </div>
                                                                 </td>
@@ -149,6 +151,7 @@
                                                         <option value="merit">Merit</option>
                                                         <option value="elds">Elds</option>
                                                         <option value="catchmentarea">Catchment Area</option>
+                                                        <option value="exception">Exception</option>
                                                     </select>
                                                     @error('remark')
                                                         <p class="text-red-500 text-size-sm">{{ $message }}</p>
