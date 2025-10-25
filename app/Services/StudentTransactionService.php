@@ -8,6 +8,7 @@ use App\Enums\TransactionStatus;
 use App\Models\SchoolFeesPayment;
 use App\Models\StudentTransaction;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Config;
 
@@ -62,10 +63,7 @@ class StudentTransactionService extends TransactionService
     }
     public function hasInvoice(string $paymentType)
     {
-        return StudentTransaction::where('user_id', auth()->id())
-            ->where('resource', $paymentType)
-            ->where('status', '!=', TransactionStatus::APPROVED)
-            ->first();
+        return StudentTransaction::where(['user_id' => Auth::id(), 'resource' => $paymentType, 'acad_session' => app(AcademicSessionService::class)->getAcademicSession(Auth::user())])->exists();
     }
     public function createPayment($data)
     {
@@ -81,7 +79,7 @@ class StudentTransactionService extends TransactionService
                     'status' => $data['statuscode'],
                     'resource' => $data['description'],
                     'RRR' => $data['RRR'],
-                    'acad_session' => config('remita.settings.academic_session')
+                    'acad_session' => app(AcademicSessionService::class)->getAcademicSession(auth()->user()->id)
                 ]
             );
         }

@@ -11,6 +11,7 @@ use App\Models\StudentTransaction;
 use Illuminate\Contracts\View\View;
 use App\Services\PaymentService;
 use App\Services\StudentTransactionService;
+use Illuminate\Support\Facades\Auth;
 
 class UtmeSchoolFeesInvoice extends Component
 {
@@ -41,6 +42,7 @@ class UtmeSchoolFeesInvoice extends Component
 
             $this->redirectToPayment($existingInvoice);
         } else {
+
 
             $this->generateNewInvoice();
         }
@@ -77,6 +79,9 @@ class UtmeSchoolFeesInvoice extends Component
 
     public function render(): View
     {
+        if (Auth::user()->isCit()) {
+            return view('livewire.transactions.cit-school-fees-invoice');
+        }
         return view('livewire.transactions.utme-school-fees-invoice');
     }
 }

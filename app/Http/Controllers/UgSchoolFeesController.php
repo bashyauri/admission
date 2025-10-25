@@ -17,6 +17,7 @@ class UgSchoolFeesController extends Controller
     {
 
 
+
         $valuesToHash  = config('remita.settings.merchantid') . $studenttransaction->RRR . config('remita.settings.apikey');
         $studenttransaction->apiHash = hash('sha512', $valuesToHash);
         $studenttransaction->user = User::where('id', $studenttransaction->user_id)->first();
@@ -26,6 +27,7 @@ class UgSchoolFeesController extends Controller
     }
     public function generateInvoice(Request $request)
     {
+
 
         $data = $request->only(['userId', 'transactionId', 'amount', 'description', 'payerName', 'payerPhone', 'payerEmail', 'student_level_id']);
 

@@ -70,22 +70,23 @@ class PaymentService
         $academicDetail = AcademicDetail::where('user_id', $userId)->first();
 
 
-        return $academicDetail?->student_level_id ?? 0 + 1;
+        return ($academicDetail?->student_level_id ?? 0) + 1;
     }
     public function getStudentFee(string $userId): FeeStructure
     {
         $student = User::find($userId);
-        if ($student->isApplicant()) {
-            $departmentId = $student->proposedCourse->department_id;
-            $programmeId = $student->programme_id;
-            $level = $this->getUgStudentLevel($student->id);
-        } else {
-            // Student that are not freshers (100,or 200 level DE)
-            $departmentId = $student->academicDetail->department_id;
-            $programmeId = $student->programme_id;
-            $level = $this->getUgStudentLevel($student->id);
-        }
-        return  FeeStructure::where(['department_id' => $departmentId, 'programme_id' => $programmeId, 'student_level_id' => $level])->first();
+
+        $departmentId = $student->isApplicant()
+            ? $student->proposedCourse->department_id
+            : $student->academicDetail->department_id;
+
+        $level = $this->getUgStudentLevel($student->id);
+
+        return FeeStructure::where([
+            'department_id' => $departmentId,
+            'programme_id' => $student->programme_id,
+            'student_level_id' => $level
+        ])->first();
     }
     public function getStudentInvoice(string $studentId, string $paymentType): StudentTransaction |null
     {
@@ -175,5 +176,14 @@ class PaymentService
     public function getStudentPayments(string $studentId): Collection
     {
         return StudentTransaction::where('user_id', $studentId)->get();
+    }
+    public function hasStudentPaidSchoolFees(string $studentId): bool
+    {
+        return StudentTransaction::where([
+            'user_id' => $studentId,
+            'resource' => $this->getSchoolFeesResource(),
+            'status' => TransactionStatus::APPROVED->toString(),
+            'acad_session' => app(AcademicSessionService::class)->getAcademicSession(User::find($studentId))
+        ])->exists();
     }
 }

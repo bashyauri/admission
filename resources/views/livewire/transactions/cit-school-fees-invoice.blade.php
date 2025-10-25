@@ -6,7 +6,7 @@
             <div class="w-full max-w-full px-3 mx-auto sm:flex-0 shrink-0 sm:w-10/12 md:w-8/12">
                 @include('flash-messages')
 
-                <form action="{{route('student.invoice')}}" method="POST">
+                <form action="{{route('cit.invoice')}}" method="POST">
                     @csrf
                     <div
                         class="relative flex flex-col min-w-0 break-words bg-white border-0 dark:bg-gray-950 dark:shadow-soft-dark-xl shadow-soft-xl rounded-2xl bg-clip-border sm:my-12">
