@@ -3,11 +3,13 @@
 namespace App\Imports;
 
 use App\Models\PostUtmeUpload;
-use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;
 use Maatwebsite\Excel\Concerns\ToModel;
-use Maatwebsite\Excel\Concerns\WithBatchInserts;
-use Maatwebsite\Excel\Concerns\WithHeadingRow;
+
+use App\Services\AcademicSessionService;
 use Maatwebsite\Excel\Concerns\WithUpserts;
+use Maatwebsite\Excel\Concerns\WithHeadingRow;
+use Maatwebsite\Excel\Concerns\WithBatchInserts;
 
 class PostUtmeImport implements ToModel, WithHeadingRow, WithBatchInserts, WithUpserts
 {
@@ -20,13 +22,13 @@ class PostUtmeImport implements ToModel, WithHeadingRow, WithBatchInserts, WithU
      */
     public function model(array $row)
     {
-        Log::info('Row data:', $row); //
+
         return new PostUtmeUpload([
             'jamb_no' => $row['rg_num'],
             'name'    => $row['rg_candname'],
             'course' => $row['co_name'],
             'jamb_score' => $row['rg_aggregate'],
-            'acad_session' => config('remita.settings.academic_session')
+            'acad_session' => app(AcademicSessionService::class)->getAcademicSession(Auth::user())
         ]);
     }
 

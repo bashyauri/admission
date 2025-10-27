@@ -4,14 +4,15 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Enums\Role;
 use App\Enums\ProgrammesEnum;
 use App\Enums\ApplicationStatus;
-use App\Enums\Role;
 use App\Enums\TransactionStatus;
 use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Notifications\Notifiable;
 use App\Notifications\SendVerificationEmail;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -50,6 +51,7 @@ class User extends Authenticatable implements MustVerifyEmail
     protected $casts = [
         'email_verified_at' => 'datetime',
     ];
+    protected $appends = ['isDe'];
     public function sendEmailVerificationNotification()
     {
         $this->notify(new SendVerificationEmail);
@@ -104,6 +106,15 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return $this->role === Role::COORDINATOR->value;
     }
+    public function getIsDeAttribute(): bool
+    {
+        return optional($this->postUtmeUpload)->jamb_score === null;
+    }
+    public function postUtmeUpload(): HasOne
+    {
+        return $this->hasOne(PostUtmeUpload::class, 'jamb_no', 'jamb_no');
+    }
+
 
     public function programme()
     {

@@ -58,7 +58,8 @@ class PaymentService
             ->join('users', 'transactions.user_id', '=', 'users.id')
             ->where([
                 'transactions.resource' => config('remita.postutme.acceptance_description'),
-                'transactions.status' => TransactionStatus::APPROVED->toString()
+                'transactions.status' => TransactionStatus::APPROVED->toString(),
+                'transactions.acad_session' => app(AcademicSessionService::class)->getAcademicSession(Auth::user())
             ])->get();
     }
     public function hasInvoice(string $paymentType, string $userId)
