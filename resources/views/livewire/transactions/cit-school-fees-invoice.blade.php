@@ -9,6 +9,7 @@
                 <form action="{{route('cit.invoice')}}" method="POST">
                     @csrf
                     <div
+
                         class="relative flex flex-col min-w-0 break-words bg-white border-0 dark:bg-gray-950 dark:shadow-soft-dark-xl shadow-soft-xl rounded-2xl bg-clip-border sm:my-12">
                         <div class="border-black/12.5 rounded-t-2xl border-b-0 border-solid p-6 text-center">
                             <div class="flex flex-wrap justify-between -mx-3">

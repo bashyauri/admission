@@ -79,7 +79,7 @@ class StudentTransactionService extends TransactionService
                     'status' => $data['statuscode'],
                     'resource' => $data['description'],
                     'RRR' => $data['RRR'],
-                    'acad_session' => app(AcademicSessionService::class)->getAcademicSession(auth()->user()->id)
+                    'acad_session' => app(AcademicSessionService::class)->getAcademicSession(auth()->user())
                 ]
             );
         }

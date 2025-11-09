@@ -40,13 +40,16 @@ class UgSchoolFeesController extends Controller
 
         try {
             $customFields = $this->paymentService->getSchoolFeesCustomFields($data['userId']);
+
             $response = $this->paymentService->generateInvoice($data, $customFields);
 
 
             $data['RRR'] = $response->RRR;
             $data['statuscode'] = $response->statuscode;
             $data['status'] = $response->status;
+
             $studenttransaction = $this->paymentService->createPayment($data);
+
 
 
 

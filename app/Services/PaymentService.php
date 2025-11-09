@@ -68,11 +68,19 @@ class PaymentService
     }
     public function getUgStudentLevel(string $userId): int
     {
+        $user = User::find($userId);
         $academicDetail = AcademicDetail::where('user_id', $userId)->first();
 
+        // If the student has no academic record yet
+        if (!$academicDetail) {
+            // DE students start at level 2 (200 level)
+            return $user->isDe ? 2 : 1;
+        }
 
-        return ($academicDetail?->student_level_id ?? 0) + 1;
+        // Otherwise, advance to the next level
+        return ($academicDetail->student_level_id ?? 0) + 1;
     }
+
     public function getStudentFee(string $userId): FeeStructure
     {
         $student = User::find($userId);
@@ -133,7 +141,7 @@ class PaymentService
                     'status' => $data['statuscode'],
                     'resource' => $data['description'],
                     'RRR' => $data['RRR'],
-                    'acad_session' => app(AcademicSessionService::class)->getAcademicSession(User::find($data['user_id']))
+                    'acad_session' => app(AcademicSessionService::class)->getAcademicSession(User::find($data['userId']))
                 ]
             );
         }

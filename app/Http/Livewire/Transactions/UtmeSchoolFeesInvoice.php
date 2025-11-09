@@ -7,11 +7,12 @@ namespace App\Http\Livewire\Transactions;
 use App\Models\User;
 use Livewire\Component;
 use Livewire\Attributes\Locked;
+use App\Services\PaymentService;
 use App\Models\StudentTransaction;
 use Illuminate\Contracts\View\View;
-use App\Services\PaymentService;
-use App\Services\StudentTransactionService;
 use Illuminate\Support\Facades\Auth;
+use App\Services\AcademicSessionService;
+use App\Services\StudentTransactionService;
 
 class UtmeSchoolFeesInvoice extends Component
 {
@@ -31,6 +32,7 @@ class UtmeSchoolFeesInvoice extends Component
 
     public function mount(User $user): void
     {
+
         $this->paymentService = new PaymentService();
         $this->transactionService = new StudentTransactionService();
         $this->user = $user;
@@ -53,7 +55,7 @@ class UtmeSchoolFeesInvoice extends Component
         return StudentTransaction::where('user_id', $this->user->id)
             ->where([
                 'resource' => $this->description,
-                'acad_session' => config('remita.settings.academic_session')
+                'acad_session' => app(AcademicSessionService::class)->getAcademicSession(Auth::user())
             ])
             ->first();
     }
@@ -74,6 +76,7 @@ class UtmeSchoolFeesInvoice extends Component
         $this->currentLevel = $this->paymentService->getUgStudentLevel($this->user->id);
         $paymentDetail = $this->paymentService->getStudentFee($this->user->id);
         $this->amount = $paymentDetail->fee_amount;
+
         $this->transactionId = $this->transactionService->generateTransactionId("WUFPDHS");
     }
 
