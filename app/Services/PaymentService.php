@@ -129,23 +129,27 @@ class PaymentService
     }
     public function createPayment($data)
     {
+        // Normalize user_id
+        $data['user_id'] = $data['user_id'] ?? $data['userId'] ?? null;
+
         $values = $this->generateInvoice($data);
+
         if (!empty($values)) {
-            return  StudentTransaction::create(
-                [
-                    'transaction_id' => $data['transactionId'],
-                    'user_id' => $data['userId'],
-                    'student_levels_id' => $data['student_level_id'],
-                    'amount' => $data['amount'],
-                    'date' => now(),
-                    'status' => $data['statuscode'],
-                    'resource' => $data['description'],
-                    'RRR' => $data['RRR'],
-                    'acad_session' => app(AcademicSessionService::class)->getAcademicSession(User::find($data['userId']))
-                ]
-            );
+            return StudentTransaction::create([
+                'transaction_id' => $data['transactionId'],
+                'user_id' => $data['user_id'],
+                'student_levels_id' => $data['student_level_id'],
+                'amount' => $data['amount'],
+                'date' => now(),
+                'status' => $data['statuscode'],
+                'resource' => $data['description'],
+                'RRR' => $data['RRR'],
+                'acad_session' => app(AcademicSessionService::class)
+                    ->getAcademicSession(User::find($data['user_id']))
+            ]);
         }
     }
+
     public function updateTransactionStatus(string $status, string $rrr)
     {
 
