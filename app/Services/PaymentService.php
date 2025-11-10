@@ -81,22 +81,36 @@ class PaymentService
         return ($academicDetail->student_level_id ?? 0) + 1;
     }
 
-    public function getStudentFee(string $userId): FeeStructure
+    public function getStudentFee(string $userId): ?FeeStructure
     {
         $student = User::find($userId);
+        $academicDetail = $student->academicDetail;
 
-        $departmentId = $student->isApplicant()
-            ? $student->proposedCourse->department_id
-            : $student->academicDetail->department_id;
+        // Determine department
+        $departmentId = $academicDetail?->department_id ?? $student->proposedCourse?->department_id;
 
+        // Determine current student level (1 = 100L, 2 = 200L, etc.)
         $level = $this->getUgStudentLevel($student->id);
+
+
+        // Determine if this is a fresh session for the student
+        //  - Fresh DE: no academic record yet, but isDe = true
+        //  - Fresh 100L: no academic record yet, isDe = false
+        //  - Returning: has academic record
+        //  - Spillover: can be handled separately
+        $isFresh = !$academicDetail; // true if new student (DE or 100L)
+
+        // Optionally handle spillover if you have a field for it
+        // if ($academicDetail?->is_spillover) { ... }
 
         return FeeStructure::where([
             'department_id' => $departmentId,
             'programme_id' => $student->programme_id,
-            'student_level_id' => $level
+            'student_level_id' => $level,
+            'is_fresh_fee' => $isFresh,
         ])->first();
     }
+
     public function getStudentInvoice(string $studentId, string $paymentType): StudentTransaction |null
     {
 

@@ -16,7 +16,7 @@ class PaidAcceptanceFees extends Component
 
     public function mount(PaymentService $paymentService)
     {
-        abort_unless(auth()->user()->isCit(), 403, 'You must be logged in as a CIT Staff to view this page');
+        abort(403, 'School Fees Addition is in progress');
         $this->paidAcceptanceFees = $paymentService->getPaidAcceptanceFeePayments();
     }
 

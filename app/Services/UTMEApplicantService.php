@@ -67,13 +67,25 @@ class UTMEApplicantService
     }
     public function getUtmeFirstSchoolFeesPayment(): Collection
     {
-        return StudentTransaction::select('student_transactions.*', 'users.surname', 'users.firstname', 'users.m_name', 'users.jamb_no', 'users.phone')
+        return StudentTransaction::select(
+            'student_transactions.*',
+            'users.surname',
+            'users.firstname',
+            'users.m_name',
+            'users.jamb_no',
+            'users.phone'
+        )
             ->join('users', 'student_transactions.user_id', '=', 'users.id')
+            ->leftJoin('academic_details', 'academic_details.user_id', '=', 'users.id')
+            ->whereNull('academic_details.id') // only freshers
             ->where([
                 'student_transactions.resource' => config('remita.schoolfees.ug_schoolfees_description'),
-                'student_transactions.acad_session' => app(AcademicSessionService::class)->getAcademicSession(Auth::user())
-            ])->get();
+                'student_transactions.acad_session' => app(AcademicSessionService::class)
+                    ->getAcademicSession(Auth::user()),
+            ])
+            ->get();
     }
+
     public function generateUgRegistrationNumber($year, $modeOfEntry, $facultyCode = "09", $departmentCode, $departmentId): string
     {
         // Ensure $year is in the correct format

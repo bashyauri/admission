@@ -108,7 +108,7 @@ class User extends Authenticatable implements MustVerifyEmail
     }
     public function getIsDeAttribute(): bool
     {
-        return optional($this->postUtmeUpload)->jamb_score === null;
+        return optional($this->proposedCourse)->jamb_score === null;
     }
     public function postUtmeUpload(): HasOne
     {
