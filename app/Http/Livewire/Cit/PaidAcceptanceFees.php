@@ -16,7 +16,6 @@ class PaidAcceptanceFees extends Component
 
     public function mount(PaymentService $paymentService)
     {
-        abort(403, 'School Fees Addition is in progress');
         $this->paidAcceptanceFees = $paymentService->getPaidAcceptanceFeePayments();
     }
 

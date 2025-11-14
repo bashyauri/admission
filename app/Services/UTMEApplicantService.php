@@ -86,33 +86,37 @@ class UTMEApplicantService
             ->get();
     }
 
-    public function generateUgRegistrationNumber($year, $modeOfEntry, $facultyCode = "09", $departmentCode, $departmentId): string
-    {
-        // Ensure $year is in the correct format
-        // Default to config value
-        $fullYear = strlen($year) === 2 ? "20{$year}" : $year; // Convert 2-digit year to 4-digit year if needed
-        $yearCode = substr($fullYear, 2, 2); // Extract last two digits (e.g., "24")
+    public function generateUgRegistrationNumber(
+        string $year,
+        string $modeOfEntry,
+        string $facultyCode = "09",
+        string $departmentCode,
+        int $departmentId
+    ): string {
+        // Ensure full year format
+        $fullYear = strlen($year) === 2 ? "20{$year}" : $year;
+        $yearCode = substr($fullYear, 2, 2); // e.g., "25" for 2025
 
-        // Get the last registration number
-        $lastRegNumber = DB::table('academic_details')
+        // Get the current academic session string (e.g., "2024/2025")
+        $currentSession = app(AcademicSessionService::class)
+            ->getAcademicSession(auth()->user());
+
+        // Get total students in this department for this session
+        $count = DB::table('academic_details')
             ->where('department_id', $departmentId)
-            ->where('programme_id', ProgrammesEnum::Undergraduate)->count();
+            ->where('programme_id', ProgrammesEnum::Undergraduate)
+            ->where('acad_session', $currentSession) // 👈 count only current session
+            ->lockForUpdate()
+            ->count();
 
+        // Increment count for next student
+        $nextNumber = str_pad((string)($count + 1), 3, '0', STR_PAD_LEFT);
 
-
-        // Extract the last increment or default to 0
-        // $lastIncrement = $lastRegNumber ? intval(substr($lastRegNumber, -3)) : 0;
-        //     dd($lastIncrement);
-
-
-        // Increment and pad to 3 digits
-        $newIncrement = str_pad((string)($lastRegNumber + 1), 3, '0', STR_PAD_LEFT);
-
-
-
-        // Construct the registration number
-        return "{$yearCode}{$modeOfEntry}{$facultyCode}{$departmentCode}{$newIncrement}";
+        // Construct registration number
+        return "{$yearCode}{$modeOfEntry}{$facultyCode}{$departmentCode}{$nextNumber}";
     }
+
+
     public function changeToStudent(User $user): void
     {
         $user->update([

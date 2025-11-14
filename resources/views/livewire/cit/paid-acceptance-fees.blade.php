@@ -1,7 +1,7 @@
 @php
     use App\Enums\TransactionStatus;
     $approved = TransactionStatus::APPROVED;
-     $activated = TransactionStatus::ACTIVATED;
+    $activated = TransactionStatus::ACTIVATED;
     $pending = TransactionStatus::PENDING;
 @endphp
 <div class="flex flex-wrap -mx-3">
@@ -32,7 +32,7 @@
                             <tr>
                                 <th>Full Name</th>
 
-                                 <th>Jamb no</th>
+                                <th>Jamb no</th>
                                 <th>Phone</th>
 
                                 <th>Status</th>
@@ -40,42 +40,64 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach ( $paidAcceptanceFees as $applicant)
+                            @foreach ($paidAcceptanceFees as $applicant)
 
 
-                            <tr>
-                                <td>
-                                    <div class="flex">
+                                <tr>
+                                    <td>
+                                        <div class="flex">
 
-                                      
-                                        <h6 class="my-auto ml-4 dark:text-white">{{$applicant->surname.' '.$applicant->firstname.' '.$applicant->m_name}}</h6>
-                                    </div>
-                                </td>
-                                 <td class="leading-normal text-size-sm">{{$applicant->jamb_no}}</td>
 
-                                <td class="leading-normal text-size-sm">{{$applicant->phone}}</td>
+                                            <h6 class="my-auto ml-4 dark:text-white">
+                                                {{$applicant->surname . ' ' . $applicant->firstname . ' ' . $applicant->m_name}}
+                                            </h6>
+                                        </div>
+                                    </td>
+                                    <td class="leading-normal text-size-sm">{{$applicant->jamb_no}}</td>
 
-                                <td>
+                                    <td class="leading-normal text-size-sm">{{$applicant->phone}}</td>
 
-                                   <span class="py-1.8-em px-3-em text-size-xxs-em rounded-1 inline-block whitespace-nowrap text-center align-baseline font-bold uppercase leading-none
-  {{ $applicant->status === $approved->toString() ? 'text-green-500 bg-green-100' : 'text-gray-700 bg-gray-200' }}">
-  {{ $applicant->status === $approved->toString() ? 'success' : 'pending' }}
-</span>
-                                </td>
-                                <td class="leading-normal text-size-sm">
+                                    <td>
 
-                                     <a href="{{ route('cit.utme-school-fees', $applicant->user_id)}}" class="mx-4">
+                                        <span
+                                            class="py-1.8-em px-3-em text-size-xxs-em rounded-1 inline-block whitespace-nowrap text-center align-baseline font-bold uppercase leading-none
+                                                      {{ $applicant->status === $approved->toString() ? 'text-green-500 bg-green-100' : 'text-gray-700 bg-gray-200' }}">
+                                            {{ $applicant->status === $approved->toString() ? 'success' : 'pending' }}
+                                        </span>
+                                    </td>
+                                    <td class="leading-normal text-size-sm">
 
-                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="ml-2 size-4">
-  <path d="m5.433 13.917 1.262-3.155A4 4 0 0 1 7.58 9.42l6.92-6.918a2.121 2.121 0 0 1 3 3l-6.92 6.918c-.383.383-.84.685-1.343.886l-3.154 1.262a.5.5 0 0 1-.65-.65Z" />
-  <path d="M3.5 5.75c0-.69.56-1.25 1.25-1.25H10A.75.75 0 0 0 10 3H4.75A2.75 2.75 0 0 0 2 5.75v9.5A2.75 2.75 0 0 0 4.75 18h9.5A2.75 2.75 0 0 0 17 15.25V10a.75.75 0 0 0-1.5 0v5.25c0 .69-.56 1.25-1.25 1.25h-9.5c-.69 0-1.25-.56-1.25-1.25v-9.5Z" />
-</svg>
+                                        @if($applicant->status === $approved->toString())
 
-                                    </a>
+                                            <a href="{{ route('cit.utme-school-fees', $applicant->user_id)}}" class="mx-4">
 
-                                </td>
-                            </tr>
-                              @endforeach
+                                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"
+                                                    class="ml-2 size-4">
+                                                    <path
+                                                        d="m5.433 13.917 1.262-3.155A4 4 0 0 1 7.58 9.42l6.92-6.918a2.121 2.121 0 0 1 3 3l-6.92 6.918c-.383.383-.84.685-1.343.886l-3.154 1.262a.5.5 0 0 1-.65-.65Z" />
+                                                    <path
+                                                        d="M3.5 5.75c0-.69.56-1.25 1.25-1.25H10A.75.75 0 0 0 10 3H4.75A2.75 2.75 0 0 0 2 5.75v9.5A2.75 2.75 0 0 0 4.75 18h9.5A2.75 2.75 0 0 0 17 15.25V10a.75.75 0 0 0-1.5 0v5.25c0 .69-.56 1.25-1.25 1.25h-9.5c-.69 0-1.25-.56-1.25-1.25v-9.5Z" />
+                                                </svg>
+
+                                            </a>
+                                        @else
+
+                                            <a href="{{ route('cit.payment.status', $applicant->RRR)}}" class="mx-4">
+
+                                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"
+                                                    class="ml-2 size-4">
+                                                    <path
+                                                        d="m5.433 13.917 1.262-3.155A4 4 0 0 1 7.58 9.42l6.92-6.918a2.121 2.121 0 0 1 3 3l-6.92 6.918c-.383.383-.84.685-1.343.886l-3.154 1.262a.5.5 0 0 1-.65-.65Z" />
+                                                    <path
+                                                        d="M3.5 5.75c0-.69.56-1.25 1.25-1.25H10A.75.75 0 0 0 10 3H4.75A2.75 2.75 0 0 0 2 5.75v9.5A2.75 2.75 0 0 0 4.75 18h9.5A2.75 2.75 0 0 0 17 15.25V10a.75.75 0 0 0-1.5 0v5.25c0 .69-.56 1.25-1.25 1.25h-9.5c-.69 0-1.25-.56-1.25-1.25v-9.5Z" />
+                                                </svg>
+
+                                            </a>
+                                        @endif
+
+                                    </td>
+                                </tr>
+                            @endforeach
 
                         </tbody>
                         <tfoot>
@@ -96,5 +118,5 @@
 </div>
 
 @push('js')
-<script src="{{ asset('assets') }}/js/plugins/datatables.min.js"></script>
+    <script src="{{ asset('assets') }}/js/plugins/datatables.min.js"></script>
 @endpush

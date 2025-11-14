@@ -26,7 +26,7 @@ class AddMatricNo extends Component
     {
         try {
             // Check if the student already has a matric number
-            if ($this->user->academicDetail->matric_no) {
+            if ($this->user->academicDetail?->matric_no) {
                 $this->alert('warning', 'Registration number already exists for this student!', [
                     'position' => 'top-end',
                     'timer' => 3000,
@@ -36,10 +36,13 @@ class AddMatricNo extends Component
                     'showCancelButton' => false,
                     'icon' => 'warning',
                 ]);
-                return; // Exit the function if a matric number already exists
+                return;
             }
 
-            $modeOfEntry = "10";
+            // ✅ Determine mode of entry
+            // UTME = 10, DE = 20
+            $modeOfEntry = $this->user->isDe ? "20" : "10";
+
             $departmentCode = $this->user->proposedCourse->department->code;
             $facultyCode = "90";
             $departmentId = $this->user->proposedCourse->department_id;
@@ -85,6 +88,7 @@ class AddMatricNo extends Component
             ]);
         }
     }
+
 
     public function render()
     {
