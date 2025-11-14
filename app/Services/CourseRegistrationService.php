@@ -27,7 +27,7 @@ class CourseRegistrationService
     {
         return DepartmentCourse::with('studentCourse') // Eager load the relationship
             ->where('department_courses.department_id', $departmentId)
-            ->whereHas('studentCourse', fn($query) => $query->where('student_level_id', $studentLevelId))
+            // ->whereHas('studentCourse', fn($query) => $query->where('student_level_id', $studentLevelId))
             ->whereDoesntHave('registeredCourses', function ($query) use ($studentId, $academicSession) {
                 $query->where('academic_detail_id', $studentId)
                     ->where('academic_session', $academicSession);
