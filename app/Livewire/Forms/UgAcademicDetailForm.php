@@ -14,6 +14,7 @@ class UgAcademicDetailForm extends Form
     public function store(User $user, string $matricNumber)
     {
         // $this->validate();
+        $level = $user->isDe ? StudentLevel::YEAR_TWO : StudentLevel::YEAR_ONE;
 
 
         $user->academicDetail()->create([
@@ -21,7 +22,7 @@ class UgAcademicDetailForm extends Form
             'department_id' => $user->proposedCourse->department_id,
             'programme_id' =>  $user->programme_id,
             'course_id' =>  $user->proposedCourse->course_id,
-            'student_level_id' => StudentLevel::YEAR_ONE,
+            'student_level_id' => $level->value,
             'acad_session' => config('remita.settings.academic_session'),
         ]);
     }

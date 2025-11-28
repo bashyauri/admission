@@ -22,6 +22,7 @@ class PrintForm extends Controller
 
     public function __invoke(Request $request)
     {
+
         $validationResult = $this->validateAdmissionForm();
         if ($validationResult !== true) {
             return $validationResult; // Return redirect if checks fail

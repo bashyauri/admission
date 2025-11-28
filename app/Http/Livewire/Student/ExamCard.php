@@ -14,6 +14,7 @@ class ExamCard extends Component
     public $courses;
     public function mount()
     {
+        abort(403, "You are not allowed to print exam card.");
         $this->user = auth()->user();
         $this->student = $this->user->academicDetail;
     }
