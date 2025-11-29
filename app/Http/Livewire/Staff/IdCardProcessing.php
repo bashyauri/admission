@@ -54,6 +54,15 @@ class IdCardProcessing extends Component
     {
         $this->resetPage();
     }
+    public function resetFilters(): void
+    {
+        $this->search   = '';
+        $this->filter   = 'all';
+        $this->sortBy   = 'surname';
+        $this->sortDir  = 'asc';
+        $this->perPage  = 12;
+        $this->resetPage();
+    }
 
     public function toggleSort(string $column): void
     {
@@ -223,7 +232,7 @@ class IdCardProcessing extends Component
                 'matric_no'  => optional($u->academicDetail)->matric_no ?? '—',
                 'department' => optional($u->academicDetail->department)->name ?? '—',
                 'level'      => ($u->academicDetail->student_level_id ?? 0) * 100,
-                'photo'      => $u->picture ? asset('storage/' . $u->picture) : asset('images/avatar.png'),
+                'photo'      => $u->picture ? $u->profilePicture()  : asset('images/avatar.png'),
                 'status'     => $proc->status ?? 'unprocessed',
                 'print'      => $proc->print_status ?? 'not_printed',
             ];
