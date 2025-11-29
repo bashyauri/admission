@@ -1,5 +1,6 @@
 <?php
 
+
 namespace App\Http\Middleware;
 
 use Closure;
@@ -8,27 +9,28 @@ use Symfony\Component\HttpFoundation\Response;
 
 class RoleMiddleware
 {
-    /**
-     * Handle an incoming request.
-     *
-     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
-     */
-    public function handle(Request $request, Closure $next, $role): Response
+    public function handle(Request $request, Closure $next, string $roles): Response
     {
-        $userRole = $request->user()->role;
+        $user = $request->user();
+        if (!$user) {
+            return redirect()->route('login');
+        }
 
-        if ($userRole !== $role) {
+        $allowed = collect(explode(',', $roles))->map(fn($r) => trim($r))->filter()->all();
+        $userRole = $user->role ?? null;
+
+        if (!$userRole || !in_array($userRole, $allowed, true)) {
             $redirectRoute = match ($userRole) {
                 'hod' => 'hod.dashboard',
                 'admin' => 'admin.dashboard',
                 'student' => 'student.dashboard',
                 'cit' => 'cit.dashboard',
                 'coordinator' => 'coordinator.dashboard',
+                'idcard_officer' => 'idcard.processing',
                 default => 'analytics',
             };
 
-            // Prevent redirection loop
-            if ($request->route()->getName() !== $redirectRoute) {
+            if ($request->route()?->getName() !== $redirectRoute) {
                 return redirect()->route($redirectRoute);
             }
         }

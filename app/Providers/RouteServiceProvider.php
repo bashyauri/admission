@@ -36,6 +36,7 @@ class RouteServiceProvider extends ServiceProvider
             $this->mapStudentRoutes();
             $this->mapCitRoutes();
             $this->mapCoordinatorRoutes();
+            $this->mapIdCardOfficerRoutes();
         });
     }
 
@@ -88,6 +89,13 @@ class RouteServiceProvider extends ServiceProvider
             ->prefix('coordinator')
             ->as('coordinator.')
             ->group(base_path('routes/coordinator.php'));
+    }
+    protected function mapIdCardOfficerRoutes()
+    {
+        Route::middleware(['web', 'auth', 'verified', 'role:idcard_officer'])
+            ->prefix('idcard')
+            ->as('idcard.')
+            ->group(base_path('routes/idcard_officer.php'));
     }
 
 
