@@ -5,19 +5,24 @@ declare(strict_types=1);
 namespace App\Services\Report;
 
 
-use App\Enums\ProgrammesEnum;
-use App\Models\PostUtmeUpload;
-use App\Models\ProposedCourse;
 use App\Enums\ApplicationStatus;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Auth;
+use App\Enums\ProgrammesEnum;
+use App\Enums\TransactionStatus;
+use App\Models\PostUtmeUpload;
+
+use App\Models\ProposedCourse;
+use App\Models\StudentTransaction;
+use App\Models\User;
 use App\Services\AcademicSessionService;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 /**
  * Class UtmeService.
  */
 class UtmeService
+
 {
     public function getAllImportedApplicants(): int
     {
@@ -38,6 +43,30 @@ class UtmeService
                 $query->where('programme_id', ProgrammesEnum::Undergraduate->value);
             })
             ->count(); // Single-column query, directly optimized
+    }
+     public function getUTMEStudents(): int
+    {
+        return ProposedCourse::query()
+            ->where('academic_session', app(AcademicSessionService::class)->getAcademicSession(Auth::user()))
+            ->whereHas('user', function ($query) {
+                $query->where('programme_id', ProgrammesEnum::Undergraduate->value);
+            })
+            ->count(); // Single-column query, directly optimized
+    }
+    /**
+     * Get all unique undergraduate students (role=student) who have NOT paid school fees for the current session.
+     * Returns a Collection of User models.
+     */
+    public function getUndergraduateStudentsNotPaidSchoolFees(): Collection
+    {
+        return User::where('programme_id', ProgrammesEnum::Undergraduate->value)
+            ->where('role', \App\Enums\Role::STUDENT->value)
+            ->whereDoesntHave('studentTransactions', function ($q) {
+                $q->where('resource', config('remita.schoolfees.ug_schoolfees_description'))
+                  ->where('acad_session', app(AcademicSessionService::class)->getAcademicSession(Auth::user()))
+                  ->where('status', TransactionStatus::APPROVED->value);
+            })
+            ->get();
     }
 
     public function getUTMERecommendedApplicants(): int
@@ -150,4 +179,19 @@ class UtmeService
         });
         return $applicants;
     }
+        /**
+     * Get all undergraduate students who paid school fees for the current session.
+     */
+    public function getUndergraduateSchoolFeesPayments(): Collection
+    {
+        return StudentTransaction::query()
+            ->select('student_transactions.*', 'users.surname', 'users.firstname', 'users.m_name', 'users.jamb_no', 'users.phone')
+            ->join('users', 'student_transactions.user_id', '=', 'users.id')
+            ->where('users.programme_id', ProgrammesEnum::Undergraduate->value)
+            ->where('student_transactions.resource', config('remita.schoolfees.ug_schoolfees_description'))
+            ->where('student_transactions.acad_session', app(AcademicSessionService::class)->getAcademicSession(Auth::user()))
+            ->where('student_transactions.status', TransactionStatus::APPROVED->value)
+            ->get();
+    }
+
 }
