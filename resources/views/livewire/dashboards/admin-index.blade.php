@@ -341,7 +341,7 @@
                             <p class="mb-1 font-semibold leading-normal capitalize text-size-sm">UG Paid School Fees</p>
                             <h5 class="mb-0 font-bold dark:text-white">{{$undergraduateSchoolFeesPaid}}</h5>
                             <span class="mt-auto mb-0 font-bold leading-normal text-right text-lime-500 text-size-sm">
-                                <a href="{{route('admin.first-school-fees')}}"
+                                <a href="{{route('admin.paid-school-fees-list')}}"
                                     class="inline-block px-6 py-3 mt-4 font-bold text-center uppercase align-middle transition-all border-0 rounded-lg cursor-pointer hover:scale-102 active:opacity-85 hover:shadow-soft-xs bg-gradient-gray leading-pro text-size-xs ease-soft-in tracking-tight-soft shadow-soft-md bg-150 bg-x-25 text-slate-800">View List</a>
                             </span>
                         </div>
@@ -363,9 +363,9 @@
                     <div class="flex flex-wrap -mx-3 ">
                         <div class="w-7/12 max-w-full px-3 text-left flex-0">
                             <p class="mb-1 font-semibold leading-normal capitalize text-size-sm">UG Not Paid School Fees</p>
-                            <h5 class="mb-0 font-bold dark:text-white">{{ app(App\Services\Report\UtmeService::class)->getUndergraduateStudentsNotPaidSchoolFees()->count() }}</h5>
+                            <h5 class="mb-0 font-bold dark:text-white">{{ app(App\Services\Report\UtmeService::class)->getUndergraduateStudentsWithPaymentStatus()->count() }}</h5>
                             <span class="mt-auto mb-0 font-bold leading-normal text-right text-lime-500 text-size-sm">
-                                <a href="{{route('admin.first-school-fees')}}"
+                                <a href="{{route('admin.not-paid-school-fees-list')}}"
                                     class="inline-block px-6 py-3 mt-4 font-bold text-center uppercase align-middle transition-all border-0 rounded-lg cursor-pointer hover:scale-102 active:opacity-85 hover:shadow-soft-xs bg-gradient-gray leading-pro text-size-xs ease-soft-in tracking-tight-soft shadow-soft-md bg-150 bg-x-25 text-slate-800">View List</a>
                             </span>
                         </div>

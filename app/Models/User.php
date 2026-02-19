@@ -108,7 +108,12 @@ class User extends Authenticatable implements MustVerifyEmail
     }
     public function getIsDeAttribute(): bool
     {
-        return optional($this->proposedCourse)->jamb_score === null;
+        // Direct Entry students are those without JAMB scores (0 or null)
+        if (!$this->relationLoaded('proposedCourse')) {
+            // Avoid lazy loading - return false if relationship not loaded
+            return false;
+        }
+        return $this->proposedCourse && ($this->proposedCourse->jamb_score === null || $this->proposedCourse->jamb_score === 0);
     }
     public function postUtmeUpload(): HasOne
     {

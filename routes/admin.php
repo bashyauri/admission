@@ -5,6 +5,8 @@ declare(strict_types=1);
 use App\Http\Livewire\Admin\Settings;
 use Illuminate\Support\Facades\Route;
 use App\Http\Livewire\Cit\AddMatricNo;
+use App\Http\Livewire\Admin\NotPaidSchoolFeesList;
+use App\Http\Livewire\Admin\PaidSchoolFeesList;
 use App\Http\Livewire\Cit\FirstSchoolFees;
 use App\Http\Livewire\Dashboards\AdminIndex;
 use App\Http\Controllers\Admin\ReportController;
@@ -34,5 +36,7 @@ Route::get('shortlisted-utme-applicants', UtmeShortlistedApplicants::class)->nam
 Route::get('/export-recommended-pdf', [ReportController::class, 'exportRecommendedApplicants'])->name('export-recommended-pdf');
 Route::get('/payment/status/{rrr}', [UgSchoolFeesController::class, 'checkTransactionStatus'])->name('payment.status');
 Route::get('first-school-fees', FirstSchoolFees::class)->name('first-school-fees');
+Route::get('paid-school-fees-list', PaidSchoolFeesList::class)->name('paid-school-fees-list');
+Route::get('not-paid-school-fees-list', NotPaidSchoolFeesList::class)->name('not-paid-school-fees-list');
 Route::get('add-matric-number/{user}', AddMatricNo::class)->name('add-matric-number');
 Route::get('/transactions/generate-invoice/{studenttransaction}', [UgSchoolFeesController::class, 'index'])->name('payment');

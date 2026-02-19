@@ -54,18 +54,200 @@ class UtmeService
             ->count(); // Single-column query, directly optimized
     }
     /**
-     * Get all unique undergraduate students (role=student) who have NOT paid school fees for the current session.
-     * Returns a Collection of User models.
+     * Get all undergraduate students with their school fees payment status for the current session.
+     * Returns a Collection of User models with payment status.
      */
+    /**
+     * Get filtered undergraduate students with payment status for the current session.
+     * Supports database-level filtering for better performance.
+     */
+    public function getUndergraduateStudentsWithPaymentStatusFiltered(array $filters = []): Collection
+    {
+        $user = Auth::user();
+        if (!$user) {
+            return collect();
+        }
+        
+        $academicSession = app(AcademicSessionService::class)->getAcademicSession($user);
+        
+        $query = User::where('users.programme_id', ProgrammesEnum::Undergraduate->value)
+            ->where('users.role', \App\Enums\Role::STUDENT->value)
+            ->leftJoin('academic_details', 'academic_details.user_id', '=', 'users.id')
+            ->leftJoin('student_transactions', function ($join) use ($academicSession) {
+                $join->on('student_transactions.user_id', '=', 'users.id')
+                     ->where('student_transactions.resource', config('remita.schoolfees.ug_schoolfees_description'))
+                     ->where('student_transactions.acad_session', $academicSession);
+            })
+            ->leftJoin('departments', 'departments.id', '=', 'academic_details.department_id')
+            ->leftJoin('student_levels', 'student_levels.id', '=', 'academic_details.student_level_id')
+            ->select('users.*', 'academic_details.matric_no', 'academic_details.department_id', 'academic_details.student_level_id', 
+                   'student_transactions.status as payment_status', 'student_transactions.RRR as RRR',
+                   'departments.name as department_name', 'student_levels.level as level_name')
+            ->where(function($query) {
+                $query->whereNull('student_transactions.status')
+                      ->orWhere('student_transactions.status', '!=', TransactionStatus::APPROVED->value);
+            });
+
+        // Apply filters
+        if (!empty($filters['search'])) {
+            $searchTerm = '%' . $filters['search'] . '%';
+            $query->where(function($q) use ($searchTerm) {
+                $q->whereRaw('LOWER(CONCAT(users.surname, " ", users.firstname, " ", users.m_name)) LIKE ?', [strtolower($searchTerm)])
+                  ->orWhere('users.email', 'LIKE', $searchTerm)
+                  ->orWhere('users.phone', 'LIKE', $searchTerm)
+                  ->orWhere('academic_details.matric_no', 'LIKE', $searchTerm);
+            });
+        }
+
+        if (!empty($filters['department'])) {
+            // Change to INNER JOIN for department filtering to be strict
+            $query = User::where('users.programme_id', ProgrammesEnum::Undergraduate->value)
+                ->where('users.role', \App\Enums\Role::STUDENT->value)
+                ->leftJoin('academic_details', 'academic_details.user_id', '=', 'users.id')
+                ->leftJoin('student_transactions', function ($join) use ($academicSession) {
+                    $join->on('student_transactions.user_id', '=', 'users.id')
+                         ->where('student_transactions.resource', config('remita.schoolfees.ug_schoolfees_description'))
+                         ->where('student_transactions.acad_session', $academicSession);
+                })
+                ->join('departments', 'departments.id', '=', 'academic_details.department_id') // INNER JOIN
+                ->leftJoin('student_levels', 'student_levels.id', '=', 'academic_details.student_level_id')
+                ->select('users.*', 'academic_details.matric_no', 'academic_details.department_id', 'academic_details.student_level_id',
+                       'student_transactions.status as payment_status', 'student_transactions.RRR as RRR',
+                       'departments.name as department_name', 'student_levels.level as level_name')
+                ->where('departments.name', $filters['department'])
+                ->where(function($query) {
+                    $query->whereNull('student_transactions.status')
+                          ->orWhere('student_transactions.status', '!=', TransactionStatus::APPROVED->value);
+                });
+        }
+
+        if (!empty($filters['level'])) {
+            if (!empty($filters['department'])) {
+                // If department filter is already applied, add level filter to existing query
+                $query->where('student_levels.level', $filters['level'])
+                      ->whereNotNull('student_levels.level');
+            } else {
+                // If only level filter, use INNER JOIN for student_levels
+                $query = User::where('users.programme_id', ProgrammesEnum::Undergraduate->value)
+                    ->where('users.role', \App\Enums\Role::STUDENT->value)
+                    ->leftJoin('academic_details', 'academic_details.user_id', '=', 'users.id')
+                    ->leftJoin('student_transactions', function ($join) use ($academicSession) {
+                        $join->on('student_transactions.user_id', '=', 'users.id')
+                             ->where('student_transactions.resource', config('remita.schoolfees.ug_schoolfees_description'))
+                             ->where('student_transactions.acad_session', $academicSession);
+                    })
+                    ->leftJoin('departments', 'departments.id', '=', 'academic_details.department_id')
+                    ->join('student_levels', 'student_levels.id', '=', 'academic_details.student_level_id') // INNER JOIN
+                    ->select('users.*', 'academic_details.matric_no', 'academic_details.department_id', 'academic_details.student_level_id',
+                           'student_transactions.status as payment_status', 'student_transactions.RRR as RRR',
+                           'departments.name as department_name', 'student_levels.level as level_name')
+                    ->where('student_levels.level', $filters['level'])
+                    ->where(function($query) {
+                        $query->whereNull('student_transactions.status')
+                              ->orWhere('student_transactions.status', '!=', TransactionStatus::APPROVED->value);
+                    });
+            }
+        }
+
+        // Apply sorting
+        $sortBy = $filters['sortBy'] ?? 'surname';
+        $sortDirection = $filters['sortDirection'] ?? 'asc';
+
+        
+        if (in_array($sortBy, ['surname', 'firstname', 'email', 'phone', 'matric_no', 'department_name', 'level_name'])) {
+            $query->orderBy($sortBy === 'surname' ? 'users.surname' : 
+                           ($sortBy === 'firstname' ? 'users.firstname' : 
+                           ($sortBy === 'email' ? 'users.email' : 
+                           ($sortBy === 'phone' ? 'users.phone' : 
+                           ($sortBy === 'matric_no' ? 'academic_details.matric_no' : 
+                           ($sortBy === 'department_name' ? 'departments.name' : 'student_levels.level'))))), $sortDirection);
+        }
+
+        return $query->get();
+    }
+
+    public function getUndergraduateStudentsWithPaymentStatus(): Collection
+    {
+        $user = Auth::user();
+        if (!$user) {
+            return collect();
+        }
+        
+        $academicSession = app(AcademicSessionService::class)->getAcademicSession($user);
+        
+        return User::where('users.programme_id', ProgrammesEnum::Undergraduate->value)
+            ->where('users.role', \App\Enums\Role::STUDENT->value)
+            ->leftJoin('academic_details', 'academic_details.user_id', '=', 'users.id')
+            ->leftJoin('student_transactions', function ($join) use ($academicSession) {
+                $join->on('student_transactions.user_id', '=', 'users.id')
+                     ->where('student_transactions.resource', config('remita.schoolfees.ug_schoolfees_description'))
+                     ->where('student_transactions.acad_session', $academicSession);
+            })
+            ->leftJoin('departments', 'departments.id', '=', 'academic_details.department_id')
+            ->leftJoin('student_levels', 'student_levels.id', '=', 'academic_details.student_level_id')
+            ->select('users.*', 'academic_details.matric_no', 'academic_details.department_id', 'academic_details.student_level_id', 
+                   'student_transactions.status as payment_status', 'student_transactions.RRR as RRR',
+                   'departments.name as department_name', 'student_levels.level as level_name')
+            ->where(function($query) {
+                $query->whereNull('student_transactions.status')
+                      ->orWhere('student_transactions.status', '!=', TransactionStatus::APPROVED->value);
+            })
+            ->orderBy('users.surname')
+            ->orderBy('users.firstname')
+            ->get();
+    }
+
     public function getUndergraduateStudentsNotPaidSchoolFees(): Collection
     {
+        $user = Auth::user();
+        if (!$user) {
+            return collect();
+        }
+        
+        $academicSession = app(AcademicSessionService::class)->getAcademicSession($user);
+        
         return User::where('programme_id', ProgrammesEnum::Undergraduate->value)
             ->where('role', \App\Enums\Role::STUDENT->value)
-            ->whereDoesntHave('studentTransactions', function ($q) {
+            ->whereDoesntHave('studentTransactions', function ($q) use ($academicSession) {
                 $q->where('resource', config('remita.schoolfees.ug_schoolfees_description'))
-                  ->where('acad_session', app(AcademicSessionService::class)->getAcademicSession(Auth::user()))
+                  ->where('acad_session', $academicSession)
                   ->where('status', TransactionStatus::APPROVED->value);
             })
+            ->get(['id', 'surname', 'firstname', 'm_name', 'email', 'phone', 'programme_id', 'role']);
+    }
+
+    
+    public function getUtmeFirstSchoolFeesPaymentAll(): Collection
+    {
+        $user = Auth::user();
+        if (!$user) {
+            return collect();
+        }
+        
+        $academicSession = app(AcademicSessionService::class)->getAcademicSession($user);
+        
+        return StudentTransaction::select(
+            'student_transactions.*',
+            'users.surname',
+            'users.firstname',
+            'users.m_name',
+            'users.jamb_no',
+            'users.phone',
+            'academic_details.matric_no',
+            'departments.name as department_name',
+            'student_levels.level as level_name'
+        )
+            ->join('users', 'student_transactions.user_id', '=', 'users.id')
+            ->leftJoin('academic_details', 'academic_details.user_id', '=', 'users.id')
+            ->leftJoin('departments', 'departments.id', '=', 'academic_details.department_id')
+            ->leftJoin('student_levels', 'student_levels.id', '=', 'academic_details.student_level_id')
+            ->where([
+                'student_transactions.resource' => config('remita.schoolfees.ug_schoolfees_description'),
+                'student_transactions.status' => \App\Enums\TransactionStatus::APPROVED,
+                'student_transactions.acad_session' => $academicSession,
+            ])
+            ->orderBy('users.surname')
+            ->orderBy('users.firstname')
             ->get();
     }
 
@@ -190,7 +372,6 @@ class UtmeService
             ->where('users.programme_id', ProgrammesEnum::Undergraduate->value)
             ->where('student_transactions.resource', config('remita.schoolfees.ug_schoolfees_description'))
             ->where('student_transactions.acad_session', app(AcademicSessionService::class)->getAcademicSession(Auth::user()))
-            ->where('student_transactions.status', TransactionStatus::APPROVED->value)
             ->get();
     }
 

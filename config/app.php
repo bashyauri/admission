@@ -191,6 +191,7 @@ return [
         /*
          * Package Service Providers...
          */
+        Laravel\Boost\BoostServiceProvider::class,
 
         /*
          * Application Service Providers...
