@@ -8,6 +8,7 @@ namespace App\Services\Report;
 use App\Enums\ApplicationStatus;
 use App\Enums\ProgrammesEnum;
 use App\Enums\TransactionStatus;
+use Illuminate\Support\Facades\DB;
 use App\Models\PostUtmeUpload;
 
 use App\Models\ProposedCourse;
@@ -16,7 +17,6 @@ use App\Models\User;
 use App\Services\AcademicSessionService;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
 
 /**
  * Class UtmeService.
@@ -67,9 +67,9 @@ class UtmeService
         if (!$user) {
             return collect();
         }
-        
+
         $academicSession = app(AcademicSessionService::class)->getAcademicSession($user);
-        
+
         $query = User::where('users.programme_id', ProgrammesEnum::Undergraduate->value)
             ->where('users.role', \App\Enums\Role::STUDENT->value)
             ->leftJoin('academic_details', 'academic_details.user_id', '=', 'users.id')
@@ -80,7 +80,7 @@ class UtmeService
             })
             ->leftJoin('departments', 'departments.id', '=', 'academic_details.department_id')
             ->leftJoin('student_levels', 'student_levels.id', '=', 'academic_details.student_level_id')
-            ->select('users.*', 'academic_details.matric_no', 'academic_details.department_id', 'academic_details.student_level_id', 
+            ->select('users.*', 'academic_details.matric_no', 'academic_details.department_id', 'academic_details.student_level_id',
                    'student_transactions.status as payment_status', 'student_transactions.RRR as RRR',
                    'departments.name as department_name', 'student_levels.level as level_name')
             ->where(function($query) {
@@ -153,13 +153,13 @@ class UtmeService
         $sortBy = $filters['sortBy'] ?? 'surname';
         $sortDirection = $filters['sortDirection'] ?? 'asc';
 
-        
+
         if (in_array($sortBy, ['surname', 'firstname', 'email', 'phone', 'matric_no', 'department_name', 'level_name'])) {
-            $query->orderBy($sortBy === 'surname' ? 'users.surname' : 
-                           ($sortBy === 'firstname' ? 'users.firstname' : 
-                           ($sortBy === 'email' ? 'users.email' : 
-                           ($sortBy === 'phone' ? 'users.phone' : 
-                           ($sortBy === 'matric_no' ? 'academic_details.matric_no' : 
+            $query->orderBy($sortBy === 'surname' ? 'users.surname' :
+                           ($sortBy === 'firstname' ? 'users.firstname' :
+                           ($sortBy === 'email' ? 'users.email' :
+                           ($sortBy === 'phone' ? 'users.phone' :
+                           ($sortBy === 'matric_no' ? 'academic_details.matric_no' :
                            ($sortBy === 'department_name' ? 'departments.name' : 'student_levels.level'))))), $sortDirection);
         }
 
@@ -172,9 +172,9 @@ class UtmeService
         if (!$user) {
             return collect();
         }
-        
+
         $academicSession = app(AcademicSessionService::class)->getAcademicSession($user);
-        
+
         return User::where('users.programme_id', ProgrammesEnum::Undergraduate->value)
             ->where('users.role', \App\Enums\Role::STUDENT->value)
             ->leftJoin('academic_details', 'academic_details.user_id', '=', 'users.id')
@@ -185,7 +185,7 @@ class UtmeService
             })
             ->leftJoin('departments', 'departments.id', '=', 'academic_details.department_id')
             ->leftJoin('student_levels', 'student_levels.id', '=', 'academic_details.student_level_id')
-            ->select('users.*', 'academic_details.matric_no', 'academic_details.department_id', 'academic_details.student_level_id', 
+            ->select('users.*', 'academic_details.matric_no', 'academic_details.department_id', 'academic_details.student_level_id',
                    'student_transactions.status as payment_status', 'student_transactions.RRR as RRR',
                    'departments.name as department_name', 'student_levels.level as level_name')
             ->where(function($query) {
@@ -203,29 +203,54 @@ class UtmeService
         if (!$user) {
             return collect();
         }
-        
+
         $academicSession = app(AcademicSessionService::class)->getAcademicSession($user);
-        
-        return User::where('programme_id', ProgrammesEnum::Undergraduate->value)
-            ->where('role', \App\Enums\Role::STUDENT->value)
-            ->whereDoesntHave('studentTransactions', function ($q) use ($academicSession) {
-                $q->where('resource', config('remita.schoolfees.ug_schoolfees_description'))
-                  ->where('acad_session', $academicSession)
-                  ->where('status', TransactionStatus::APPROVED->value);
-            })
-            ->get(['id', 'surname', 'firstname', 'm_name', 'email', 'phone', 'programme_id', 'role']);
+
+        return User::select(
+            'users.id',
+            'users.surname',
+            'users.firstname',
+            'users.m_name',
+            'users.email',
+            'users.phone',
+            'users.jamb_no',
+            'academic_details.matric_no',
+            'departments.name as department_name',
+            'student_levels.level as level_name',
+            // Add RRR and status field for filtering
+            'student_transactions.RRR as RRR',
+            DB::raw("'Not Paid' as payment_status")
+        )
+        ->leftJoin('academic_details', 'academic_details.user_id', '=', 'users.id')
+        ->leftJoin('departments', 'departments.id', '=', 'academic_details.department_id')
+        ->leftJoin('student_levels', 'student_levels.id', '=', 'academic_details.student_level_id')
+        ->leftJoin('student_transactions', function ($join) use ($academicSession) {
+            $join->on('student_transactions.user_id', '=', 'users.id')
+                ->where('student_transactions.resource', config('remita.schoolfees.ug_schoolfees_description'))
+                ->where('student_transactions.acad_session', $academicSession);
+        })
+        ->where('users.programme_id', ProgrammesEnum::Undergraduate->value)
+        ->where('users.role', \App\Enums\Role::STUDENT->value)
+        ->whereDoesntHave('studentTransactions', function ($q) use ($academicSession) {
+            $q->where('resource', config('remita.schoolfees.ug_schoolfees_description'))
+              ->where('acad_session', $academicSession)
+              ->where('status', TransactionStatus::APPROVED->value);
+        })
+        ->orderBy('users.surname')
+        ->orderBy('users.firstname')
+        ->get();
     }
 
-    
+
     public function getUtmeFirstSchoolFeesPaymentAll(): Collection
     {
         $user = Auth::user();
         if (!$user) {
             return collect();
         }
-        
+
         $academicSession = app(AcademicSessionService::class)->getAcademicSession($user);
-        
+
         return StudentTransaction::select(
             'student_transactions.*',
             'users.surname',
@@ -243,9 +268,10 @@ class UtmeService
             ->leftJoin('student_levels', 'student_levels.id', '=', 'academic_details.student_level_id')
             ->where([
                 'student_transactions.resource' => config('remita.schoolfees.ug_schoolfees_description'),
-                'student_transactions.status' => \App\Enums\TransactionStatus::APPROVED,
+                'student_transactions.status' => TransactionStatus::APPROVED,
                 'student_transactions.acad_session' => $academicSession,
             ])
+            ->distinct('student_transactions.user_id')
             ->orderBy('users.surname')
             ->orderBy('users.firstname')
             ->get();
@@ -372,6 +398,7 @@ class UtmeService
             ->where('users.programme_id', ProgrammesEnum::Undergraduate->value)
             ->where('student_transactions.resource', config('remita.schoolfees.ug_schoolfees_description'))
             ->where('student_transactions.acad_session', app(AcademicSessionService::class)->getAcademicSession(Auth::user()))
+            ->distinct('student_transactions.user_id')
             ->get();
     }
 

@@ -2,23 +2,24 @@
     search: '{{ $search }}',
     departmentFilter: '{{ $departmentFilter }}',
     levelFilter: '{{ $levelFilter }}',
+    statusFilter: '{{ $statusFilter }}',
     sortBy: '{{ $sortBy }}',
     sortDirection: '{{ $sortDirection }}',
     perPage: '{{ $perPage }}',
     currentPage: 1,
-    
+
     // URL generation function
     generateInvoiceUrl(studentId) {
         return '/admin/transactions/generate-invoice/' + studentId;
     },
-    
+
     get allStudents() {
         return @js($students);
     },
-    
+
     get filteredStudents() {
         let query = this.allStudents;
-        
+
         // Search filter
         if (this.search) {
             query = query.filter(student => {
@@ -31,101 +32,114 @@
                 );
             });
         }
-        
+
         // Department filter
         if (this.departmentFilter) {
-            query = query.filter(student => 
-                student.department_name && student.department_name.toLowerCase() === this.departmentFilter.toLowerCase()
+            query = query.filter(student =>
+                student.department_name &&
+                student.department_name.toLowerCase() === this.departmentFilter.toLowerCase()
             );
         }
 
         // Level filter
         if (this.levelFilter) {
-            query = query.filter(student => 
+            query = query.filter(student =>
                 student.level_name && student.level_name.toLowerCase() === this.levelFilter.toLowerCase()
             );
         }
-        
+
+        // Status filter
+        if (this.statusFilter) {
+            query = query.filter(student =>
+                student.payment_status &&
+                student.payment_status.toLowerCase() === this.statusFilter.toLowerCase()
+            );
+        }
+
         // Sorting
         query = query.sort((a, b) => {
-            let aVal = a[this.sortBy] || '';
-            let bVal = b[this.sortBy] || '';
-            
-            if (typeof aVal === 'string') aVal = aVal.toLowerCase();
-            if (typeof bVal === 'string') bVal = bVal.toLowerCase();
-            
+            let aVal = a[this.sortBy];
+            let bVal = b[this.sortBy];
+
+            // Handle null/undefined values - put them at the end
+            if (aVal === null || aVal === undefined) { aVal = ''; }
+            if (bVal === null || bVal === undefined) { bVal = ''; }
+
+            if (typeof aVal === 'string') { aVal = aVal.toLowerCase(); }
+            if (typeof bVal === 'string') { bVal = bVal.toLowerCase(); }
+
             if (this.sortDirection === 'asc') {
                 return aVal > bVal ? 1 : -1;
             } else {
                 return aVal < bVal ? 1 : -1;
             }
         });
-        
+
         return query;
     },
-    
+
     get paginatedStudents() {
         const start = (this.currentPage - 1) * parseInt(this.perPage);
         const end = start + parseInt(this.perPage);
         return this.filteredStudents.slice(start, end);
     },
-    
+
     get totalPages() {
         return Math.ceil(this.filteredStudents.length / parseInt(this.perPage));
     },
-    
+
     get hasNextPage() {
         return this.currentPage < this.totalPages;
     },
-    
+
     get hasPrevPage() {
         return this.currentPage > 1;
     },
-    
+
     nextPage() {
-        if (this.hasNextPage) this.currentPage++;
+        if (this.hasNextPage) { this.currentPage++; }
     },
-    
+
     prevPage() {
-        if (this.hasPrevPage) this.currentPage--;
+        if (this.hasPrevPage) { this.currentPage--; }
     },
-    
+
     goToPage(page) {
         if (page >= 1 && page <= this.totalPages) {
             this.currentPage = page;
         }
     },
-    
+
     sort(field) {
         this.sortBy = field;
         this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
         this.currentPage = 1;
     },
-    
+
     getPageNumbers() {
         const total = this.totalPages;
         const current = this.currentPage;
         const delta = 2; // Number of pages to show around current page
-        
+
         let pages = [];
-        
+
         // Always show first page
         if (total > 0) {
             pages.push(1);
         }
-        
+
         // Show pages around current page
         for (let i = Math.max(2, current - delta); i <= Math.min(total - 1, current + delta); i++) {
             if (i > 1 && i < total) {
                 pages.push(i);
             }
         }
-        
+
         // Always show last page if different from first
         if (total > 1) {
             pages.push(total);
         }
-        
+
         // Add ellipsis for gaps
         let result = [];
         for (let i = 0; i < pages.length; i++) {
@@ -134,14 +148,15 @@
             }
             result.push(pages[i]);
         }
-        
+
         return result;
     },
-    
+
     init() {
         this.$watch('search', () => this.currentPage = 1);
         this.$watch('departmentFilter', () => this.currentPage = 1);
         this.$watch('levelFilter', () => this.currentPage = 1);
+        this.$watch('statusFilter', () => this.currentPage = 1);
         this.$watch('perPage', () => this.currentPage = 1);
     }
 }" class="flex flex-wrap -mx-3">
@@ -183,8 +198,8 @@
                         <!-- Search -->
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Search</label>
-                            <input 
-                                type="text" 
+                            <input
+                                type="text"
                                 x-model="search"
                                 placeholder="Search by name, email, matric no, dept, level..."
                                 class="dark:bg-gray-950 focus:shadow-soft-primary-outline dark:placeholder:text-white/80 dark:text-white/80 text-size-sm leading-5.6 ease-soft block w-full appearance-none rounded-lg border border-solid border-gray-300 bg-white bg-clip-padding px-3 py-2 font-normal text-gray-700 outline-none transition-all placeholder:text-gray-500 focus:border-fuchsia-300 focus:outline-none">
@@ -193,7 +208,7 @@
                         <!-- Department Filter -->
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Department</label>
-                            <select 
+                            <select
                                 x-model="departmentFilter"
                                 class="dark:bg-gray-950 focus:shadow-soft-primary-outline dark:placeholder:text-white/80 dark:text-white/80 text-size-sm leading-5.6 ease-soft block w-full appearance-none rounded-lg border border-solid border-gray-300 bg-white bg-clip-padding px-3 py-2 font-normal text-gray-700 outline-none transition-all placeholder:text-gray-500 focus:border-fuchsia-300 focus:outline-none">
                                 <option value="">All Departments</option>
@@ -209,7 +224,7 @@
                         <!-- Level Filter -->
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Level</label>
-                            <select 
+                            <select
                                 x-model="levelFilter"
                                 class="dark:bg-gray-950 focus:shadow-soft-primary-outline dark:placeholder:text-white/80 dark:text-white/80 text-size-sm leading-5.6 ease-soft block w-full appearance-none rounded-lg border border-solid border-gray-300 bg-white bg-clip-padding px-3 py-2 font-normal text-gray-700 outline-none transition-all placeholder:text-gray-500 focus:border-fuchsia-300 focus:outline-none">
                                 <option value="">All Levels</option>
@@ -219,10 +234,21 @@
                             </select>
                         </div>
 
+                        <!-- Status Filter -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Status</label>
+                            <select
+                                x-model="statusFilter"
+                                class="dark:bg-gray-950 focus:shadow-soft-primary-outline dark:placeholder:text-white/80 dark:text-white/80 text-size-sm leading-5.6 ease-soft block w-full appearance-none rounded-lg border border-solid border-gray-300 bg-white bg-clip-padding px-3 py-2 font-normal text-gray-700 outline-none transition-all placeholder:text-gray-500 focus:border-fuchsia-300 focus:outline-none">
+                                <option value="">All Status</option>
+                                <option value="Not Paid">Not Paid</option>
+                            </select>
+                        </div>
+
                         <!-- Per Page -->
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Per Page</label>
-                            <select 
+                            <select
                                 x-model="perPage"
                                 class="dark:bg-gray-950 focus:shadow-soft-primary-outline dark:placeholder:text-white/80 dark:text-white/80 text-size-sm leading-5.6 ease-soft block w-full appearance-none rounded-lg border border-solid border-gray-300 bg-white bg-clip-padding px-3 py-2 font-normal text-gray-700 outline-none transition-all placeholder:text-gray-500 focus:border-fuchsia-300 focus:outline-none">
                                 <option value="10">10</option>
@@ -318,9 +344,18 @@
                                     <td class="text-sm" x-text="student.RRR ? 'School Fees Payment' : 'N/A'"></td>
                                     <td>
                                         <span class="py-1.8 px-3 text-xs rounded-full inline-block whitespace-nowrap text-center align-baseline font-bold uppercase leading-none"
-                                            :class="student.payment_status === '00' ? 'text-green-600 bg-green-100' : student.payment_status ? 'text-yellow-600 bg-yellow-100' : 'text-red-600 bg-red-100'">
-                                            <span x-text="student.payment_status === '00' ? 'Paid' : student.payment_status ? 'Pending' : 'Not Paid'"></span>
+                                            :class="student.payment_status === 'Not Paid' ? 'text-red-600 bg-red-100' : 'text-green-600 bg-green-100'">
+                                            <span x-text="student.payment_status || 'Not Paid'"></span>
                                         </span>
+                                        @if(isset($student) && isset($student['payment_status']))
+                                            <span @class([
+                                                'py-1.8 px-3 text-xs rounded-full inline-block whitespace-nowrap text-center align-baseline font-bold uppercase leading-none',
+                                                'text-red-600 bg-red-100' => $student['payment_status'] === 'Not Paid',
+                                                'text-green-600 bg-green-100' => $student['payment_status'] !== 'Not Paid',
+                                            ])>
+                                                {{ $student['payment_status'] ?? 'Not Paid' }}
+                                            </span>
+                                        @endif
                                     </td>
                                 </tr>
                                 </tr>
@@ -344,35 +379,35 @@
                 <div class="p-6 pt-0" x-show="totalPages > 1">
                     <div class="flex items-center justify-between">
                         <div class="text-sm text-gray-700">
-                            Showing <span x-text="(currentPage - 1) * perPage + 1"></span> to 
-                            <span x-text="Math.min(currentPage * perPage, filteredStudents.length)"></span> of 
+                            Showing <span x-text="(currentPage - 1) * perPage + 1"></span> to
+                            <span x-text="Math.min(currentPage * perPage, filteredStudents.length)"></span> of
                             <span x-text="filteredStudents.length"></span> results
                         </div>
                         <div class="flex items-center space-x-2">
                             <!-- Previous -->
-                            <button @click="prevPage()" 
+                            <button @click="prevPage()"
                                     :disabled="!hasPrevPage"
                                     class="px-3 py-1 text-sm border rounded-lg"
                                     :class="hasPrevPage ? 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50' : 'bg-gray-100 border-gray-200 text-gray-400 cursor-not-allowed'">
                                 Previous
                             </button>
-                            
+
                             <!-- Page Numbers -->
                             <template x-for="page in getPageNumbers()" :key="page">
                                 <template x-if="page === '...'">
                                     <span class="px-3 py-1 text-sm text-gray-500">...</span>
                                 </template>
                                 <template x-if="page !== '...'">
-                                    <button @click="goToPage(page)" 
+                                    <button @click="goToPage(page)"
                                             class="px-3 py-1 text-sm border rounded-lg"
                                             :class="page === currentPage ? 'bg-fuchsia-500 border-fuchsia-500 text-white' : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'">
                                         <span x-text="page"></span>
                                     </button>
                                 </template>
                             </template>
-                            
+
                             <!-- Next -->
-                            <button @click="nextPage()" 
+                            <button @click="nextPage()"
                                     :disabled="!hasNextPage"
                                     class="px-3 py-1 text-sm border rounded-lg"
                                     :class="hasNextPage ? 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50' : 'bg-gray-100 border-gray-200 text-gray-400 cursor-not-allowed'">

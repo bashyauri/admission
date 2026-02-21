@@ -32,7 +32,7 @@ class AdminIndex extends Component
         $this->totalUTMEApplicants = $utmeService->getUTMEApplicants();
         $this->totalUTMERecommendedApplicants = $utmeService->getUTMERecommendedApplicants();
         $this->totalUTMEShortlistedApplicants = $utmeService->getUTMEShortlistedApplicants();
-        $this->undergraduateSchoolFeesPaid = $utmeService->getUndergraduateSchoolFeesPayments()->count();
+        $this->undergraduateSchoolFeesPaid = $utmeService->getUtmeFirstSchoolFeesPaymentAll()->count();
     }
 
     public function render()

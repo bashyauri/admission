@@ -140,6 +140,7 @@ class IdCardProcessing extends Component
         $resource = config('remita.schoolfees.ug_schoolfees_description');
 
         $q = User::query()
+            ->where('role', \App\Enums\Role::STUDENT->value)
             ->whereHas('academicDetail', function ($q) use ($programmeId) {
                 $q->where('programme_id', $programmeId);
             })
