@@ -22,7 +22,10 @@ class NotPaidSchoolFeesList extends Component
     public function mount(UtmeService $utmeService): void
     {
         abort_unless(auth()->user()->isAdmin(), 403, 'You must be logged in as an Admin to view this page');
-        $this->students = $utmeService->getUndergraduateStudentsNotPaidSchoolFees();
+        $this->students = $utmeService->getUndergraduateStudentsNotPaidSchoolFees([
+            'department' => $this->departmentFilter,
+            'level' => $this->levelFilter,
+        ]);
     }
 
     public function sortBy($field)
@@ -38,7 +41,7 @@ class NotPaidSchoolFeesList extends Component
     public function getFilteredStudentsProperty()
     {
         $query = collect($this->students);
-         // Search filter
+        // Search filter (still in PHP)
         if ($this->search) {
             $query = $query->filter(function ($item) {
                 $searchTerm = strtolower($this->search);
@@ -47,7 +50,6 @@ class NotPaidSchoolFeesList extends Component
                 $departmentName = strtolower($item->department_name ?? '');
                 $matricNo = strtolower($item->matric_no ?? '');
                 $levelName = strtolower($item->level_name ?? '');
-
                 return (
                     str_contains($fullName, $searchTerm) ||
                     str_contains($rrr, $searchTerm) ||
@@ -57,36 +59,16 @@ class NotPaidSchoolFeesList extends Component
                 );
             });
         }
-
-        // Department filter
-        if ($this->departmentFilter) {
-            $query = $query->filter(function ($item) {
-                $departmentName = $item->department_name ?? null;
-                // Exclude null/empty department names and match exact (case-insensitive)
-                return $departmentName !== null && $departmentName !== '' && strtolower($departmentName) === strtolower($this->departmentFilter);
-            });
-        }
-
-        // Level filter
-        if ($this->levelFilter) {
-            $query = $query->filter(function ($item) {
-                $levelName = strtolower($item->level_name ?? '');
-                return $levelName === strtolower($this->levelFilter);
-            });
-        }
-
-        // Status filter
+        // Status filter (still in PHP)
         if ($this->statusFilter) {
             $query = $query->filter(function ($item) {
                 return strtolower($item->status) === strtolower($this->statusFilter);
             });
         }
-
-        // Sorting
+        // Sorting (still in PHP)
         $query = $query->sortBy([
             [$this->sortBy, $this->sortDirection]
         ]);
-
         return $query;
     }
 

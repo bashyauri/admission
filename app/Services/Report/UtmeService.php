@@ -206,7 +206,10 @@ class UtmeService
 
         $academicSession = app(AcademicSessionService::class)->getAcademicSession($user);
 
-        return User::select(
+        // Accept filters from arguments (default to empty array)
+        $filters = func_num_args() > 0 ? func_get_arg(0) : [];
+
+        $query = User::select(
             'users.id',
             'users.surname',
             'users.firstname',
@@ -217,7 +220,6 @@ class UtmeService
             'academic_details.matric_no',
             'departments.name as department_name',
             'student_levels.level as level_name',
-            // Add RRR and status field for filtering
             'student_transactions.RRR as RRR',
             DB::raw("'Not Paid' as payment_status")
         )
@@ -235,10 +237,18 @@ class UtmeService
             $q->where('resource', config('remita.schoolfees.ug_schoolfees_description'))
               ->where('acad_session', $academicSession)
               ->where('status', TransactionStatus::APPROVED->value);
-        })
-        ->orderBy('users.surname')
-        ->orderBy('users.firstname')
-        ->get();
+        });
+
+        if (!empty($filters['department'])) {
+            $query->whereRaw('LOWER(departments.name) = ?', [strtolower($filters['department'])]);
+        }
+        if (!empty($filters['level'])) {
+            $query->whereRaw('LOWER(student_levels.level) = ?', [strtolower($filters['level'])]);
+        }
+
+        return $query->orderBy('users.surname')
+            ->orderBy('users.firstname')
+            ->get();
     }
 
 
