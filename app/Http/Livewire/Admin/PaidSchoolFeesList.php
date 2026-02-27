@@ -4,32 +4,62 @@ namespace App\Http\Livewire\Admin;
 
 use App\Enums\TransactionStatus;
 use App\Services\Report\UtmeService;
-use Livewire\Attributes\Locked;
+use Illuminate\Support\Facades\Auth;
+use Livewire\Attributes\Url;
 use Livewire\Component;
 use Livewire\WithPagination;
 
 class PaidSchoolFeesList extends Component
 {
     use WithPagination;
-    
-    #[Locked]
-    public $schoolFees;
-    
-    public $search = '';
-    public $sortBy = 'surname';
-    public $sortDirection = 'asc';
-    public $perPage = 10;
-    public $departmentFilter = '';
-    public $statusFilter = '';
-    public $levelFilter = '';
 
-    public function mount(UtmeService $utmeService): void
+    #[Url(as: 'search')]
+    public string $search = '';
+
+    #[Url(as: 'dept')]
+    public string $department = '';
+
+    #[Url(as: 'level')]
+    public string $level = '';
+
+    #[Url(as: 'status')]
+    public string $status = '';
+
+    #[Url(as: 'sort')]
+    public string $sortBy = 'surname';
+
+    #[Url(as: 'dir')]
+    public string $sortDirection = 'asc';
+
+    #[Url(as: 'per')]
+    public int $perPage = 15;
+
+    public function updatingSearch()
     {
-        abort_unless(auth()->user()->isAdmin(), 403, 'You must be logged in as an Admin to view this page');
-        $this->schoolFees = $utmeService->getUtmeFirstSchoolFeesPaymentAll();
+        $this->resetPage();
     }
 
-    public function sortBy($field)
+    public function updatingDepartment()
+    {
+        $this->resetPage();
+    }
+
+    public function updatingLevel()
+    {
+        $this->resetPage();
+    }
+
+    public function updatingStatus()
+    {
+        $this->resetPage();
+    }
+
+    public function updatingPerPage()
+    {
+        $this->resetPage();
+    }
+
+    public function sort($field)
     {
         if ($this->sortBy === $field) {
             $this->sortDirection = $this->sortDirection === 'asc' ? 'desc' : 'asc';
@@ -37,107 +67,122 @@ class PaidSchoolFeesList extends Component
             $this->sortBy = $field;
             $this->sortDirection = 'asc';
         }
-    }
 
-    public function getFilteredSchoolFeesProperty()
-    {
-        $query = collect($this->schoolFees);
-
-        // Search filter
-        if ($this->search) {
-            $query = $query->filter(function ($item) {
-                $searchTerm = strtolower($this->search);
-                $fullName = strtolower($item->surname . ' ' . $item->firstname . ' ' . $item->m_name);
-                $rrr = strtolower($item->RRR ?? '');
-                $departmentName = strtolower($item->department_name ?? '');
-                $matricNo = strtolower($item->matric_no ?? '');
-                $levelName = strtolower($item->level_name ?? '');
-                
-                return (
-                    str_contains($fullName, $searchTerm) ||
-                    str_contains($rrr, $searchTerm) ||
-                    str_contains($departmentName, $searchTerm) ||
-                    str_contains($matricNo, $searchTerm) ||
-                    str_contains($levelName, $searchTerm)
-                );
-            });
-        }
-
-        // Department filter
-        if ($this->departmentFilter) {
-            $query = $query->filter(function ($item) {
-                $departmentName = strtolower($item->department_name ?? '');
-                return $departmentName === strtolower($this->departmentFilter);
-            });
-        }
-        
-        // Level filter
-        if ($this->levelFilter) {
-            $query = $query->filter(function ($item) {
-                $levelName = strtolower($item->level_name ?? '');
-                return $levelName === strtolower($this->levelFilter);
-            });
-        }
-
-        // Status filter
-        if ($this->statusFilter) {
-            $query = $query->filter(function ($item) {
-                return strtolower($item->status) === strtolower($this->statusFilter);
-            });
-        }
-
-        // Sorting
-        $query = $query->sortBy([
-            [$this->sortBy, $this->sortDirection]
-        ]);
-
-        return $query;
-    }
-
-    public function getDepartmentsProperty()
-    {
-        return collect($this->schoolFees)
-            ->pluck('department_name')
-            ->filter()
-            ->unique()
-            ->sort()
-            ->values();
-    }
-
-    public function getLevelsProperty()
-    {
-        return collect($this->schoolFees)
-            ->pluck('level_name')
-            ->filter()
-            ->unique()
-            ->sort()
-            ->values();
-    }
-
-    public function getTotalCountProperty()
-    {
-        return collect($this->schoolFees)->count();
-    }
-
-    public function getStatusesProperty()
-    {
-        return collect($this->schoolFees)
-            ->pluck('status')
-            ->unique()
-            ->sort()
-            ->values();
+        $this->resetPage();
     }
 
     public function render()
     {
+        $academicSession = app(\App\Services\AcademicSessionService::class)
+            ->getAcademicSession(Auth::user());
+
+        $query = \App\Models\StudentTransaction::query()
+            ->where('resource', config('remita.schoolfees.ug_schoolfees_description'))
+            ->where('student_transactions.acad_session', $academicSession)
+            ->where('status', TransactionStatus::APPROVED)
+            ->join('users', 'student_transactions.user_id', '=', 'users.id')
+            ->leftJoin('academic_details', 'academic_details.user_id', '=', 'users.id')
+            ->leftJoin('departments', 'departments.id', '=', 'academic_details.department_id')
+            ->leftJoin('student_levels', 'student_levels.id', '=', 'academic_details.student_level_id')
+            ->select([
+                'student_transactions.*',
+                'users.surname',
+                'users.firstname',
+                'users.m_name',
+                'users.phone',
+                'academic_details.matric_no',
+                'departments.name as department_name',
+                'student_levels.level as level_name',
+                'student_transactions.RRR',
+            ])
+            ->distinct('student_transactions.user_id');
+
+        // Search
+       if ($this->search !== '') {
+    $searchTerm = '%' . trim($this->search) . '%';
+
+    $query->where(function ($q) use ($searchTerm) {
+        // Full name search (case-insensitive)
+        $q->whereRaw(
+            'LOWER(CONCAT_WS(" ", users.surname, users.firstname, users.m_name)) LIKE ?',
+            [strtolower($searchTerm)]
+        )
+
+        // RRR (Remita Retrieval Reference)
+        ->orWhere('student_transactions.RRR', 'LIKE', $searchTerm)
+
+        // Matric number
+        ->orWhere('academic_details.matric_no', 'LIKE', $searchTerm)
+
+        // Department name
+        ->orWhereRaw('LOWER(departments.name) LIKE ?', [strtolower($searchTerm)])
+
+        // Level
+        ->orWhereRaw('LOWER(student_levels.level) LIKE ?', [strtolower($searchTerm)]);
+    });
+}
+
+        // Department filter
+        if ($this->department !== '') {
+            $query->whereRaw('LOWER(departments.name) = ?', [strtolower(trim($this->department))]);
+        }
+
+        // Level filter
+        if ($this->level !== '') {
+            $query->whereRaw('LOWER(student_levels.level) = ?', [strtolower(trim($this->level))]);
+        }
+
+        // Status filter (optional – currently all are APPROVED, so mostly placeholder)
+        if ($this->status !== '') {
+            $query->where('student_transactions.status', $this->status);
+        }
+
+        // Sorting
+        $sortable = [
+            'surname'         => 'users.surname',
+            'matric_no'       => 'academic_details.matric_no',
+            'department_name' => 'departments.name',
+            'level_name'      => 'student_levels.level',
+            'RRR'             => 'student_transactions.RRR',
+        ];
+
+        $sortField = $sortable[$this->sortBy] ?? 'users.surname';
+        $query->orderBy($sortField, $this->sortDirection);
+
+        $payments = $query->paginate($this->perPage);
+
+        // For dropdowns (unique values)
+        $departments = \App\Models\StudentTransaction::query()
+            ->where('resource', config('remita.schoolfees.ug_schoolfees_description'))
+            ->where('status', TransactionStatus::APPROVED)
+          ->where('student_transactions.acad_session', $academicSession)
+            ->join('users', 'student_transactions.user_id', 'users.id')
+            ->join('academic_details', 'academic_details.user_id', 'users.id')
+            ->join('departments', 'departments.id', 'academic_details.department_id')
+            ->distinct()
+            ->orderBy('departments.name')
+            ->pluck('departments.name')
+            ->filter()
+            ->values();
+
+        $levels = \App\Models\StudentTransaction::query()
+            ->where('resource', config('remita.schoolfees.ug_schoolfees_description'))
+            ->where('status', TransactionStatus::APPROVED)
+           ->where('student_transactions.acad_session', $academicSession)
+            ->join('users', 'student_transactions.user_id', 'users.id')
+            ->join('academic_details', 'academic_details.user_id', 'users.id')
+            ->join('student_levels', 'student_levels.id', 'academic_details.student_level_id')
+            ->distinct()
+            ->orderBy('student_levels.level')
+            ->pluck('student_levels.level')
+            ->filter()
+            ->values();
+
         return view('livewire.admin.paid-school-fees-list', [
-            'schoolFees' => $this->schoolFees,
-            'departments' => $this->departments,
-            'levels' => $this->levels,
-            'statuses' => $this->statuses,
-            'totalCount' => $this->totalCount,
+            'payments'      => $payments,
+            'departments'   => $departments,
+            'levels'        => $levels,
             'approvedStatus' => TransactionStatus::APPROVED,
-            'pendingStatus' => TransactionStatus::PENDING,
         ]);
     }
 }
