@@ -14,7 +14,7 @@
     },
 
     get allStudents() {
-        return @js($students);
+        return @js($this->getFilteredStudentsProperty());
     },
 
     get filteredStudents() {
@@ -83,73 +83,66 @@
         const end = start + parseInt(this.perPage);
         return this.filteredStudents.slice(start, end);
     },
-
+    
     get totalPages() {
         return Math.ceil(this.filteredStudents.length / parseInt(this.perPage));
     },
-
+    
     get hasNextPage() {
         return this.currentPage < this.totalPages;
     },
-
+    
     get hasPrevPage() {
         return this.currentPage > 1;
     },
-
+    
     nextPage() {
-        if (this.hasNextPage) { this.currentPage++; }
+        if (this.hasNextPage) this.currentPage++;
     },
-
+    
     prevPage() {
-        if (this.hasPrevPage) { this.currentPage--; }
+        if (this.hasPrevPage) this.currentPage--;
     },
-
+    
     goToPage(page) {
         if (page >= 1 && page <= this.totalPages) {
             this.currentPage = page;
         }
     },
+    
+   getPageNumbers() {
+    const total = this.totalPages;
+    const current = this.currentPage;
+    const delta = 3;           // ← changed from 2 to 3 or 4
+    let pages = [];
+
+    // Always show first page
+    if (total > 0) pages.push(1);
+
+    // Pages around current
+    for (let i = Math.max(2, current - delta); i <= Math.min(total - 1, current + delta); i++) {
+        pages.push(i);
+    }
+
+    // Always show last page
+    if (total > 1) pages.push(total);
+
+    // Add ellipsis where needed
+    let result = [];
+    for (let i = 0; i < pages.length; i++) {
+        if (i > 0 && pages[i] - pages[i-1] > 1) {
+            result.push('...');
+        }
+        result.push(pages[i]);
+    }
+
+    return result;
+},
 
     sort(field) {
         this.sortBy = field;
         this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
         this.currentPage = 1;
-    },
-
-    getPageNumbers() {
-        const total = this.totalPages;
-        const current = this.currentPage;
-        const delta = 2; // Number of pages to show around current page
-
-        let pages = [];
-
-        // Always show first page
-        if (total > 0) {
-            pages.push(1);
-        }
-
-        // Show pages around current page
-        for (let i = Math.max(2, current - delta); i <= Math.min(total - 1, current + delta); i++) {
-            if (i > 1 && i < total) {
-                pages.push(i);
-            }
-        }
-
-        // Always show last page if different from first
-        if (total > 1) {
-            pages.push(total);
-        }
-
-        // Add ellipsis for gaps
-        let result = [];
-        for (let i = 0; i < pages.length; i++) {
-            if (i > 0 && pages[i] - pages[i-1] > 1) {
-                result.push('...');
-            }
-            result.push(pages[i]);
-        }
-
-        return result;
     },
 
     init() {
@@ -269,7 +262,7 @@
                             <tr>
                                 <th class="cursor-pointer hover:bg-gray-50" @click="sort('surname')">
                                     <div class="flex items-center">
-                                        Full Name
+                                        S/N
                                         <svg class="w-4 h-4 ml-1" fill="currentColor" viewBox="0 0 20 20">
                                             <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
                                         </svg>
@@ -318,8 +311,13 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <template x-for="student in paginatedStudents" :key="student.id">
+                            <template x-for="(student, index) in filteredStudents" :key="student.id">
                                 <tr class="hover:bg-gray-50">
+                                    <td class="px-4 py-4 whitespace-nowrap text-center">
+    <div class="inline-flex h-9 w-9 items-center justify-center rounded-full bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200 font-semibold text-base shadow-sm border border-gray-200 dark:border-gray-600">
+        <span x-text="(currentPage - 1) * Number(perPage) + index + 1"></span>
+    </div>
+</td>
                                     <td>
                                         <div class="flex items-center">
                                             <div class="w-10 h-10 rounded-full bg-gradient-to-br from-red-500 to-orange-600 flex items-center justify-center text-white font-semibold text-sm">
@@ -422,6 +420,7 @@
 </div>
 
 @push('js')
-<script src="{{ asset('assets') }}/js/plugins/datatables.min.js"></script>
-<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+<!-- <script src="{{ asset('assets') }}/js/plugins/datatables.min.js"></script> -->
+<!-- <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script> -->
+
 @endpush

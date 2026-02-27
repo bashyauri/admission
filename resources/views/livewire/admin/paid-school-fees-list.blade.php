@@ -268,6 +268,14 @@
                         <thead class="thead-light">
                             <tr>
                                 <th class="cursor-pointer hover:bg-gray-50" @click="sort('surname')">
+    <div class="flex items-center">
+        S/N
+        <svg class="w-4 h-4 ml-1" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+        </svg>
+    </div>
+</th>
+                                <th class="cursor-pointer hover:bg-gray-50" @click="sort('surname')">
                                     <div class="flex items-center">
                                         Full Name
                                         <svg class="w-4 h-4 ml-1" fill="currentColor" viewBox="0 0 20 20">
@@ -318,51 +326,69 @@
                                 </th>
                             </tr>
                         </thead>
-                        <tbody>
-                            <template x-for="applicant in paginatedSchoolFees" :key="applicant.id">
-                                <tr class="hover:bg-gray-50">
-                                    <td>
-                                        <div class="flex items-center">
-                                            <div class="w-10 h-10 rounded-full bg-gradient-to-br from-fuchsia-500 to-purple-600 flex items-center justify-center text-white font-semibold text-sm">
-                                                <span x-text="applicant.firstname.charAt(0) + applicant.surname.charAt(0)"></span>
-                                            </div>
-                                            <div class="ml-3">
-                                                <h6 class="my-auto dark:text-white font-medium">
-                                                    <span x-text="applicant.surname + ' ' + applicant.firstname + ' ' + (applicant.m_name || '')"></span>
-                                                </h6>
-                                                <p class="text-xs text-gray-500" x-text="applicant.phone || 'N/A'"></p>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td class="text-sm">
-                                        <span class="font-mono text-xs bg-gray-100 px-2 py-1 rounded" x-text="applicant.matric_no || 'N/A'"></span>
-                                    </td>
-                                    <td class="text-sm">
-                                        <span class="px-2 py-1 text-xs rounded-full bg-gray-100 text-gray-700" x-text="applicant.level_name || 'N/A'"></span>
-                                    </td>
-                                    <td class="text-sm" x-text="applicant.department_name || 'N/A'"></td>
-                                    <td class="text-sm font-mono" x-text="applicant.RRR"></td>
-                                    <td class="text-sm" x-text="applicant.resource"></td>
-                                    <td>
-                                        <span class="py-1.8 px-3 text-xs rounded-full inline-block whitespace-nowrap text-center align-baseline font-bold uppercase leading-none"
-                                            :class="applicant.status === '{{ $approvedStatus->toString() }}' ? 'text-green-600 bg-green-100' : 'text-yellow-600 bg-yellow-100'">
-                                            <span x-text="applicant.status === '{{ $approvedStatus->toString() }}' ? 'Approved' : 'Pending'"></span>
-                                        </span>
-                                    </td>
-                                </tr>
-                            </template>
-                            <tr x-show="paginatedSchoolFees.length === 0">
-                                <td colspan="6" class="text-center py-8 text-gray-500">
-                                    <div class="flex flex-col items-center">
-                                        <svg class="w-12 h-12 text-gray-400 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                                        </svg>
-                                        <p class="text-lg font-medium">No records found</p>
-                                        <p class="text-sm">Try adjusting your search or filter criteria</p>
-                                    </div>
-                                </td>
-                            </tr>
-                        </tbody>
+                       <tbody>
+    <template x-for="(applicant, index) in paginatedSchoolFees" :key="applicant.id || applicant.RRR">
+        <tr class="hover:bg-gray-50 transition-colors">
+            <!-- S/N column -->
+            <td class="px-4 py-4 whitespace-nowrap text-center">
+                <div class="inline-flex h-9 w-9 items-center justify-center rounded-full bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 font-semibold text-base shadow-sm border border-gray-200 dark:border-gray-600">
+                    <span x-text="(currentPage - 1) * Number(perPage) + index + 1"></span>
+                </div>
+            </td>
+
+            <!-- Full Name (was first column, now second) -->
+            <td class="px-4 py-4">
+                <div class="flex items-center">
+                    <div class="w-10 h-10 rounded-full bg-gradient-to-br from-fuchsia-500 to-purple-600 flex items-center justify-center text-white font-semibold text-sm shadow-sm">
+                        <span x-text="(applicant.firstname?.charAt(0) || '') + (applicant.surname?.charAt(0) || '')"></span>
+                    </div>
+                    <div class="ml-3">
+                        <h6 class="font-medium dark:text-white">
+                            <span x-text="applicant.surname + ' ' + applicant.firstname + (applicant.m_name ? ' ' + applicant.m_name : '')"></span>
+                        </h6>
+                        <p class="text-xs text-gray-500 dark:text-gray-400" x-text="applicant.phone || 'N/A'"></p>
+                    </div>
+                </div>
+            </td>
+
+            <td class="px-4 py-4 text-sm">
+                <span class="font-mono text-xs bg-gray-100 px-2 py-1 rounded dark:bg-gray-700" x-text="applicant.matric_no || 'N/A'"></span>
+            </td>
+
+            <td class="px-4 py-4">
+                <span class="px-2.5 py-1 text-xs rounded-full bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300" x-text="applicant.department_name || 'N/A'"></span>
+            </td>
+
+            <td class="px-4 py-4 text-sm" x-text="applicant.level_name || 'N/A'"></td>
+
+            <td class="px-4 py-4 text-sm font-mono" x-text="applicant.RRR || '—'"></td>
+
+            <td class="px-4 py-4 text-sm" x-text="applicant.resource || 'School Fees Payment'"></td>
+
+            <td class="px-4 py-4 whitespace-nowrap">
+                <span class="py-1 px-3 text-xs font-semibold uppercase rounded-full inline-block"
+                      :class="applicant.status === '{{ $approvedStatus->toString() }}' 
+                             ? 'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300' 
+                             : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/40 dark:text-yellow-300'">
+                    <span x-text="applicant.status === '{{ $approvedStatus->toString() }}' ? 'Approved' : 'Pending'"></span>
+                </span>
+            </td>
+        </tr>
+    </template>
+
+    <!-- No records row - update colspan to 8 (because we added S/N) -->
+    <tr x-show="paginatedSchoolFees.length === 0">
+        <td colspan="8" class="text-center py-12 text-gray-500 dark:text-gray-400">
+            <div class="flex flex-col items-center">
+                <svg class="w-14 h-14 mb-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <p class="text-lg font-medium">No matching records found</p>
+                <p class="mt-1 text-sm">Try changing your search term or filters</p>
+            </div>
+        </td>
+    </tr>
+</tbody>
                     </table>
                 </div>
 
@@ -412,7 +438,7 @@
     </div>
 </div>
 
-@push('js')
+<!-- @push('js')
 <script src="{{ asset('assets') }}/js/plugins/datatables.min.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-@endpush
+@endpush -->
