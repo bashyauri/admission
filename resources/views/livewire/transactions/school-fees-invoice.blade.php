@@ -141,6 +141,7 @@
                                                 <input id="payerName" name="payerName"
                                                 value="{{auth()->user()->full_name}}"
                                                 type="hidden" />
+                                                <input name="userId" value="{{auth()->user()->id}}" type="hidden" />
                                                 <input name="amount" value="{{$amount}}" type="hidden" />
                                                  <input name="student_level_id" value="{{$nextLevel}}" type="hidden" />
                                                 <input name="service"

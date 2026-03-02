@@ -26,7 +26,7 @@ class SchoolFeesTransactionController extends Controller
     public function generateInvoice(Request $request)
     {
 
-        $data = $request->only(['transactionId', 'amount', 'description', 'payerName', 'payerPhone', 'payerEmail', 'student_level_id']);
+        $data = $request->only(['userId','transactionId', 'amount', 'description', 'payerName', 'payerPhone', 'payerEmail', 'student_level_id']);
 
 
         $valuesToHash = config('remita.settings.merchantid') . config('remita.settings.serviceid') .
@@ -35,7 +35,9 @@ class SchoolFeesTransactionController extends Controller
 
 
         try {
-            $response = $this->transactionService->generateInvoice($data);
+             $customFields = $this->paymentService->getSchoolFeesCustomFields($data['userId']);
+             $response = $this->paymentService->generateInvoice($data, $customFields);
+            //  $response = $this->paymentService->generateInvoice($data);
 
 
             $data['RRR'] = $response->RRR;

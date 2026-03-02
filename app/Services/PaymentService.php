@@ -192,7 +192,7 @@ class PaymentService
                 ],
                 [
                     "name" => "Payment",
-                    "value" => config('remita.schoolfees.ug_schoolfees_description'),
+                    "value" => $this->getSchoolFeesResource(),
                     "type" => "ALL",
                 ],
 

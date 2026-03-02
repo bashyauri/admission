@@ -71,6 +71,7 @@ class UtmeSchoolFeesInvoice extends Component
         }
     }
 
+
     private function generateNewInvoice(): void
     {
         $this->currentLevel = $this->paymentService->getUgStudentLevel($this->user->id);

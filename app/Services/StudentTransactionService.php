@@ -125,6 +125,6 @@ class StudentTransactionService extends TransactionService
 
     private function updateStudentLevel($level): void
     {
-        auth()->user()->AcademicDetail->update(['student_level_id' => $level]);
+        auth()->user()->academicDetail->update(['student_level_id' => $level]);
     }
 }
