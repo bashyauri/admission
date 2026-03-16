@@ -20,11 +20,12 @@ Route::get('dashboard', StudentIndex::class)->name('dashboard');
 Route::get('transactions/schoolfees/invoice', SchoolFeesInvoice::class)->name('school-fees-invoice');
 Route::get('transactions/ug-school-fees/{user}', UtmeSchoolFeesInvoice::class)->name('ug-school-fees');
 Route::get('/transactions/ug-generate-invoice/{studenttransaction}', [UgSchoolFeesController::class, 'index'])->name('ug-payment');
-Route::get('/exam-card', ExamCard::class)->name('exam-card');
+Route::get('/exam-card', ExamCard::class)->middleware('paid.student.school.fees')->name('exam-card');
 // courses
-Route::get('course-registration', CourseRegistration::class)->name('course-registration');
-Route::get('print-course-form/{user}', [PrintCourseForm::class, 'print'])->name('print-course-form');
+Route::get('course-registration', CourseRegistration::class)->middleware('paid.student.school.fees')->name('course-registration');
+Route::get('print-course-form/{user}', [PrintCourseForm::class, 'print'])->middleware('paid.student.school.fees')->name('print-course-form');
 Route::get('print-exam-card/{session}/{semester}', PrintExamCard::class)
+    ->middleware('paid.student.school.fees')
     ->where([
         'session' => '[0-9]{4}-[0-9]{4}',
         'semester' => 'first|second'

@@ -281,7 +281,7 @@
                     <p><strong>Level:</strong> {{ $user->academicDetail->student_level_id . '00' }}</p>
                 </div>
                 <div class="info-item">
-                    <p><strong>Session:</strong> {{ $user->academicDetail->registeredCourses[0]->academic_session }}</p>
+                    <p><strong>Session:</strong> {{ $academicSession ?? ($user->academicDetail->registeredCourses->first()->academic_session ?? 'N/A') }}</p>
                 </div>
             </div>
         </section>

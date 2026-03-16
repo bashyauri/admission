@@ -10,6 +10,7 @@ use Livewire\Attributes\Computed;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use App\Services\AcademicSessionService;
+use App\Services\PaymentService;
 use App\Services\CourseRegistrationService;
 use Jantinnerezo\LivewireAlert\LivewireAlert;
 
@@ -35,8 +36,10 @@ class CourseRegistration extends Component
 
     public function mount()
     {
+        $this->ensureSchoolFeesPaid();
+
         $this->courseService = new CourseRegistrationService();
-        $this->student = auth()->user()->academicDetail;
+        $this->student = Auth::user()->academicDetail;
         $this->departmentId = $this->student->department_id;
         $this->studentLevelId = $this->student->student_level_id;
         $this->maxUnits = $this->courseService->getMaxUnits($this->departmentId, $this->studentLevelId);
@@ -95,6 +98,8 @@ class CourseRegistration extends Component
 
     public function addCourse(DepartmentCourse $course): void
     {
+        $this->ensureSchoolFeesPaid();
+
         if ($this->registeredCourses->contains('department_course_id', $course->id)) {
             $this->alert('error', 'You have already registered for this course.');
             return;
@@ -130,6 +135,8 @@ class CourseRegistration extends Component
 
     public function deleteCourse($registeredCourseId): void
     {
+        $this->ensureSchoolFeesPaid();
+
         $this->isActive = true;
 
         $registeredCourse = RegisteredCourse::find($registeredCourseId);
@@ -146,8 +153,18 @@ class CourseRegistration extends Component
 
     public function usePin(): void
     {
+        $this->ensureSchoolFeesPaid();
+
         $this->student->approval->markAsUsed();
         $this->dispatch('pinUsed')->self();
+    }
+
+    private function ensureSchoolFeesPaid(): void
+    {
+        $hasPaidSchoolFees = app(PaymentService::class)
+            ->hasStudentPaidSchoolFees((string) Auth::id());
+
+        abort_unless($hasPaidSchoolFees, 403, 'You must pay school fees before using course registration.');
     }
 
     // Add method to clear search
