@@ -15,8 +15,14 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
-        $schedule->command('queue:work')
-            ->withoutOverlapping();
+        $schedule->command('queue:work --stop-when-empty --sleep=3 --tries=3 --max-time=50 --max-jobs=100')
+            ->everyMinute()
+            ->withoutOverlapping(1);
+
+        // Schedule Remita payment status check every 30 minutes
+        $schedule->command('remita:check-payments')
+            ->everyThirtyMinutes()
+            ->withoutOverlapping(30);
 
         $hour = config('app.hour');
         $min = config('app.min');
