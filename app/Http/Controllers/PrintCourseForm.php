@@ -50,4 +50,30 @@ class PrintCourseForm extends Controller
 
         return view('student.print-course-form', ['courses' => $registeredCourses, 'user' => $user, 'totalUnits' => $totalUnits, 'academicSession' => $academicSession]);
     }
+
+    public function printSession(User $user, string $session)
+    {
+        $authenticatedUser = Auth::user();
+
+        abort_unless($authenticatedUser && $authenticatedUser->id === $user->id, 403);
+
+        $academicSession = str_replace('-', '/', $session);
+
+        try {
+            $registeredCourses = $this->service->getRegisteredCourses(
+                $user->academicDetail->id,
+                $academicSession,
+                'semester'
+            );
+            $totalUnits = $this->service->getTotalUnitsOfRegisteredCourses(
+                $user->academicDetail->id,
+                $academicSession,
+            );
+        } catch (Exception $e) {
+            Log::info("Something went wrong: " . $e->getMessage());
+            return redirect()->back()->with(['error_message' => 'Something went wrong. Please contact CIT.']);
+        }
+
+        return view('student.print-course-form', ['courses' => $registeredCourses, 'user' => $user, 'totalUnits' => $totalUnits, 'academicSession' => $academicSession]);
+    }
 }
