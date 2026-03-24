@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Http\Livewire\Admin\Settings;
+use App\Http\Livewire\Admin\ManageCourseDrops;
 use Illuminate\Support\Facades\Route;
 use App\Http\Livewire\Cit\AddMatricNo;
 use App\Http\Livewire\Admin\NotPaidSchoolFeesList;
@@ -22,6 +23,7 @@ use App\Http\Livewire\Admin\Applicants\Utme\AllApplicants as UtmeAllApplicants;
 use App\Http\Livewire\Admin\Applicants\Utme\ShortlistedApplicants as UtmeShortlistedApplicants;
 
 Route::get('dashboard', AdminIndex::class)->name('dashboard');
+Route::get('manage-course-drops', ManageCourseDrops::class)->name('manage-course-drops');
 Route::get('settings', Settings::class)->name('settings');
 Route::get('all-applicants', AllApplicants::class)->name('all-applicants');
 Route::get('not-recommended-applicants', NotRecommended::class)->name('not-recommended-applicants');

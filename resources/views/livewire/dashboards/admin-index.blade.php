@@ -50,6 +50,33 @@
             </div>
         </div>
 
+        <div class="w-full max-w-full px-3 mt-6 shrink-0 sm:mt-0 sm:flex-0 sm:w-4/12">
+            <div
+                class="relative flex flex-col min-w-0 break-words bg-white border-0 dark:bg-gray-950 dark:shadow-soft-dark-xl shadow-soft-xl rounded-2xl bg-clip-border">
+                <div class="relative flex-auto p-4">
+                    <div class="flex flex-wrap -mx-3 ">
+                        <div class="w-7/12 max-w-full px-3 text-left flex-0">
+                            <h5 class="mb-1 font-bold dark:text-white">Course Registration Control</h5>
+                            <p class="text-size-sm text-slate-500 dark:text-slate-300">Bulk drop courses and review audit logs.</p>
+                            <span class="mt-auto mb-0 font-bold leading-normal text-right text-lime-500 text-size-sm">
+                                <a href="{{route('admin.manage-course-drops')}}"
+                                    class="inline-block px-6 py-3 mt-4 font-bold text-center uppercase align-middle transition-all border-0 rounded-lg cursor-pointer hover:scale-102 active:opacity-85 hover:shadow-soft-xs bg-gradient-gray leading-pro text-size-xs ease-soft-in tracking-tight-soft shadow-soft-md bg-150 bg-x-25 text-slate-800">Manage
+                                    Drops</a>
+                            </span>
+                        </div>
+                        <div class="w-5/12 max-w-full px-3 flex-0">
+                            <div class="relative text-right">
+                                <a href="javascript:;" class="cursor-pointer" dropdown-trigger aria-expanded="false">
+                                    <span
+                                        class="leading-tight text-size-xs text-slate-400">{{app(AcademicSessionService::class)->getAcademicSession(Auth::user())}}</span>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
 
 
     </div>
