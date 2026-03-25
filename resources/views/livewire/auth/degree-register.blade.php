@@ -37,18 +37,30 @@
                   @enderror
                 </div>
 
-                <div class="mb-4">
-                  <input wire:model.lazy="form.password" type="password"
-                    class="text-size-sm focus:shadow-soft-primary-outline dark:bg-gray-950 dark:placeholder:text-white/80 dark:text-white/80 leading-5.6 ease-soft block w-full appearance-none rounded-lg border border-solid border-gray-300 bg-white bg-clip-padding py-2 px-3 font-normal text-gray-700 transition-all focus:border-lime-300 focus:bg-white focus:text-gray-700 focus:outline-none focus:transition-shadow"
-                    placeholder="Password" aria-label="Password" aria-describedby="password-addon" required />
+                <div class="mb-4" x-data="{ showPassword: false }">
+                  <div class="relative">
+                    <input wire:model.lazy="form.password" :type="showPassword ? 'text' : 'password'"
+                      class="text-size-sm focus:shadow-soft-primary-outline dark:bg-gray-950 dark:placeholder:text-white/80 dark:text-white/80 leading-5.6 ease-soft block w-full appearance-none rounded-lg border border-solid border-gray-300 bg-white bg-clip-padding py-2 pl-3 pr-16 font-normal text-gray-700 transition-all focus:border-lime-300 focus:bg-white focus:text-gray-700 focus:outline-none focus:transition-shadow"
+                      placeholder="Password" aria-label="Password" aria-describedby="password-addon" required />
+                    <button type="button" @click="showPassword = !showPassword"
+                      class="absolute inset-y-0 right-0 px-3 text-xs font-semibold text-gray-500 hover:text-gray-700 dark:text-gray-300 dark:hover:text-white">
+                      <span x-text="showPassword ? 'Hide' : 'Show'"></span>
+                    </button>
+                  </div>
                   @error('form.password')
                   <p class="text-red-500 text-size-sm">{{ $message }}</p>
                   @enderror
                 </div>
-                 <div class="mb-4">
-                  <input wire:model.lazy="form.confirm_password" type="password"
-                    class="text-size-sm focus:shadow-soft-primary-outline dark:bg-gray-950 dark:placeholder:text-white/80 dark:text-white/80 leading-5.6 ease-soft block w-full appearance-none rounded-lg border border-solid border-gray-300 bg-white bg-clip-padding py-2 px-3 font-normal text-gray-700 transition-all focus:border-lime-300 focus:bg-white focus:text-gray-700 focus:outline-none focus:transition-shadow"
-                    placeholder="Confirm Password" aria-label="Password" aria-describedby="password-addon" required />
+                 <div class="mb-4" x-data="{ showConfirmPassword: false }">
+                  <div class="relative">
+                    <input wire:model.lazy="form.confirm_password" :type="showConfirmPassword ? 'text' : 'password'"
+                      class="text-size-sm focus:shadow-soft-primary-outline dark:bg-gray-950 dark:placeholder:text-white/80 dark:text-white/80 leading-5.6 ease-soft block w-full appearance-none rounded-lg border border-solid border-gray-300 bg-white bg-clip-padding py-2 pl-3 pr-16 font-normal text-gray-700 transition-all focus:border-lime-300 focus:bg-white focus:text-gray-700 focus:outline-none focus:transition-shadow"
+                      placeholder="Confirm Password" aria-label="Password" aria-describedby="password-addon" required />
+                    <button type="button" @click="showConfirmPassword = !showConfirmPassword"
+                      class="absolute inset-y-0 right-0 px-3 text-xs font-semibold text-gray-500 hover:text-gray-700 dark:text-gray-300 dark:hover:text-white">
+                      <span x-text="showConfirmPassword ? 'Hide' : 'Show'"></span>
+                    </button>
+                  </div>
                   @error('form.confirm_password')
                   <p class="text-red-500 text-size-sm">{{ $message }}</p>
                   @enderror

@@ -271,24 +271,42 @@
                     <div class="p-6 mb-0 rounded-t-2xl">
                         <h5 class="dark:text-white">Change Password</h5>
                     </div>
-                    <div class="flex-auto p-6 pt-0">
+                    <div class="flex-auto p-6 pt-0" x-data="{ showCurrentPassword: false, showNewPassword: false, showConfirmPassword: false }">
                         <label class="inline-block mb-2 ml-1 font-bold text-size-xs text-slate-700 dark:text-white/80"
                             for="Current password">Current password</label>
                         <div class="mb-4">
-                            <input type="password" name="Current password" placeholder="Current password"
-                                class="focus:shadow-soft-primary-outline dark:bg-gray-950 dark:placeholder:text-white/80 dark:text-white/80 text-size-sm leading-5.6 ease-soft block w-full appearance-none rounded-lg border border-solid border-gray-300 bg-white bg-clip-padding px-3 py-2 font-normal text-gray-700 outline-none transition-all placeholder:text-gray-500 focus:border-fuchsia-300 focus:outline-none" />
+                            <div class="relative">
+                                <input :type="showCurrentPassword ? 'text' : 'password'" name="Current password" placeholder="Current password"
+                                    class="focus:shadow-soft-primary-outline dark:bg-gray-950 dark:placeholder:text-white/80 dark:text-white/80 text-size-sm leading-5.6 ease-soft block w-full appearance-none rounded-lg border border-solid border-gray-300 bg-white bg-clip-padding pl-3 pr-16 py-2 font-normal text-gray-700 outline-none transition-all placeholder:text-gray-500 focus:border-fuchsia-300 focus:outline-none" />
+                                <button type="button" @click="showCurrentPassword = !showCurrentPassword"
+                                    class="absolute inset-y-0 right-0 px-3 text-xs font-semibold text-gray-500 hover:text-gray-700 dark:text-gray-300 dark:hover:text-white">
+                                    <span x-text="showCurrentPassword ? 'Hide' : 'Show'"></span>
+                                </button>
+                            </div>
                         </div>
                         <label class="inline-block mb-2 ml-1 font-bold text-size-xs text-slate-700 dark:text-white/80"
                             for="New password">New password</label>
                         <div class="mb-4">
-                            <input type="password" name="New password" placeholder="New password"
-                                class="focus:shadow-soft-primary-outline dark:bg-gray-950 dark:placeholder:text-white/80 dark:text-white/80 text-size-sm leading-5.6 ease-soft block w-full appearance-none rounded-lg border border-solid border-gray-300 bg-white bg-clip-padding px-3 py-2 font-normal text-gray-700 outline-none transition-all placeholder:text-gray-500 focus:border-fuchsia-300 focus:outline-none" />
+                            <div class="relative">
+                                <input :type="showNewPassword ? 'text' : 'password'" name="New password" placeholder="New password"
+                                    class="focus:shadow-soft-primary-outline dark:bg-gray-950 dark:placeholder:text-white/80 dark:text-white/80 text-size-sm leading-5.6 ease-soft block w-full appearance-none rounded-lg border border-solid border-gray-300 bg-white bg-clip-padding pl-3 pr-16 py-2 font-normal text-gray-700 outline-none transition-all placeholder:text-gray-500 focus:border-fuchsia-300 focus:outline-none" />
+                                <button type="button" @click="showNewPassword = !showNewPassword"
+                                    class="absolute inset-y-0 right-0 px-3 text-xs font-semibold text-gray-500 hover:text-gray-700 dark:text-gray-300 dark:hover:text-white">
+                                    <span x-text="showNewPassword ? 'Hide' : 'Show'"></span>
+                                </button>
+                            </div>
                         </div>
                         <label class="inline-block mb-2 ml-1 font-bold text-size-xs text-slate-700 dark:text-white/80"
                             for="Confirm new password">Confirm new password</label>
                         <div class="mb-4">
-                            <input type="password" name="Confirm new password" placeholder="Confirm password"
-                                class="focus:shadow-soft-primary-outline dark:bg-gray-950 dark:placeholder:text-white/80 dark:text-white/80 text-size-sm leading-5.6 ease-soft block w-full appearance-none rounded-lg border border-solid border-gray-300 bg-white bg-clip-padding px-3 py-2 font-normal text-gray-700 outline-none transition-all placeholder:text-gray-500 focus:border-fuchsia-300 focus:outline-none" />
+                            <div class="relative">
+                                <input :type="showConfirmPassword ? 'text' : 'password'" name="Confirm new password" placeholder="Confirm password"
+                                    class="focus:shadow-soft-primary-outline dark:bg-gray-950 dark:placeholder:text-white/80 dark:text-white/80 text-size-sm leading-5.6 ease-soft block w-full appearance-none rounded-lg border border-solid border-gray-300 bg-white bg-clip-padding pl-3 pr-16 py-2 font-normal text-gray-700 outline-none transition-all placeholder:text-gray-500 focus:border-fuchsia-300 focus:outline-none" />
+                                <button type="button" @click="showConfirmPassword = !showConfirmPassword"
+                                    class="absolute inset-y-0 right-0 px-3 text-xs font-semibold text-gray-500 hover:text-gray-700 dark:text-gray-300 dark:hover:text-white">
+                                    <span x-text="showConfirmPassword ? 'Hide' : 'Show'"></span>
+                                </button>
+                            </div>
                         </div>
                         <h5 class="mt-12 dark:text-white">Password requirements</h5>
                         <p class="mb-2 text-slate-500 dark:text-white/60">Please follow this guide for a strong
