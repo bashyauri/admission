@@ -21,6 +21,7 @@ use App\Http\Livewire\Admin\Applicants\ShortlistedApplicants;
 use App\Http\Livewire\Admin\Applicants\Utme\RecommendedApplicants;
 use App\Http\Livewire\Admin\Applicants\Utme\AllApplicants as UtmeAllApplicants;
 use App\Http\Livewire\Admin\Applicants\Utme\ShortlistedApplicants as UtmeShortlistedApplicants;
+use App\Http\Livewire\Admin\ManagePostgraduateApplicants;
 
 Route::get('dashboard', AdminIndex::class)->name('dashboard');
 Route::get('manage-course-drops', ManageCourseDrops::class)->name('manage-course-drops');
@@ -40,5 +41,6 @@ Route::get('/payment/status/{rrr}', [UgSchoolFeesController::class, 'checkTransa
 Route::get('first-school-fees', FirstSchoolFees::class)->name('first-school-fees');
 Route::get('paid-school-fees-list', PaidSchoolFeesList::class)->name('paid-school-fees-list');
 Route::get('not-paid-school-fees-list', NotPaidSchoolFeesList::class)->name('not-paid-school-fees-list');
+Route::get('manage-postgraduate-applicants', ManagePostgraduateApplicants::class)->name('manage-postgraduate-applicants');
 Route::get('add-matric-number/{user}', AddMatricNo::class)->name('add-matric-number');
 Route::get('/transactions/generate-invoice/{studenttransaction}', [UgSchoolFeesController::class, 'index'])->name('payment');
