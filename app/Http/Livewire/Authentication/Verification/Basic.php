@@ -8,6 +8,7 @@ class Basic extends Component
 {
     public function render()
     {
-        return view('livewire.authentication.verification.basic');
+        return view('livewire.authentication.verification.basic')
+            ->layout('layouts.base');
     }
 }

@@ -136,6 +136,31 @@
                             </a>
                         </li>
                         <li class="pt-2">
+                            <a href="#student-recovery"
+                                class="block px-4 py-2 transition-colors rounded-lg ease-soft-in-out text-slate-500 hover:bg-gray-200">
+                                <div class="inline-block mr-2 text-black fill-current h-4-em w-4-em stroke-none">
+                                    <svg class="mb-1 text-dark" width="16px" height="16px" viewBox="0 0 40 40"
+                                        version="1.1" xmlns="http://www.w3.org/2000/svg"
+                                        xmlns:xlink="http://www.w3.org/1999/xlink">
+                                        <title>key-25</title>
+                                        <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+                                            <g transform="translate(-2119.000000, -440.000000)" fill="#FFFFFF" fill-rule="nonzero">
+                                                <g transform="translate(1716.000000, 291.000000)">
+                                                    <g transform="translate(403.000000, 149.000000)">
+                                                        <path class="fill-slate-800"
+                                                            d="M14,24 C6.26666667,24 0,17.7333333 0,10 C0,2.26666667 6.26666667,-4.4408921e-16 14,-4.4408921e-16 C21.7333333,-4.4408921e-16 28,6.26666667 28,14 C28,17.7333333 26.4,18.9333333 25.3333333,20 L40,34.6666667 L34.6666667,40 L20,25.3333333 C18.9333333,26.4 17.7333333,28 14,28 L14,24 Z M14,4 C8.47715251,4 4,8.47715251 4,14 C4,19.5228475 8.47715251,24 14,24 C19.5228475,24 24,19.5228475 24,14 C24,8.47715251 19.5228475,4 14,4 Z">
+                                                        </path>
+                                                    </g>
+                                                </g>
+                                            </g>
+                                        </g>
+                                    </svg>
+                                </div>
+                                <span class="leading-normal text-size-sm dark:text-white">Student Recovery</span>
+                            </a>
+                        </li>
+
+                        <li class="pt-2">
                             <a href="#add-course"
                                 class="block px-4 py-2 transition-colors rounded-lg ease-soft-in-out text-slate-500 hover:bg-gray-200">
                                 <div class="inline-block mr-2 text-black fill-current h-4-em w-4-em stroke-none">
@@ -767,11 +792,124 @@
                 {{-- create Coordinator --}}
                 @include('livewire.admin.partials.create-course')
                 {{-- create Coordinator --}}
+
+                {{-- Student Password Recovery --}}
+                <div class="relative flex flex-col min-w-0 mt-6 break-words bg-white border-0 dark:bg-gray-950 dark:shadow-soft-dark-xl shadow-soft-xl rounded-2xl bg-clip-border"
+                    id="student-recovery">
+                    <div class="p-6 pb-2 rounded-t-2xl">
+                        <h5 class="dark:text-white">Student Password Recovery</h5>
+                        <p class="leading-normal text-size-sm dark:text-white/60">Look up a student or applicant by phone number and reset their password.</p>
+                    </div>
+                    <div class="flex-auto p-6 pt-2">
+
+                        @error('recoveryPhone')
+                            <p class="mb-3 text-sm text-red-500">{{ $message }}</p>
+                        @enderror
+
+                        <div class="flex gap-3 mb-4">
+                            <input type="text" wire:model="recoveryPhone" placeholder="Phone number"
+                                class="focus:shadow-soft-primary-outline dark:bg-gray-950 dark:placeholder:text-white/80 dark:text-white/80 text-size-sm leading-5.6 ease-soft block w-full appearance-none rounded-lg border border-solid border-gray-300 bg-white bg-clip-padding px-3 py-2 font-normal text-gray-700 outline-none transition-all placeholder:text-gray-500 focus:border-fuchsia-300 focus:outline-none" />
+                            <button type="button" wire:click="findStudent"
+                                class="inline-block px-6 py-2 mb-0 font-bold text-center text-white uppercase align-middle transition-all border-0 rounded-lg cursor-pointer hover:scale-102 active:opacity-85 hover:shadow-soft-xs dark:bg-gradient-neutral bg-gradient-dark-gray leading-pro text-size-xs ease-soft-in tracking-tight-soft shadow-soft-md bg-150 bg-x-25 whitespace-nowrap">Find Student</button>
+                        </div>
+
+                        @if ($recoveredStudent)
+                            <div class="p-4 mb-4 rounded-lg bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700">
+                                <div class="flex justify-between items-start mb-3">
+                                    <div>
+                                        <p class="font-semibold text-slate-700 dark:text-white">
+                                            {{ $recoveredStudent->surname }}, {{ $recoveredStudent->firstname }} {{ $recoveredStudent->m_name }}
+                                        </p>
+                                        <p class="text-size-sm text-slate-500 dark:text-white/60">Email: <span class="font-medium">{{ $recoveredStudent->email }}</span></p>
+                                        <p class="text-size-sm text-slate-500 dark:text-white/60">Phone: <span class="font-medium">{{ $recoveredStudent->phone }}</span></p>
+                                        <p class="text-size-sm text-slate-500 dark:text-white/60">Role: <span class="font-medium capitalize">{{ $recoveredStudent->role }}</span></p>
+                                    </div>
+                                    <button type="button" wire:click="clearRecovery"
+                                        class="text-slate-400 hover:text-slate-600 dark:hover:text-white">&times; Clear</button>
+                                </div>
+
+                                @if ($recoveredStudent->vpassword)
+                                    <div class="mb-3 p-3 rounded bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-700"
+                                        x-data="{ show: false }">
+                                        <p class="text-size-xs font-semibold text-yellow-700 dark:text-yellow-400 mb-1">Registered Password</p>
+                                        <div class="flex items-center gap-2">
+                                            <span class="font-mono text-size-sm text-slate-700 dark:text-white" x-show="!show">••••••••</span>
+                                            <span class="font-mono text-size-sm text-slate-700 dark:text-white" x-show="show">{{ $recoveredStudent->vpassword }}</span>
+                                            <button type="button" @click="show = !show"
+                                                class="text-size-xs font-semibold text-yellow-600 hover:text-yellow-800"
+                                                x-text="show ? 'Hide' : 'Reveal'"></button>
+                                        </div>
+                                    </div>
+                                @endif
+
+                                <label class="inline-block mb-2 font-bold text-size-xs text-slate-700 dark:text-white/80">Set New Password</label>
+                                @error('newStudentPassword')
+                                    <p class="mb-1 text-sm text-red-500">{{ $message }}</p>
+                                @enderror
+                                <div class="flex gap-3">
+                                    <input type="text" wire:model="newStudentPassword" placeholder="Enter new password (min 6 chars)"
+                                        class="focus:shadow-soft-primary-outline dark:bg-gray-950 dark:placeholder:text-white/80 dark:text-white/80 text-size-sm leading-5.6 ease-soft block w-full appearance-none rounded-lg border border-solid border-gray-300 bg-white bg-clip-padding px-3 py-2 font-normal text-gray-700 outline-none transition-all placeholder:text-gray-500 focus:border-fuchsia-300 focus:outline-none" />
+                                    <button type="button" wire:click="resetStudentPassword"
+                                        class="inline-block px-6 py-2 mb-0 font-bold text-center text-white uppercase align-middle transition-all border-0 rounded-lg cursor-pointer hover:scale-102 active:opacity-85 hover:shadow-soft-xs bg-gradient-red leading-pro text-size-xs ease-soft-in tracking-tight-soft shadow-soft-md bg-150 bg-x-25 whitespace-nowrap">Reset Password</button>
+                                </div>
+                            </div>
+                        @endif
+                    </div>
+                </div>
             </div>
         </div>
 
     </div>
 </div>
+                            </div>
+
+                            @if ($recoveredStudent)
+                                <div class="p-4 mb-4 rounded-lg bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700">
+                                    <div class="flex justify-between items-start mb-3">
+                                        <div>
+                                            <p class="font-semibold text-slate-700 dark:text-white">
+                                                {{ $recoveredStudent->surname }}, {{ $recoveredStudent->firstname }} {{ $recoveredStudent->m_name }}
+                                            </p>
+                                            <p class="text-size-sm text-slate-500 dark:text-white/60">Email: <span class="font-medium">{{ $recoveredStudent->email }}</span></p>
+                                            <p class="text-size-sm text-slate-500 dark:text-white/60">Phone: <span class="font-medium">{{ $recoveredStudent->phone }}</span></p>
+                                            <p class="text-size-sm text-slate-500 dark:text-white/60">Role: <span class="font-medium capitalize">{{ $recoveredStudent->role }}</span></p>
+                                        </div>
+                                        <button type="button" wire:click="clearRecovery"
+                                            class="text-slate-400 hover:text-slate-600 dark:hover:text-white">&times; Clear</button>
+                                    </div>
+
+                                    @if ($recoveredStudent->vpassword)
+                                        <div class="mb-3 p-3 rounded bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-700"
+                                            x-data="{ show: false }">
+                                            <p class="text-size-xs font-semibold text-yellow-700 dark:text-yellow-400 mb-1">Registered Password</p>
+                                            <div class="flex items-center gap-2">
+                                                <span class="font-mono text-size-sm text-slate-700 dark:text-white"
+                                                    x-show="!show">••••••••</span>
+                                                <span class="font-mono text-size-sm text-slate-700 dark:text-white"
+                                                    x-show="show">{{ $recoveredStudent->vpassword }}</span>
+                                                <button type="button" @click="show = !show"
+                                                    class="text-size-xs font-semibold text-yellow-600 hover:text-yellow-800"
+                                                    x-text="show ? 'Hide' : 'Reveal'"></button>
+                                            </div>
+                                        </div>
+                                    @endif
+
+                                    <label class="inline-block mb-2 font-bold text-size-xs text-slate-700 dark:text-white/80">Set New Password</label>
+                                    @error('newStudentPassword')
+                                        <p class="mb-1 text-sm text-red-500">{{ $message }}</p>
+                                    @enderror
+                                    <div class="flex gap-3">
+                                        <input type="text" wire:model="newStudentPassword" placeholder="Enter new password (min 6 chars)"
+                                            class="focus:shadow-soft-primary-outline dark:bg-gray-950 dark:placeholder:text-white/80 dark:text-white/80 text-size-sm leading-5.6 ease-soft block w-full appearance-none rounded-lg border border-solid border-gray-300 bg-white bg-clip-padding px-3 py-2 font-normal text-gray-700 outline-none transition-all placeholder:text-gray-500 focus:border-fuchsia-300 focus:outline-none" />
+                                        <button type="button" wire:click="resetStudentPassword"
+                                            class="inline-block px-6 py-2 mb-0 font-bold text-center text-white uppercase align-middle transition-all border-0 rounded-lg cursor-pointer hover:scale-102 active:opacity-85 hover:shadow-soft-xs bg-gradient-red leading-pro text-size-xs ease-soft-in tracking-tight-soft shadow-soft-md bg-150 bg-x-25 whitespace-nowrap">Reset Password</button>
+                                    </div>
+                                </div>
+                            @endif
+
+                        </div>
+                    </div>
+                    {{-- end Student Password Recovery --}}
 
 @push('js')
     <script src="{{ asset('assets') }}/js/plugins/choices.min.js"></script>

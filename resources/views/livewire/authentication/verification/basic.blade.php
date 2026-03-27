@@ -1,12 +1,4 @@
 <!doctype html>
-<html>
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-</head>
 <main class="mt-0 transition-all duration-200 ease-soft-in-out">
     <div
         class="min-h-screen p-0 relative overflow-hidden flex items-center bg-cover bg-center bg-[url('../../assets/img/curved-images/curved9.jpg')]">
@@ -62,9 +54,7 @@
 
 
                                         <div class="text-center">
-                                            <button type="button"
-                                                class="inline-block w-full px-6 py-3 mb-4 font-bold text-center text-white uppercase align-middle transition-all border-0 rounded-lg cursor-pointer hover:scale-102 active:opacity-85 hover:shadow-soft-xs bg-gradient-orange leading-pro text-size-xs ease-soft-in tracking-tight-soft shadow-soft-md bg-150 bg-x-25">Next</button>
-                                            <span class="leading-normal text-slate-500 text-size-sm">
+                                                <span class="leading-normal text-slate-500 text-size-sm">
                                                 Haven't received it?
                                                 <button type="submit"
                                                     class="inline-block w-full px-6 py-3 mt-6 mb-2 font-bold text-center text-white uppercase align-middle transition-all bg-teal-700 border-0 rounded-lg cursor-pointer active:opacity-85 hover:scale-102 hover:shadow-soft-xs leading-pro text-size-xs ease-soft-in tracking-tight-soft shadow-soft-md bg-150 bg-x-25 bg-gradient-teal hover:border-teal-800 hover:bg-teal-800 hover:text-white">Resend
@@ -72,13 +62,11 @@
                                             </span>
                                         </div>
                                     </form>
-                                    <form action="{{route('logout')}}" method="post">
-
-                                    </form>
-                                    <a href="{{route('logout')}}"
-                                        class="inline-block w-full px-6 py-3 mt-6 mb-2 font-bold text-center text-white uppercase align-middle transition-all bg-red-700 border-0 rounded-lg cursor-pointer active:opacity-85 hover:scale-102 hover:shadow-soft-xs leading-pro text-size-xs ease-soft-in tracking-tight-soft shadow-soft-md bg-150 bg-x-25 bg-gradient-teal hover:border-red-800 hover:bg-red-800 hover:text-white">Logout
-                                        <livewire:auth.logout />
-                                    </a>
+                                        <form method="POST" action="{{ route('logout') }}" class="w-full">
+                                            @csrf
+                                            <button type="submit"
+                                                class="inline-block w-full px-6 py-3 mt-6 mb-2 font-bold text-center text-white uppercase align-middle transition-all bg-red-700 border-0 rounded-lg cursor-pointer active:opacity-85 hover:scale-102 hover:shadow-soft-xs leading-pro text-size-xs ease-soft-in tracking-tight-soft shadow-soft-md bg-150 bg-x-25 hover:border-red-800 hover:bg-red-800">Logout</button>
+                                        </form>
 
 
                                 </div>

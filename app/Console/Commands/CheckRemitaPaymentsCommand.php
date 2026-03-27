@@ -74,7 +74,7 @@ class CheckRemitaPaymentsCommand extends Command
                 foreach ($transactions as $transaction) {
                     $processedCount++;
 
-                    CheckRemitaPaymentJob::dispatch($type, (int) $transaction->id);
+                    CheckRemitaPaymentJob::dispatch($type, (int) $transaction->id)->onQueue('remita');
                     $dispatchedCount++;
 
                     if ($processedCount >= $maxRecords) {

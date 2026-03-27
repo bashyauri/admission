@@ -13,6 +13,8 @@ use App\Livewire\Forms\CreateUserForm;
 use App\Livewire\Forms\StudentCourseForm;
 use Jantinnerezo\LivewireAlert\LivewireAlert;
 use Illuminate\Validation\ValidationException;
+use App\Models\User;
+use Illuminate\Support\Facades\Hash;
 
 class Settings extends Component
 {
@@ -20,6 +22,9 @@ class Settings extends Component
     public CreateUserForm $form;
     public CreateCoordinatorForm $coordinatorForm;
     public StudentCourseForm $courseForm;
+    public string $recoveryPhone = '';
+    public ?User $recoveredStudent = null;
+    public string $newStudentPassword = '';
     public function createUser(): void
     {
         try {
@@ -96,6 +101,40 @@ class Settings extends Component
             'toast' => true,
         ]);
     }
+
+        public function findStudent(): void
+        {
+            $this->validate(['recoveryPhone' => 'required|min:6']);
+
+            $this->recoveredStudent = User::query()
+                ->whereIn('role', [Role::APPLICANT->value, Role::STUDENT->value])
+                ->where('phone', $this->recoveryPhone)
+                ->first();
+
+            if (!$this->recoveredStudent) {
+                $this->addError('recoveryPhone', 'No student or applicant found with this phone number.');
+            }
+        }
+
+        public function resetStudentPassword(): void
+        {
+            $this->validate(['newStudentPassword' => 'required|min:6']);
+
+            $this->recoveredStudent->update([
+                'password' => Hash::make($this->newStudentPassword),
+                'vpassword' => $this->newStudentPassword,
+            ]);
+
+            $this->newStudentPassword = '';
+            $this->showSuccessAlert('Password reset successfully.');
+        }
+
+        public function clearRecovery(): void
+        {
+            $this->recoveryPhone = '';
+            $this->recoveredStudent = null;
+            $this->newStudentPassword = '';
+        }
 
     public function render()
     {

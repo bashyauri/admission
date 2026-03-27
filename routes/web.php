@@ -292,9 +292,8 @@ Route::group(['middleware' => 'role:applicant'], function () {
 
 
 // Email Verification Routes
-Route::get('/email/verify', function () {
-    return view('livewire.authentication.verification.basic');
-})->middleware('auth')->name('verification.notice');
+Route::get('/email/verify', \App\Http\Livewire\Authentication\Verification\Basic::class)
+    ->middleware('auth')->name('verification.notice');
 
 Route::get('/email/verify/{id}/{hash}', function (Request $request, $id, $hash) {
     try {
