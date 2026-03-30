@@ -39,26 +39,26 @@ class AddMatricNo extends Component
                 return;
             }
 
-            // ✅ Determine mode of entry
-            // UTME = 10, DE = 20
-            $modeOfEntry = $this->user->isDe ? "20" : "10";
-
-            $departmentCode = $this->user->proposedCourse->department->code;
-            $facultyCode = "90";
-            $departmentId = $this->user->proposedCourse->department_id;
-            $year = config('remita.settings.academic_session');
-
-            // Generate the matric number
-            $this->matricNo = $uTMEApplicantService->generateUgRegistrationNumber(
-                year: $year,
-                modeOfEntry: $modeOfEntry,
-                facultyCode: $facultyCode,
-                departmentCode: $departmentCode,
-                departmentId: $departmentId
-            );
-
-            // Use a database transaction to ensure data consistency
+            // Use a database transaction to ensure data consistency and atomic registration number assignment
             DB::transaction(function () use ($uTMEApplicantService) {
+                // ✅ Determine mode of entry
+                // UTME = 10, DE = 20
+                $modeOfEntry = $this->user->isDe ? "20" : "10";
+
+                $departmentCode = $this->user->proposedCourse->department->code;
+                $facultyCode = "90";
+                $departmentId = $this->user->proposedCourse->department_id;
+                $year = config('remita.settings.academic_session');
+
+                // Generate the matric number inside the transaction
+                $this->matricNo = $uTMEApplicantService->generateUgRegistrationNumber(
+                    year: $year,
+                    modeOfEntry: $modeOfEntry,
+                    facultyCode: $facultyCode,
+                    departmentCode: $departmentCode,
+                    departmentId: $departmentId
+                );
+
                 // Store the matric number and other academic details
                 $this->form->store($this->user, $this->matricNo);
                 // Change the user's status to "student"

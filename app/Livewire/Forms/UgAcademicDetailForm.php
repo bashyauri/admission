@@ -5,8 +5,7 @@ namespace App\Livewire\Forms;
 use Livewire\Form;
 use App\Models\User;
 use App\Enums\StudentLevel;
-use Livewire\Attributes\Validate;
-use Illuminate\Support\Facades\DB;
+
 
 class UgAcademicDetailForm extends Form
 {
