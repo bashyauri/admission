@@ -105,7 +105,7 @@ class IdCardProcessing extends Component
     public function openDetail(string $userId): void
     {
         $record = User::query()
-            ->select('id', 'surname', 'firstname', 'm_name')
+            ->select('id', 'surname', 'firstname', 'm_name','phone')
             ->with(['academicDetail.department'])
             ->where('id', $userId)
             ->first();
@@ -119,6 +119,7 @@ class IdCardProcessing extends Component
             'surname'    => $record->surname,
             'firstname'  => $record->firstname,
             'm_name'     => $record->m_name,
+            'phone' => $record->phone,
             'full_name'  => trim($record->surname . ', ' . $record->firstname . ' ' . ($record->m_name ?? '')),
             'matric_no'  => optional($record->academicDetail)->matric_no ?? '—',
             'department' => optional($record->academicDetail->department)->name ?? '—',
@@ -157,6 +158,7 @@ class IdCardProcessing extends Component
                 $qq->where('surname', 'like', $term)
                     ->orWhere('firstname', 'like', $term)
                     ->orWhere('m_name', 'like', $term)
+                    ->orwhere('phone','like', $term)
                     ->orWhereHas('academicDetail', fn($a) => $a->where('matric_no', 'like', $term))
                     ->orWhereHas('academicDetail.department', fn($d) => $d->where('name', 'like', $term))
                     ->orWhereHas('academicDetail', fn($a) => $a->where('student_level_id', 'like', $term));
@@ -230,6 +232,7 @@ class IdCardProcessing extends Component
                 'surname'    => $u->surname,
                 'firstname'  => $u->firstname,
                 'm_name'     => $u->m_name,
+                'phone'      => $u->phone ?? '—',
                 'matric_no'  => optional($u->academicDetail)->matric_no ?? '—',
                 'department' => optional($u->academicDetail->department)->name ?? '—',
                 'level'      => ($u->academicDetail->student_level_id ?? 0) * 100,

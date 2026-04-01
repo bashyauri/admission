@@ -217,6 +217,9 @@
                                     <p class="mb-1 leading-normal truncate text-size-xs text-slate-500 dark:text-slate-400" title="{{ $row['department'] }}">
                                         <i class="fas fa-building"></i> {{ $row['department'] }}
                                     </p>
+                                    <p class="mb-1 leading-normal text-size-xs text-slate-500 dark:text-slate-400">
+                                        <i class="fas fa-phone"></i> {{ $row['phone'] }}
+                                    </p>
                                     <p class="mb-2 leading-normal text-size-xs text-slate-500 dark:text-slate-400">
                                         <i class="fas fa-layer-group"></i> Level <span class="font-semibold">{{ $row['level'] }}</span>
                                     </p>
@@ -293,6 +296,10 @@
                         <div>
                             <label class="mb-1 font-semibold leading-normal capitalize text-size-xs text-slate-600 dark:text-slate-400">Department</label>
                             <p class="mb-0 leading-normal text-size-sm dark:text-white">{{ $detail['department'] ?? '' }}</p>
+                        </div>
+                        <div>
+                            <label class="mb-1 font-semibold leading-normal capitalize text-size-xs text-slate-600 dark:text-slate-400">Phone</label>
+                            <p class="mb-0 leading-normal text-size-sm dark:text-white">{{ $detail['phone'] ?? '—' }}</p>
                         </div>
                         <div>
                             <label class="mb-1 font-semibold leading-normal capitalize text-size-xs text-slate-600 dark:text-slate-400">Level</label>
