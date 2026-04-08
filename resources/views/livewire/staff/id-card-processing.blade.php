@@ -248,11 +248,16 @@
                                                 <span wire:loading.remove wire:target="markPrinted"><i class="fas fa-times"></i> Unmark</span>
                                                 <span wire:loading wire:target="markPrinted"><i class="fas fa-spinner fa-spin"></i></span>
                                             </button>
+                                            <button wire:click="printCard('{{ $row['id'] }}')" wire:loading.attr="disabled" type="button"
+                                                class="inline-block px-3 py-2 font-bold text-center text-white uppercase align-middle transition-all border-0 rounded-lg cursor-pointer hover:scale-102 active:opacity-85 hover:shadow-soft-xs bg-gradient-cyan leading-pro text-size-xs ease-soft-in tracking-tight-soft shadow-soft-md bg-150 bg-x-25">
+                                                <span wire:loading.remove wire:target="printCard"><i class="fas fa-print"></i></span>
+                                                <span wire:loading wire:target="printCard"><i class="fas fa-spinner fa-spin"></i></span>
+                                            </button>
                                         @else
-                                            <button wire:click="markPrinted('{{ $row['id'] }}', true)" wire:loading.attr="disabled" type="button"
+                                            <button wire:click="printCard('{{ $row['id'] }}')" wire:loading.attr="disabled" type="button"
                                                 class="inline-block px-3 py-2 font-bold text-center text-white uppercase align-middle transition-all border-0 rounded-lg cursor-pointer flex-1 hover:scale-102 active:opacity-85 hover:shadow-soft-xs bg-gradient-cyan leading-pro text-size-xs ease-soft-in tracking-tight-soft shadow-soft-md bg-150 bg-x-25">
-                                                <span wire:loading.remove wire:target="markPrinted"><i class="fas fa-print"></i> Print</span>
-                                                <span wire:loading wire:target="markPrinted"><i class="fas fa-spinner fa-spin"></i></span>
+                                                <span wire:loading.remove wire:target="printCard"><i class="fas fa-print"></i> Print</span>
+                                                <span wire:loading wire:target="printCard"><i class="fas fa-spinner fa-spin"></i></span>
                                             </button>
                                         @endif
                                     </div>
@@ -269,6 +274,15 @@
             {{ $pageObj->links() }}
         </div>
     @endif
+
+    {{-- Print window event listener --}}
+    <script>
+        document.addEventListener('livewire:init', function () {
+            Livewire.on('openPrintWindow', function (data) {
+                window.open(data.url, '_blank', 'width=900,height=600,menubar=yes,toolbar=yes');
+            });
+        });
+    </script>
 
     {{-- Detail Modal --}}
     @if($showDetail)

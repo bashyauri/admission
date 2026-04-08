@@ -18,7 +18,8 @@
         "laravel/tinker": "^2.7",
         "livewire/livewire": "^3.4",
         "maatwebsite/excel": "^3.1",
-        "mailersend/laravel-driver": "^2.7"
+        "mailersend/laravel-driver": "^2.7",
+        "simplesoftwareio/simple-qrcode": "^4.2"
     },
     "require-dev": {
         "barryvdh/laravel-debugbar": "^3.13",

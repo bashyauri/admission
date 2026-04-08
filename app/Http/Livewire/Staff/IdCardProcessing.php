@@ -102,6 +102,13 @@ class IdCardProcessing extends Component
             session()->flash('error', 'Failed to update print status.');
         }
     }
+
+    public function printCard(string $userId): void
+    {
+        $this->markPrinted($userId, true);
+        $url = route('idcard.print', ['user' => $userId]);
+        $this->dispatch('openPrintWindow', url: $url);
+    }
     public function openDetail(string $userId): void
     {
         $record = User::query()
