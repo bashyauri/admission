@@ -166,8 +166,38 @@ class PaymentService
 
     public function updateTransactionStatus(string $status, string $rrr)
     {
+        $transaction = StudentTransaction::query()->where('RRR', $rrr)->first();
 
-        StudentTransaction::where('RRR', $rrr)->update(['status' => $status]);
+        if (!$transaction) {
+            return;
+        }
+
+        $transaction->update(['status' => $status]);
+
+        if ($status !== TransactionStatus::APPROVED->value) {
+            return;
+        }
+
+        $user = User::query()->with('academicDetail')->find($transaction->user_id);
+
+        if (!$user || !$user->isUndergraduate() || !$user->academicDetail) {
+            return;
+        }
+
+        $currentAcademicSession = app(AcademicSessionService::class)->getAcademicSession($user);
+
+        if ((string) $transaction->acad_session !== (string) $currentAcademicSession) {
+            return;
+        }
+
+        $paidLevel = (int) $transaction->student_levels_id;
+
+        if ($paidLevel > 0 && (int) $user->academicDetail->student_level_id !== $paidLevel) {
+            $user->academicDetail->update([
+                'student_level_id' => $paidLevel,
+                'acad_session'     => $transaction->acad_session,
+            ]);
+        }
     }
     public function getSchoolFeesCustomFields($userId): array
     {

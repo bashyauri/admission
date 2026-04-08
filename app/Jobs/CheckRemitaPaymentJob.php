@@ -12,6 +12,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use App\Services\PaymentService;
 use App\Services\StudentTransactionService;
 use App\Services\TransactionService;
 
@@ -28,7 +29,7 @@ class CheckRemitaPaymentJob implements ShouldQueue
     ) {
     }
 
-    public function handle(StudentTransactionService $studentService, TransactionService $transactionService): void
+    public function handle(StudentTransactionService $studentService, TransactionService $transactionService, PaymentService $paymentService): void
     {
         $transaction = $this->type === 'student'
             ? StudentTransaction::query()->find($this->transactionId)
@@ -44,8 +45,14 @@ class CheckRemitaPaymentJob implements ShouldQueue
             $status = $response->status ?? null;
 
             if ($status === TransactionStatus::APPROVED->value) {
-                if ($this->type === 'student' && $transaction->load('user')->user->isPostgraduate()) {
-                    $studentService->updateTransactionStatus(TransactionStatus::APPROVED->value, (string) $transaction->RRR);
+                if ($this->type === 'student') {
+                    $user = $transaction->load('user')->user;
+
+                    if ($user && $user->isPostgraduate()) {
+                        $studentService->updateTransactionStatus(TransactionStatus::APPROVED->value, (string) $transaction->RRR);
+                    } else {
+                        $paymentService->updateTransactionStatus(TransactionStatus::APPROVED->value, (string) $transaction->RRR);
+                    }
                 } else {
                     $transaction->update(['status' => TransactionStatus::APPROVED->value]);
                 }

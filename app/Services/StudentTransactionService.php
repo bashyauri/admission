@@ -4,6 +4,7 @@ namespace App\Services;
 
 
 use App\Models\AcademicDetail;
+use App\Models\User;
 use App\Enums\TransactionStatus;
 use App\Models\SchoolFeesPayment;
 use App\Models\StudentTransaction;
@@ -86,46 +87,55 @@ class StudentTransactionService extends TransactionService
     }
     public function updateTransactionStatus(string $status, string $rrr)
     {
-        // Check if transaction exists and update status if it does
         $transaction = StudentTransaction::where('RRR', $rrr)->firstOrFail();
         $transaction->update(['status' => $status]);
 
-        // If transaction is approved, check if it's a valid payment and add to school fees if necessary
-        if ($status != TransactionStatus::APPROVED->toString()) {
+        if ($status !== TransactionStatus::APPROVED->value) {
             return;
         }
 
-        $student = AcademicDetail::where('user_id', auth()->id())->firstOrFail();
+        $user = User::findOrFail($transaction->user_id);
+        $student = AcademicDetail::where('user_id', $transaction->user_id)->firstOrFail();
+
+        $currentAcademicSession = app(AcademicSessionService::class)->getAcademicSession($user);
+        if ((string) $transaction->acad_session !== (string) $currentAcademicSession) {
+            return;
+        }
+
+        $paidLevel = (int) $transaction->student_levels_id;
+        if ($paidLevel <= 0) {
+            return;
+        }
 
         $totalPaid = StudentTransaction::where([
             'user_id' => $student->user_id,
-            'student_levels_id' => $student->student_level_id,
+            'student_levels_id' => $paidLevel,
             'status' => TransactionStatus::APPROVED,
         ])->sum('amount');
 
-        // Check if the total amount paid is equal to or more than the required amount for the current level
-        $totalLevelAmount = $this->getSchoolFees($student->department_id, $transaction->student_levels_id);
+        $totalLevelAmount = $this->getSchoolFees($student->department_id, $paidLevel);
 
-        if ($totalPaid >= $totalLevelAmount) {
-            $this->addSchoolFeesPayment($transaction->student_levels_id);
+        if ($totalLevelAmount !== null && $totalPaid >= $totalLevelAmount) {
+            $this->addSchoolFeesPayment((string) $transaction->user_id, $paidLevel, (string) $transaction->acad_session);
         }
     }
 
-
-    public function addSchoolFeesPayment(int $level): void
+    public function addSchoolFeesPayment(string $userId, int $level, string $acadSession): void
     {
-        DB::transaction(function () use ($level) {
-            SchoolFeesPayment::create([
-                'user_id' => auth()->id(),
+        DB::transaction(function () use ($userId, $level, $acadSession) {
+            SchoolFeesPayment::firstOrCreate([
+                'user_id' => $userId,
                 'student_level_id' => $level,
             ]);
-            $this->updateStudentLevel();
+            $this->updateStudentLevel($userId, $level, $acadSession);
         });
     }
 
-    private function updateStudentLevel(): void
+    private function updateStudentLevel(string $userId, int $level, string $acadSession): void
     {
-        $currentLevel = auth()->user()->academicDetail->student_level_id;
-        auth()->user()->academicDetail->update(['student_level_id' => $currentLevel + 1]);
+        AcademicDetail::where('user_id', $userId)->update([
+            'student_level_id' => $level,
+            'acad_session'     => $acadSession,
+        ]);
     }
 }
