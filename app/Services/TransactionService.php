@@ -53,29 +53,31 @@ class TransactionService
     }
     public static function convertJsonToArray(string $response = '', bool $assoc = false): object
     {
-
+        if ($response === '' || $response === null) {
+            return (object)[];
+        }
         if ($response[0] !== '[' && $response[0] !== '{') { // we have JSONP
             $response = substr($response, strpos($response, '('));
-            return json_decode(trim($response, '();'), $assoc);
+            $decoded = json_decode(trim($response, '();'), $assoc);
+            return $decoded === null ? (object)[] : $decoded;
         }
-        return json_decode(trim($response));
+        $decoded = json_decode(trim($response));
+        return $decoded === null ? (object)[] : $decoded;
     }
     public function createPayment($data)
     {
         $values = $this->generateInvoice($data);
         if (!empty($values)) {
-            return  Transaction::create(
-                [
-                    'transaction_id' => $data['transactionId'],
-                    'user_id' => auth()->user()->id,
-                    'amount' => $data['amount'],
-                    'date' => now(),
-                    'status' => $data['statuscode'],
-                    'resource' => $data['description'],
-                    'RRR' => $data['RRR'],
-                    'acad_session' => app(AcademicSessionService::class)->getAcademicSession(auth()->user()->id)
-                ]
-            );
+            return  Transaction::create([
+                'transaction_id' => $data['transactionId'],
+                'user_id' => auth()->user()->id,
+                'amount' => $data['amount'],
+                'date' => now(),
+                'status' => $data['statuscode'],
+                'resource' => $data['description'],
+                'RRR' => $data['RRR'],
+                'acad_session' => app(AcademicSessionService::class)->getAcademicSession(auth()->user())
+            ]);
         }
     }
     public function updateTransactionStatus(string $status, string $rrr)
