@@ -11,6 +11,7 @@ use App\Http\Livewire\Cit\PaidAcceptanceFees;
 use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\UgSchoolFeesController;
 use App\Http\Livewire\Transactions\UtmeSchoolFeesInvoice;
+use App\Http\Livewire\Admin\Settings;
 
 Route::get('dashboard', CitIndex::class)->name('dashboard');
 Route::get('paid-acceptance-fees', PaidAcceptanceFees::class)->name('paid-acceptance-fees');
@@ -21,3 +22,4 @@ Route::get('/payment/status/{rrr}', [UgSchoolFeesController::class, 'checkTransa
 Route::get('first-school-fees', FirstSchoolFees::class)->name('first-school-fees');
 Route::get('add-matric-number/{user}', AddMatricNo::class)->name('add-matric-number');
 Route::get('/applicant/transactions/generate-invoice/{transaction?}', [TransactionController::class, 'index'])->name('applicant.payment');
+Route::get('settings', Settings::class)->name('settings');

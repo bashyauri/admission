@@ -55,10 +55,18 @@ class RouteServiceProvider extends ServiceProvider
 
     protected function mapAdminRoutes()
     {
+        // Allow only admin for all admin routes except settings
         Route::middleware(['web', 'auth', 'verified', 'role:admin'])
             ->prefix('admin')
             ->as('admin.')
-            ->group(base_path('routes/admin.php'));
+            ->group(function () {
+                // Settings route: allow admin and cit
+                Route::middleware(['role:admin,cit'])->group(function () {
+                    Route::get('settings', \App\Http\Livewire\Admin\Settings::class)->name('settings');
+                });
+                // All other admin routes
+                require base_path('routes/admin.php');
+            });
     }
 
     protected function mapHodRoutes()

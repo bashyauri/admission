@@ -187,7 +187,7 @@
 
                             <li class="w-full">
                                 <a class="ease-soft-in-out py-1.6 ml-5.4 pl-4 text-size-sm relative my-0 mr-4 flex items-center whitespace-nowrap bg-transparent pr-4 shadow-none transition-colors before:absolute before:top-1/2 before:-translate-y-1/2 before:rounded-3xl before:content-[''] dark:text-white dark:before:bg-white dark:before:opacity-80 {{ Route::currentRouteName() == 'admin.settings' ? 'before:-left-5 rounded-lg font-semibold text-slate-800 before:h-2 before:w-2 before:bg-slate-800 dark:opacity-100' : 'before:-left-4.5 before:h-1.25 before:w-1.25 font-medium text-slate-800/50 before:bg-slate-800/50 dark:opacity-60' }}"
-                                    href="{{route('admin.settings')}}">
+                                    href="{{route('cit.settings')}}">
                                     <span
                                         class="w-0 text-center transition-all duration-200 opacity-0 pointer-events-none ease-soft-in-out">
                                         W
@@ -301,6 +301,19 @@
                                 </a>
                             </li>
 
+                                <!-- Admin Settings link for CIT staff -->
+                                <li class="w-full">
+                                    <a class="ease-soft-in-out py-1.6 ml-5.4 pl-4 text-size-sm relative my-0 mr-4 flex items-center whitespace-nowrap bg-transparent pr-4 shadow-none transition-colors before:absolute before:top-1/2 before:-translate-y-1/2 before:rounded-3xl before:content-[''] dark:text-white dark:before:bg-white dark:before:opacity-80 {{ Route::currentRouteName() == 'cit.settings' ? 'before:-left-5 rounded-lg font-semibold text-slate-800 before:h-2 before:w-2 before:bg-slate-800 dark:opacity-100' : 'before:-left-4.5 before:h-1.25 before:w-1.25 font-medium text-slate-800/50 before:bg-slate-800/50 dark:opacity-60' }}"
+                                        href="{{ route('cit.settings') }}">
+                                        <span
+                                            class="w-0 text-center transition-all duration-200 opacity-0 pointer-events-none ease-soft-in-out">
+                                            W
+                                        </span>
+                                        <span class="transition-all duration-100 pointer-events-none ease-soft"> Settings
+                                        </span>
+                                    </a>
+                                </li>
+
                             <li class="w-full">
                                 <a class="ease-soft-in-out py-1.6 ml-5.4 pl-4 text-size-sm relative my-0 mr-4 flex items-center whitespace-nowrap bg-transparent pr-4 shadow-none transition-colors before:absolute before:top-1/2 before:-translate-y-1/2 before:rounded-3xl before:content-[''] dark:text-white dark:before:bg-white dark:before:opacity-80 {{ Route::currentRouteName() == 'hod.not-recommended-applicants' ? 'before:-left-5 rounded-lg font-semibold text-slate-800 before:h-2 before:w-2 before:bg-slate-800 dark:opacity-100' : 'before:-left-4.5 before:h-1.25 before:w-1.25 font-medium text-slate-800/50 before:bg-slate-800/50 dark:opacity-60' }}"
                                     href="{{ route('hod.not-recommended-applicants') }}">
@@ -321,14 +334,8 @@
                 </li>
 
 
-                <!-- free btn  -->
-                <form method="POST" action="{{ route('logout') }}" class="inline-block w-full">
-                    @csrf
-                    <button type="submit"
-                        class="w-full px-6 py-3 my-4 font-bold text-center text-white uppercase align-middle transition-all ease-in border-0 rounded-lg select-none shadow-soft-md bg-150 bg-x-25 leading-pro text-size-xs bg-gradient-fuchsia hover:shadow-soft-2xl hover:scale-102">
-                        Logout
-                    </button>
-                </form>
-
+            <div class="pt-4 mx-4 mt-4 border-t border-gray-200 dark:border-gray-700">
+                <livewire:auth.logout />
+            </div>
         </div>
     </aside>

@@ -1,6 +1,3 @@
-use App\Http\Controllers\OptimizeController;
-// Route to run Artisan optimize (protected by auth middleware)
-Route::middleware(['auth'])->get('/run-optimize', [OptimizeController::class, 'run']);
 <?php
 
 declare(strict_types=1);

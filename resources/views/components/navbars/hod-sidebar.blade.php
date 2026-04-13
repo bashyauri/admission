@@ -1323,8 +1323,8 @@
             {{-- <!-- pro btn  -->
       <a class="inline-block w-full px-6 py-3 my-4 font-bold text-center text-white uppercase align-middle transition-all ease-in border-0 rounded-lg select-none shadow-soft-md bg-150 bg-x-25 leading-pro text-size-xs bg-gradient-fuchsia hover:shadow-soft-2xl hover:scale-102"
         href="https://www.creative-tim.com/product/soft-ui-dashboard-pro-tall">Upgrade to pro</a> --}}
-            <!-- free btn  -->
-            {{-- <a class="inline-block w-full px-6 py-3 my-4 font-bold text-center text-white uppercase align-middle transition-all ease-in border-0 rounded-lg select-none shadow-soft-md bg-150 bg-x-25 leading-pro text-size-xs bg-gradient-fuchsia hover:shadow-soft-2xl hover:scale-102"
-        href="https://www.creative-tim.com/product/soft-ui-dashboard-tall" target="_blank">Get free version</a> --}}
+            <div class="pt-4 mx-4 mt-4 border-t border-gray-200 dark:border-gray-700">
+                <livewire:auth.logout />
+            </div>
         </div>
     </aside>
