@@ -80,11 +80,11 @@
                             <span class="mt-auto mb-0 font-bold leading-normal text-right text-lime-500 text-size-sm">
 
                             @if (Auth::user()->hasPaid($paymentService->getAcceptanceResource()))
-                         
+
 
                                  <a href="{{Auth::user()->isUndergraduate() ? "" : route('print-acceptance')}}"
                                    class="inline-block px-8 py-2 mt-2 mb-0 text-xs font-bold text-center text-teal-500 uppercase align-middle transition-all bg-transparent border border-teal-500 border-solid rounded-lg shadow-none cursor-pointer leading-pro ease-soft-in hover:scale-102 active:shadow-soft-xs tracking-tight-soft hover:border-teal-500 hover:bg-transparent hover:text-teal-700 hover:opacity-75 hover:shadow-none active:bg-teal-500 active:text-white active:hover:bg-transparent active:hover:text-teal-500">{{Auth::user()->isUndergraduate() ? "Screening Starts on Tuesday, 28th January 2025" : "Print Acceptance"}}</a>
-                                  
+
                             @else
                              <a href="{{route('acceptance-invoice')}}"
                                     class="inline-block px-6 py-3 mt-4 font-bold text-center uppercase align-middle transition-all border-0 rounded-lg cursor-pointer hover:scale-102 active:opacity-85 hover:shadow-soft-xs bg-gradient-gray leading-pro text-size-xs ease-soft-in tracking-tight-soft shadow-soft-md bg-150 bg-x-25 text-slate-500">Generate Invoice</a>
@@ -171,7 +171,7 @@
                             </td>
 
                             <td class="p-2 align-middle bg-transparent border-b whitespace-nowrap shadow-transparent">
-                              <a href="{{route('payment.status',['rrr'=>$transaction->RRR])}}" class="text-xs font-semibold leading-tight text-slate-400"> check status</a>
+                              <a href="{{route('payment.status',['rrr'=>$transaction->RRR])}}" class="text-xs font-semibold leading-tight text-slate-400">Refresh Payment Status</a>
                             </td>
 
                           </tr>
