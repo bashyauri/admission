@@ -33,7 +33,7 @@ class ProposedCourseForm extends Form
                 'jamb_no' => $jambData->jamb_no,
                 'course' => $jambData->course,
                 'jamb_score' => $jambData->jamb_score,
-                'acad_session_id' => app(AcademicSessionService::class)->getAcademicSession(Auth::user()),
+                'acad_session' => app(AcademicSessionService::class)->getAcademicSession(Auth::user()),
 
             ]
         );
@@ -48,6 +48,7 @@ class ProposedCourseForm extends Form
 
                 'department_id' => $this->departmentID,
                 'course_id' => $this->courseID,
+                'academic_session' => app(AcademicSessionService::class)->getAcademicSession(Auth::user()),
             ]
         );
     }
