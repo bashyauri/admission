@@ -178,7 +178,7 @@
                                 <hr />
                     </div>
                 </div>
-                @if (auth()->user()->isPosgraduate())
+                @if (auth()->user()->isPostgraduate())
 
 
                     <div class="row-fluid school-section">
