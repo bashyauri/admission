@@ -33,6 +33,14 @@
                 --}}
             </a>
 
+            @php
+                $sessionService = app(\App\Services\AcademicSessionService::class);
+                $currentSession = $sessionService->getAcademicSession(auth()->user());
+            @endphp
+            <div class="mb-2 px-4 py-2 rounded bg-blue-100 text-blue-800 text-xs font-semibold text-center">
+                Academic Session: <span class="font-bold">{{ $currentSession }}</span>
+            </div>
+
         </div>
 
         <!-- //---------hr----------// -->

@@ -56,6 +56,29 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         $this->notify(new SendVerificationEmail);
     }
+        /**
+     * Impersonation context for admin/CIT role switching.
+     */
+    protected $impersonateRole = null;
+    protected $impersonateProgramme = null;
+
+    /**
+     * Set the impersonation context (role or programme).
+     */
+    public function impersonateAs(?string $role = null, ?int $programme = null): void
+    {
+        $this->impersonateRole = $role;
+        $this->impersonateProgramme = $programme;
+    }
+
+    /**
+     * Clear impersonation context.
+     */
+    public function clearImpersonation(): void
+    {
+        $this->impersonateRole = null;
+        $this->impersonateProgramme = null;
+    }
     public function profilePicture()
     {
         return asset('storage/' . $this->picture);
@@ -64,8 +87,11 @@ class User extends Authenticatable implements MustVerifyEmail
     /**
      * Check if the user is admin
      */
-    public function isAdmin()
+    public function isAdmin(): bool
     {
+        if ($this->impersonateRole) {
+            return $this->impersonateRole === 'admin';
+        }
         return $this->role === 'admin';
     }
 
@@ -74,16 +100,23 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     public function isHod(): bool
     {
+        if ($this->impersonateRole) {
+            return $this->impersonateRole === 'hod';
+        }
         return $this->role === 'hod';
     }
     public function isUndergraduate(): bool
     {
-
+        if ($this->impersonateProgramme) {
+            return $this->impersonateProgramme === ProgrammesEnum::Undergraduate->value;
+        }
         return $this->programme_id === ProgrammesEnum::Undergraduate->value;
     }
     public function isPostgraduate(): bool
     {
-
+        if ($this->impersonateProgramme) {
+            return $this->impersonateProgramme === ProgrammesEnum::PG->value;
+        }
         return $this->programme_id === ProgrammesEnum::PG->value;
     }
 
@@ -92,18 +125,30 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     public function isApplicant(): bool
     {
+        if ($this->impersonateRole) {
+            return $this->impersonateRole === 'applicant';
+        }
         return $this->role === 'applicant';
     }
     public function isStudent(): bool
     {
+        if ($this->impersonateRole) {
+            return $this->impersonateRole === Role::STUDENT->value;
+        }
         return $this->role === Role::STUDENT->value;
     }
     public function isCit(): bool
     {
+        if ($this->impersonateRole) {
+            return $this->impersonateRole === Role::CIT->value;
+        }
         return $this->role === Role::CIT->value;
     }
     public function isCoordinator(): bool
     {
+        if ($this->impersonateRole) {
+            return $this->impersonateRole === Role::COORDINATOR->value;
+        }
         return $this->role === Role::COORDINATOR->value;
     }
     public function getIsDeAttribute(): bool

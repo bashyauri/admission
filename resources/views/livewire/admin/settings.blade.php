@@ -189,34 +189,12 @@
                             </a>
                         </li>
                         <li class="pt-2">
-                            <a href="#accounts"
+                            <a href="#impersonation"
                                 class="block px-4 py-2 transition-colors rounded-lg ease-soft-in-out text-slate-500 hover:bg-gray-200">
                                 <div class="inline-block mr-2 text-black fill-current h-4-em w-4-em stroke-none">
-                                    <svg class="mb-1 text-dark" width="16px" height="16px" viewBox="0 0 42 44"
-                                        version="1.1" xmlns="http://www.w3.org/2000/svg"
-                                        xmlns:xlink="http://www.w3.org/1999/xlink">
-                                        <title>time-alarm</title>
-                                        <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
-                                            <g transform="translate(-2319.000000, -440.000000)" fill="#923DFA"
-                                                fill-rule="nonzero">
-                                                <g transform="translate(1716.000000, 291.000000)">
-                                                    <g transform="translate(603.000000, 149.000000)">
-                                                        <path class="fill-slate-800"
-                                                            d="M18.8086957,4.70034783 C15.3814926,0.343541521 9.0713063,-0.410050841 4.7145,3.01715217 C0.357693695,6.44435519 -0.395898667,12.7545415 3.03130435,17.1113478 C5.53738466,10.3360568 11.6337901,5.54042955 18.8086957,4.70034783 L18.8086957,4.70034783 Z"
-                                                            opacity="0.6"></path>
-                                                        <path class="fill-slate-800"
-                                                            d="M38.9686957,17.1113478 C42.3958987,12.7545415 41.6423063,6.44435519 37.2855,3.01715217 C32.9286937,-0.410050841 26.6185074,0.343541521 23.1913043,4.70034783 C30.3662099,5.54042955 36.4626153,10.3360568 38.9686957,17.1113478 Z"
-                                                            opacity="0.6"></path>
-                                                        <path class="fill-slate-800"
-                                                            d="M34.3815652,34.7668696 C40.2057958,27.7073059 39.5440671,17.3375603 32.869743,11.0755718 C26.1954189,4.81358341 15.8045811,4.81358341 9.13025701,11.0755718 C2.45593289,17.3375603 1.79420418,27.7073059 7.61843478,34.7668696 L3.9753913,40.0506522 C3.58549114,40.5871271 3.51710058,41.2928217 3.79673036,41.8941824 C4.07636014,42.4955431 4.66004722,42.8980248 5.32153275,42.9456105 C5.98301828,42.9931963 6.61830436,42.6784048 6.98113043,42.1232609 L10.2744783,37.3434783 C16.5555112,42.3298213 25.4444888,42.3298213 31.7255217,37.3434783 L35.0188696,42.1196087 C35.6014207,42.9211577 36.7169135,43.1118605 37.53266,42.5493622 C38.3484064,41.9868639 38.5667083,40.8764423 38.0246087,40.047 L34.3815652,34.7668696 Z M30.1304348,25.5652174 L21,25.5652174 C20.49574,25.5652174 20.0869565,25.1564339 20.0869565,24.6521739 L20.0869565,15.5217391 C20.0869565,15.0174791 20.49574,14.6086957 21,14.6086957 C21.50426,14.6086957 21.9130435,15.0174791 21.9130435,15.5217391 L21.9130435,23.7391304 L30.1304348,23.7391304 C30.6346948,23.7391304 31.0434783,24.1479139 31.0434783,24.6521739 C31.0434783,25.1564339 30.6346948,25.5652174 30.1304348,25.5652174 Z">
-                                                        </path>
-                                                    </g>
-                                                </g>
-                                            </g>
-                                        </g>
-                                    </svg>
+                                    <svg class="mb-1 text-dark" width="16px" height="16px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
                                 </div>
-                                <span class="leading-normal text-size-sm dark:text-white">Accounts</span>
+                                <span class="leading-normal text-size-sm dark:text-white">Impersonation</span>
                             </a>
                         </li>
                         <li class="pt-2">
@@ -251,7 +229,7 @@
                             </a>
                         </li>
                         <li class="pt-2">
-                            <a href="#sessions"
+                            <a href="#academic-sessions"
                                 class="block px-4 py-2 transition-colors rounded-lg ease-soft-in-out text-slate-500 hover:bg-gray-200">
                                 <div class="inline-block mr-2 text-black fill-current h-4-em w-4-em stroke-none">
                                     <svg class="mb-1 text-dark" width="16px" height="16px" viewBox="0 0 40 40"
@@ -278,7 +256,7 @@
                                         </g>
                                     </svg>
                                 </div>
-                                <span class="leading-normal text-size-sm dark:text-white">Sessions</span>
+                                <span class="leading-normal text-size-sm dark:text-white">Academic Sessions</span>
                             </a>
                         </li>
 
@@ -515,180 +493,131 @@
                     </div>
                 </div>
                 <div class="relative flex flex-col min-w-0 mt-6 break-words bg-white border-0 dark:bg-gray-950 dark:shadow-soft-dark-xl shadow-soft-xl rounded-2xl bg-clip-border"
-                    id="notifications">
+                    id="impersonation">
                     <div class="p-6 rounded-t-2xl">
-                        <h5 class="dark:text-white">Notifications</h5>
-                        <p class="leading-normal text-size-sm dark:text-white/60">Choose how you receive notifications.
-                            These notification settings apply to the things you’re watching.</p>
+                        <h5 class="dark:text-white">Impersonate as Role/Programme</h5>
+                        <p class="leading-normal text-size-sm dark:text-white/60">Admins and CIT can switch context to any role or programme below. This affects what you see and can do in the system.</p>
                     </div>
                     <div class="flex-auto p-6 pt-0">
-                        <div class="overflow-x-auto">
-                            <table class="w-full mb-0 align-top border-gray-200 text-slate-500 dark:border-white/40">
-                                <thead class="align-bottom">
-                                    <tr>
-                                        <th colspan="4"
-                                            class="px-6 py-3 pl-1 font-semibold capitalize align-middle bg-transparent border-b border-solid shadow-none tracking-none whitespace-nowrap border-b-gray-200 dark:border-white/40 dark:text-white">
-                                            <p class="mb-0 dark:text-white/60">Activity</p>
-                                        </th>
-                                        <th
-                                            class="px-6 py-3 font-semibold text-center capitalize align-middle bg-transparent border-b border-solid shadow-none tracking-none whitespace-nowrap border-b-gray-200 dark:border-white/40 dark:text-white">
-                                            <p class="mb-0 dark:text-white/60">Email</p>
-                                        </th>
-                                        <th
-                                            class="px-6 py-3 font-semibold text-center capitalize align-middle bg-transparent border-b border-solid shadow-none tracking-none whitespace-nowrap border-b-gray-200 dark:border-white/40 dark:text-white">
-                                            <p class="mb-0 dark:text-white/60">Push</p>
-                                        </th>
-                                        <th
-                                            class="px-6 py-3 font-semibold text-center capitalize align-middle bg-transparent border-b border-solid shadow-none tracking-none whitespace-nowrap border-b-gray-200 dark:border-white/40 dark:text-white">
-                                            <p class="mb-0 dark:text-white/60">SMS</p>
-                                        </th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr>
-                                        <td class="p-2 pl-1 align-top border-b whitespace-nowrap dark:border-white/40 dark:text-white"
-                                            colspan="4">
-                                            <div class="my-auto">
-                                                <span
-                                                    class="block leading-normal text-size-sm text-slate-700 dark:text-white">Mentions</span>
-                                                <span
-                                                    class="font-normal leading-tight text-size-xs dark:text-white/60">Notify
-                                                    when another user mentions you in a comment</span>
-                                            </div>
-                                        </td>
-                                        <td
-                                            class="p-2 align-top bg-transparent border-b whitespace-nowrap dark:border-white/40 dark:text-white">
-                                            <div class="flex items-center justify-center pl-12 mb-0 min-h-6">
-                                                <input checked
-                                                    class="rounded-10 duration-250 ease-soft-in-out after:rounded-circle after:shadow-soft-2xl after:duration-250 checked:after:translate-x-5.3 h-5-em mt-0.5-em relative float-left -ml-12 w-10 cursor-pointer appearance-none border border-solid border-gray-200 bg-slate-800/10 bg-none bg-contain bg-left bg-no-repeat align-top transition-all after:absolute after:top-px after:h-4 after:w-4 after:translate-x-px after:bg-white after:content-[''] checked:border-slate-800/95 checked:bg-slate-800/95 checked:bg-none checked:bg-right"
-                                                    type="checkbox" />
-                                            </div>
-                                        </td>
-                                        <td
-                                            class="p-2 align-top bg-transparent border-b whitespace-nowrap dark:border-white/40 dark:text-white">
-                                            <div class="flex items-center justify-center pl-12 mb-0 min-h-6">
-                                                <input
-                                                    class="rounded-10 duration-250 ease-soft-in-out after:rounded-circle after:shadow-soft-2xl after:duration-250 checked:after:translate-x-5.3 h-5-em mt-0.5-em relative float-left -ml-12 w-10 cursor-pointer appearance-none border border-solid border-gray-200 bg-slate-800/10 bg-none bg-contain bg-left bg-no-repeat align-top transition-all after:absolute after:top-px after:h-4 after:w-4 after:translate-x-px after:bg-white after:content-[''] checked:border-slate-800/95 checked:bg-slate-800/95 checked:bg-none checked:bg-right"
-                                                    type="checkbox" />
-                                            </div>
-                                        </td>
-                                        <td
-                                            class="p-2 align-top bg-transparent border-b whitespace-nowrap dark:border-white/40 dark:text-white">
-                                            <div class="flex items-center justify-center pl-12 mb-0 min-h-6">
-                                                <input
-                                                    class="rounded-10 duration-250 ease-soft-in-out after:rounded-circle after:shadow-soft-2xl after:duration-250 checked:after:translate-x-5.3 h-5-em mt-0.5-em relative float-left -ml-12 w-10 cursor-pointer appearance-none border border-solid border-gray-200 bg-slate-800/10 bg-none bg-contain bg-left bg-no-repeat align-top transition-all after:absolute after:top-px after:h-4 after:w-4 after:translate-x-px after:bg-white after:content-[''] checked:border-slate-800/95 checked:bg-slate-800/95 checked:bg-none checked:bg-right"
-                                                    type="checkbox" />
-                                            </div>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td class="p-2 pl-1 align-top border-b whitespace-nowrap dark:border-white/40 dark:text-white"
-                                            colspan="4">
-                                            <div class="my-auto">
-                                                <span
-                                                    class="block leading-normal text-size-sm text-slate-700 dark:text-white">Comments</span>
-                                                <span
-                                                    class="font-normal leading-tight text-size-xs dark:text-white/60">Notify
-                                                    when another user comments your item.</span>
-                                            </div>
-                                        </td>
-                                        <td
-                                            class="p-2 align-top bg-transparent border-b whitespace-nowrap dark:border-white/40 dark:text-white">
-                                            <div class="flex items-center justify-center pl-12 mb-0 min-h-6">
-                                                <input checked
-                                                    class="rounded-10 duration-250 ease-soft-in-out after:rounded-circle after:shadow-soft-2xl after:duration-250 checked:after:translate-x-5.3 h-5-em mt-0.5-em relative float-left -ml-12 w-10 cursor-pointer appearance-none border border-solid border-gray-200 bg-slate-800/10 bg-none bg-contain bg-left bg-no-repeat align-top transition-all after:absolute after:top-px after:h-4 after:w-4 after:translate-x-px after:bg-white after:content-[''] checked:border-slate-800/95 checked:bg-slate-800/95 checked:bg-none checked:bg-right"
-                                                    type="checkbox" />
-                                            </div>
-                                        </td>
-                                        <td
-                                            class="p-2 align-top bg-transparent border-b whitespace-nowrap dark:border-white/40 dark:text-white">
-                                            <div class="flex items-center justify-center pl-12 mb-0 min-h-6">
-                                                <input checked
-                                                    class="rounded-10 duration-250 ease-soft-in-out after:rounded-circle after:shadow-soft-2xl after:duration-250 checked:after:translate-x-5.3 h-5-em mt-0.5-em relative float-left -ml-12 w-10 cursor-pointer appearance-none border border-solid border-gray-200 bg-slate-800/10 bg-none bg-contain bg-left bg-no-repeat align-top transition-all after:absolute after:top-px after:h-4 after:w-4 after:translate-x-px after:bg-white after:content-[''] checked:border-slate-800/95 checked:bg-slate-800/95 checked:bg-none checked:bg-right"
-                                                    type="checkbox" />
-                                            </div>
-                                        </td>
-                                        <td
-                                            class="p-2 align-top bg-transparent border-b whitespace-nowrap dark:border-white/40 dark:text-white">
-                                            <div class="flex items-center justify-center pl-12 mb-0 min-h-6">
-                                                <input
-                                                    class="rounded-10 duration-250 ease-soft-in-out after:rounded-circle after:shadow-soft-2xl after:duration-250 checked:after:translate-x-5.3 h-5-em mt-0.5-em relative float-left -ml-12 w-10 cursor-pointer appearance-none border border-solid border-gray-200 bg-slate-800/10 bg-none bg-contain bg-left bg-no-repeat align-top transition-all after:absolute after:top-px after:h-4 after:w-4 after:translate-x-px after:bg-white after:content-[''] checked:border-slate-800/95 checked:bg-slate-800/95 checked:bg-none checked:bg-right"
-                                                    type="checkbox" />
-                                            </div>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td class="p-2 pl-1 align-top border-b whitespace-nowrap dark:border-white/40 dark:text-white"
-                                            colspan="4">
-                                            <div class="my-auto">
-                                                <span
-                                                    class="block leading-normal text-size-sm text-slate-700 dark:text-white">Follows</span>
-                                                <span
-                                                    class="font-normal leading-tight text-size-xs dark:text-white/60">Notify
-                                                    when another user follows you.</span>
-                                            </div>
-                                        </td>
-                                        <td
-                                            class="p-2 align-top bg-transparent border-b whitespace-nowrap dark:border-white/40 dark:text-white">
-                                            <div class="flex items-center justify-center pl-12 mb-0 min-h-6">
-                                                <input
-                                                    class="rounded-10 duration-250 ease-soft-in-out after:rounded-circle after:shadow-soft-2xl after:duration-250 checked:after:translate-x-5.3 h-5-em mt-0.5-em relative float-left -ml-12 w-10 cursor-pointer appearance-none border border-solid border-gray-200 bg-slate-800/10 bg-none bg-contain bg-left bg-no-repeat align-top transition-all after:absolute after:top-px after:h-4 after:w-4 after:translate-x-px after:bg-white after:content-[''] checked:border-slate-800/95 checked:bg-slate-800/95 checked:bg-none checked:bg-right"
-                                                    type="checkbox" />
-                                            </div>
-                                        </td>
-                                        <td
-                                            class="p-2 align-top bg-transparent border-b whitespace-nowrap dark:border-white/40 dark:text-white">
-                                            <div class="flex items-center justify-center pl-12 mb-0 min-h-6">
-                                                <input checked
-                                                    class="rounded-10 duration-250 ease-soft-in-out after:rounded-circle after:shadow-soft-2xl after:duration-250 checked:after:translate-x-5.3 h-5-em mt-0.5-em relative float-left -ml-12 w-10 cursor-pointer appearance-none border border-solid border-gray-200 bg-slate-800/10 bg-none bg-contain bg-left bg-no-repeat align-top transition-all after:absolute after:top-px after:h-4 after:w-4 after:translate-x-px after:bg-white after:content-[''] checked:border-slate-800/95 checked:bg-slate-800/95 checked:bg-none checked:bg-right"
-                                                    type="checkbox" />
-                                            </div>
-                                        </td>
-                                        <td
-                                            class="p-2 align-top bg-transparent border-b whitespace-nowrap dark:border-white/40 dark:text-white">
-                                            <div class="flex items-center justify-center pl-12 mb-0 min-h-6">
-                                                <input
-                                                    class="rounded-10 duration-250 ease-soft-in-out after:rounded-circle after:shadow-soft-2xl after:duration-250 checked:after:translate-x-5.3 h-5-em mt-0.5-em relative float-left -ml-12 w-10 cursor-pointer appearance-none border border-solid border-gray-200 bg-slate-800/10 bg-none bg-contain bg-left bg-no-repeat align-top transition-all after:absolute after:top-px after:h-4 after:w-4 after:translate-x-px after:bg-white after:content-[''] checked:border-slate-800/95 checked:bg-slate-800/95 checked:bg-none checked:bg-right"
-                                                    type="checkbox" />
-                                            </div>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td class="p-2 pl-1 align-top border-b-0 whitespace-nowrap dark:border-white/40 dark:text-white"
-                                            colspan="4">
-                                            <div class="my-auto">
-                                                <p class="mb-0 leading-normal text-size-sm dark:text-white/60">Log in
-                                                    from a new device</p>
-                                            </div>
-                                        </td>
-                                        <td
-                                            class="p-2 align-top bg-transparent border-b-0 whitespace-nowrap dark:border-white/40 dark:text-white">
-                                            <div class="flex items-center justify-center pl-12 mb-0 min-h-6">
-                                                <input checked
-                                                    class="rounded-10 duration-250 ease-soft-in-out after:rounded-circle after:shadow-soft-2xl after:duration-250 checked:after:translate-x-5.3 h-5-em mt-0.5-em relative float-left -ml-12 w-10 cursor-pointer appearance-none border border-solid border-gray-200 bg-slate-800/10 bg-none bg-contain bg-left bg-no-repeat align-top transition-all after:absolute after:top-px after:h-4 after:w-4 after:translate-x-px after:bg-white after:content-[''] checked:border-slate-800/95 checked:bg-slate-800/95 checked:bg-none checked:bg-right"
-                                                    type="checkbox" />
-                                            </div>
-                                        </td>
-                                        <td
-                                            class="p-2 align-top bg-transparent border-b-0 whitespace-nowrap dark:border-white/40 dark:text-white">
-                                            <div class="flex items-center justify-center pl-12 mb-0 min-h-6">
-                                                <input checked
-                                                    class="rounded-10 duration-250 ease-soft-in-out after:rounded-circle after:shadow-soft-2xl after:duration-250 checked:after:translate-x-5.3 h-5-em mt-0.5-em relative float-left -ml-12 w-10 cursor-pointer appearance-none border border-solid border-gray-200 bg-slate-800/10 bg-none bg-contain bg-left bg-no-repeat align-top transition-all after:absolute after:top-px after:h-4 after:w-4 after:translate-x-px after:bg-white after:content-[''] checked:border-slate-800/95 checked:bg-slate-800/95 checked:bg-none checked:bg-right"
-                                                    type="checkbox" />
-                                            </div>
-                                        </td>
-                                        <td
-                                            class="p-2 align-top bg-transparent border-b-0 whitespace-nowrap dark:border-white/40 dark:text-white">
-                                            <div class="flex items-center justify-center pl-12 mb-0 min-h-6">
-                                                <input checked
-                                                    class="rounded-10 duration-250 ease-soft-in-out after:rounded-circle after:shadow-soft-2xl after:duration-250 checked:after:translate-x-5.3 h-5-em mt-0.5-em relative float-left -ml-12 w-10 cursor-pointer appearance-none border border-solid border-gray-200 bg-slate-800/10 bg-none bg-contain bg-left bg-no-repeat align-top transition-all after:absolute after:top-px after:h-4 after:w-4 after:translate-x-px after:bg-white after:content-[''] checked:border-slate-800/95 checked:bg-slate-800/95 checked:bg-none checked:bg-right"
-                                                    type="checkbox" />
-                                            </div>
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
+                        <form wire:submit.prevent="impersonate" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="block mb-2 font-semibold dark:text-white">Role</label>
+                                <select wire:model.defer="impersonate_role" class="w-full rounded-lg border-2 border-blue-400 focus:ring-2 focus:ring-blue-500 dark:bg-gray-900 dark:text-white py-2 px-3 shadow-sm">
+                                    <option value="">Select role</option>
+                                    @foreach($roles as $role)
+                                        <option value="{{ $role['value'] }}">{{ $role['name'] }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block mb-2 font-semibold dark:text-white">Programme</label>
+                                <select wire:model.defer="impersonate_programme" class="w-full rounded-lg border-2 border-green-400 focus:ring-2 focus:ring-green-500 dark:bg-gray-900 dark:text-white py-2 px-3 shadow-sm">
+                                    <option value="">Select programme</option>
+                                    @foreach($programmes as $programme)
+                                        <option value="{{ $programme['value'] }}">{{ $programme['name'] }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="col-span-2 flex gap-4 mt-4">
+                                <button type="submit" class="px-6 py-2 bg-blue-700 text-white rounded hover:bg-blue-800 shadow">Impersonate</button>
+                                <button type="button" wire:click="clearImpersonation" class="px-6 py-2 bg-gray-500 text-white rounded hover:bg-gray-700 shadow">Clear</button>
+                            </div>
+                        </form>
+                        @if (session('impersonation_success'))
+                            <div class="mt-4 p-3 bg-green-100 text-green-800 rounded">
+                                {{ session('impersonation_success') }}
+                            </div>
+                        @endif
+                        <div class="mt-4">
+                            <span class="font-semibold dark:text-white">Current impersonation:</span>
+                            <span class="text-blue-700">{{ $impersonate_role ?: 'None' }}</span>
+                            <span class="text-green-700 ml-2">{{ $impersonate_programme ?: '' }}</span>
                         </div>
+                    </div>
+                </div>
+
+                <div class="relative flex flex-col min-w-0 mt-6 break-words bg-white border-0 dark:bg-gray-950 dark:shadow-soft-dark-xl shadow-soft-xl rounded-2xl bg-clip-border"
+                    id="academic-sessions">
+                    <div class="p-6 rounded-t-2xl">
+                        <h5 class="dark:text-white">Academic Session Switcher</h5>
+                        <p class="leading-normal text-size-sm dark:text-white/60">Switch the academic session for each user group below. Format: 2025/2026, 2026/2027, etc.</p>
+                    </div>
+                    <div class="flex-auto p-6 pt-0">
+                        <form wire:submit.prevent="updateSessions">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                    <label class="block mb-2 font-semibold dark:text-white flex items-center gap-2">
+                                        <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                                        Admin Session
+                                    </label>
+                                    <select wire:model.defer="admin_session" class="w-full rounded-lg border-2 border-blue-400 focus:ring-2 focus:ring-blue-500 dark:bg-gray-900 dark:text-white py-2 px-3 shadow-sm">
+                                        <option value="">Select session</option>
+                                        @foreach($sessions as $session)
+                                            <option value="{{ $session }}" @if($admin_session == $session) selected @endif>{{ $session }}</option>
+                                        @endforeach
+                                    </select>
+                                    <p class="text-xs text-gray-500 mt-1">Session for admin users (affects all admin actions).</p>
+                                </div>
+                                <div>
+                                    <label class="block mb-2 font-semibold dark:text-white flex items-center gap-2">
+                                        <svg class="w-5 h-5 text-purple-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3"/></svg>
+                                        HOD Session
+                                    </label>
+                                    <select wire:model.defer="hod_session" class="w-full rounded-lg border-2 border-purple-400 focus:ring-2 focus:ring-purple-500 dark:bg-gray-900 dark:text-white py-2 px-3 shadow-sm">
+                                        <option value="">Select session</option>
+                                        @foreach($sessions as $session)
+                                            <option value="{{ $session }}" @if($hod_session == $session) selected @endif>{{ $session }}</option>
+                                        @endforeach
+                                    </select>
+                                    <p class="text-xs text-gray-500 mt-1">Session for HOD users.</p>
+                                </div>
+                                <div>
+                                    <label class="block mb-2 font-semibold dark:text-white flex items-center gap-2">
+                                        <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path stroke-linecap="round" stroke-linejoin="round" d="M12 16v-4l-3-3"/></svg>
+                                        Student Session
+                                    </label>
+                                    <select wire:model.defer="student_session" class="w-full rounded-lg border-2 border-green-400 focus:ring-2 focus:ring-green-500 dark:bg-gray-900 dark:text-white py-2 px-3 shadow-sm">
+                                        <option value="">Select session</option>
+                                        @foreach($sessions as $session)
+                                            <option value="{{ $session }}" @if($student_session == $session) selected @endif>{{ $session }}</option>
+                                        @endforeach
+                                    </select>
+                                    <p class="text-xs text-gray-500 mt-1">Session for all students.</p>
+                                </div>
+                                <div>
+                                    <label class="block mb-2 font-semibold dark:text-white flex items-center gap-2">
+                                        <svg class="w-5 h-5 text-yellow-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3"/></svg>
+                                        Undergraduate Applicant Session
+                                    </label>
+                                    <select wire:model.defer="ug_applicant_session" class="w-full rounded-lg border-2 border-yellow-400 focus:ring-2 focus:ring-yellow-500 dark:bg-gray-900 dark:text-white py-2 px-3 shadow-sm">
+                                        <option value="">Select session</option>
+                                        @foreach($sessions as $session)
+                                            <option value="{{ $session }}" @if($ug_applicant_session == $session) selected @endif>{{ $session }}</option>
+                                        @endforeach
+                                    </select>
+                                    <p class="text-xs text-gray-500 mt-1">Session for undergraduate applicants.</p>
+                                </div>
+                                <div>
+                                    <label class="block mb-2 font-semibold dark:text-white flex items-center gap-2">
+                                        <svg class="w-5 h-5 text-pink-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3"/></svg>
+                                        Postgraduate Applicant Session
+                                    </label>
+                                    <select wire:model.defer="pg_applicant_session" class="w-full rounded-lg border-2 border-pink-400 focus:ring-2 focus:ring-pink-500 dark:bg-gray-900 dark:text-white py-2 px-3 shadow-sm">
+                                        <option value="">Select session</option>
+                                        @foreach($sessions as $session)
+                                            <option value="{{ $session }}" @if($pg_applicant_session == $session) selected @endif>{{ $session }}</option>
+                                        @endforeach
+                                    </select>
+                                    <p class="text-xs text-gray-500 mt-1">Session for postgraduate applicants.</p>
+                                </div>
+                            </div>
+                            <button type="submit" class="mt-6 px-6 py-2 bg-fuchsia-700 text-white rounded hover:bg-fuchsia-800 shadow-lg">Update Sessions</button>
+                        </form>
+                        @if (session('session_update_success'))
+                            <div class="mt-4 p-3 bg-green-100 text-green-800 rounded">
+                                {{ session('session_update_success') }}
+                            </div>
+                        @endif
                     </div>
                 </div>
                 <div class="relative flex flex-col min-w-0 mt-6 break-words bg-white border-0 dark:bg-gray-950 dark:shadow-soft-dark-xl shadow-soft-xl rounded-2xl bg-clip-border"

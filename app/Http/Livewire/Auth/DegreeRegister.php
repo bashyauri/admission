@@ -5,21 +5,29 @@ declare(strict_types=1);
 namespace App\Http\Livewire\Auth;
 
 
-use Throwable;
+
 use Livewire\Component;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Http\RedirectResponse;
+
 use App\Livewire\Forms\DegreeRegisterForm;
-use Illuminate\Routing\Redirector;
-use Illuminate\Support\Facades\Redirect;
+
 
 class DegreeRegister extends Component
 {
     public DegreeRegisterForm $form;
     public function register()
     {
-
         $user = $this->form->store();
+        $rateLimitKey = 'send-email-verification:' . $user->id;
+        $maxAttempts = 3;
+        $decaySeconds = 600; // 10 minutes
+
+        if (\Illuminate\Support\Facades\RateLimiter::tooManyAttempts($rateLimitKey, $maxAttempts)) {
+            $seconds = \Illuminate\Support\Facades\RateLimiter::availableIn($rateLimitKey);
+            return redirect()->back()->with('error', 'Too many verification emails sent. Please try again in ' . $seconds . ' seconds.');
+        }
+
+        \Illuminate\Support\Facades\RateLimiter::hit($rateLimitKey, $decaySeconds);
+
         try {
             $user->sendEmailVerificationNotification();
             return redirect()->route('degree-login')

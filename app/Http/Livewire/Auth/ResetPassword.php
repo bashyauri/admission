@@ -6,16 +6,17 @@ use App\Models\User;
 use Livewire\Component;
 use Illuminate\Support\Facades\Hash;
 
+
 class ResetPassword extends Component
 {
     public $email = '';
     public $password = '';
-    public $passwordConfirmation = '';
+    public $password_confirmation = '';
     public $urlID = '';
 
     protected $rules = [
         'email' => 'required|email',
-        'password' => 'required|min:6|same:passwordConfirmation'
+        'password' => 'required|min:6|confirmed'
     ];
 
     public function mount($id)

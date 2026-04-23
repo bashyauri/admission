@@ -30,6 +30,14 @@
                 {{-- <span class="ml-1 font-semibold transition-all duration-200 ease-soft-in-out">Wufpbk DHS</span> --}}
             </a>
 
+            @php
+                $sessionService = app(\App\Services\AcademicSessionService::class);
+                $currentSession = $sessionService->getAcademicSession(auth()->user());
+            @endphp
+            <div class="mb-2 px-4 py-2 rounded bg-blue-100 text-blue-800 text-xs font-semibold text-center">
+                Academic Session: <span class="font-bold">{{ $currentSession }}</span>
+            </div>
+
         </div>
 
         <!-- //---------hr----------// -->
@@ -306,7 +314,7 @@
                                 class="w-0 text-center transition-all duration-200 opacity-0 pointer-events-none ease-soft-in-out">
                                 P
                             </span>
-                            <span class="transition-all duration-100 pointer-events-none ease-soft text-red-600"> 
+                            <span class="transition-all duration-100 pointer-events-none ease-soft text-red-600">
                                 Manage PG Applicants
                             </span>
                         </a>
