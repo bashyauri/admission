@@ -50,9 +50,10 @@
             </div>
 
             <div class="text-center top-container-title col-8">
-                <h5 class="mb-4 font-weight-bolder">WAZIRI UMARU FEDERAL POLYTECHNIC, BIRNIN KEBBI2</h5>
-                <h5 class="mb-4 font-weight-bold">ADMISSION SCREENING FORM2</h5>
-                <h6 class="font-weight-bold">
+                <h4 class="mb-2 font-weight-bolder text-success" style="letter-spacing:1px;">WAZIRI UMARU FEDERAL POLYTECHNIC, BIRNIN KEBBI</h4>
+                <h5 class="mb-2 font-weight-bold text-primary" style="letter-spacing:1px;">Directorate of Higher Studies</h5>
+                <h5 class="mb-3 font-weight-bold text-dark">ADMISSION SCREENING FORM</h5>
+                <h6 class="font-weight-bold text-secondary">
                     {{ app(AcademicSessionService::class)->getAcademicSession(auth()->user())}} ACADEMIC SESSION
                 </h6>
             </div>
@@ -66,51 +67,22 @@
 
         <div class="row" style="margin:0% 3% 0% 3%; width:95%">
             <div class="span12">
-                <div class="row">
-                    <div class="span6" style="">
-                        <table class="table table-condensed">
-                            <tr>
-                                <td>
-                                    <p class="h6">
-                                        If your application is successful you will be <br>invited to present the
-                                        original copies of all your credentials for screening on a specified date:
-                                    </p>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <p>
-                                    <h2 style="color:red;">Note!!!</h2>
-                                    Any discrepancy between your online form and the original credentials will
-                                    disqualify you. THANKS!!!.
-                                    </p>
-                                </td>
-                            </tr>
-
-                        </table>
-
+                <div class="row mb-4" style="background: #f8fafc; border-radius: 12px; box-shadow: 0 2px 8px #e2e8f0; padding: 18px 0; align-items: center;">
+                    <div class="col-12 col-md-8 d-flex flex-column justify-content-center align-items-start px-4" style="min-height: 100%;">
+                        <p class="h6 mb-2 text-dark">
+                            If your application is successful, you will be invited to present the original copies of all your credentials for screening on a specified date.
+                        </p>
+                        <div class="alert alert-warning py-2 px-3 mb-0" style="display:inline-block; font-size:1rem;">
+                            <strong class="text-danger">Note:</strong> Any discrepancy between your online form and the original credentials will disqualify you. <span class="text-success">THANK YOU.</span>
+                        </div>
                     </div>
-                    <div class="span12" style="">
-
-                        <table width="504" class="table table-condensed">
-                            <tbody>
-                                <tr>
-                                    <th>Application Number</th>
-                                    <td rowspan="4"><img src="{{ asset('storage/' . auth()->user()?->picture) }}"
-                                            alt="..." height="100" width="100"></td>
-                                </tr>
-                                <tr>
-                                    <td><Strong>{{auth()->user()->id}}</Strong></td>
-                                </tr>
-                                <tr>
-                                    <th>Remita Number</th>
-                                </tr>
-                                <tr>
-                                    <td><Strong>{{$RRR}}</Strong></td>
-                                </tr>
-                            </tbody>
-                        </table>
-
+                    <div class="col-12 col-md-4 d-flex flex-column align-items-center justify-content-center px-4 mt-3 mt-md-0">
+                        <div class="border rounded p-2 bg-white shadow-sm mb-2" style="width:110px;">
+                            <img src="{{ auth()->user()?->profilePicture() }}" alt="Applicant Photo" height="100" width="100" class="rounded mb-1 border mx-auto d-block">
+                            <div class="small text-muted text-center">Applicant Photo</div>
+                        </div>
+                        <span class="badge bg-primary text-white mb-1">Application Email: <strong>{{auth()->user()->email}}</strong></span>
+                        <span class="badge bg-secondary text-white">Remita No: <strong>{{$RRR}}</strong></span>
                     </div>
                 </div>
                 <div class="row-fluid" style="padding-right:4px">

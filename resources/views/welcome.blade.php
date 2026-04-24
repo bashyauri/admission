@@ -30,121 +30,97 @@
 
 <body class="text-gray-800 bg-gray-50">
 
-    <section class="relative py-12 text-white bg-gradient-to-r from-green-500 via-teal-400 to-green-500">
-        <div class="container px-6 py-8 mx-auto text-center">
-            <img class="w-32 md:w-40 lg:w-48 h-auto p-3 mx-auto m-3" alt="Wufpbk Logo" src="{{ asset('assets') }}/img/wufp-logo.png">
+    <!-- Announcement Bar -->
+    <div class="w-full bg-yellow-100 border-b-2 border-yellow-400 py-3 px-4 flex items-center justify-center gap-3 text-yellow-900 font-semibold text-base md:text-lg">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-yellow-600 animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M12 8v.01" />
+        </svg>
+        <span>
+            Postgraduate Admission is <span class="font-bold text-red-600">OPEN</span>
+            <a href="{{ route('register') }}" class="inline-block ml-2 px-3 py-1 rounded bg-red-600 text-white font-bold text-sm shadow hover:bg-red-700 transition focus:outline-none focus:ring-2 focus:ring-red-400">Apply Now!</a>
+        </span>
+    </div>
 
-            <h1 class="text-4xl font-bold leading-tight md:text-5xl">
-                Welcome to <span class="text-yellow-300">Directorate of Higher Studies</span>
+
+    <section class="relative py-10 bg-gradient-to-r from-green-600 via-teal-500 to-green-700">
+        <div class="absolute inset-0 bg-black bg-opacity-30"></div>
+        <div class="relative z-10 max-w-3xl mx-auto px-6 py-8 text-center rounded-2xl shadow-2xl bg-white/10 backdrop-blur-md">
+            <img class="w-20 md:w-28 lg:w-32 h-auto mx-auto mb-3" alt="Wufpbk Logo" src="{{ asset('assets') }}/img/logo-ct.png">
+            <h1 class="text-3xl md:text-5xl font-extrabold leading-tight text-white drop-shadow-lg">
+                Directorate of Higher Studies
             </h1>
-            <p class="mt-4 text-lg md:text-xl">
-                Waziri Umaru Federal Polytechnic Birnin Kebbi.
+            <p class="mt-3 text-base md:text-xl text-white/90 font-medium">
+                Waziri Umaru Federal Polytechnic Birnin Kebbi
             </p>
-            <div class="mt-6 space-x-4">
-                <a href="#contact-us"
-                    class="rounded-md bg-white px-3.5 py-2.5 text-sm font-semibold text-gray-900 shadow-sm hover:bg-gray-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white">Contact
-                    Us</a>
+            <div class="mt-6 flex flex-col md:flex-row justify-center gap-4">
                 <a href="#programs" class="btn-green">Explore Programs</a>
+                <a href="#contact-us" class="rounded-md bg-white px-4 py-2.5 text-sm font-semibold text-gray-900 shadow hover:bg-gray-100 focus:outline-none">Contact Us</a>
             </div>
         </div>
     </section>
 
-    <!-- Announcement Section -->
-    <section id="announcement" class="py-8 bg-yellow-50 border-b-4 border-yellow-400">
-        <div class="container px-6 mx-auto">
-            <div class="flex flex-col items-center justify-between p-6 bg-white rounded-lg shadow-lg md:flex-row">
-                <div class="flex items-center mb-4 md:mb-0">
-                    <div class="flex items-center justify-center w-12 h-12 mr-4 text-white bg-red-600 rounded-full announcement-badge">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" />
-                        </svg>
-                    </div>
-                    <div>
-                        <h2 class="text-xl font-bold text-red-700">Important Announcement</h2>
-                        <p class="text-gray-700">Physical Screening Exercise for BSc. Candidates - 2025/2026 Academic Session</p>
-                    </div>
-                </div>
-                <a href="#announcement-details"
-                   class="px-4 py-2 font-semibold text-white bg-red-600 rounded hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50">
-                    View Details
-                </a>
-            </div>
+    <!-- Quick Info Grid -->
+    <section class="max-w-5xl mx-auto px-4 py-8 grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="bg-white rounded-xl shadow p-6 flex flex-col items-center text-center border-t-4 border-green-500">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-green-600 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l9-5-9-5-9 5 9 5zm0 0v6m-4 0h8" />
+            </svg>
+            <h3 class="font-bold text-lg mb-1">Admissions</h3>
+            <p class="text-gray-600 text-sm">Applications for Postgraduate and Degree programs are open. Check requirements and deadlines.</p>
+        </div>
+        <div class="bg-white rounded-xl shadow p-6 flex flex-col items-center text-center border-t-4 border-yellow-500">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-yellow-500 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12c0 4.97-4.03 9-9 9s-9-4.03-9-9 4.03-9 9-9 9 4.03 9 9z" />
+            </svg>
+            <h3 class="font-bold text-lg mb-1">General Updates</h3>
+            <p class="text-gray-600 text-sm">Stay tuned for important news, deadlines, and reminders. Check your portal regularly for the latest updates.</p>
+        </div>
+        <div class="bg-white rounded-xl shadow p-6 flex flex-col items-center text-center border-t-4 border-blue-500">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-blue-500 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 01-8 0M12 14v7m-4 0h8" />
+            </svg>
+            <h3 class="font-bold text-lg mb-1">Student Support</h3>
+            <p class="text-gray-600 text-sm">Need help? Contact the Directorate or use the message form below for assistance.</p>
         </div>
     </section>
 
-    <!-- Announcement Details Section -->
-    <section id="announcement-details" class="py-12 bg-white">
-        <div class="container px-6 mx-auto">
-            <div class="max-w-4xl p-8 mx-auto bg-white border border-gray-200 rounded-lg shadow-md">
-                <div class="mb-6 text-center">
-                    <h2 class="text-3xl font-bold text-green-700">PUBLIC ANNOUNCEMENT</h2>
-                    <p class="mt-2 text-lg text-gray-600">PHYSICAL SCREENING EXERCISE FOR BSc. CANDIDATES</p>
-                    <p class="mt-1 font-semibold text-gray-700">2025/2026 ACADEMIC SESSION</p>
-                </div>
-
-                <div class="mb-6">
-                    <p class="mb-4 text-gray-700">
-                        This is to inform all candidates who secured admission into Waziri Umaru Federal
-                        Polytechnic Birnin Kebbi (WUFPBK) Affiliated Degree Programmes through Unified
-                        Tertiary Matriculation Examination (UTME) and Direct Entry (D.E.) that the physical
-                        screening begins on <span class="font-bold">Monday 10th November 2025</span> at the
-                        Directorate of Higher Studies (DHS) Boardroom from
-                        <span class="font-bold">Mondays – Thursdays, 10:00am – 2:00pm daily</span>.
-                    </p>
-
-                    <p class="mb-4 font-semibold text-gray-700">
-                        Consequently, candidates are expected to come along with:
-                    </p>
-
-                    <ul class="pl-5 mb-6 space-y-2 text-gray-700 list-disc">
-                        <li>Original copies of JAMB admission letters (colored)</li>
-                        <li>Post UTME online screening form</li>
-                        <li>Evidence of payment of #10,000 ACCEPTANCE FEES</li>
-                        <li>Original O-level certificate and primary certificate</li>
-                        <li>Indigene letter, and birth certificate</li>
-                        <li>Scratch card for result verification (if the result is not original)</li>
-                    </ul>
-
-                    <div class="p-4 mb-6 bg-yellow-100 border-l-4 border-yellow-500">
-                        <p class="font-semibold text-gray-800">NOTE: The deadline for the screening exercise is <span class="text-red-600">Saturday 27th December, 2025</span>.</p>
-                    </div>
-
-                    <div class="p-4 bg-blue-50 rounded-lg">
-                        <p class="mb-2 font-semibold text-gray-800">For more information contact:</p>
-                        <div class="flex flex-wrap gap-4 text-blue-700">
-                            <span>08036235488</span>
-                            <span>07033071497</span>
-                            <span>08039273164</span>
-                            <span>08065332564</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="pt-6 mt-6 text-right border-t border-gray-200">
-                    <p class="font-semibold text-gray-700">(Signed)</p>
-                    <p class="text-lg text-gray-800">Atiku Muhammad Bello</p>
-                    <p class="text-gray-600">Registrar</p>
-                    <p class="text-sm text-gray-500">27th October, 2025</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
+    <!-- Programs Section moved to top -->
     <section id="programs" class="py-12 bg-white">
         <div class="container px-6 mx-auto text-center">
             <h2 class="text-3xl font-bold text-green-600">Our Programs</h2>
             <p class="mt-4 text-lg text-gray-600">
                 Choose the program that's right for you!
             </p>
-            <div class="mt-8 space-x-4">
-                <a href="{{ route('degree-login') }}"
-                    class="rounded-md px-3.5 py-2.5 text-sm font-semibold shadow-sm hover:bg-green-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white">Undergraduate</a>
-                <a href="{{ route('login') }}"
-                    class="rounded-md px-3.5 py-2.5 text-sm font-semibold shadow-sm hover:bg-green-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white">Postgraduate</a>
-
+            <div class="mt-10 flex flex-col md:flex-row justify-center gap-8">
+                <!-- Degree Card -->
+                <div class="flex-1 max-w-xs mx-auto bg-white rounded-xl shadow-lg border border-green-200 p-6 flex flex-col items-center hover:shadow-2xl transition-all">
+                    <div class="mb-4 text-green-600">
+                        <!-- Heroicons Academic Cap -->
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-12 h-12 mx-auto">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v2.25M19.5 10.5l-7.5 4.5-7.5-4.5m15 0v6.75a2.25 2.25 0 01-2.25 2.25h-9A2.25 2.25 0 013 17.25V10.5m16.5 0L12 6l-7.5 4.5" />
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-bold mb-2">Undergraduate (Degree)</h3>
+                    <p class="text-gray-600 mb-4">For BSc. and affiliated degree programs. Access your portal to continue your application or check your status.</p>
+                    <a href="{{ route('degree-login') }}" class="w-full inline-block rounded-md px-4 py-2.5 text-base font-semibold text-white bg-green-600 shadow-md hover:bg-green-700 transition">Degree Login</a>
+                </div>
+                <!-- Postgraduate Card -->
+                <div class="flex-1 max-w-xs mx-auto bg-white rounded-xl shadow-lg border border-teal-200 p-6 flex flex-col items-center hover:shadow-2xl transition-all relative">
+                    <div class="absolute -top-4 right-4 animate-pulse">
+                        <span class="inline-block bg-red-600 text-white text-xs font-bold px-3 py-1 rounded-full shadow">Admission Open!</span>
+                    </div>
+                    <div class="mb-4 text-teal-600">
+                        <!-- Heroicons Document Text -->
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-12 h-12 mx-auto">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-6.75A2.25 2.25 0 0017.25 5.25h-10.5A2.25 2.25 0 004.5 7.5v9A2.25 2.25 0 006.75 18h10.5A2.25 2.25 0 0019.5 15.75v-1.5m-6-6.75v6.75m0 0l-2.25-2.25m2.25 2.25l2.25-2.25" />
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-bold mb-2">Postgraduate (PG)</h3>
+                    <p class="text-gray-600 mb-4">Apply for or access your Postgraduate (PG) program. New admissions are currently ongoing!</p>
+                    <a href="{{ route('login') }}" class="w-full inline-block rounded-md px-4 py-2.5 text-base font-semibold text-white bg-teal-600 shadow-md hover:bg-teal-700 transition">PG Login</a>
+                </div>
             </div>
         </div>
-    </section>
 
     <section id="contact-us" class="px-20 py-16 text-white bg-gradient-to-r from-green-600 via-teal-400 to-green-600">
         <div class="container px-6 mx-auto">
@@ -202,7 +178,7 @@
 
     <footer class="py-6 text-white bg-gray-800">
         <div class="container px-6 mx-auto text-center">
-            <p>&copy; 2025 Directorate of Higher Studies, Waziri Umaru Federal Polytechnic Birnin Kebbi. All rights reserved.</p>
+            <p>&copy; {{ date('Y') }} Directorate of Higher Studies, Waziri Umaru Federal Polytechnic Birnin Kebbi. All rights reserved.</p>
         </div>
     </footer>
 
