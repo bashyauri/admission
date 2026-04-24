@@ -53,15 +53,23 @@ class TransactionService
     }
     public static function convertJsonToArray(string $response = '', bool $assoc = false): object
     {
-        if ($response === '' || $response === null) {
+        if (empty($response) || !is_string($response) || strlen($response) === 0) {
+            return (object)[];
+        }
+        $response = trim($response);
+        if ($response === '' || !isset($response[0])) {
             return (object)[];
         }
         if ($response[0] !== '[' && $response[0] !== '{') { // we have JSONP
-            $response = substr($response, strpos($response, '('));
+            $start = strpos($response, '(');
+            if ($start === false) {
+                return (object)[];
+            }
+            $response = substr($response, $start);
             $decoded = json_decode(trim($response, '();'), $assoc);
             return $decoded === null ? (object)[] : $decoded;
         }
-        $decoded = json_decode(trim($response));
+        $decoded = json_decode($response, $assoc);
         return $decoded === null ? (object)[] : $decoded;
     }
     public function createPayment($data)
