@@ -89,7 +89,7 @@ class Olevel extends Component
         $this->editingOlevelExamId = $examId;
         $exam = OlevelExam::findOrFail($examId);
         $this->form->examName = $exam->exam_name;
-        $this->form->examNumber = $exam->exam_name;
+        $this->form->examNumber = $exam->exam_number;
         $this->form->examYear = $exam->exam_year;
     }
     public function update()

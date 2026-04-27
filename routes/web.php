@@ -5,6 +5,7 @@ declare(strict_types=1);
 use Illuminate\Http\Request;
 use App\Http\Livewire\Auth\Login;
 use App\Http\Livewire\Auth\Logout;
+use App\Http\Controllers\ContactController;
 // use App\Http\Livewire\Pages\Charts;
 use App\Http\Controllers\PrintForm;
 use Illuminate\Support\Facades\Log;
@@ -135,6 +136,8 @@ Route::get('/', action: function () {
 })->name('home');
 
 Route::middleware('guest')->group(function () {
+    // Contact form route
+    Route::post('/contact', [ContactController::class, 'send'])->name('contact.send');
 
     Route::get('sign-up', Register::class)->name('register');
     Route::get('degree-signup', DegreeRegister::class)->name('degree-register');

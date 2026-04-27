@@ -80,7 +80,7 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 01-8 0M12 14v7m-4 0h8" />
             </svg>
             <h3 class="font-bold text-lg mb-1">Student Support</h3>
-            <p class="text-gray-600 text-sm">Need help? Contact the Directorate or use the message form below for assistance.</p>
+            <p class="text-gray-600 text-sm">Need help? Contact the Directorate or <a href="#contact-us" class="text-green-700 underline">use the contact form</a> below for assistance.</p>
         </div>
     </section>
 
@@ -154,7 +154,18 @@
 
                 <div class="p-6 bg-white rounded-lg shadow-lg text-gray-800">
                     <h3 class="mb-4 text-2xl font-bold text-center">Send us a Message</h3>
-                    <form class="space-y-4">
+                    @if(session('success'))
+                        <div class="mb-4 p-3 rounded bg-green-100 text-green-800 border border-green-300">
+                            {{ session('success') }}
+                        </div>
+                    @endif
+                    @if($errors->any())
+                        <div class="mb-4 p-3 rounded bg-red-100 text-red-800 border border-red-300">
+                            {{ $errors->first() }}
+                        </div>
+                    @endif
+                    <form class="space-y-4" method="POST" action="{{ route('contact.send') }}">
+                        @csrf
                         <div>
                             <label for="name" class="block text-sm font-medium text-gray-700">Full Name</label>
                             <input type="text" id="name" name="name" class="block w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500">
