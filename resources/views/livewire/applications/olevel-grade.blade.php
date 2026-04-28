@@ -63,11 +63,11 @@
                         <div class="flex justify-end gap-3">
                             <button type="button"
                                     onclick="closeModal()"
-                                    class="px-6 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">
+                                    class="px-6 py-2.5 text-sm font-medium text-white bg-red-500 border border-gray-300 rounded-lg hover:bg-red-50">
                                 Cancel
                             </button>
                             <button type="submit"
-                                    class="px-8 py-2.5 text-sm font-bold text-white bg-gradient-to-r from-purple-600 to-pink-500 rounded-lg hover:scale-105 transition-all">
+                                    class="px-8 py-2.5 text-sm font-bold text-white bg-lime-500 rounded-lg hover:scale-105 transition-all">
                                 Add Grade
                             </button>
                         </div>
