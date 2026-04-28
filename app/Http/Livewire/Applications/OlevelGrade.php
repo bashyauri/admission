@@ -32,52 +32,42 @@ class OlevelGrade extends Component
             to_route('olevel')->with('info', 'Please Select Olevel');
         }
     }
-    public function save()
-    {
+ public function save()
+{
+    try {
+        $this->form->store();
 
-        try {
+        $this->alert('success', 'Saved Successfully', [
+            'position' => 'center',
+            'timer' => 1200,
+            'toast' => true,
+        ]);
 
-            $this->form->store();
-            $this->alert('success', 'Saved Successfully', [
-                'position' => 'center',
-                'timer' => 1000,
-                'toast' => true,
-            ]);
-            $this->dispatch('modalClosed');
-            $this->emitSelf('refreshComponent');
-            // return to_route('olevel-grade');
-        } catch (ValidationException $e) {
+        // Reset the form
+        $this->form->reset();
 
-            // Display validation errors
-            $errorMessages = implode(' ', $e->validator->errors()->all());
+        // Close modal
+        $this->dispatch('close-modal');
 
-            $this->alert('error', "$errorMessages", [
-                'position' => 'center',
-                'timer' => 3000,
-                'toast' => true,
-                'showConfirmButton' => true,
-                'onConfirmed' => 'confirmed'
+        // Refresh the table
+        $this->dispatch('$refresh');
 
-            ]);
-
-
-
-            // Set validation errors in Livewire's error bag
-            $this->setErrorBag($e->validator->errors());
-
-            $this->redirect(route('olevel-grade'));
-        } catch (\Exception $e) {
-            report($e);
-            $this->alert('error', 'Save failed.', [
-                'position' => 'center',
-                'timer' => 3000,
-                'toast' => true,
-            ]);
-
-            return to_route('olevel-grade');
-        }
-        $this->showForm = false;
+    } catch (ValidationException $e) {
+        $this->alert('error', implode('<br>', $e->validator->errors()->all()), [
+            'position' => 'center',
+            'timer' => 4000,
+            'toast' => true,
+        ]);
+        $this->setErrorBag($e->validator->errors());
+    } catch (\Exception $e) {
+        report($e);
+        $this->alert('error', 'Save failed. Please try again.', [
+            'position' => 'center',
+            'timer' => 3000,
+            'toast' => true,
+        ]);
     }
+}
     public function confirmed()
     {
 

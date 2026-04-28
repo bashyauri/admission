@@ -1,100 +1,119 @@
 <div class="w-full max-w-full px-3 lg:flex-0 shrink-0">
     <div class="relative flex flex-col w-full min-w-0 mb-0 break-words bg-white border-0 border-transparent border-solid shadow-soft-xl rounded-2xl bg-clip-border">
-        <div class="p-6 pb-0 mb-0 mb-12 bg-white rounded-t-2xl">
+
+        <div class="p-6 pb-0 mb-12 bg-white rounded-t-2xl">
             <h6>Subject Grade</h6>
             <div class="flex justify-end mt-4">
-              <button type="button" data-toggle="modal" data-target="#add-subject-grade" class="inline-block px-8 py-2 text-xs font-bold text-center text-teal-500 uppercase align-middle transition-all border border-teal-500 border-solid rounded-lg shadow-none cursor-pointer active:opacity-85 leading-pro ease-soft-in tracking-tight-soft bg-150 bg-x-25 hover:scale-102 active:shadow-soft-xs hover:text-teal-900 hover:opacity-75 hover:shadow-none active:scale-100 active:border-fuchsia-500 active:bg-fuchsia-500 active:text-white hover:active:border-fuchsia-500 hover:active:bg-transparent hover:active:text-fuchsia-500 hover:active:opacity-75">
-                Add Grades
-              </button>
+                <button type="button"
+                        onclick="openModal()"
+                        class="inline-block px-8 py-2 text-xs font-bold text-center text-teal-500 uppercase align-middle transition-all border border-teal-500 border-solid rounded-lg shadow-none cursor-pointer active:opacity-85 leading-pro ease-soft-in tracking-tight-soft bg-150 bg-x-25 hover:scale-102 hover:text-teal-900 hover:opacity-75">
+                    Add Grades
+                </button>
             </div>
         </div>
 
+        <!-- Modal -->
+        <div class="fixed inset-0 hidden items-center justify-center z-50" id="add-subject-grade" style="display: none;">
+            <div class="relative w-full max-w-md mx-4 bg-white dark:bg-gray-950 rounded-2xl shadow-xl">
 
-
-        <div class="fixed top-0 left-0 hidden w-full h-full overflow-x-hidden overflow-y-auto transition-opacity ease-linear opacity-0 z-sticky outline-0" id="add-subject-grade" aria-hidden="true">
-            <div class="relative w-auto m-2 transition-transform duration-300 pointer-events-none sm:m-7 sm:max-w-125 sm:mx-auto lg:mt-48 ease-soft-out -translate-y-13">
-                <div class="relative flex flex-col w-full bg-white border border-solid pointer-events-auto dark:bg-gray-950 bg-clip-padding border-black/20 rounded-xl outline-0">
-                <div class="flex items-center justify-between p-4 border-b border-solid shrink-0 border-slate-100 rounded-t-xl">
-                    <h5 class="mb-0 leading-normal dark:text-white" id="ModalLabel">O'level Grade</h5>
-
-                    <button type="button" data-toggle="modal" data-target="#add-subject-grade" class="fa fa-close w-4 h-4 ml-auto box-content p-2 text-black dark:text-white border-0 rounded-1.5 opacity-50 cursor-pointer -m-2 " data-dismiss="modal"></button>
+                <!-- Modal Header -->
+                <div class="flex items-center justify-between p-5 border-b">
+                    <h5 class="mb-0 text-lg font-semibold dark:text-white">O'level Grade</h5>
+                    <button type="button"
+                            onclick="closeModal()"
+                            class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 text-2xl leading-none">
+                        ×
+                    </button>
                 </div>
-                <div class="relative flex-auto p-4">
+
+                <!-- Modal Body -->
+                <div class="p-6">
                     <form wire:submit="save">
 
-                    <select wire:model="form.examName"
-                            class="mb-4 focus:shadow-soft-primary-outline dark:bg-gray-950 dark:placeholder:text-white/80 dark:text-white/80 text-size-sm leading-5.6 ease-soft block w-full appearance-none rounded-lg border border-solid border-gray-300 bg-white bg-clip-padding px-3 py-2 font-normal text-gray-700 outline-none transition-all placeholder:text-gray-500 focus:border-fuchsia-300 focus:outline-none"
-                             >
-                             <option value="">Select Exam</option>
+                        <select wire:model="form.examName"
+                                class="mb-4 block w-full rounded-lg border border-gray-300 px-4 py-3 focus:border-fuchsia-300 focus:outline-none dark:bg-gray-900 dark:text-white">
+                            <option value="">Select Exam</option>
                             @forelse ($this->exams as $exam)
-
-                                <option value="{{strtolower($exam->exam_name.':'.$exam->exam_number)}}">{{ucfirst($exam->exam_name).'/'.$exam->exam_number}}</option>
-
+                                <option value="{{ strtolower($exam->exam_name . ':' . $exam->exam_number) }}">
+                                    {{ ucfirst($exam->exam_name) }} / {{ $exam->exam_number }}
+                                </option>
                             @empty
-                                No records found
+                                <option>No exams found</option>
                             @endforelse
+                        </select>
 
+                        <select wire:model="form.subjectName"
+                                class="mb-4 block w-full rounded-lg border border-gray-300 px-4 py-3 focus:border-fuchsia-300 focus:outline-none dark:bg-gray-900 dark:text-white">
+                            <option value="">Select Subject</option>
+                            @forelse ($this->subjects as $subject)
+                                <option value="{{ strtolower($subject->name) }}">{{ $subject->name }}</option>
+                            @empty
+                                <option>No subjects found</option>
+                            @endforelse
+                        </select>
 
-                    </select>
-                    <select wire:model="form.subjectName"
-                    class="mb-4 focus:shadow-soft-primary-outline dark:bg-gray-950 dark:placeholder:text-white/80 dark:text-white/80 text-size-sm leading-5.6 ease-soft block w-full appearance-none rounded-lg border border-solid border-gray-300 bg-white bg-clip-padding px-3 py-2 font-normal text-gray-700 outline-none transition-all placeholder:text-gray-500 focus:border-fuchsia-300 focus:outline-none"
-                     >
-                     <option value="">Select Subject</option>
-                    @forelse ($this->subjects as $subject)
+                        <select wire:model="form.grade"
+                                class="mb-6 block w-full rounded-lg border border-gray-300 px-4 py-3 focus:border-fuchsia-300 focus:outline-none dark:bg-gray-900 dark:text-white">
+                            <option value="">Select Grade</option>
+                            @foreach ($this->grades as $grade)
+                                <option value="{{ strtolower($grade->name) }}">{{ ucfirst($grade->name) }}</option>
+                            @endforeach
+                        </select>
 
-                        <option value="{{strtolower($subject->name)}}">{{$subject->name}}</option>
-
-                    @empty
-                        No records found
-                    @endforelse
-
-
-            </select>
-            <select wire:model="form.grade"
-            class="mb-4 focus:shadow-soft-primary-outline dark:bg-gray-950 dark:placeholder:text-white/80 dark:text-white/80 text-size-sm leading-5.6 ease-soft block w-full appearance-none rounded-lg border border-solid border-gray-300 bg-white bg-clip-padding px-3 py-2 font-normal text-gray-700 outline-none transition-all placeholder:text-gray-500 focus:border-fuchsia-300 focus:outline-none">
-            <option value="">Select Grade</option>
-            @foreach ($this->grades as $grade)
-            <option value="{{strtolower($grade->name)}}">{{ucfirst($grade->name)}}</option>
-            @endforeach
-
-    </select>
-
-
-                </div>
-                <div class="flex flex-wrap items-center justify-end p-3 border-t border-solid shrink-0 border-slate-100 rounded-b-xl">
-                    <button type="button" data-toggle="modal" data-target="#add-subject-grade" class="inline-block px-8 py-2 m-1 mb-4 text-xs font-bold text-center text-white uppercase align-middle transition-all border-0 rounded-lg cursor-pointer ease-soft-in leading-pro tracking-tight-soft bg-gradient-to-tl from-slate-600 to-slate-300 shadow-soft-md bg-150 bg-x-25 hover:scale-102 active:opacity-85">Close</button>
-                    <button type="submit"  class="inline-block px-8 py-2 m-1 mb-4 text-xs font-bold text-center text-white uppercase align-middle transition-all border-0 rounded-lg cursor-pointer ease-soft-in leading-pro tracking-tight-soft bg-gradient-to-tl from-purple-700 to-pink-500 shadow-soft-md bg-150 bg-x-25 hover:scale-102 active:opacity-85">Add</button>
-                </div>
-                </form>
+                        <div class="flex justify-end gap-3">
+                            <button type="button"
+                                    onclick="closeModal()"
+                                    class="px-6 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">
+                                Cancel
+                            </button>
+                            <button type="submit"
+                                    class="px-8 py-2.5 text-sm font-bold text-white bg-gradient-to-r from-purple-600 to-pink-500 rounded-lg hover:scale-105 transition-all">
+                                Add Grade
+                            </button>
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>
 
+        <!-- Backdrop -->
+        <div class="fixed inset-0 bg-black/50 hidden z-40" id="modal-backdrop" style="display: none;"></div>
 
-                @include('livewire.applications.includes.olevel-grade-table')
+        @include('livewire.applications.includes.olevel-grade-table')
 
-
-                <div class="flex flex-wrap -mx-3">
-                    <div class="flex-auto p-6 pt-0">
-                        <a href ="{{route('upload-certificate')}}"
-                            class="inline-block float-right px-8 py-2 mt-16 mb-0 font-bold text-right text-white uppercase align-middle transition-all border-0 rounded-lg cursor-pointer hover:scale-102 active:opacity-85 hover:shadow-soft-xs dark:bg-gradient-neutral bg-gradient-dark-gray leading-pro text-size-xs ease-soft-in tracking-tight-soft shadow-soft-md bg-150 bg-x-25">Next</a>
-                    </div>
-                </div>
-    </div>
+        <div class="flex flex-wrap -mx-3">
+            <div class="flex-auto p-6 pt-0">
+                <a href="{{ route('upload-certificate') }}"
+                   class="inline-block float-right px-8 py-2 mt-16 font-bold text-white uppercase bg-gradient-to-r from-slate-700 to-slate-900 rounded-lg hover:scale-105 transition-all">
+                    Next
+                </a>
+            </div>
         </div>
-      </div>
-
-
-
-
+    </div>
+</div>
 
 @push('js')
-<script src="{{ asset('assets') }}/js/plugins/choices.min.js"></script>
-<script src="{{ asset('assets') }}/js/plugins/flatpickr.min.js"></script>
 <script>
-    Livewire.on('refreshComponent', () => {
-        Livewire.emit('$refresh'); // Trigger refresh
+    function openModal() {
+        document.getElementById('add-subject-grade').style.display = 'flex';
+        document.getElementById('modal-backdrop').style.display = 'block';
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeModal() {
+        document.getElementById('add-subject-grade').style.display = 'none';
+        document.getElementById('modal-backdrop').style.display = 'none';
+        document.body.style.overflow = '';
+    }
+
+    // Close modal when Livewire successfully saves
+    Livewire.on('close-modal', () => {
+        closeModal();
+    });
+
+    // Optional: Close modal when clicking on backdrop
+    document.getElementById('modal-backdrop').addEventListener('click', function() {
+        closeModal();
     });
 </script>
 @endpush
-
