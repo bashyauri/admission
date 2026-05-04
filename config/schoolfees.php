@@ -87,7 +87,7 @@ return [
     ],
     'installments' => [
         'first' => 70,
-        // 'second' => 30,
+         'second' => 30,
 
     ],
 
