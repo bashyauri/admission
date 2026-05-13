@@ -3,9 +3,12 @@
 declare(strict_types=1);
 
 use App\Http\Livewire\Admin\Settings;
+use App\Http\Livewire\Admin\FubkReport;
 use App\Http\Livewire\Admin\ManageCourseDrops;
 use Illuminate\Support\Facades\Route;
 use App\Http\Livewire\Cit\AddMatricNo;
+use App\Http\Controllers\Admin\FubkReportExportController;
+use App\Http\Controllers\Admin\FubkReportPdfJobController;
 use App\Http\Livewire\Admin\NotPaidSchoolFeesList;
 use App\Http\Livewire\Admin\PaidSchoolFeesList;
 use App\Http\Livewire\Cit\FirstSchoolFees;
@@ -24,6 +27,11 @@ use App\Http\Livewire\Admin\Applicants\Utme\ShortlistedApplicants as UtmeShortli
 use App\Http\Livewire\Admin\ManagePostgraduateApplicants;
 
 Route::get('dashboard', AdminIndex::class)->name('dashboard');
+Route::get('fubk', FubkReport::class)->name('fubk');
+Route::get('fubk/export', FubkReportExportController::class)->name('fubk.export');
+Route::get('fubk/pdf/queue', [FubkReportPdfJobController::class, 'queue'])->name('fubk.pdf.queue');
+Route::get('fubk/pdf/status/{token}', [FubkReportPdfJobController::class, 'status'])->name('fubk.pdf.status');
+Route::get('fubk/pdf/download/{token}', [FubkReportPdfJobController::class, 'download'])->name('fubk.pdf.download');
 Route::get('manage-course-drops', ManageCourseDrops::class)->name('manage-course-drops');
 Route::get('settings', Settings::class)->name('settings');
 Route::get('all-applicants', AllApplicants::class)->name('all-applicants');
