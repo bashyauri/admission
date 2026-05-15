@@ -24,6 +24,7 @@ class ApplicantEdit extends Component
         DB::transaction(function () use ($sms) {
             $this->toggleStatus();
             $sms->shortListSMS($this->user);
+            $this->notifyUser();
 
 
             $this->alert('success', 'Updated Successfully', [
