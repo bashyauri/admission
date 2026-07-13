@@ -51,6 +51,39 @@ $parts = explode(' ', $result->name);
                 readonly>
 
         </div>
+        <!-- Phone Number -->
+        <div>
+            <label for="nin" class="block text-sm font-medium text-gray-700">NIN</label>
+           <input
+    type="text"
+    wire:model.live="nin"
+    maxlength="11"
+    inputmode="numeric"
+    {{-- autocomplete="off" --}}
+    placeholder="Enter your 11-digit NIN"
+    class="block w-full px-3 py-2 mt-1 text-sm italic text-gray-600 bg-gray-100 border border-gray-300 rounded-md shadow-sm  focus:ring-indigo-500 focus:border-indigo-500"
+>
+
+@if(strlen($nin))
+    @if(strlen($nin) == 11)
+        <p class="mt-1 text-xs text-green-600">
+            ✓ 11 digits entered.
+        </p>
+    @else
+        <p class="mt-1 text-xs text-amber-600">
+            NIN must contain exactly 11 digits.
+        </p>
+    @endif
+@endif
+
+<p class="mt-2 text-xs text-gray-500">
+    Your NIN will be verified during the admission screening process.
+</p>
+
+@error('nin')
+    <span class="text-xs text-red-600">{{ $message }}</span>
+@enderror
+        </div>
 
         <!-- Phone Number -->
         <div>

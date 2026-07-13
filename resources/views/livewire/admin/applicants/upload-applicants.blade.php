@@ -1,3 +1,5 @@
+@use('App\Services\AcademicSessionService')
+@use('Illuminate\Support\Facades\Auth')
 <div>
  <div class="flex flex-wrap -mx-3">
         <div class="w-full max-w-full px-3 shrink-0 sm:flex-0 sm:w-4/12">
@@ -17,7 +19,7 @@
                         <div class="w-5/12 max-w-full px-3 flex-0">
                             <div class="relative text-right">
                                 <a href="javascript:;" class="cursor-pointer" dropdown-trigger aria-expanded="false">
-                                    <span class="leading-tight text-size-xs text-slate-400">{{config('remita.settings.academic_session')}}</span>
+                                    <span class="leading-tight text-size-xs text-slate-400">{{app(AcademicSessionService::class)->getAcademicSession(Auth::user())}}</span>
                                 </a>
                                 <p class="hidden transform-dropdown-show"></p>
                                 <ul dropdown-menu

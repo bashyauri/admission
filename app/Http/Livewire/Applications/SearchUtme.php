@@ -2,73 +2,161 @@
 
 namespace App\Http\Livewire\Applications;
 
-use Livewire\Component;
 use App\Models\PostUtmeUpload;
-use App\Livewire\Forms\ProfileUpdateForm;
+use Illuminate\Validation\Rule;
 use Jantinnerezo\LivewireAlert\LivewireAlert;
-use Illuminate\Validation\ValidationException;
+use Livewire\Component;
 
 class SearchUtme extends Component
 {
     use LivewireAlert;
 
-    public string $jambNumber;
-    public string $phoneNumber;
-    public $result = null;
-    public bool $showResult;
+    public string $jambNumber = '';
+    public string $phoneNumber = '';
+    public string $nin = '';
 
+    public ?PostUtmeUpload $result = null;
 
+    public bool $showResult = false;
+
+    /**
+     * Validation rules.
+     */
+    protected function rules(): array
+    {
+        return [
+            'jambNumber' => [
+                'required',
+                'string',
+            ],
+
+            'phoneNumber' => [
+                'required',
+                'string',
+                Rule::unique('users', 'phone')
+                    ->ignore(auth()->id()),
+            ],
+
+            'nin' => [
+                'required',
+                'digits:11',
+                Rule::unique('users', 'nin')
+                    ->ignore(auth()->id()),
+            ],
+        ];
+    }
+
+    /**
+     * Custom validation messages.
+     */
+    protected function messages(): array
+    {
+        return [
+            'nin.required' => 'Please enter your NIN.',
+            'nin.digits' => 'NIN must be exactly 11 digits.',
+
+            'phoneNumber.required' => 'Please enter your phone number.',
+            'phoneNumber.unique' => 'This phone number is already in use.',
+
+            'jambNumber.required' => 'Enter your JAMB registration number.',
+        ];
+    }
+
+    /**
+     * Remove every non-digit from NIN.
+     */
+    public function updatedNin($value): void
+    {
+        $this->nin = preg_replace('/\D/', '', $value);
+
+        $this->validateOnly('nin');
+    }
+
+    /**
+     * Validate phone as user types.
+     */
+    public function updatedPhoneNumber(): void
+    {
+        $this->validateOnly('phoneNumber');
+    }
+
+    /**
+     * Search for JAMB record.
+     */
     public function search(): void
     {
-        $this->validate(rules: [
-            'jambNumber' => 'required|string',
-        ]);
+        $this->validateOnly('jambNumber');
 
+        $this->result = PostUtmeUpload::where(
+            'jamb_no',
+            trim($this->jambNumber)
+        )->first();
 
-        $this->result = PostUtmeUpload::where('jamb_no', $this->jambNumber)->first();
-        $this->showResult = true;
+        if (!$this->result) {
 
-        // $this->reset('jambNumber');
-    }
-    public function updateProfile()
-    {
+            $this->showResult = false;
 
-        $parts = explode(' ', $this->result->name);
-
-
-        [$surname, $firstname, $middlename] = array_pad($parts, 3, null);
-        $this->validate(rules: [
-            'phoneNumber' => 'required|string|unique:users,phone',
-        ]);
-
-        try {
-            auth()->user()->update(
-                attributes: [
-                    'jamb_no' => $this->result->jamb_no,
-                    'surname' => $surname,
-                    'firstname' => $firstname,
-                    'm_name' => $middlename,
-                    'phone' => $this->phoneNumber
-                ]
-
-            );
-
-            $this->alert('success', 'Profile Updated', [
-                'position' => 'center',
-                'timer' => 2000,
+            $this->alert('error', 'No record found for the supplied JAMB Number.', [
                 'toast' => true,
+                'position' => 'center',
             ]);
 
-            return to_route('postutmescreening-invoice');
-        } catch (\Exception $e) {
-            report($e);
-            $this->alert('error', 'Save failed.', [
-                'position' => 'center',
-                'timer' => 3000,
+            return;
+        }
+
+        $this->showResult = true;
+    }
+
+    /**
+     * Save profile.
+     */
+    public function updateProfile()
+    {
+        if (!$this->result) {
+
+            $this->alert('error', 'Please search for your JAMB record first.');
+
+            return;
+        }
+
+        $this->validate();
+
+        $parts = preg_split('/\s+/', trim($this->result->name));
+
+        [$surname, $firstname, $middlename] = array_pad($parts, 3, null);
+
+        try {
+
+            auth()->user()->update([
+
+                'jamb_no'   => $this->result->jamb_no,
+                'surname'   => $surname,
+                'firstname' => $firstname,
+                'm_name'    => $middlename,
+                'phone'     => $this->phoneNumber,
+                'nin'       => $this->nin,
+
+            ]);
+
+            $this->alert('success', 'Profile updated successfully.', [
                 'toast' => true,
+                'position' => 'center',
+                'timer' => 2000,
+            ]);
+
+            return redirect()->route('postutmescreening-invoice');
+
+        } catch (\Throwable $e) {
+
+            report($e);
+
+            $this->alert('error', 'Unable to update your profile. Please try again.', [
+                'toast' => true,
+                'position' => 'center',
             ]);
         }
     }
+
     public function render()
     {
         return view('livewire.applications.search-utme');
