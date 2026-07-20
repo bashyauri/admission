@@ -147,7 +147,7 @@ Route::middleware('guest')->group(function () {
     Route::get('reset-password/{id}', ResetPassword::class)->name('reset-password')->middleware('signed');
 });
 Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])
-    ->name('verify-logout')
+    ->name('logout')
     ->middleware('auth');
 
 Route::middleware(['auth', 'verified', 'role:applicant'])->group(function () {
@@ -176,9 +176,6 @@ Route::middleware(['auth', 'verified', 'role:applicant'])->group(function () {
     // Route::get('laravel-examples/items', ItemsIndex::class)->name('item-management');
     // Route::get('laravel-examples/items/{id}', ItemsEdit::class)->name('edit-item');
     // Route::get('laravel-examples/new-item', ItemsCreate::class)->name('add-item');
-    Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])->name('logout');
-
-
     // Dashboards
 
     Route::get('dashboard/analytics', Index::class)->name('analytics');
