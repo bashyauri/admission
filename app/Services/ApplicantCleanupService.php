@@ -35,6 +35,34 @@ class ApplicantCleanupService
     }
 
     /**
+     * Get all degree applicants for a selected academic session.
+     */
+    public function getDegreeApplicants(?string $academicSession = null): Collection
+    {
+        if (blank($academicSession)) {
+            return new Collection();
+        }
+
+        return User::where('role', Role::APPLICANT->value)
+            ->where('programme_id', ProgrammesEnum::Undergraduate->value)
+            ->whereHas('proposedCourse', function ($proposedCourseQuery) use ($academicSession) {
+                $proposedCourseQuery->where('academic_session', $academicSession);
+            })
+            ->with([
+                'proposedCourse',
+                'academicDetail',
+                'transactions',
+                'studentTransactions',
+                'olevelExams',
+                'olevelsubjectGrades',
+                'certificateUploads',
+                'schools',
+                'postUtmeUpload',
+            ])
+            ->get();
+    }
+
+    /**
      * Get preview of what will be deleted
      */
     public function getDeletionPreview(array $userIds): array
@@ -234,7 +262,7 @@ class ApplicantCleanupService
                 $user->email,
                 $user->jamb_no,
                 $user->phone,
-                'Postgraduate',
+                $user->isUndergraduate() ? 'Degree' : 'Postgraduate',
                 $user->created_at,
                 $user->proposedCourse ? 1 : 0,
                 $user->academicDetail ? 1 : 0,
