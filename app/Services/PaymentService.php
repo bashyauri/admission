@@ -201,34 +201,39 @@ class PaymentService
     }
     public function getSchoolFeesCustomFields($userId): array
     {
+        $user = User::with(['academicDetail.department', 'proposedCourse.course', 'proposedCourse.department'])->find($userId);
 
-        $user = User::find($userId);
-        return
+        // Prefer academicDetail (enrolled students), fall back to proposedCourse (applicants/PG)
+        $courseName = $user?->academicDetail?->course?->name
+            ?? $user?->proposedCourse?->course?->name
+            ?? 'N/A';
+
+        $departmentName = $user?->academicDetail?->department?->name
+            ?? $user?->proposedCourse?->department?->name
+            ?? 'N/A';
+
+        return [
             [
-                [
-                    "name" => "Academic Session",
-                    "value" => app(AcademicSessionService::class)->getAcademicSession(Auth::user()),
-                    "type" => "ALL",
-                ],
-                [
-                    "name" => "Course",
-                    "value" => $user->proposedCourse->course->name,
-                    "type" => "ALL",
-                ],
-                [
-                    "name" => "Department",
-                    "value" => $user->proposedCourse->department->name,
-                    "type" => "ALL",
-                ],
-                [
-                    "name" => "Payment",
-                    "value" => $this->getSchoolFeesResource(),
-                    "type" => "ALL",
-                ],
-
-
-
-            ];
+                "name" => "Academic Session",
+                "value" => app(AcademicSessionService::class)->getAcademicSession(Auth::user()),
+                "type" => "ALL",
+            ],
+            [
+                "name" => "Course",
+                "value" => $courseName,
+                "type" => "ALL",
+            ],
+            [
+                "name" => "Department",
+                "value" => $departmentName,
+                "type" => "ALL",
+            ],
+            [
+                "name" => "Payment",
+                "value" => $this->getSchoolFeesResource(),
+                "type" => "ALL",
+            ],
+        ];
     }
     public function getStudentPayments(string $studentId): Collection
     {

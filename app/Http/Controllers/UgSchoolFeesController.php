@@ -82,8 +82,14 @@ class UgSchoolFeesController extends Controller
     //         return redirect()->back()->with('error', 'Something went wrong: Try again later');
     //     }
     // }
-    public function checkTransactionStatus($rrr, TransactionService $service)
+    public function checkTransactionStatus($rrr = null, TransactionService $service)
     {
+        $rrr = $rrr ?? request()->query('RRR') ?? request()->query('rrr');
+
+        if (!$rrr) {
+            return redirect()->back()->with('error', 'Invalid Transaction Reference');
+        }
+
         try {
             // 1️⃣ Try to find in StudentTransaction
             $studentTransaction = StudentTransaction::where('RRR', $rrr)->first();
@@ -100,12 +106,23 @@ class UgSchoolFeesController extends Controller
             // 3️⃣ Get transaction status from service
             $response = $service->getTransactionStatus($rrr);
 
+            if (in_array($response->status, [\App\Enums\TransactionStatus::APPROVED->value, \App\Enums\TransactionStatus::ACTIVATED->value])) {
+                if (isset($response->amount) && $response->amount >= $studentTransaction->amount) {
+                    $this->paymentService->updateTransactionStatus(\App\Enums\TransactionStatus::APPROVED->value, $response->rrr);
+                    return to_route('cit.payment', ['studenttransaction' => $studentTransaction])->with('success', 'Payment successful!');
+                } else {
+                    $this->paymentService->updateTransactionStatus('PARTIAL_PAYMENT', $response->rrr);
+                    Log::alert("Underpayment detected for RRR: {$rrr}. Expected: {$studentTransaction->amount}, Paid: " . ($response->amount ?? 0));
+                    return to_route('cit.payment', ['studenttransaction' => $studentTransaction])->with('error', 'Incomplete payment amount detected.');
+                }
+            }
+
             // 4️⃣ Update status
             $this->paymentService->updateTransactionStatus($response->status, $response->rrr);
 
             // 5️⃣ Redirect to appropriate page (admin example)
             return to_route('cit.payment', ['studenttransaction' => $studentTransaction])
-                ->with('info', $response->message);
+                ->with('info', $response->message ?? 'Transaction pending or failed.');
         } catch (\Exception $ex) {
             Log::error('Transaction check failed: ' . $ex->getMessage());
             return redirect()->back()->with('error', 'Something went wrong: Try again later.');

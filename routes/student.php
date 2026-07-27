@@ -42,5 +42,5 @@ Route::get('applications/profile', Profile::class)->name('profile');
 // Normal Controller
 Route::post('/transactions/generate-invoice', [SchoolFeesTransactionController::class, 'generateInvoice'])->name('invoice');
 Route::get('/transactions/generate-invoice/{studenttransaction}', [SchoolFeesTransactionController::class, 'index'])->name('payment');
-Route::get('/payment/status/{rrr}', [SchoolFeesTransactionController::class, 'checkTransactionStatus'])->name('payment.status');
-Route::get('/payment/ug/status/{rrr}', [UgSchoolFeesController::class, 'checkTransactionStatus'])->name('ug-payment-status');
+Route::get('/payment/status/{rrr?}', [SchoolFeesTransactionController::class, 'checkTransactionStatus'])->name('payment.status');
+Route::get('/payment/ug/status/{rrr?}', [UgSchoolFeesController::class, 'checkTransactionStatus'])->name('ug-payment-status');

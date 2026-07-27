@@ -55,8 +55,14 @@ class SchoolFeesTransactionController extends Controller
             return redirect()->back()->with('error', 'Something went wrong:');
         }
     }
-    public function checkTransactionStatus($rrr)
+    public function checkTransactionStatus($rrr = null)
     {
+        $rrr = $rrr ?? request()->query('RRR') ?? request()->query('rrr');
+
+        if (!$rrr) {
+            return redirect()->back()->with('error', 'Invalid Transaction Reference');
+        }
+
         try {
 
             $studentTransaction = StudentTransaction::where('RRR', $rrr)->first();
@@ -72,12 +78,22 @@ class SchoolFeesTransactionController extends Controller
             $isPostgraduate = $studentTransaction->load('user')->user->isPostgraduate();
             $service = $isPostgraduate ? $this->transactionService : $this->paymentService;
 
+            if (in_array($response->status, [\App\Enums\TransactionStatus::APPROVED->value, \App\Enums\TransactionStatus::ACTIVATED->value])) {
+                if (isset($response->amount) && $response->amount >= $studentTransaction->amount) {
+                    $service->updateTransactionStatus(\App\Enums\TransactionStatus::APPROVED->value, $response->rrr);
+                    return to_route('student.payment', ['studenttransaction' => $studentTransaction])->with('success', 'Payment successful!');
+                } else {
+                    $service->updateTransactionStatus('PARTIAL_PAYMENT', $response->rrr);
+                    Log::alert("Underpayment detected for RRR: {$rrr}. Expected: {$studentTransaction->amount}, Paid: " . ($response->amount ?? 0));
+                    return to_route('student.payment', ['studenttransaction' => $studentTransaction])->with('error', 'Incomplete payment amount detected.');
+                }
+            }
 
             $service->updateTransactionStatus($response->status, $response->rrr);
 
 
             return to_route('student.payment', ['studenttransaction' => $studentTransaction])
-                ->with('info', $response->message);
+                ->with('info', $response->message ?? 'Transaction pending or failed.');
         } catch (\Exception $ex) {
             Log::alert($ex->getMessage());
             return redirect()->back()->with('error', 'Something went wrong: Try again later');

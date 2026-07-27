@@ -46,7 +46,7 @@ Route::get('all-utme-applicants', UtmeAllApplicants::class)->name('all-utme-appl
 Route::get('recommended-utme-applicants', RecommendedApplicants::class)->name('recommended-utme-applicants');
 Route::get('shortlisted-utme-applicants', UtmeShortlistedApplicants::class)->name('shortlisted-utme-applicants');
 Route::get('/export-recommended-pdf', [ReportController::class, 'exportRecommendedApplicants'])->name('export-recommended-pdf');
-Route::get('/payment/status/{rrr}', [UgSchoolFeesController::class, 'checkTransactionStatus'])->name('payment.status');
+Route::get('/payment/status/{rrr?}', [UgSchoolFeesController::class, 'checkTransactionStatus'])->name('payment.status');
 Route::get('first-school-fees', FirstSchoolFees::class)->name('first-school-fees');
 Route::get('paid-school-fees-list', PaidSchoolFeesList::class)->name('paid-school-fees-list');
 Route::get('not-paid-school-fees-list', NotPaidSchoolFeesList::class)->name('not-paid-school-fees-list');

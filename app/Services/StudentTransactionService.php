@@ -32,7 +32,8 @@ class StudentTransactionService extends TransactionService
                 "payerName" => $data['payerName'],
                 "payerEmail" => $data['payerEmail'],
                 "payerPhone" => $data['payerPhone'],
-                "description" => $data['description']
+                "description" => $data['description'],
+                "customFields" => $customFields,
             ]);
 
         return TransactionService::convertJsonToArray($response->body());

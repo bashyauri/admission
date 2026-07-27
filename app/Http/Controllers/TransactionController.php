@@ -47,22 +47,37 @@ class TransactionController extends Controller
             return redirect()->back()->with('error', 'Something went wrong:');
         }
     }
-    public function checkTransactionStatus($rrr)
+    public function checkTransactionStatus($rrr = null)
     {
+        $rrr = $rrr ?? request()->query('RRR') ?? request()->query('rrr');
 
-
+        if (!$rrr) {
+            return redirect()->back()->with('error', 'Invalid Transaction Reference');
+        }
 
         try {
             $transaction = Transaction::where('RRR', $rrr)->first();
 
+            if (!$transaction) {
+                return redirect()->back()->with('error', 'Transaction not found.');
+            }
 
             $response = $this->transactionService->getTransactionStatus($rrr);
 
+            if (in_array($response->status, [\App\Enums\TransactionStatus::APPROVED->value, \App\Enums\TransactionStatus::ACTIVATED->value])) {
+                if (isset($response->amount) && $response->amount >= $transaction->amount) {
+                    $this->transactionService->updateTransactionStatus(\App\Enums\TransactionStatus::APPROVED->value, $response->rrr);
+                    return to_route('payment', ['transaction' => $transaction])->with('success', 'Payment successful!');
+                } else {
+                    $this->transactionService->updateTransactionStatus('PARTIAL_PAYMENT', $response->rrr);
+                    Log::alert("Underpayment detected for RRR: {$rrr}. Expected: {$transaction->amount}, Paid: " . ($response->amount ?? 0));
+                    return to_route('payment', ['transaction' => $transaction])->with('error', 'Incomplete payment amount detected.');
+                }
+            }
+
             $this->transactionService->updateTransactionStatus($response->status, $response->rrr);
 
-
-
-            return to_route('payment', ['transaction' => $transaction])->with('info', $response->message);
+            return to_route('payment', ['transaction' => $transaction])->with('info', $response->message ?? 'Transaction pending or failed.');
         } catch (\Exception $ex) {
             Log::alert($ex->getMessage());
             return redirect()->back()->with('error', 'Something went wrong: Try again later');
