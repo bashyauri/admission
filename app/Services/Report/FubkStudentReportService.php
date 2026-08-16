@@ -138,20 +138,23 @@ class FubkStudentReportService
             ->where('users.role', 'student')
             ->whereNotNull('registered_courses.id')
             ->when($departmentId !== null, function (Builder $query) use ($departmentId): void {
-                $query->whereRaw('COALESCE(admitted_departments.id, proposed_departments.id) = ?', [$departmentId]);
+                $query->where(function (Builder $q) use ($departmentId) {
+                    $q->where('admitted_departments.id', '=', $departmentId)
+                      ->orWhere('proposed_departments.id', '=', $departmentId);
+                });
             })
             ->when($programmeId !== null, function (Builder $query) use ($programmeId): void {
                 $query->where('users.programme_id', '=', $programmeId);
             })
             ->when($type === 'fresh', function (Builder $query) use ($matricYearToken): void {
                 $query->whereNotNull('academic_details.matric_no')
-                    ->whereRaw('LEFT(academic_details.matric_no, 2) = ?', [$matricYearToken]);
+                    ->where('academic_details.matric_no', 'like', $matricYearToken . '%');
             })
             ->when($type === 'returning', function (Builder $query) use ($matricYearToken): void {
                 $query->where(function (Builder $nested) use ($matricYearToken): void {
                     $nested->whereNull('academic_details.matric_no')
                         ->orWhere(function (Builder $byMatric) use ($matricYearToken): void {
-                            $byMatric->whereRaw('LEFT(academic_details.matric_no, 2) != ?', [$matricYearToken]);
+                            $byMatric->where('academic_details.matric_no', 'not like', $matricYearToken . '%');
                         });
                 });
             })
@@ -159,15 +162,15 @@ class FubkStudentReportService
                 $term = '%' . strtolower(trim($search)) . '%';
 
                 $query->where(function (Builder $nested) use ($term): void {
-                    $nested->whereRaw('LOWER(users.surname) LIKE ?', [$term])
-                        ->orWhereRaw('LOWER(users.firstname) LIKE ?', [$term])
-                        ->orWhereRaw('LOWER(users.m_name) LIKE ?', [$term])
-                        ->orWhereRaw('LOWER(users.email) LIKE ?', [$term])
-                        ->orWhereRaw('LOWER(users.phone) LIKE ?', [$term])
-                        ->orWhereRaw('LOWER(users.jamb_no) LIKE ?', [$term])
-                        ->orWhereRaw('LOWER(academic_details.matric_no) LIKE ?', [$term])
-                        ->orWhereRaw('LOWER(student_courses.code) LIKE ?', [$term])
-                        ->orWhereRaw('LOWER(student_courses.title) LIKE ?', [$term]);
+                    $nested->where('users.surname', 'like', $term)
+                        ->orWhere('users.firstname', 'like', $term)
+                        ->orWhere('users.m_name', 'like', $term)
+                        ->orWhere('users.email', 'like', $term)
+                        ->orWhere('users.phone', 'like', $term)
+                        ->orWhere('users.jamb_no', 'like', $term)
+                        ->orWhere('academic_details.matric_no', 'like', $term)
+                        ->orWhere('student_courses.code', 'like', $term)
+                        ->orWhere('student_courses.title', 'like', $term);
                 });
             })
             ->groupBy([
@@ -255,31 +258,36 @@ class FubkStudentReportService
             ->leftJoin('student_levels', 'student_levels.id', '=', 'registered_courses.student_level_id')
             ->where('users.role', 'student')
             ->when($departmentId !== null, function (Builder $query) use ($departmentId): void {
-                $query->whereRaw('COALESCE(admitted_departments.id, proposed_departments.id) = ?', [$departmentId]);
+                $query->where(function (Builder $q) use ($departmentId) {
+                    $q->where('admitted_departments.id', '=', $departmentId)
+                      ->orWhere('proposed_departments.id', '=', $departmentId);
+                });
             })
             ->when($programmeId !== null, function (Builder $query) use ($programmeId): void {
                 $query->where('users.programme_id', '=', $programmeId);
             })
             ->when($type === 'fresh', function (Builder $query) use ($matricYearToken): void {
                 $query->whereNotNull('academic_details.matric_no')
-                    ->whereRaw('LEFT(academic_details.matric_no, 2) = ?', [$matricYearToken]);
+                    ->where('academic_details.matric_no', 'like', $matricYearToken . '%');
             })
             ->when($type === 'returning', function (Builder $query) use ($matricYearToken): void {
                 $query->where(function (Builder $nested) use ($matricYearToken): void {
                     $nested->whereNull('academic_details.matric_no')
-                        ->orWhereRaw('LEFT(academic_details.matric_no, 2) != ?', [$matricYearToken]);
+                        ->orWhere(function (Builder $byMatric) use ($matricYearToken): void {
+                            $byMatric->where('academic_details.matric_no', 'not like', $matricYearToken . '%');
+                        });
                 });
             })
             ->when(trim($search) !== '', function (Builder $query) use ($search): void {
                 $term = '%' . strtolower(trim($search)) . '%';
 
                 $query->where(function (Builder $nested) use ($term): void {
-                    $nested->whereRaw('LOWER(users.surname) LIKE ?', [$term])
-                        ->orWhereRaw('LOWER(users.firstname) LIKE ?', [$term])
-                        ->orWhereRaw('LOWER(users.m_name) LIKE ?', [$term])
-                        ->orWhereRaw('LOWER(academic_details.matric_no) LIKE ?', [$term])
-                        ->orWhereRaw('LOWER(student_courses.code) LIKE ?', [$term])
-                        ->orWhereRaw('LOWER(student_courses.title) LIKE ?', [$term]);
+                    $nested->where('users.surname', 'like', $term)
+                        ->orWhere('users.firstname', 'like', $term)
+                        ->orWhere('users.m_name', 'like', $term)
+                        ->orWhere('academic_details.matric_no', 'like', $term)
+                        ->orWhere('student_courses.code', 'like', $term)
+                        ->orWhere('student_courses.title', 'like', $term);
                 });
             })
             ->orderByRaw('COALESCE(admitted_departments.name, proposed_departments.name) ASC')

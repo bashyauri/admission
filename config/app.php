@@ -6,7 +6,7 @@ return [
 
     'hour' => env('SCHEDULED_HOUR', ''),
     'min' => env('SCHEDULED_MIN', ''),
-    'default_password' => env('DEFAULT_PASSWORD', '12345678'),
+    'default_password' => env('DEFAULT_PASSWORD'),
 
     /*
     |--------------------------------------------------------------------------

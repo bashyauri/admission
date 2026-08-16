@@ -90,9 +90,9 @@ class UtmeService
 
         // Apply filters
         if (!empty($filters['search'])) {
-            $searchTerm = '%' . $filters['search'] . '%';
+            $searchTerm = '%' . strtolower($filters['search']) . '%';
             $query->where(function($q) use ($searchTerm) {
-                $q->whereRaw('LOWER(CONCAT(users.surname, " ", users.firstname, " ", users.m_name)) LIKE ?', [strtolower($searchTerm)])
+                $q->whereRaw('CONCAT(LOWER(users.surname), " ", LOWER(users.firstname), " ", LOWER(users.m_name)) LIKE ?', [$searchTerm])
                   ->orWhere('users.email', 'LIKE', $searchTerm)
                   ->orWhere('users.phone', 'LIKE', $searchTerm)
                   ->orWhere('academic_details.matric_no', 'LIKE', $searchTerm);
@@ -240,10 +240,10 @@ class UtmeService
         });
 
         if (!empty($filters['department'])) {
-            $query->whereRaw('LOWER(departments.name) = ?', [strtolower($filters['department'])]);
+            $query->where('departments.name', '=', $filters['department']);
         }
         if (!empty($filters['level'])) {
-            $query->whereRaw('LOWER(student_levels.level) = ?', [strtolower($filters['level'])]);
+            $query->where('student_levels.level', '=', $filters['level']);
         }
 
         return $query->orderBy('users.surname')

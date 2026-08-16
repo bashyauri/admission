@@ -28,7 +28,7 @@ class CertificateUpload extends Component
     #[Validate('required', message: "The certificate name required")]
     public $name;
 
-    #[Validate('required|file|mimes:pdf|max:1024')]
+    #[Validate('required|file|mimes:pdf|max:2048')]
     public $certificate;
 
     public function mount(PaymentService $paymentService)
@@ -47,6 +47,17 @@ class CertificateUpload extends Component
         $this->validate();
 
         try {
+            // Additional file content validation
+            $fileContent = file_get_contents($this->certificate->getRealPath());
+            if (!$this->isValidPdfContent($fileContent)) {
+                $this->alert('error', 'Invalid PDF file content.', [
+                    'position' => 'center',
+                    'timer' => 3000,
+                    'toast' => true,
+                ]);
+                return;
+            }
+
             $path = $this->certificate->store('certificates', 'public');
             auth()->user()->certificateUploads()->create(
                 [
@@ -87,6 +98,12 @@ class CertificateUpload extends Component
         }
     }
 
+    private function isValidPdfContent($content): bool
+    {
+        // Check for PDF file signature
+        return strpos($content, '%PDF-') === 0;
+    }
+
     #[Computed()]
     public function certificates(): Collection
     {
@@ -102,9 +119,20 @@ class CertificateUpload extends Component
     }
     public function delete($id): void
     {
-        $certificate = ModelsCertificateUpload::find($id);
-        try {
+        $certificate = ModelsCertificateUpload::where('id', $id)
+            ->where('user_id', auth()->id())
+            ->first();
 
+        if (!$certificate) {
+            $this->alert('error', 'Certificate not found or unauthorized', [
+                'position' => 'center',
+                'timer' => 3000,
+                'toast' => true,
+            ]);
+            return;
+        }
+
+        try {
             $this->deleteCertificateFile($certificate->path);
             $certificate->delete();
         } catch (\Exception $e) {

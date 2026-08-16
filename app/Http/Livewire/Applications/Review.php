@@ -29,14 +29,19 @@ class Review extends Component
     {
         $transaction = Transaction::where(['user_id' => auth()->id(), 'resource' => config('remita.admission.description')])->first();
 
+        $lga = Lga::find(auth()->user()->lga_id);
+        $state = State::find(auth()->user()->state_id);
+        $programme = Programme::find(auth()->user()->programme_id);
+        $department = auth()->user()->proposedCourse ? Department::find(auth()->user()->proposedCourse->department_id) : null;
+        $course = auth()->user()->proposedCourse ? Course::find(auth()->user()->proposedCourse->course_id) : null;
 
         return view('livewire.applications.review', [
             'RRR' => $transaction->RRR,
-            'lga' => Lga::find(auth()->user()->lga_id)->name,
-            'state' => State::find(auth()->user()->state_id)->name,
-            'programme' => Programme::find(auth()->user()->programme_id)->name,
-            'department' => Department::find(auth()->user()->proposedCourse?->department_id)->name,
-            'course' => Course::find(auth()->user()->proposedCourse?->course_id)->name
+            'lga' => $lga?->name ?? 'N/A',
+            'state' => $state?->name ?? 'N/A',
+            'programme' => $programme?->name ?? 'N/A',
+            'department' => $department?->name ?? 'N/A',
+            'course' => $course?->name ?? 'N/A'
         ]);
     }
 }

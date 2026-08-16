@@ -202,6 +202,13 @@ class Settings extends Component
     public function findStudent(): void
     {
         $this->validate(['recoveryPhone' => 'required|min:6']);
+        
+        // Only allow admins to perform student recovery
+        if (!auth()->user()->isAdmin()) {
+            $this->addError('recoveryPhone', 'Unauthorized access.');
+            return;
+        }
+
         $this->recoveredStudent = User::query()
             ->whereIn('role', [Role::APPLICANT->value, Role::STUDENT->value])
             ->where('phone', $this->recoveryPhone)

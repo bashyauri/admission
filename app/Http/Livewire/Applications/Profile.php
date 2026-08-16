@@ -23,7 +23,7 @@ class Profile extends Component
 
 
     public ProfileForm $form;
-    #[Validate('required|image|max:1024')]
+    #[Validate('required|image|mimes:jpg,jpeg,png|max:2048')]
     public $picture;
 
 
@@ -89,11 +89,31 @@ class Profile extends Component
     protected function updatePicture($user)
     {
         if ($this->form->picture) {
+            // Additional file content validation
+            $fileContent = file_get_contents($this->form->picture->getRealPath());
+            if (!$this->isValidImageContent($fileContent)) {
+                $this->alert('error', 'Invalid image file content.', [
+                    'position' => 'center',
+                    'timer' => 3000,
+                    'toast' => true,
+                ]);
+                return;
+            }
+
             $this->deleteOldPicture($user);
             $user->update([
                 'picture' => $this->form->picture->store('profile', 'public')
             ]);
         }
+    }
+
+    private function isValidImageContent($content): bool
+    {
+        // Check for common image file signatures
+        $jpgSignature = "\xFF\xD8\xFF";
+        $pngSignature = "\x89\x50\x4E\x47";
+        
+        return strpos($content, $jpgSignature) === 0 || strpos($content, $pngSignature) === 0;
     }
 
     protected function deleteOldPicture($user)

@@ -32,6 +32,17 @@ class UploadApplicants extends Component
         ]);
 
         try {
+            // Additional file content validation
+            $fileContent = file_get_contents($this->file->getRealPath());
+            if (!$this->isValidExcelContent($fileContent)) {
+                $this->alert('error', 'Invalid Excel file content.', [
+                    'position' => 'center',
+                    'timer' => 3000,
+                    'toast' => true,
+                ]);
+                return;
+            }
+
             // Attempt to import the file
 
             Excel::import(new PostUtmeImport, $this->file->getRealPath());
@@ -59,6 +70,14 @@ class UploadApplicants extends Component
                 'toast' => true,
             ]);
         }
+    }
+
+    private function isValidExcelContent($content): bool
+    {
+        // Check for Excel file signatures (XLSX)
+        $xlsxSignature = "PK\x03\x04"; // ZIP signature for XLSX files
+        
+        return strpos($content, $xlsxSignature) === 0;
     }
     public function render()
     {
