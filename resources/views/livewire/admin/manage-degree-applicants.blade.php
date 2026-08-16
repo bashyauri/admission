@@ -114,7 +114,7 @@
                         <div class="relative">
                             <input
                                 type="text"
-                                wire:model.debounce.300ms="search"
+                                wire:model.live.debounce.300ms="search"
                                 placeholder="Search by name, email, or JAMB number..."
                                 class="dark:bg-gray-950 focus:shadow-soft-primary-outline dark:placeholder:text-white/80 dark:text-white/80 text-size-sm leading-5.6 ease-soft block w-full appearance-none rounded-lg border border-solid border-gray-300 bg-white bg-clip-padding px-3 py-2 font-normal text-gray-700 outline-none transition-all placeholder:text-gray-500 focus:border-fuchsia-300 focus:outline-none pl-10">
                             <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
