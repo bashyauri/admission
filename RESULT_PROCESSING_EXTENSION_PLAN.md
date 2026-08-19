@@ -845,7 +845,7 @@ class GradeCalculationService
                 'semester_gpa' => $gpaData['gpa'],
                 'total_credit_units' => $gpaData['total_credit_units'],
                 'total_grade_points' => $gpaData['total_grade_points'],
-                'cumulative Credit_units' => $cgpaData['total_credit_units'],
+                'cumulative_credit_units' => $cgpaData['total_credit_units'],
                 'cumulative_grade_points' => $cgpaData['total_grade_points'],
                 'cumulative_gpa' => $cgpaData['cgpa'],
                 'class_of_degree' => $cgpaData['class_of_degree']
@@ -1332,27 +1332,34 @@ class GraduationService
 
 ## Phase 7: Security and Access Control
 
-### 7.1 Role Extensions
+### 7.1 Role Extensions & Overlapping Capabilities
 
-#### New Role: Lecturer
-- Can view assigned courses
-- Can enter and edit results for assigned courses
-- Can submit results for approval
-- Cannot view other lecturers' results
-- Cannot approve results
+To prevent breaking changes in the live production app, the system uses a **Two-Layer Roles & Permissions System** (documented fully in [ROLES_AND_PERMISSIONS_STRATEGY.md](file:///c:/laragon/www/admission/ROLES_AND_PERMISSIONS_STRATEGY.md)):
+1. **Primary Role (`users.role`)**: Controls default dashboard routing and login redirection. Added `'lecturer'` and `'exam_officer'` to the database role enum.
+2. **User Capabilities (`user_capabilities` table)**: Handles overlapping privileges (e.g. HOD who is also a lecturer, or lecturer who is also an exam officer) dynamically without changing the primary role.
 
-#### New Role: Exam Officer
-- Can view all faculty results
-- Can approve results at faculty level
-- Can generate result statistics
-- Can audit results for anomalies
+#### New Role/Capability: Lecturer
+- Primary dashboard `/lecturer/dashboard` (if role is `'lecturer'`) or accessible via sidebar switcher (if assigned as capability).
+- Can view assigned courses.
+- Can enter and edit results for assigned courses.
+- Can submit results for approval.
+- Cannot view other lecturers' results.
+- Cannot approve results at HOD level.
+
+#### New Role/Capability: Exam Officer
+- Primary dashboard `/exam-officer/dashboard` (if role is `'exam_officer'`) or accessible via sidebar switcher (if assigned as capability).
+- Can view all faculty results.
+- Can approve results at faculty level.
+- Can generate result statistics.
+- Can audit results for anomalies.
 
 #### Extended Admin Role
-- Can allocate courses to lecturers
-- Can configure grading parameters
-- Can control result release timing
-- Can manage graduation lists
-- Can generate certificates
+- Can allocate courses to lecturers.
+- Can configure grading parameters.
+- Can control result release timing.
+- Can manage graduation lists.
+- Can generate certificates.
+- Can grant/revoke user capabilities via Admin Panel.
 
 ### 7.2 Permission Policies
 

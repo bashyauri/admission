@@ -353,10 +353,25 @@ Schema::rename('department_max_units', 'department_level_units');
 **Downtime:** 5-10 minutes
 **Backup Required:** Yes
 
+### 4. Extend users.role Enum Column
+
+Modify the enum values in the `users` table to add `'lecturer'` and `'exam_officer'` (plus any missing cases like `'cit', 'coordinator', 'idcard_officer'`):
+
+```php
+DB::statement("ALTER TABLE users MODIFY COLUMN role 
+    ENUM('applicant', 'student', 'graduate', 'hod', 'admin', 
+         'cit', 'coordinator', 'idcard_officer', 'lecturer', 'exam_officer') 
+    DEFAULT 'applicant'");
+```
+
+**Risk:** Low - adding values to an enum doesn't require rebuilding rows in MySQL 8.0+
+**Downtime:** 1-2 minutes
+**Backup Required:** Yes
+
 ## Implementation Strategy for Production
 
 ### Phase 1 - Immediate (No downtime, low risk):
-1. Create all new tables (course_versions, results, graduation tables, etc.)
+1. Create all new tables (course_versions, results, graduation tables, user_capabilities, etc.)
 2. Add indexes to new tables
 3. Create new models and services
 4. Build new Livewire components (behind feature flags)
@@ -365,7 +380,8 @@ Schema::rename('department_max_units', 'department_level_units');
 5. Add snapshot fields to registered_courses
 6. Backfill existing data
 7. Extend department_max_units table
-8. Test course registration with new fields
+8. Extend users.role Enum Column
+9. Test course registration with new fields and verify role redirects
 
 ### Phase 3 - Gradual Rollout:
 9. Enable result processing for NEW academic session only

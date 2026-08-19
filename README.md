@@ -1,14 +1,9 @@
-# [Soft UI Dashboard PRO TALL](https://soft-ui-dashboard-pro-tall.creative-tim.com/)
+# Admission Management & Student MIS System
 
 ![version](https://img.shields.io/badge/version-1.0.0-blue.svg) 
 ![license](https://img.shields.io/badge/license-MIT-blue.svg)
-[![GitHub issues open](https://img.shields.io/github/issues/creativetimofficial/soft-ui-dashboard-pro-tall.svg)](https://github.com/creativetimofficial/soft-ui-dashboard-pro-tall/issues?q=is%3Aopen+is%3Aissue) 
-[![GitHub issues closed](https://img.shields.io/github/issues-closed-raw/creativetimofficial/soft-ui-dashboard-pro-tall.svg)](https://github.com/creativetimofficial/soft-ui-dashboard-pro-tall/issues?q=is%3Aissue+is%3Aclosed)
 
-*Frontend version*: Soft UI Dashboard PRO Tailwind v1.0.0. More info at https://www.creative-tim.com/product/soft-ui-dashboard-pro-tailwind
-[ <img src="https://s3.amazonaws.com/creativetim_bucket/products/685/original/soft-ui-dashboard-pro-tall.jpg?raw=true" width="100%" />](https://soft-ui-dashboard-pro-tall.creative-tim.com/)
-
-Speed up your web development with the Tailwind Admin Dashboard built for Laravel Framework 9.x and up.
+A Laravel-based Admission Management and Student Management Information System (MIS) built for handling student applications, admissions, course registrations, fee payments, and result processing for academic institutions. Powered by Laravel 12.x, Livewire 3.x, and TailwindCSS.
 
 ## Table of Contents
 * [Prerequisites](#prerequisites)

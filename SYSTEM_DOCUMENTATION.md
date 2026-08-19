@@ -76,6 +76,20 @@ This is a comprehensive Laravel-based admission management system built for hand
 - Can view and process ID card requests
 - **Routes**: `/idcard_officer/*`
 
+### 8. Lecturer
+- Academic instruction and result processing
+- Can view assigned courses
+- Can enter and edit scores (CA and Exam) for assigned courses
+- Can submit results for approval
+- **Routes**: `/lecturer/*` (via primary role or capabilities check)
+
+### 9. Exam Officer
+- Faculty/department-wide result review and auditing
+- Can view all results in faculty
+- Can approve results at faculty level
+- Can generate statistical performance reports
+- **Routes**: `/exam-officer/*` (via primary role or capabilities check)
+
 ## Database Schema
 
 ### Core Tables
@@ -189,6 +203,10 @@ This is a comprehensive Laravel-based admission management system built for hand
 - **Fields**: `id`, `key`, `value`
 - **Purpose**: System-wide configuration settings
 
+#### user_capabilities
+- **Fields**: `id`, `user_id` (UUID FK), `capability`, `department_id` (FK), `is_active`, `granted_at`, `revoked_at`, `granted_by` (FK), `reason`
+- **Purpose**: Supports overlapping/multi-role capabilities (e.g. HOD who also acts as a Lecturer) safely without breaking production single-role structures.
+
 ### Reference Tables
 
 #### states, lgas
@@ -288,6 +306,8 @@ This is a comprehensive Laravel-based admission management system built for hand
 - `cit.php` - CIT-specific routes
 - `coordinator.php` - Coordinator routes
 - `idcard_officer.php` - ID card officer routes
+- `lecturer.php` - Lecturer-specific routes (accessed by capability or role)
+- `exam_officer.php` - Exam Officer routes (accessed by capability or role)
 - `api.php` - API endpoints
 
 ## Livewire Components
