@@ -48,14 +48,14 @@ class ResetPassword extends Notification implements ShouldQueue
 
     public function toMail($notifiable)
     {
-        $url = URL::temporarySignedRoute('reset-password', now()->addHours(12), ['id' => $this->token]);
         return (new MailMessage)
-            ->subject('Reset Password')
-            ->line('Hello!')
-            ->line('You are receiving this email because someone has requested to reset the password for your account.')
-            ->action('Reset Password', $url)
-            ->line("If you did not request this, please ignore this email.")
-            ->line('Thank you!');
+            ->subject('Reset Password Code')
+            ->greeting('Hello ' . ($notifiable->firstname ?? 'User') . ',')
+            ->line('You are receiving this email because we received a password reset request for your account.')
+            ->line('Please use the following 6-digit code to reset your password:')
+            ->line('**' . $this->token . '**')
+            ->line('This code will expire in 15 minutes.')
+            ->line('If you did not request a password reset, no further action is required.');
     }
 
     /**

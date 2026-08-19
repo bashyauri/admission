@@ -41,35 +41,81 @@
                                     </svg>
                                 </div>
                                 @include('flash-messages')
-                                <div class="mb-6 text-center text-slate-500">
 
+                                @if (session()->has('success'))
+                                    <div class="p-3 mb-4 text-size-sm font-semibold text-white bg-green-600 rounded-lg shadow-soft-md text-left flex items-start">
+                                        <svg class="w-5 h-5 mr-2 inline-block shrink-0 mt-0.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                        </svg>
+                                        <span class="text-white">{{ session('success') }}</span>
+                                    </div>
+                                @endif
 
-                                    <h2>A verification link has been sent to the email address you provided during
-                                        registration.</h2>
-                                    <h2 class="font-bold text-white">Please Check your inbox and Spam folder</h2>
+                                @if (session()->has('error'))
+                                    <div class="p-3 mb-4 text-size-sm font-semibold text-white bg-red-600 rounded-lg shadow-soft-md text-left flex items-start">
+                                        <svg class="w-5 h-5 mr-2 inline-block shrink-0 mt-0.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                        </svg>
+                                        <span class="text-white">{{ session('error') }}</span>
+                                    </div>
+                                @endif
+
+                                <div class="mb-6 text-center">
+                                    <h3 class="font-bold text-slate-800 dark:text-white text-size-xl mb-2">Enter Verification Code</h3>
+                                    <p class="text-size-sm text-slate-600 dark:text-slate-300">A 6-digit verification code has been sent to your email address. Please check your inbox and spam folder.</p>
                                 </div>
-                                <div class="flex flex-wrap -mx-1 sm:-mx-2">
-                                    <form method="POST" action="{{ route('verification.send') }}">
-                                        @csrf
 
-
-                                        <div class="text-center">
-                                                <span class="leading-normal text-slate-500 text-size-sm">
-                                                Haven't received it?
-                                                <button type="submit"
-                                                    class="inline-block w-full px-6 py-3 mt-6 mb-2 font-bold text-center text-white uppercase align-middle transition-all bg-teal-700 border-0 rounded-lg cursor-pointer active:opacity-85 hover:scale-102 hover:shadow-soft-xs leading-pro text-size-xs ease-soft-in tracking-tight-soft shadow-soft-md bg-150 bg-x-25 bg-gradient-teal hover:border-teal-800 hover:bg-teal-800 hover:text-white">Resend
-                                                    a new code</button>
+                                <form wire:submit.prevent="verify" class="w-full">
+                                    <div class="mb-4">
+                                        <input wire:model.defer="code" type="text" placeholder="######" maxlength="6"
+                                            wire:loading.attr="disabled"
+                                            class="min-h-unset focus:shadow-soft-primary-outline dark:bg-gray-950 dark:placeholder:text-white/80 dark:text-white/80 text-size-xl leading-5.6 ease-soft block w-full appearance-none rounded-lg border border-solid @error('code') border-red-500 focus:border-red-500 @else border-gray-300 focus:border-fuchsia-300 @enderror bg-white bg-clip-padding p-3 font-bold text-center tracking-widest text-gray-800 outline-none transition-all placeholder:text-gray-400 focus:outline-none disabled:opacity-50 disabled:bg-gray-100" required />
+                                        @error('code')
+                                            <div class="mt-2 p-2 bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800 rounded-md text-left flex items-center">
+                                                <svg class="w-4 h-4 mr-1.5 text-red-600 dark:text-red-400 inline shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                                                </svg>
+                                                <span class="text-size-xs font-bold text-red-600 dark:text-red-400">{{ $message }}</span>
+                                            </div>
+                                        @enderror
+                                    </div>
+                                    <div class="text-center">
+                                        <button type="submit" wire:loading.attr="disabled"
+                                            class="inline-flex items-center justify-center w-full px-6 py-3 mb-2 font-bold text-center text-white uppercase align-middle transition-all bg-teal-700 border-0 rounded-lg cursor-pointer active:opacity-85 hover:scale-102 hover:shadow-soft-xs leading-pro text-size-xs ease-soft-in tracking-tight-soft shadow-soft-md bg-150 bg-x-25 bg-gradient-teal hover:border-teal-800 hover:bg-teal-800 hover:text-white disabled:opacity-60 disabled:cursor-not-allowed">
+                                            <span wire:loading.remove wire:target="verify">Verify Code</span>
+                                            <span wire:loading wire:target="verify" class="inline-flex items-center">
+                                                <svg class="w-4 h-4 mr-2 animate-spin text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+                                                </svg>
+                                                Verifying...
                                             </span>
-                                        </div>
-                                    </form>
-                                        <form method="POST" action="{{ route('logout') }}" class="w-full">
-                                            @csrf
-                                            <button type="submit"
-                                                class="inline-block w-full px-6 py-3 mt-6 mb-2 font-bold text-center text-white uppercase align-middle transition-all bg-red-700 border-0 rounded-lg cursor-pointer active:opacity-85 hover:scale-102 hover:shadow-soft-xs leading-pro text-size-xs ease-soft-in tracking-tight-soft shadow-soft-md bg-150 bg-x-25 hover:border-red-800 hover:bg-red-800">Logout</button>
-                                        </form>
+                                        </button>
+                                    </div>
+                                </form>
 
-
+                                <div class="w-full mt-4 text-center">
+                                    <span class="leading-normal text-slate-600 dark:text-slate-400 text-size-sm">
+                                        Haven't received it?
+                                        <button wire:click="resend" type="button" wire:loading.attr="disabled"
+                                            class="font-bold text-teal-600 dark:text-teal-400 hover:underline disabled:opacity-50 disabled:cursor-not-allowed">
+                                            <span wire:loading.remove wire:target="resend">Resend code</span>
+                                            <span wire:loading wire:target="resend" class="inline-flex items-center text-teal-600 dark:text-teal-400">
+                                                <svg class="w-3 h-3 mr-1 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+                                                </svg>
+                                                Sending new code...
+                                            </span>
+                                        </button>
+                                    </span>
                                 </div>
+
+                                <form method="POST" action="{{ route('logout') }}" class="w-full mt-2">
+                                    @csrf
+                                    <button type="submit"
+                                        class="inline-block w-full px-6 py-3 font-bold text-center text-white uppercase align-middle transition-all bg-red-700 border-0 rounded-lg cursor-pointer active:opacity-85 hover:scale-102 hover:shadow-soft-xs leading-pro text-size-xs ease-soft-in tracking-tight-soft shadow-soft-md bg-150 bg-x-25 hover:border-red-800 hover:bg-red-800">Logout</button>
+                                </form>
 
 
                             </div>

@@ -54,7 +54,14 @@ class User extends Authenticatable implements MustVerifyEmail
     protected $appends = ['isDe'];
     public function sendEmailVerificationNotification()
     {
-        $this->notify(new SendVerificationEmail);
+        $code = str_pad((string) random_int(100000, 999999), 6, '0', STR_PAD_LEFT);
+        
+        $this->forceFill([
+            'email_verification_code' => $code,
+            'email_verification_code_expires_at' => now()->addMinutes(30),
+        ])->save();
+
+        $this->notify(new SendVerificationEmail($code));
     }
         /**
      * Impersonation context for admin/CIT role switching.

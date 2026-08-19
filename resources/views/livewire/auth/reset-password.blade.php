@@ -46,6 +46,16 @@
                                     </div>
 
                                 <div class="mb-4">
+                                    <input wire:model.defer="code" type="text" maxlength="6"
+                                        class="focus:shadow-soft-primary-outline dark:bg-gray-950 dark:placeholder:text-white/80 dark:text-white/80 text-size-sm leading-5.6 ease-soft block w-full appearance-none rounded-lg border border-solid border-gray-300 bg-white bg-clip-padding px-3 py-2 font-normal text-gray-700 outline-none transition-all placeholder:text-gray-500 focus:border-fuchsia-300 focus:outline-none"
+                                        placeholder="6-digit reset code" aria-label="Reset Code" aria-describedby="code-addon" required
+                                         />
+                                     @error('code')
+                                     <p class="text-red-500 text-size-sm">{{ $message }}</p>
+                                     @enderror
+                                </div>
+
+                                <div class="mb-4">
                                     <div x-data="{ show: false }" class="relative">
                                         <input wire:model="password" :type="show ? 'text' : 'password'" id="password"
                                             class="focus:shadow-soft-primary-outline dark:bg-gray-950 dark:placeholder:text-white/80 dark:text-white/80 text-size-sm leading-5.6 ease-soft block w-full appearance-none rounded-lg border border-solid border-gray-300 bg-white bg-clip-padding px-3 py-2 font-normal text-gray-700 outline-none transition-all placeholder:text-gray-500 focus:border-fuchsia-300 focus:outline-none pr-10"
@@ -89,9 +99,17 @@
                                 </div>
 
                                 <div class="text-center">
-                                    <button type="submit"
-                                        class="inline-block px-16 py-3.5 mb-0 mt-4 font-bold text-center text-white uppercase align-middle transition-all border-0 rounded-lg cursor-pointer hover:scale-102 active:opacity-85 hover:shadow-soft-xs dark:bg-gradient-neutral bg-gradient-dark-gray leading-pro text-size-sm ease-soft-in tracking-tight-soft shadow-soft-md bg-150 bg-x-25">
-                                        Reset</button>
+                                    <button type="submit" wire:loading.attr="disabled"
+                                        class="inline-flex items-center justify-center px-16 py-3.5 mb-0 mt-4 font-bold text-center text-white uppercase align-middle transition-all border-0 rounded-lg cursor-pointer hover:scale-102 active:opacity-85 hover:shadow-soft-xs dark:bg-gradient-neutral bg-gradient-dark-gray leading-pro text-size-sm ease-soft-in tracking-tight-soft shadow-soft-md bg-150 bg-x-25 disabled:opacity-60 disabled:cursor-not-allowed">
+                                        <span wire:loading.remove wire:target="resetPassword">Reset Password</span>
+                                        <span wire:loading wire:target="resetPassword" class="inline-flex items-center">
+                                            <svg class="w-4 h-4 mr-2 animate-spin text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+                                            </svg>
+                                            Resetting...
+                                        </span>
+                                    </button>
                                 </div>
                             </form>
 

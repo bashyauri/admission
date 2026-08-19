@@ -85,8 +85,17 @@
                                 </div>
 
                                 <div class="text-center">
-                                    <button type="submit"
-                                        class="inline-block px-16 py-3.5 mb-0 mt-4 font-bold text-center text-white uppercase align-middle transition-all border-0 rounded-lg cursor-pointer hover:scale-102 active:opacity-85 hover:shadow-soft-xs dark:bg-gradient-neutral bg-gradient-dark-gray leading-pro text-size-sm ease-soft-in tracking-tight-soft shadow-soft-md bg-150 bg-x-25">Send</button>
+                                    <button type="submit" wire:loading.attr="disabled"
+                                        class="inline-flex items-center justify-center px-16 py-3.5 mb-0 mt-4 font-bold text-center text-white uppercase align-middle transition-all border-0 rounded-lg cursor-pointer hover:scale-102 active:opacity-85 hover:shadow-soft-xs dark:bg-gradient-neutral bg-gradient-dark-gray leading-pro text-size-sm ease-soft-in tracking-tight-soft shadow-soft-md bg-150 bg-x-25 disabled:opacity-60 disabled:cursor-not-allowed">
+                                        <span wire:loading.remove wire:target="recoverPassword">Send</span>
+                                        <span wire:loading wire:target="recoverPassword" class="inline-flex items-center">
+                                            <svg class="w-4 h-4 mr-2 animate-spin text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+                                            </svg>
+                                            Sending...
+                                        </span>
+                                    </button>
                                 </div>
                             </form>
 

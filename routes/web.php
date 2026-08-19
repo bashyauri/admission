@@ -144,7 +144,7 @@ Route::middleware('guest')->group(function () {
     Route::get('degree-signin', DegreeLogin::class)->name('degree-login');
     Route::get('sign-in', Login::class)->name('login');
     Route::get('forgot-password', ForgotPassword::class)->name('forgot-password');
-    Route::get('reset-password/{id}', ResetPassword::class)->name('reset-password')->middleware('signed');
+    Route::get('reset-password', ResetPassword::class)->name('reset-password');
 });
 Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])
     ->name('logout')
@@ -294,47 +294,3 @@ Route::group(['middleware' => 'role:applicant'], function () {
 // Email Verification Routes
 Route::get('/email/verify', \App\Http\Livewire\Authentication\Verification\Basic::class)
     ->middleware('auth')->name('verification.notice');
-
-Route::get('/email/verify/{id}/{hash}', function (Request $request, $id, $hash) {
-    try {
-        // Ensure the signed URL is valid
-        if (!URL::hasValidSignature($request)) {
-            throw new AuthorizationException();
-        }
-
-        // Ensure the user is authenticated
-        if (!$request->user() || $request->user()->id != $id) {
-            throw new AuthorizationException();
-        }
-
-        // Ensure the hash matches
-        if (!hash_equals((string) $hash, sha1($request->user()->getEmailForVerification()))) {
-            throw new AuthorizationException();
-        }
-
-        // Check if the user's email is already verified
-        if ($request->user()->hasVerifiedEmail()) {
-            return redirect('dashboard/analytics')->with('status', 'Your email is already verified.');
-        }
-
-        // Mark the email as verified
-        if ($request->user()->markEmailAsVerified()) {
-            event(new Verified($request->user()));
-        }
-
-        return redirect('dashboard/analytics')->with('status', 'Your email has been verified.');
-    } catch (AuthorizationException $e) {
-        return redirect('/email/verify')->with('error', 'The email verification link is invalid or expired.');
-    }
-})->middleware(['auth', 'signed'])->name('verification.verify');
-
-Route::post('/email/verification-notification', function (Request $request) {
-    try {
-        $request->user()->sendEmailVerificationNotification();
-        return back()->with('success', 'Verification link sent!');
-    } catch (\Exception $e) {
-        // Log the error message
-        Log::error('Email verification notification failed: ' . $e->getMessage());
-        return back()->with('error', 'There was a problem sending the verification email. Please try again later.');
-    }
-})->middleware(['auth', 'throttle:6,1'])->name('verification.send');
