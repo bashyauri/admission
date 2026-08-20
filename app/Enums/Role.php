@@ -11,6 +11,9 @@ enum Role: string
     case CIT = 'cit';
     case COORDINATOR = 'coordinator';
     case IDCARD_OFFICER = 'idcard_officer';
+    case LECTURER = 'lecturer';
+    case EXAM_OFFICER = 'exam_officer';
+
     public function toString(): string
     {
         return match ($this) {
@@ -18,13 +21,14 @@ enum Role: string
             self::APPLICANT => 'Applicant',
             self::ADMIN => 'Admin',
             self::STUDENT => 'Student',
-            self::CIT => 'Cit',
+            self::CIT => 'CIT',
             self::COORDINATOR => 'Coordinator',
-            self::IDCARD_OFFICER => 'Id Card Officer',
-
-            default => null,
+            self::IDCARD_OFFICER => 'ID Card Officer',
+            self::LECTURER => 'Lecturer',
+            self::EXAM_OFFICER => 'Exam Officer',
         };
     }
+
     public static function getRoles(): array
     {
         return array_map(function (Role $role) {

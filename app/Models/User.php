@@ -158,6 +158,56 @@ class User extends Authenticatable implements MustVerifyEmail
         }
         return $this->role === Role::COORDINATOR->value;
     }
+
+    public function isLecturer(): bool
+    {
+        if ($this->impersonateRole) {
+            return $this->impersonateRole === Role::LECTURER->value;
+        }
+        return $this->role === Role::LECTURER->value;
+    }
+
+    public function isExamOfficer(): bool
+    {
+        if ($this->impersonateRole) {
+            return $this->impersonateRole === Role::EXAM_OFFICER->value;
+        }
+        return $this->role === Role::EXAM_OFFICER->value;
+    }
+
+    public function capabilities(): HasMany
+    {
+        return $this->hasMany(UserCapability::class)->where('is_active', true);
+    }
+
+    public function hasCapability(string $capability): bool
+    {
+        return $this->capabilities()->where('capability', $capability)->exists();
+    }
+
+    public function canActAsLecturer(): bool
+    {
+        return $this->role === Role::LECTURER->value || $this->hasCapability('lecturer');
+    }
+
+    public function canActAsExamOfficer(): bool
+    {
+        return $this->role === Role::EXAM_OFFICER->value || $this->hasCapability('exam_officer');
+    }
+
+    public function capabilityDepartments(string $capability): array
+    {
+        return $this->capabilities()
+            ->where('capability', $capability)
+            ->pluck('department_id')
+            ->filter()
+            ->toArray();
+    }
+
+    public function activeCapabilities(): array
+    {
+        return $this->capabilities()->pluck('capability')->toArray();
+    }
     public function getIsDeAttribute(): bool
     {
         // Direct Entry students are those without JAMB scores (0 or null)
