@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DHS Wufpbk</title>
+    <title>Directorate of Higher Studies - Wufpbk, Birnin Kebbi</title>
     <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
@@ -36,8 +36,8 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M12 8v.01" />
         </svg>
         <span>
-            Postgraduate Admission is <span class="font-bold text-red-600">OPEN</span>
-            <a href="{{ route('register') }}" class="inline-block ml-2 px-3 py-1 rounded bg-red-600 text-white font-bold text-sm shadow hover:bg-red-700 transition focus:outline-none focus:ring-2 focus:ring-red-400">Apply Now!</a>
+            Admissions are <span class="font-bold text-red-600">OPEN</span> for Undergraduate Degree and Postgraduate programs!
+            <a href="#programs" class="inline-block ml-2 px-3 py-1 rounded bg-red-600 text-white font-bold text-sm shadow hover:bg-red-700 transition focus:outline-none focus:ring-2 focus:ring-red-400">Apply Now!</a>
         </span>
     </div>
 
@@ -54,6 +54,7 @@
             </p>
             <div class="mt-6 flex flex-col md:flex-row justify-center gap-4">
                 <a href="#programs" class="btn-green">Explore Programs</a>
+                <a href="#undergraduate-courses" class="rounded-md bg-white px-4 py-2.5 text-sm font-semibold text-gray-900 shadow hover:bg-gray-100 focus:outline-none">View Courses</a>
                 <a href="#contact-us" class="rounded-md bg-white px-4 py-2.5 text-sm font-semibold text-gray-900 shadow hover:bg-gray-100 focus:outline-none">Contact Us</a>
             </div>
         </div>
@@ -66,7 +67,7 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l9-5-9-5-9 5 9 5zm0 0v6m-4 0h8" />
             </svg>
             <h3 class="font-bold text-lg mb-1">Admissions</h3>
-            <p class="text-gray-600 text-sm">Applications for Postgraduate and Degree programs are open. Check requirements and deadlines.</p>
+            <p class="text-gray-600 text-sm">Applications for Undergraduate and Postgraduate programs are open. Check requirements and deadlines.</p>
         </div>
         <div class="bg-white rounded-xl shadow p-6 flex flex-col items-center text-center border-t-4 border-yellow-500">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-yellow-500 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -84,7 +85,7 @@
         </div>
     </section>
 
-    <!-- Programs Section moved to top -->
+    <!-- Programs Section -->
     <section id="programs" class="py-12 bg-white">
         <div class="container px-6 mx-auto text-center">
             <h2 class="text-3xl font-bold text-green-600">Our Programs</h2>
@@ -93,7 +94,10 @@
             </p>
             <div class="mt-10 flex flex-col md:flex-row justify-center gap-8">
                 <!-- Degree Card -->
-                <div class="flex-1 max-w-xs mx-auto bg-white rounded-xl shadow-lg border border-green-200 p-6 flex flex-col items-center hover:shadow-2xl transition-all">
+                <div class="flex-1 max-w-xs mx-auto bg-white rounded-xl shadow-lg border border-green-200 p-6 flex flex-col items-center hover:shadow-2xl transition-all relative">
+                    <div class="absolute -top-4 right-4 animate-pulse">
+                        <span class="inline-block bg-green-600 text-white text-xs font-bold px-3 py-1 rounded-full shadow">Admission Open!</span>
+                    </div>
                     <div class="mb-4 text-green-600">
                         <!-- Heroicons Academic Cap -->
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-12 h-12 mx-auto">
@@ -101,13 +105,16 @@
                         </svg>
                     </div>
                     <h3 class="text-xl font-bold mb-2">Undergraduate (Degree)</h3>
-                    <p class="text-gray-600 mb-4">For BSc. and affiliated degree programs. Access your portal to continue your application or check your status.</p>
-                    <a href="{{ route('degree-login') }}" class="w-full inline-block rounded-md px-4 py-2.5 text-base font-semibold text-white bg-green-600 shadow-md hover:bg-green-700 transition">Degree Login</a>
+                    <p class="text-gray-600 mb-4">For BSc. degree programs. Access your portal to continue your application or check your status.</p>
+                    <div class="flex flex-col gap-2 w-full">
+                        <a href="{{ route('degree-login') }}" class="w-full inline-block rounded-md px-4 py-2.5 text-base font-semibold text-white bg-green-600 shadow-md hover:bg-green-700 transition">Degree Login</a>
+                        <a href="#undergraduate-courses" class="w-full inline-block rounded-md px-4 py-2.5 text-base font-semibold text-green-600 border border-green-600 shadow-md hover:bg-green-50 transition">View Courses</a>
+                    </div>
                 </div>
                 <!-- Postgraduate Card -->
                 <div class="flex-1 max-w-xs mx-auto bg-white rounded-xl shadow-lg border border-teal-200 p-6 flex flex-col items-center hover:shadow-2xl transition-all relative">
                     <div class="absolute -top-4 right-4 animate-pulse">
-                        <span class="inline-block bg-red-600 text-white text-xs font-bold px-3 py-1 rounded-full shadow">Admission Open!</span>
+                        <span class="inline-block bg-teal-600 text-white text-xs font-bold px-3 py-1 rounded-full shadow">Admission Open!</span>
                     </div>
                     <div class="mb-4 text-teal-600">
                         <!-- Heroicons Document Text -->
@@ -117,10 +124,68 @@
                     </div>
                     <h3 class="text-xl font-bold mb-2">Postgraduate (PG)</h3>
                     <p class="text-gray-600 mb-4">Apply for or access your Postgraduate (PG) program. New admissions are currently ongoing!</p>
-                    <a href="{{ route('login') }}" class="w-full inline-block rounded-md px-4 py-2.5 text-base font-semibold text-white bg-teal-600 shadow-md hover:bg-teal-700 transition">PG Login</a>
+                    <div class="flex flex-col gap-2 w-full">
+                        <a href="{{ route('login') }}" class="w-full inline-block rounded-md px-4 py-2.5 text-base font-semibold text-white bg-teal-600 shadow-md hover:bg-teal-700 transition">PG Login</a>
+                        <a href="#postgraduate-courses" class="w-full inline-block rounded-md px-4 py-2.5 text-base font-semibold text-teal-600 border border-teal-600 shadow-md hover:bg-teal-50 transition">View Courses</a>
+                    </div>
                 </div>
             </div>
         </div>
+    </section>
+
+    <!-- Undergraduate Courses Section -->
+    <section id="undergraduate-courses" class="py-12 bg-gray-50">
+        <div class="container px-6 mx-auto">
+            <h2 class="text-3xl font-bold text-green-600 text-center mb-2">Undergraduate Courses</h2>
+            <p class="text-center text-gray-600 mb-8">Degree Programs</p>
+            @if($undergraduateCourses->count() > 0)
+                @foreach($undergraduateCourses as $department => $courses)
+                    <div class="mb-8">
+                        <h3 class="text-xl font-semibold text-gray-800 mb-4 border-b-2 border-green-500 pb-2">{{ $department }}</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            @foreach($courses as $course)
+                                <div class="bg-white rounded-lg shadow p-4 border-l-4 border-green-500 hover:shadow-lg transition">
+                                    <p class="font-medium text-gray-800">{{ $course->name }}</p>
+                                    <p class="text-sm text-gray-600 mt-1">{{ $course->programme->name ?? '' }}</p>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                @endforeach
+            @else
+                <div class="text-center text-gray-600 py-8">
+                    <p>No undergraduate courses currently available.</p>
+                </div>
+            @endif
+        </div>
+    </section>
+
+    <!-- Postgraduate Courses Section -->
+    <section id="postgraduate-courses" class="py-12 bg-white">
+        <div class="container px-6 mx-auto">
+            <h2 class="text-3xl font-bold text-teal-600 text-center mb-2">Postgraduate Courses</h2>
+            <p class="text-center text-gray-600 mb-8">Postgraduate Diploma (PGD) Programs</p>
+            @if($postgraduateCourses->count() > 0)
+                @foreach($postgraduateCourses as $department => $courses)
+                    <div class="mb-8">
+                        <h3 class="text-xl font-semibold text-gray-800 mb-4 border-b-2 border-teal-500 pb-2">{{ $department }}</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            @foreach($courses as $course)
+                                <div class="bg-white rounded-lg shadow p-4 border-l-4 border-teal-500 hover:shadow-lg transition">
+                                    <p class="font-medium text-gray-800">{{ $course->name }}</p>
+                                    <p class="text-sm text-gray-600 mt-1">{{ $course->programme->name ?? '' }}</p>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                @endforeach
+            @else
+                <div class="text-center text-gray-600 py-8">
+                    <p>No postgraduate courses currently available.</p>
+                </div>
+            @endif
+        </div>
+    </section>
 
     <section id="contact-us" class="px-20 py-16 text-white bg-gradient-to-r from-green-600 via-teal-400 to-green-600">
         <div class="container px-6 mx-auto">

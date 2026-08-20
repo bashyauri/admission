@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Http\Livewire\Auth\Login;
 use App\Http\Livewire\Auth\Logout;
 use App\Http\Controllers\ContactController;
+use App\Http\Controllers\WelcomeController;
 // use App\Http\Livewire\Pages\Charts;
 use App\Http\Controllers\PrintForm;
 use Illuminate\Support\Facades\Log;
@@ -131,9 +132,7 @@ use App\Http\Livewire\Transactions\PostutmeScreeningInvoice;
 |
 */
 
-Route::get('/', action: function () {
-    return view('welcome');
-})->name('home');
+Route::get('/', [WelcomeController::class, 'index'])->name('home');
 
 Route::middleware('guest')->group(function () {
     // Contact form route
