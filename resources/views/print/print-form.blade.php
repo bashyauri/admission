@@ -81,7 +81,7 @@
                             <img src="{{ auth()->user()?->profilePicture() }}" alt="Applicant Photo" height="100" width="100" class="rounded mb-1 border mx-auto d-block">
                             <div class="small text-muted text-center">Applicant Photo</div>
                         </div>
-                        <span class="badge bg-primary text-white mb-1">Application Email: <strong>{{auth()->user()->email}}</strong></span>
+                        <span class="badge bg-blue-600 text-white mb-1">Application Email: <strong>{{auth()->user()->email}}</strong></span>
                         <span class="badge bg-secondary text-white">Remita No: <strong>{{$RRR}}</strong></span>
                     </div>
                 </div>
