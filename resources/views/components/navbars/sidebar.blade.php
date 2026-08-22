@@ -20,5 +20,10 @@
 @endif
 @if (auth()->user()->isStudent())
     @include('components.navbars.student-sidebar')
-
+@endif
+@if (auth()->user()->isLecturer())
+    @include('components.navbars.lecturer-sidebar')
+@endif
+@if (auth()->user()->isExamOfficer())
+    @include('components.navbars.exam-officer-sidebar')
 @endif

@@ -1,6 +1,6 @@
 # Roles & Permissions Strategy — Production-Safe Multi-Role Support
 
-**Status:** Proposed  
+**Status:** Implemented (Completed)  
 **Last Updated:** August 2026  
 **Risk Level:** Low (additive changes only)  
 **Related Documents:**  

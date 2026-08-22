@@ -118,7 +118,51 @@
         </div>
         </li>
 
+        <li class="w-full mt-4">
+            <h6 class="pl-6 ml-2 font-bold leading-tight uppercase text-size-xs opacity-60 dark:text-white">Roles
+            </h6>
+        </li>
 
+        @if(auth()->user()->canActAsLecturer())
+        <li class="mt-0.5 w-full">
+            <a class="ease-soft-in-out py-2.7 text-size-sm my-0 mx-4 flex items-center whitespace-nowrap px-4 font-medium text-slate-500 shadow-none transition-colors dark:text-white dark:opacity-80 hover:bg-slate-100 rounded-lg"
+                href="{{ route('lecturer.dashboard') }}">
+                <div class="stroke-none mr-2 flex h-8 w-8 items-center justify-center rounded-lg bg-white bg-center fill-current p-2.5 text-center text-black shadow-soft-2xl">
+                    {{-- Chalkboard / Teaching icon --}}
+                    <svg width="12px" height="12px" viewBox="0 0 40 40" version="1.1" xmlns="http://www.w3.org/2000/svg">
+                        <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+                            <rect class="fill-slate-800" x="0" y="0" width="40" height="28" rx="2"/>
+                            <rect fill="#FFFFFF" x="2" y="2" width="36" height="24" rx="1"/>
+                            <rect class="fill-slate-800" x="17" y="28" width="6" height="6"/>
+                            <rect class="fill-slate-800" x="10" y="34" width="20" height="3" rx="1"/>
+                            <line x1="8" y1="10" x2="32" y2="10" stroke="#8392AB" stroke-width="2" stroke-linecap="round"/>
+                            <line x1="8" y1="16" x2="24" y2="16" stroke="#8392AB" stroke-width="2" stroke-linecap="round"/>
+                        </g>
+                    </svg>
+                </div>
+                <span class="ml-1 duration-300 opacity-100 pointer-events-none ease-soft">Switch to Lecturer</span>
+            </a>
+        </li>
+        @endif
+
+        @if(auth()->user()->canActAsExamOfficer())
+        <li class="mt-0.5 w-full">
+            <a class="ease-soft-in-out py-2.7 text-size-sm my-0 mx-4 flex items-center whitespace-nowrap px-4 font-medium text-slate-500 shadow-none transition-colors dark:text-white dark:opacity-80 hover:bg-slate-100 rounded-lg"
+                href="{{ route('exam-officer.dashboard') }}">
+                <div class="stroke-none mr-2 flex h-8 w-8 items-center justify-center rounded-lg bg-white bg-center fill-current p-2.5 text-center text-black shadow-soft-2xl">
+                    {{-- Shield / Badge icon --}}
+                    <svg width="12px" height="12px" viewBox="0 0 40 40" version="1.1" xmlns="http://www.w3.org/2000/svg">
+                        <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+                            <path class="fill-slate-800" d="M20,2 L4,9 L4,20 C4,29.4 11.2,38.2 20,40 C28.8,38.2 36,29.4 36,20 L36,9 L20,2 Z" opacity="0.6"/>
+                            <path class="fill-slate-800" d="M20,6 L7,12 L7,20 C7,27.8 12.8,35 20,37 C27.2,35 33,27.8 33,20 L33,12 L20,6 Z"/>
+                            <polyline points="13,20 18,25 28,15" stroke="#FFFFFF" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                        </g>
+                    </svg>
+                </div>
+                <span class="ml-1 duration-300 opacity-100 pointer-events-none ease-soft">Switch to Exam Officer</span>
+            </a>
+        </li>
+        @endif
 
         <li class="w-full mt-4">
             <h6 class="pl-6 ml-2 font-bold leading-tight uppercase text-size-xs opacity-60 dark:text-white">Account

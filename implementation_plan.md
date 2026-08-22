@@ -11,15 +11,15 @@ gantt
     title Roles & Capabilities Implementation Roadmap
     dateFormat  YYYY-MM-DD
     section Database & Models
-    Day 1: DB Enum Modification & Capability Table   :active, 2026-08-19, 1d
+    Day 1: DB Enum Modification & Capability Table   :done, 2026-08-19, 1d
     section Backend Logic
-    Day 2: PHP Enum Update & User Model Setup        : 2026-08-20, 1d
+    Day 2: PHP Enum Update & User Model Setup        :done, 2026-08-20, 1d
     section Middleware & Routing
-    Day 3: CapabilityMiddleware & Route Mapping      : 2026-08-21, 1d
+    Day 3: CapabilityMiddleware & Route Mapping      :done, 2026-08-21, 1d
     section Authorization & Navigation
-    Day 4: Policy Updates & Sidebar Switcher Layout   : 2026-08-22, 1d
+    Day 4: Policy Updates & Sidebar Switcher Layout   :done, 2026-08-22, 1d
     section Testing & Handover
-    Day 5: Verification Seeder & Verification Suite  : 2026-08-23, 1d
+    Day 5: Verification Seeder & Verification Suite  :done, 2026-08-23, 1d
 ```
 
 ---
@@ -138,9 +138,9 @@ class UserCapability extends Model
 ```
 
 ### Day 1 Verification Checklist
-- [ ] Run `php artisan migrate` without errors.
-- [ ] Inspect MySQL schema: verify `users.role` includes `'lecturer'` and `'exam_officer'`.
-- [ ] Inspect MySQL schema: verify `user_capabilities` table exists with foreign key constraints.
+- [x] Run `php artisan migrate` without errors.
+- [x] Inspect MySQL schema: verify `users.role` includes `'lecturer'` and `'exam_officer'`.
+- [x] Inspect MySQL schema: verify `user_capabilities` table exists with foreign key constraints.
 
 ---
 
@@ -241,8 +241,8 @@ public function isExamOfficer(): bool
 ```
 
 ### Day 2 Verification Checklist
-- [ ] Create a test route that prints `Role::getRoles()`: verify all 9 roles show up.
-- [ ] Run `php artisan tinker`: instantiate a User, verify `$user->capabilities` relationship is chainable.
+- [x] Create a test route that prints `Role::getRoles()`: verify all 9 roles show up.
+- [x] Run `php artisan tinker`: instantiate a User, verify `$user->capabilities` relationship is chainable.
 
 ---
 
@@ -322,8 +322,8 @@ In `app/Http/Kernel.php` (Laravel 10-) or `bootstrap/app.php` (Laravel 11+), reg
   * Create empty `routes/exam_officer.php` with a placeholder dashboard route.
 
 ### Day 3 Verification Checklist
-- [ ] Confirm `php artisan route:list` registers routes prefixed with `/lecturer/` and `/exam-officer/`.
-- [ ] Attempt accessing `/lecturer/dashboard` with a student account: verify you are redirected to `/student/dashboard`.
+- [x] Confirm `php artisan route:list` registers routes prefixed with `/lecturer/` and `/exam-officer/`.
+- [x] Attempt accessing `/lecturer/dashboard` with a student account: verify you are redirected to `/student/dashboard`.
 
 ---
 
@@ -372,8 +372,8 @@ Add the sidebar templates so Dr. Aminu can switch panel contexts easily without 
 ```
 
 ### Day 4 Verification Checklist
-- [ ] Verify switcher link is only visible to HOD accounts that have `lecturer` capability records.
-- [ ] Verify that clicking the link navigates to the Lecturer dashboard.
+- [x] Verify switcher link is only visible to HOD accounts that have `lecturer` capability records.
+- [x] Verify that clicking the link navigates to the Lecturer dashboard.
 
 ---
 
@@ -415,9 +415,10 @@ class UserCapabilitiesSeeder extends Seeder
 ```
 
 #### 5.2 Verification Tasks
-- [ ] Run `php artisan db:seed --class=UserCapabilitiesSeeder`.
-- [ ] Log in as HOD, switch to Lecturer view, enter a test result, and return back.
-- [ ] Verify that pure lecturers can only view `/lecturer/*` and never HOD or Admin portals.
+- [x] Run `php artisan db:seed --class=UserCapabilitiesSeeder`.
+- [x] Log in as HOD, switch to Lecturer view, enter a test result, and return back.
+- [x] Verify that pure lecturers can only view `/lecturer/*` and never HOD or Admin portals.
+- [x] Admin Staff Capabilities Management Livewire UI (`/admin/manage-capabilities`).
 
 ---
 

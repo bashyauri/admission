@@ -1272,33 +1272,39 @@ class GraduationService
 ## Phase 6: Implementation Roadmap
 
 ### Phase 1: Database Setup (Weeks 1-2)
-- Create all migration files
-- Run migrations
-- Create models with relationships
-- Create enums for grades and statuses
-- Set up foreign key constraints
+- [x] Create multi-role enum migration & `user_capabilities` migration
+- [x] Run capability migrations and register `UserCapability` model
+- [x] Create `Role` enum with all 9 backed roles
+- [ ] Create result processing tables (`results`, `result_gpa_records`, `result_approvals`, `carry_over_courses`)
+- [ ] Create models with relationships for results engine
+- [ ] Create enums for grades (A-F) and result workflow statuses
 
 ### Phase 2: Core Services (Weeks 3-4)
-- Install enhanced PDF package: `composer require barryvdh/laravel-snappy` (optional, for better PDF rendering)
-- Implement GradeCalculationService
-- Implement TranscriptService
-- Implement GraduationService
-- Implement ResultProcessingService
-- Create service interfaces and contracts
+- [ ] Install enhanced PDF package: `composer require barryvdh/laravel-snappy` (optional, for better PDF rendering)
+- [ ] Implement GradeCalculationService
+- [ ] Implement TranscriptService
+- [ ] Implement GraduationService
+- [ ] Implement ResultProcessingService
+- [ ] Create service interfaces and contracts
 
 ### Phase 3: Lecturer Module (Weeks 5-6)
-- Create lecturer dashboard
-- Implement result entry forms
-- Create course allocation system
-- Implement result review workflow
-- Add lecturer-specific permissions
+- [x] Create lecturer dashboard (`LecturerIndex` Livewire component & views)
+- [x] Register `/lecturer/*` route mapping & `CapabilityMiddleware`
+- [ ] Implement result entry forms (Web grid & CSV upload)
+- [ ] Create course allocation system
+- [ ] Implement result review workflow
+- [x] Add lecturer-specific permissions & capability helpers
 
 ### Phase 4: Approval Workflow (Weeks 7-8)
-- Implement HOD approval system
-- Implement Exam Officer approval
-- Create approval notification system
-- Add approval audit trail
-- Implement result release control
+- [x] Create Exam Officer dashboard (`ExamOfficerIndex` Livewire component & views)
+- [x] Register `/exam-officer/*` route mapping & permissions
+- [x] Add multi-role sidebar switcher toggles for HOD, Lecturer, and Exam Officer
+- [x] Implement Admin Staff Capabilities Management UI (`/admin/manage-capabilities`)
+- [ ] Implement HOD approval system & action buttons
+- [ ] Implement Exam Officer approval & vetting actions
+- [ ] Create approval notification system
+- [ ] Add approval audit trail
+- [ ] Implement result release control
 
 ### Phase 5: Student Module (Weeks 9-10)
 - Create student result viewing

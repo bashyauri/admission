@@ -37,6 +37,8 @@ class RouteServiceProvider extends ServiceProvider
             $this->mapCitRoutes();
             $this->mapCoordinatorRoutes();
             $this->mapIdCardOfficerRoutes();
+            $this->mapLecturerRoutes();
+            $this->mapExamOfficerRoutes();
         });
     }
 
@@ -71,7 +73,7 @@ class RouteServiceProvider extends ServiceProvider
 
     protected function mapHodRoutes()
     {
-        Route::middleware(['web', 'auth', 'verified', 'role:hod'])
+        Route::middleware(['web', 'auth', 'verified', 'capability:hod'])
             ->prefix('hod')
             ->as('hod.')
             ->group(base_path('routes/hod.php'));
@@ -86,24 +88,40 @@ class RouteServiceProvider extends ServiceProvider
     }
     protected function mapCitRoutes()
     {
-        Route::middleware(['web', 'auth', 'verified', 'role:cit'])
+        Route::middleware(['web', 'auth', 'verified', 'capability:cit'])
             ->prefix('cit')
             ->as('cit.')
             ->group(base_path('routes/cit.php'));
     }
     protected function mapCoordinatorRoutes()
     {
-        Route::middleware(['web', 'auth', 'verified', 'role:coordinator'])
+        Route::middleware(['web', 'auth', 'verified', 'capability:coordinator'])
             ->prefix('coordinator')
             ->as('coordinator.')
             ->group(base_path('routes/coordinator.php'));
     }
     protected function mapIdCardOfficerRoutes()
     {
-        Route::middleware(['web', 'auth', 'verified', 'role:idcard_officer'])
+        Route::middleware(['web', 'auth', 'verified', 'capability:idcard_officer'])
             ->prefix('idcard')
             ->as('idcard.')
             ->group(base_path('routes/idcard_officer.php'));
+    }
+
+    protected function mapLecturerRoutes()
+    {
+        Route::middleware(['web', 'auth', 'verified', 'capability:lecturer'])
+            ->prefix('lecturer')
+            ->as('lecturer.')
+            ->group(base_path('routes/lecturer.php'));
+    }
+
+    protected function mapExamOfficerRoutes()
+    {
+        Route::middleware(['web', 'auth', 'verified', 'capability:exam_officer'])
+            ->prefix('exam-officer')
+            ->as('exam-officer.')
+            ->group(base_path('routes/exam_officer.php'));
     }
 
 

@@ -38,9 +38,9 @@ class RedirectIfAuthenticated
             'cit' => 'cit.dashboard',
             'student' => 'student.dashboard',
             'coordinator' => 'coordinator.dashboard',
-
-
-
+            'idcard_officer' => 'idcard.processing',
+            'lecturer' => 'lecturer.dashboard',
+            'exam_officer' => 'exam-officer.dashboard',
         ];
 
         if (array_key_exists($role, $dashboardRoutes)) {

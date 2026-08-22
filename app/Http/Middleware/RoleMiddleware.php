@@ -27,6 +27,8 @@ class RoleMiddleware
                 'cit' => 'cit.dashboard',
                 'coordinator' => 'coordinator.dashboard',
                 'idcard_officer' => 'idcard.processing',
+                'lecturer' => 'lecturer.dashboard',
+                'exam_officer' => 'exam-officer.dashboard',
                 default => 'analytics',
             };
 

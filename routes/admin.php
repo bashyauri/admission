@@ -26,8 +26,10 @@ use App\Http\Livewire\Admin\Applicants\Utme\AllApplicants as UtmeAllApplicants;
 use App\Http\Livewire\Admin\Applicants\Utme\ShortlistedApplicants as UtmeShortlistedApplicants;
 use App\Http\Livewire\Admin\ManageDegreeApplicants;
 use App\Http\Livewire\Admin\ManagePostgraduateApplicants;
+use App\Http\Livewire\Admin\ManageUserCapabilities;
 
 Route::get('dashboard', AdminIndex::class)->name('dashboard');
+Route::get('manage-capabilities', ManageUserCapabilities::class)->name('manage-capabilities');
 Route::get('fubk', FubkReport::class)->name('fubk');
 Route::get('fubk/export', FubkReportExportController::class)->name('fubk.export');
 Route::get('fubk/pdf/queue', [FubkReportPdfJobController::class, 'queue'])->name('fubk.pdf.queue');
