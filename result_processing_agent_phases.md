@@ -20,7 +20,7 @@ To implement the entire system safely on production, execute the phases in this 
 
 ```mermaid
 graph TD
-    P1["Phase 1: DB & Versioning Foundation<br/>(No risk, no downtime)"] --> P2["Phase 2: Calculation & Carry-Overs Services<br/>(Logical layer, test-driven)"]
+    P1["Phase 1: DB & Versioning Foundation<br/>(COMPLETED)"] --> P2["Phase 2: Calculation & Carry-Overs Services<br/>(COMPLETED)"]
     P2 --> P3["Phase 3: Lecturer Result Entry<br/>(Livewire & CSV Templates)"]
     P3 --> P4["Phase 4: Multi-Level Approval Workflows<br/>(HOD & Exam Officer Panels)"]
     P4 --> P5["Phase 5: Student Portal & Transcripts<br/>(Result view & PDF generation)"]
@@ -29,44 +29,54 @@ graph TD
 
 ---
 
-## Phase 1: Database & Versioning Foundation
+## Phase 1: Database & Versioning Foundation (✅ COMPLETED)
 * **Goal:** Create all database tables, models, and relationships needed for result tracking and course versioning.
 * **Risk Profile:** Zero (all additions are brand new tables).
+* **Status:** **Completed & Verified** (August 2026)
 
-### Agent Instructions Prompt
-> **Prompt for Agent:**
-> "Please implement Phase 1: Database Foundation for the Student MIS result processing.
-> 
-> Tasks:
-> 1. Create migrations and models for:
->    - `course_versions` (referenced in COURSE_VERSIONING_DATA_INTEGRITY.md)
->    - `course_change_history`
->    - `course_mappings`
->    - `user_capabilities` (referenced in ROLES_AND_PERMISSIONS_STRATEGY.md)
->    - `results`
->    - `result_gpa_records`
->    - `result_approvals`
->    - `carry_over_courses`
-> 2. Set up all Eloquent relationships between the new models and the existing `User`, `Department`, and `Course` models.
-> 3. Verify that all migrations compile and run correctly using `php artisan migrate`."
+### Completed Tasks Checklist
+- [x] Created `course_versions` migration & model (`CourseVersion.php`)
+- [x] Created `course_change_history` migration & model (`CourseChangeHistory.php`)
+- [x] Created `course_mappings` migration & model (`CourseMapping.php`)
+- [x] Created `user_capabilities` migration & model (`UserCapability.php`)
+- [x] Created `results` migration & model (`Result.php`)
+- [x] Created `result_gpa_records` migration & model (`ResultGpaRecord.php`)
+- [x] Created `result_approvals` migration & model (`ResultApproval.php`)
+- [x] Created `carry_over_courses` migration & model (`CarryOverCourse.php`)
+- [x] Added course snapshot columns to `registered_courses` table & model
+- [x] Established Eloquent relationships across `User`, `Department`, `Course`, `RegisteredCourse`, `DepartmentCourse`
+- [x] Migrated cleanly via `php artisan migrate`
+- [x] Created & passed automated test suite: `tests/Unit/Phase1DatabaseFoundationTest.php` (5 tests, 19 assertions)
 
 ---
 
-## Phase 2: Core Calculations & Carry-Overs Services
-* **Goal:** Implement the logic that calculates GPA, updates CGPA, automatically registers carry-over courses, and manages course snapshots.
-* **Risk Profile:** Low (services are not wired to endpoints yet).
+## Phase 2: Core Calculations & Carry-Overs Services (✅ COMPLETED)
+* **Goal:** Implement the logic that calculates GPA, updates CGPA, automatically registers carry-over courses, manages academic standing, and decoupled level progression (Postgraduate strictly untouched).
+* **Risk Profile:** Low (logical service layer).
+* **Status:** **Completed & Verified** (August 2026)
 
-### Agent Instructions Prompt
-> **Prompt for Agent:**
-> "Please implement Phase 2: Core MIS Calculations & Services.
-> 
-> Tasks:
-> 1. Implement `App\Services\GradeCalculationService` (referenced in RESULT_PROCESSING_EXTENSION_PLAN.md L699):
->    - Calculate letter grades (A, B, C, D, F) based on 5-point NUC scale.
->    - Calculate GPAs per semester.
->    - Calculate Cumulative GPA (CGPA) and Class of Degree.
-> 2. Implement `App\Services\CourseRegistrationService` and `CarryOverRegistrationService` (L369 & L507) to handle priority registration for carry-overs and unit limit check checks (min 15, max 24).
-> 3. Write unit tests in `tests/Unit/GradeCalculationTest.php` verifying calculation accuracy (e.g. passing mock grades and checking GPA calculations)."
+### Completed Tasks Checklist
+- [x] Implemented `App\Services\GradeCalculationService`:
+  - NUC 5-point grading scale (A: 70-100, B: 60-69, C: 50-59, D: 45-49, F: 0-44).
+  - Quality point math ($GP \times Units$).
+  - Semester GPA calculation & Cumulative GPA (CGPA) aggregation.
+  - Official NUC Class of Degree classification.
+  - Automatic persistence to `ResultGpaRecord`.
+- [x] Implemented `App\Services\AcademicProgressionService`:
+  - Academic standing rules: `PROMOTED` ($CGPA \ge 1.50$), `PROBATION` ($1.00 \le CGPA < 1.50$), `REPEAT` ($CGPA < 1.00$), and `SPILLOVER`.
+  - Cap final-year students with uncleared carry-overs at maximum program duration (prevents invalid levels like 500L for 4-year programs).
+  - Direct Entry (DE) handling: starting at 200L.
+  - Protected postgraduate workflows from undergraduate progression mutations.
+- [x] Implemented `App\Services\CarryOverRegistrationService`:
+  - Automatic carry-over course recording upon failed results.
+  - Active carry-over retrieval filtered by semester.
+  - Automatic clearance upon approved retake passing score ($\ge 45$).
+  - Credit unit load validation (minimum 15, maximum 24 units).
+- [x] Integrated `AcademicProgressionService` with `PaymentService::getUgStudentLevel()`.
+- [x] Created & passed automated test suites:
+  - `tests/Unit/GradeCalculationTest.php` (5 tests, 26 assertions)
+  - `tests/Unit/AcademicProgressionTest.php` (4 tests, 7 assertions)
+  - `tests/Unit/CarryOverRegistrationTest.php` (3 tests, 16 assertions)
 
 ---
 

@@ -87,11 +87,19 @@ app/
 │   └── Kernel.php
 ├── Models/                        # Eloquent models
 │   ├── User.php
+│   ├── UserCapability.php
 │   ├── Programme.php
 │   ├── Department.php
 │   ├── Course.php
+│   ├── CourseVersion.php
+│   ├── CourseChangeHistory.php
+│   ├── CourseMapping.php
 │   ├── DepartmentCourse.php
 │   ├── RegisteredCourse.php
+│   ├── Result.php
+│   ├── ResultGpaRecord.php
+│   ├── ResultApproval.php
+│   ├── CarryOverCourse.php
 │   ├── AcademicDetail.php
 │   └── Transaction.php
 ├── Policies/                      # Authorization policies
@@ -99,6 +107,13 @@ app/
 │   ├── RolePolicy.php
 │   ├── CategoryPolicy.php
 │   └── ItemPolicy.php
+├── Services/                      # Business logic & calculations
+│   ├── GradeCalculationService.php
+│   ├── AcademicProgressionService.php
+│   ├── CarryOverRegistrationService.php
+│   ├── PaymentService.php
+│   ├── CourseRegistrationService.php
+│   └── AcademicSessionService.php
 └── Providers/                     # Service providers
 database/
 ├── migrations/                    # Database schema definitions
@@ -107,7 +122,9 @@ routes/
 ├── web.php                        # Public and applicant routes
 ├── admin.php                      # Admin routes
 ├── student.php                    # Student routes
-└── hod.php                        # HOD routes
+├── hod.php                        # HOD routes
+├── lecturer.php                   # Lecturer routes
+└── exam_officer.php               # Exam Officer routes
 resources/
 ├── views/                         # Blade templates
 └── livewire/                      # Livewire component views

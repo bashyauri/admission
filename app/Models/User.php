@@ -315,4 +315,19 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return $this->hasMany(StudentTransaction::class);
     }
+
+    public function results(): HasMany
+    {
+        return $this->hasMany(Result::class, 'user_id');
+    }
+
+    public function gpaRecords(): HasMany
+    {
+        return $this->hasMany(ResultGpaRecord::class, 'user_id');
+    }
+
+    public function carryOverCourses(): HasMany
+    {
+        return $this->hasMany(CarryOverCourse::class, 'user_id');
+    }
 }
