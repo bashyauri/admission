@@ -34,26 +34,37 @@ class GradeCalculationTest extends TestCase
         $aGrade = $this->service->getGradeAndPoint(85.5);
         $this->assertEquals('A', $aGrade['grade']);
         $this->assertEquals(5, $aGrade['grade_point']);
+        $this->assertEquals('A', $this->service->calculateGrade(85.5));
+        $this->assertEquals(5, $this->service->calculateGradePoint('A'));
+        $this->assertEquals(5, $this->service->calculateGradePoint(85.5));
 
         // B: 60 - 69 (4 points)
         $bGrade = $this->service->getGradeAndPoint(63.0);
         $this->assertEquals('B', $bGrade['grade']);
         $this->assertEquals(4, $bGrade['grade_point']);
+        $this->assertEquals('B', $this->service->calculateGrade(63.0));
+        $this->assertEquals(4, $this->service->calculateGradePoint('B'));
 
         // C: 50 - 59 (3 points)
         $cGrade = $this->service->getGradeAndPoint(54.0);
         $this->assertEquals('C', $cGrade['grade']);
         $this->assertEquals(3, $cGrade['grade_point']);
+        $this->assertEquals('C', $this->service->calculateGrade(54.0));
+        $this->assertEquals(3, $this->service->calculateGradePoint('C'));
 
         // D: 45 - 49 (2 points)
         $dGrade = $this->service->getGradeAndPoint(47.0);
         $this->assertEquals('D', $dGrade['grade']);
         $this->assertEquals(2, $dGrade['grade_point']);
+        $this->assertEquals('D', $this->service->calculateGrade(47.0));
+        $this->assertEquals(2, $this->service->calculateGradePoint('D'));
 
         // F: 0 - 44 (0 points)
         $fGrade = $this->service->getGradeAndPoint(39.5);
         $this->assertEquals('F', $fGrade['grade']);
         $this->assertEquals(0, $fGrade['grade_point']);
+        $this->assertEquals('F', $this->service->calculateGrade(39.5));
+        $this->assertEquals(0, $this->service->calculateGradePoint('F'));
     }
 
     public function test_nuc_class_of_degree_classification(): void
@@ -99,17 +110,14 @@ class GradeCalculationTest extends TestCase
     {
         $department = Department::first() ?? new Department();
         if (!$department->exists) {
-            $department->name = 'Comp Sci';
-            $department->code = 'CS' . rand(100, 999);
+            $department->name = 'Comp Sci ' . rand(100, 999);
             $department->save();
         }
 
         $programme = Programme::first() ?? new Programme();
         if (!$programme->exists) {
-            $programme->name = 'B.Sc CS';
-            $programme->degree = 'B.Sc';
-            $programme->duration = 4;
-            $programme->code = 'CS' . rand(100, 999);
+            $programme->name = 'Undergraduate ' . rand(100, 999);
+            $programme->abv = 'UG';
             $programme->save();
         }
 

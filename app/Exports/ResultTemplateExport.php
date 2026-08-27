@@ -16,11 +16,15 @@ class ResultTemplateExport implements FromCollection, WithHeadings
 
     public function collection()
     {
+        if ($this->students && method_exists($this->students, 'loadMissing')) {
+            $this->students->loadMissing('academicDetail.user');
+        }
+
         return $this->students->map(function ($student) {
             return [
-                'Matric No' => $student->academicDetail->matric_no,
-                'First Name' => $student->academicDetail->user->firstname,
-                'Surname' => $student->academicDetail->user->surname,
+                'Matric No' => $student->academicDetail->matric_no ?? '',
+                'First Name' => $student->academicDetail->user->firstname ?? '',
+                'Surname' => $student->academicDetail->user->surname ?? '',
                 'CA Score' => '', // Blank for lecturer to fill
                 'Exam Score' => '', // Blank for lecturer to fill
             ];

@@ -39,7 +39,7 @@ class ResultEntry extends Component
             abort(403, 'Unauthorized access to this course allocation.');
         }
 
-        $this->allocation = $courseAllocation;
+        $this->allocation = $courseAllocation->loadMissing(['departmentCourse.studentCourse']);
         $this->allocationId = $courseAllocation->id;
 
         // Resolve default session from AcademicSessionService
@@ -61,6 +61,16 @@ class ResultEntry extends Component
         $this->selectedSession = $defaultSession;
 
         $this->loadStudentsAndResults();
+    }
+
+    public function hydrate()
+    {
+        if (isset($this->allocation)) {
+            $this->allocation->loadMissing(['departmentCourse.studentCourse']);
+        }
+        if ($this->students && method_exists($this->students, 'loadMissing')) {
+            $this->students->loadMissing(['academicDetail.user']);
+        }
     }
 
     public function updatedSelectedSession()

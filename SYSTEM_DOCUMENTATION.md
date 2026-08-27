@@ -264,6 +264,8 @@ This is a comprehensive Laravel-based admission management system built for hand
 
 ### Admin Routes (admin.php)
 - `/dashboard` - Admin dashboard
+- `/manage-capabilities` - Multi-role staff capability management
+- `/course-allocations` - Assign department courses to lecturers across sessions & semesters
 - `/fubk` - FUBK reports (export, PDF generation)
 - `/manage-course-drops` - Course drop management
 - `/settings` - System settings
@@ -296,18 +298,25 @@ This is a comprehensive Laravel-based admission management system built for hand
 
 ### HOD Routes (hod.php)
 - `/dashboard` - HOD dashboard
+- `/results-review` - Review and approve submitted course results or return to lecturer with feedback
 - `/all-applicants` - View department applicants
 - `/not-recommended-applicants` - View not recommended
 - `/shortlisted-applicants` - View shortlisted
 - `/edit-applicant/{user}` - Edit applicant details
 - `/hod-profile` - HOD profile
 
+### Lecturer Routes (lecturer.php - capability:lecturer)
+- `/dashboard` - Lecturer dashboard showing allocated courses
+- `/result-entry/{courseAllocation}` - Interactive result entry (CA 0–40, Exam 0–60), CSV template download, CSV bulk import, submit to HOD
+
+### Exam Officer Routes (exam_officer.php - capability:exam_officer)
+- `/dashboard` - Exam officer dashboard
+- `/results-review` - Faculty-wide result auditing, return to HOD, and batch result release to students (auto-calculating GPA and carry-overs)
+
 ### Other Route Files
 - `cit.php` - CIT-specific routes
 - `coordinator.php` - Coordinator routes
 - `idcard_officer.php` - ID card officer routes
-- `lecturer.php` - Lecturer-specific routes (accessed by capability or role)
-- `exam_officer.php` - Exam Officer routes (accessed by capability or role)
 - `api.php` - API endpoints
 
 ## Livewire Components
@@ -343,6 +352,8 @@ This is a comprehensive Laravel-based admission management system built for hand
 
 ### Admin Components
 - `AdminIndex` - Admin dashboard
+- `ManageUserCapabilities` - Assign & revoke staff capabilities (Lecturer, HOD, Exam Officer, CIT)
+- `CourseAllocationManager` - Allocate department courses to lecturers across sessions & semesters
 - `Settings` - System settings
 - `FubkReport` - FUBK report generation
 - `ManageCourseDrops` - Course drop management
@@ -359,11 +370,20 @@ This is a comprehensive Laravel-based admission management system built for hand
 
 ### HOD Components
 - `HodIndex` - HOD dashboard
+- `HodResultReview` - Review and approve submitted course results, inspect student scores, or return to lecturer with feedback remarks
 - `AllApplicants` - View department applicants
 - `NotRecommended` - View not recommended
 - `ShortlistedApplicants` - View shortlisted
 - `ApplicantEdit` - Edit applicant details
 - `HodProfile` - HOD profile
+
+### Lecturer Components
+- `LecturerDashboard` - Overview of allocated courses for the lecturer
+- `ResultEntry` - Interactive score entry table (CA 0–40, Exam 0–60), CSV template export (`ResultTemplateExport`), CSV bulk import (`ResultImport`), and submit to HOD
+
+### Exam Officer Components
+- `ExamOfficerIndex` - Exam officer dashboard
+- `ExamOfficerResultReview` - Faculty-wide score sheet auditing, return to HOD, and official batch result release (triggers GPA & carry-over computation)
 
 ### Student Components
 - `StudentIndex` - Student dashboard

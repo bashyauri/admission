@@ -36,8 +36,7 @@ class AcademicProgressionTest extends TestCase
 
         $this->department = Department::first() ?? new Department();
         if (!$this->department->exists) {
-            $this->department->name = 'CS Dept';
-            $this->department->code = 'CS' . rand(100, 999);
+            $this->department->name = 'CS Dept ' . rand(100, 999);
             $this->department->save();
         }
 

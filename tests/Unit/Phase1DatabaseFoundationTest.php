@@ -42,17 +42,14 @@ class Phase1DatabaseFoundationTest extends TestCase
 
         $this->department = Department::first() ?? new Department();
         if (!$this->department->exists) {
-            $this->department->name = 'Computer Science Test Dept';
-            $this->department->code = 'CST' . rand(100, 999);
+            $this->department->name = 'Computer Science Test Dept ' . rand(100, 999);
             $this->department->save();
         }
 
         $this->programme = Programme::first() ?? new Programme();
         if (!$this->programme->exists) {
-            $this->programme->name = 'B.Sc Computer Science';
-            $this->programme->degree = 'B.Sc';
-            $this->programme->duration = 4;
-            $this->programme->code = 'CS' . rand(100, 999);
+            $this->programme->name = 'B.Sc Computer Science ' . rand(100, 999);
+            $this->programme->abv = 'UG';
             $this->programme->save();
         }
 

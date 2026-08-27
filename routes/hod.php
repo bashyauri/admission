@@ -6,9 +6,11 @@ use App\Http\Livewire\Hod\Applicants\ApplicantEdit;
 use App\Http\Livewire\Hod\Applicants\NotRecommended;
 use App\Http\Livewire\Hod\Applicants\ShortlistedApplicants;
 use App\Http\Livewire\Hod\HodProfile;
+use App\Http\Livewire\Hod\HodResultReview;
 use Illuminate\Support\Facades\Route;
 
 Route::get('dashboard', HodIndex::class)->name('dashboard');
+Route::get('results-review', HodResultReview::class)->name('results-review');
 Route::get('all-applicants', AllApplicants::class)->name('all-applicants');
 Route::get('not-recommended-applicants', NotRecommended::class)->name('not-recommended-applicants');
 Route::get('shortlisted-applicants', ShortlistedApplicants::class)->name('shortlisted-applicants');

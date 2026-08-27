@@ -204,14 +204,14 @@ resources/
 **Accessible Modules:**
 - HOD portal
 - Department management
-- Result approval
+- Result review and approval (`/hod/results-review`)
 
-### Role: Lecturer (Planned)
+### Role: Lecturer
 **Can:**
-- Enter results for assigned courses
-- View assigned courses
-- Configure assessment settings
-- Submit results for approval
+- Enter results for assigned courses (CA 0–40, Exam 0–60)
+- View allocated courses
+- Download CSV template and upload bulk results
+- Submit results for HOD approval
 
 **Cannot:**
 - Approve results
@@ -219,24 +219,22 @@ resources/
 - Modify course structure
 
 **Accessible Modules:**
-- Lecturer portal
-- Result entry
-- Assessment configuration
+- Lecturer portal (`/lecturer/dashboard`)
+- Result entry (`/lecturer/result-entry/{courseAllocation}`)
 
-### Role: Exam Officer (Planned)
+### Role: Exam Officer
 **Can:**
-- Approve results at faculty level
+- Audit and review HOD-approved results across departments
+- Release official semester results to students (auto-triggering GPA and carry-over updates)
+- Return results to HOD with feedback remarks
 - Generate result statistics
-- View all faculty results
 
 **Cannot:**
-- Modify results
-- Access other faculties' data
+- Enter initial scores directly (handled by allocated lecturer)
 
 **Accessible Modules:**
-- Exam officer portal
-- Result approval
-- Analytics
+- Exam officer portal (`/exam-officer/dashboard`)
+- Result auditing and release (`/exam-officer/results-review`)
 
 ### Role: CIT
 **Can:**
@@ -543,12 +541,23 @@ Payment is required before:
 2. Course registration
 3. Transcript request (when implemented)
 
-### Result Approval Rule (Planned)
-Results must follow approval workflow:
-1. Lecturer submits results
-2. HOD reviews and approves
-3. Exam Officer approves at faculty level
-4. Results are released to students
+### Result Approval Rule
+Results follow a strict multi-level approval state machine:
+
+| Status | Set By | Meaning |
+|---|---|---|
+| `pending` | System / HOD Rejection | Lecturer draft — editable |
+| `submitted` | Lecturer | Locked, awaiting HOD review |
+| `hod_approved` | HOD | Approved, awaiting Exam Officer release |
+| `released` | Exam Officer | Official; visible to students; GPA & carry-overs computed |
+
+1. Lecturer enters CA + Exam scores and clicks **Submit to HOD** → `pending` → `submitted`
+2. HOD reviews the score sheet:
+   - If correct → clicks **Approve & Forward** → `submitted` → `hod_approved`
+   - If issues found → clicks **Return to Lecturer**, types detailed reason → `submitted` → `pending` (remarks saved; scores unlocked again so lecturer can correct and resubmit)
+3. Exam Officer audits HOD-approved score sheets:
+   - If correct → clicks **Release to Students** → `hod_approved` → `released` (auto-triggers GPA & carry-over computation)
+   - If issues found → clicks **Return to HOD**, types reason → `hod_approved` → `submitted` (returned to HOD queue)
 
 ---
 
@@ -603,27 +612,30 @@ Fee Payment Confirmation
 Registration Confirmed
 ```
 
-### Result Processing Workflow (Planned)
+### Result Processing Workflow (IMPLEMENTED)
 ```
-Course Allocation to Lecturer
+Admin/CIT Allocates Course to Lecturer (CourseAllocationManager)
   ↓
-Assessment Configuration
+Lecturer Enters Scores — CA (0–40) + Exam (0–60) (ResultEntry)
   ↓
-Result Entry (Web Form or CSV Upload)
+  [Optional: CSV Template Download → Bulk Fill → CSV Import]
   ↓
-Lecturer Review
+Lecturer Submits → status = 'submitted'
   ↓
-Lecturer Submission
-  ↓
-HOD Review and Approval
-  ↓
-Exam Officer Approval
-  ↓
-Result Release
-  ↓
-GPA/CGPA Calculation
-  ↓
-Transcript Generation
+HOD Reviews Score Sheet (HodResultReview)
+  ├── Issues Found → Return to Lecturer + Reason → status = 'pending'
+  │     ↓ (Lecturer corrects and resubmits)
+  └── Approved → status = 'hod_approved'
+        ↓
+Exam Officer Audits (ExamOfficerResultReview)
+  ├── Issues Found → Return to HOD + Audit Comment → status = 'submitted'
+  └── Release to Students → status = 'released'
+        ↓
+GPA / CGPA Calculated (GradeCalculationService → result_gpa_records)
+        ↓
+Carry-Over Courses Processed (CarryOverRegistrationService → carry_over_courses)
+        ↓
+[Future: Transcript Generation]
 ```
 
 ---
@@ -636,20 +648,35 @@ Transcript Generation
 - `/register` - Registration page
 - `/password/reset` - Password reset
 
-### Admin Routes (admin.php)
-- `/admin/*` - Admin dashboard and management
+### Admin Routes (admin.php) — middleware: auth, role:admin
+- `/admin/dashboard` - Admin dashboard
+- `/admin/manage-capabilities` - Assign/revoke multi-role staff capabilities
+- `/admin/course-allocations` - Allocate department courses to lecturers
 
-### Student Routes (student.php)
-- `/student/*` - Student portal
+### HOD Routes (hod.php) — middleware: auth, role:hod
+- `/hod/dashboard` - HOD dashboard
+- `/hod/results-review` - Score sheet review and batch approval or return to lecturer
 
-### HOD Routes (hod.php)
-- `/hod/*` - HOD portal
+### Lecturer Routes (lecturer.php) — middleware: auth, capability:lecturer
+- `/lecturer/dashboard` - Allocated courses overview
+- `/lecturer/result-entry/{courseAllocation}` - Inline score entry, CSV export/import, submit to HOD
+
+### Exam Officer Routes (exam_officer.php) — middleware: auth, capability:exam_officer
+- `/exam-officer/dashboard` - Exam officer dashboard
+- `/exam-officer/results-review` - Faculty-wide grade auditing and official result release
+
+### Student Routes (student.php) — middleware: auth, role:student
+- `/student/dashboard` - Student portal
+- `/student/course-registration` - Course registration
+- `/student/course-history` - Academic history
 
 ### Authentication Middleware
 - `auth` - Require authentication
 - `role:admin` - Require admin role
 - `role:student` - Require student role
 - `role:hod` - Require HOD role
+- `capability:lecturer` - Require lecturer capability (via `user_capabilities` table)
+- `capability:exam_officer` - Require exam officer capability
 
 ---
 

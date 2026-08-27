@@ -22,30 +22,28 @@ This system manages the complete student lifecycle from admission to graduation,
 
 ### Current Features
 - User registration and authentication
-- Role-based access control (Admin, Applicant, Student, HOD, CIT, Coordinator, IdCard Officer, Lecturer, Exam Officer)
+- Multi-role capability access control (Admin, Applicant, Student, HOD, CIT, Coordinator, IdCard Officer, Lecturer, Exam Officer)
+- Staff capability manager (`ManageUserCapabilities`)
 - Programme management (Undergraduate, Postgraduate, HND, ND, NCE, PD)
 - Department and school management
-- Course management and department course allocation
+- Course allocation manager (`CourseAllocationManager`) for assigning courses to lecturers
 - Student application workflow with status tracking
-- O-level result management
-- Certificate upload management
+- O-level result and certificate upload management
 - Post-UTME credential management
-- Course registration system
+- Course registration system with course versioning foundation
 - Fee payment processing with transaction tracking
 - Academic detail management with matric number generation
+- NUC-compliant grade calculation engine (`GradeCalculationService`) with 5-point grading (A, B, C, D, F)
+- Academic progression engine (`AcademicProgressionService`) with promotion, probation, repeat, and spillover rules
+- Automatic carry-over tracking & clearance engine (`CarryOverRegistrationService`)
+- Lecturer result entry dashboard with inline validation (CA 0–40, Exam 0–60), CSV template export, and CSV bulk import
+- HOD Result Review & Approval panel (`HodResultReview`) with student score sheet inspection, batch approval, and return-to-lecturer workflow
+- Exam Officer Result Auditing & Release panel (`ExamOfficerResultReview`) with batch release triggering GPA calculation and carry-over management
 
-### Planned Extensions (Documented)
-- NUC-compliant result processing system
-- Course versioning for historical data integrity
-- Automatic carry-over course registration
-- Department-level unit validation
-- Transcript generation and management
-- Graduation eligibility checking
-- Certificate generation and printing
-- Assessment configuration with lecturer permissions
-- Result approval workflow (Lecturer → HOD → Exam Officer)
-- Hybrid result entry (web form + CSV upload)
-- Analytics and reporting dashboards
+### Upcoming Extensions (Documented in Plan)
+- Student portal result viewer (`MyResults`)
+- Official transcript generation with QR verification (PDF)
+- Graduation eligibility checking and certificate issuance tracking (`GraduationService`)
 
 ## Documentation
 

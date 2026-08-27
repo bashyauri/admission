@@ -12,6 +12,8 @@ class Course extends Model
 {
     use HasFactory;
 
+    protected $guarded = ['id'];
+
     public function department(): BelongsTo
     {
         return $this->belongsTo(Department::class);

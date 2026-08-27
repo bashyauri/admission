@@ -38,17 +38,14 @@ class CarryOverRegistrationTest extends TestCase
 
         $this->department = Department::first() ?? new Department();
         if (!$this->department->exists) {
-            $this->department->name = 'CS Dept';
-            $this->department->code = 'CS' . rand(100, 999);
+            $this->department->name = 'CS Dept ' . rand(100, 999);
             $this->department->save();
         }
 
         $this->programme = Programme::first() ?? new Programme();
         if (!$this->programme->exists) {
-            $this->programme->name = 'B.Sc CS';
-            $this->programme->degree = 'B.Sc';
-            $this->programme->duration = 4;
-            $this->programme->code = 'CS' . rand(100, 999);
+            $this->programme->name = 'B.Sc CS ' . rand(100, 999);
+            $this->programme->abv = 'CS';
             $this->programme->save();
         }
 
@@ -164,17 +161,9 @@ class CarryOverRegistrationTest extends TestCase
         $this->carryOverService->recordFailedCourse($failedResult);
 
         // 2. Retake Next Session (2024-2025)
-        $reg2 = RegisteredCourse::create([
-            'department_course_id' => $this->deptCourse->id,
-            'academic_detail_id' => $this->academicDetail->id,
-            'student_level_id' => $this->level->id,
-            'units' => '3',
-            'academic_session' => '2024-2025',
-        ]);
-
         $passedResult = Result::create([
             'user_id' => $this->student->id,
-            'registered_course_id' => $reg2->id,
+            'registered_course_id' => $reg1->id,
             'department_course_id' => $this->deptCourse->id,
             'academic_detail_id' => $this->academicDetail->id,
             'semester' => 'first',

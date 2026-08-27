@@ -5,11 +5,14 @@ namespace Tests\Unit;
 use App\Enums\Role;
 use App\Models\User;
 use App\Models\UserCapability;
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Testing\DatabaseTransactions;
+use App\Models\Programme;
 use Tests\TestCase;
 
 class RoleCapabilityTest extends TestCase
 {
+    use DatabaseTransactions;
+    
     public function test_role_enum_contains_all_nine_roles(): void
     {
         $roles = Role::getRoles();
@@ -57,9 +60,12 @@ class RoleCapabilityTest extends TestCase
 
     public function test_hod_with_lecturer_capability(): void
     {
+        $prog = Programme::first() ?? Programme::create(['name' => 'UG Test', 'abv' => 'UG']);
+
         $user = User::create([
             'email' => 'hod_test_' . uniqid() . '@example.com',
             'role' => 'hod',
+            'programme_id' => $prog->id,
             'surname' => 'Test',
             'firstname' => 'HOD',
             'password' => bcrypt('secret'),

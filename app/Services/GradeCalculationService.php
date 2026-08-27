@@ -13,6 +13,32 @@ use Illuminate\Support\Collection;
 class GradeCalculationService
 {
     /**
+     * Calculate letter grade from total score based on NUC 5-point grading system.
+     */
+    public function calculateGrade(float|int $totalScore): string
+    {
+        return $this->getGradeAndPoint((float) $totalScore)['grade'];
+    }
+
+    /**
+     * Calculate grade point from letter grade or total score.
+     */
+    public function calculateGradePoint(string|float|int $gradeOrScore): int
+    {
+        if (is_numeric($gradeOrScore)) {
+            return $this->getGradeAndPoint((float) $gradeOrScore)['grade_point'];
+        }
+
+        return match (strtoupper(trim((string) $gradeOrScore))) {
+            'A' => 5,
+            'B' => 4,
+            'C' => 3,
+            'D' => 2,
+            default => 0,
+        };
+    }
+
+    /**
      * Get letter grade and grade point from total score based on NUC 5-point grading system.
      *
      * @return array{grade: string, grade_point: int, description: string}
