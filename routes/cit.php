@@ -12,8 +12,10 @@ use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\UgSchoolFeesController;
 use App\Http\Livewire\Transactions\UtmeSchoolFeesInvoice;
 use App\Http\Livewire\Admin\Settings;
+use App\Http\Livewire\Admin\CourseAllocationManager;
 
 Route::get('dashboard', CitIndex::class)->name('dashboard');
+Route::get('course-allocations', CourseAllocationManager::class)->name('course-allocations');
 Route::get('paid-acceptance-fees', PaidAcceptanceFees::class)->name('paid-acceptance-fees');
 Route::post('/transactions/generate-invoice', [UgSchoolFeesController::class, 'generateInvoice'])->name('invoice');
 Route::get('transactions/utme-school-fees/{user}', UtmeSchoolFeesInvoice::class)->name('utme-school-fees');

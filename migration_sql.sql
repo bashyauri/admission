@@ -77,7 +77,7 @@ INNER JOIN (
 
 -- Step 4: Add unique constraint for carry-over support
 ALTER TABLE `registered_courses` 
-ADD UNIQUE KEY `unique_course_per_session` (`academic_detail_id`, `department_course_id`, `academic_session`);
+ADD UNIQUE KEY `reg_course_session_unique` (`academic_detail_id`, `department_course_id`, `academic_session`);
 
 -- Step 5: Add performance indexes
 ALTER TABLE `registered_courses` 
@@ -130,7 +130,7 @@ SELECT
 FROM `registered_courses_duplicates`;
 
 -- Drop the constraints and indexes
-ALTER TABLE `registered_courses` DROP INDEX `unique_course_per_session`;
+ALTER TABLE `registered_courses` DROP INDEX `reg_course_session_unique`;
 ALTER TABLE `registered_courses` DROP INDEX `idx_academic_session`;
 ALTER TABLE `registered_courses` DROP INDEX `idx_student_session`;
 ALTER TABLE `registered_courses` DROP INDEX `idx_course_session`;

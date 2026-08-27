@@ -10,7 +10,7 @@ use App\Livewire\Forms\CreateCoordinatorForm;
 use Livewire\Component;
 use App\Models\Department;
 use App\Livewire\Forms\CreateUserForm;
-// use App\Livewire\Forms\StudentCourseForm;
+use App\Livewire\Forms\StudentCourseForm;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -31,6 +31,7 @@ class Settings extends Component
     use LivewireAlert;
     public CreateUserForm $form;
     public CreateCoordinatorForm $coordinatorForm;
+    public StudentCourseForm $courseForm;
 
     // Academic session switching properties
     public $admin_session;
@@ -42,21 +43,33 @@ class Settings extends Component
 
     public function mount()
     {
-        // Example: generate sessions from 2020/2021 to 2030/2031
-        $startYear = 2020;
-        $endYear = 2031;
+        // Generate session list 2020/2021 → 2030/2031
         $sessions = [];
-        for ($y = $startYear; $y < $endYear; $y++) {
+        for ($y = 2020; $y < 2031; $y++) {
             $sessions[] = $y . '/' . ($y + 1);
         }
-        // Load current values from config
-        $this->admin_session = config('remita.settings.admin_academic_session') ?? config('remita.settings.academic_session');
-        $this->hod_session = config('remita.settings.pg_academic_session');
-        $this->student_session = config('remita.settings.academic_session');
-        $this->ug_applicant_session = config('remita.settings.academic_session');
-        $this->pg_applicant_session = config('remita.settings.pg_academic_session');
 
-        // Sort sessions so current is first for each dropdown
+        // Load all session keys from the DB in one query (authoritative source, same as AcademicSessionService)
+        $dbSettings = DB::table('settings')
+            ->whereIn('key', [
+                'ACADEMIC_SESSION',
+                'PG_ACADEMIC_SESSION',
+                'PG_APPLICANT_SESSION',
+                'ADMIN_ACADEMIC_SESSION',
+                'HOD_ACADEMIC_SESSION',
+                'UG_APPLICANT_SESSION',
+            ])
+            ->pluck('value', 'key');
+
+        // DB first → config() fallback (mirrors AcademicSessionService priority)
+        $this->student_session      = $dbSettings['ACADEMIC_SESSION']       ?? config('remita.settings.academic_session');
+        $this->pg_applicant_session = $dbSettings['PG_APPLICANT_SESSION']   // PG applicants use their own key
+                                   ?? $dbSettings['PG_ACADEMIC_SESSION']    // fallback to PG students key
+                                   ?? config('remita.settings.pg_applicant_session')
+                                   ?? config('remita.settings.pg_academic_session');
+        $this->admin_session        = $dbSettings['ADMIN_ACADEMIC_SESSION']  ?? config('remita.settings.admin_academic_session') ?? $this->student_session;
+        $this->hod_session          = $dbSettings['HOD_ACADEMIC_SESSION']    ?? config('remita.settings.hod_academic_session')   ?? $this->pg_applicant_session;
+        $this->ug_applicant_session = $dbSettings['UG_APPLICANT_SESSION']    ?? config('remita.settings.ug_applicant_session')   ?? $this->student_session;
 
         $this->sessions = $this->sortSessions($sessions, $this->admin_session, $this->hod_session, $this->student_session, $this->ug_applicant_session, $this->pg_applicant_session);
 
@@ -122,10 +135,11 @@ class Settings extends Component
         // Save to settings table for dynamic updates
         foreach ([
             'ADMIN_ACADEMIC_SESSION' => $this->admin_session,
-            'HOD_ACADEMIC_SESSION' => $this->hod_session,
-            'ACADEMIC_SESSION' => $this->student_session,
-            'UG_APPLICANT_SESSION' => $this->ug_applicant_session,
-            'PG_ACADEMIC_SESSION' => $this->pg_applicant_session,
+            'HOD_ACADEMIC_SESSION'   => $this->hod_session,
+            'ACADEMIC_SESSION'       => $this->student_session,
+            'UG_APPLICANT_SESSION'   => $this->ug_applicant_session,
+            'PG_ACADEMIC_SESSION'    => $this->pg_applicant_session,
+            'PG_APPLICANT_SESSION'   => $this->pg_applicant_session, // PG applicants use same as PG students unless overridden
         ] as $key => $value) {
             DB::table('settings')->updateOrInsert(['key' => $key], ['value' => $value, 'updated_at' => now()]);
         }

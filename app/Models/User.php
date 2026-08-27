@@ -187,22 +187,27 @@ class User extends Authenticatable implements MustVerifyEmail
 
     public function canActAsLecturer(): bool
     {
-        return $this->role === Role::LECTURER->value || $this->hasCapability('lecturer');
+        return $this->role === Role::LECTURER->value || $this->isAdmin() || $this->isCit() || $this->hasCapability('lecturer');
     }
 
     public function canActAsExamOfficer(): bool
     {
-        return $this->role === Role::EXAM_OFFICER->value || $this->hasCapability('exam_officer');
+        return $this->role === Role::EXAM_OFFICER->value || $this->isAdmin() || $this->isCit() || $this->hasCapability('exam_officer');
     }
 
     public function canActAsHod(): bool
     {
-        return $this->role === Role::HOD->value || $this->hasCapability('hod');
+        return $this->role === Role::HOD->value || $this->isAdmin() || $this->isCit() || $this->hasCapability('hod');
+    }
+
+    public function canActAsAdmin(): bool
+    {
+        return $this->role === 'admin' || $this->hasCapability('admin');
     }
 
     public function canActAsCit(): bool
     {
-        return $this->role === Role::CIT->value || $this->hasCapability('cit');
+        return $this->role === Role::CIT->value || $this->isAdmin() || $this->hasCapability('cit');
     }
 
     public function canActAsCoordinator(): bool

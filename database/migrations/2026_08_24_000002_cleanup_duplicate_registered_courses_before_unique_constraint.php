@@ -14,18 +14,36 @@ return new class extends Migration
     {
         // Create a backup table for duplicates before removal
         Schema::create('registered_courses_duplicates', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('academic_detail_id')->constrained()->onDelete('cascade');
-            $table->foreignId('department_course_id')->constrained()->onDelete('cascade');
-            $table->foreignId('student_level_id')->nullable()->constrained()->onDelete('set null');
-            $table->string('academic_session', 50);
-            $table->timestamp('removed_at')->useCurrent();
-            $table->text('removal_reason')->default('Duplicate registration cleanup - same student, course, and session');
-            $table->integer('original_id')->nullable(); // Store original ID for reference
-            $table->timestamps();
-            
-            $table->index(['academic_detail_id', 'department_course_id', 'academic_session']);
-        });
+    $table->id();
+
+    $table->foreignId('academic_detail_id')
+        ->constrained()
+        ->onDelete('cascade');
+
+    $table->foreignId('department_course_id')
+        ->constrained()
+        ->onDelete('cascade');
+
+    $table->foreignId('student_level_id')
+        ->nullable()
+        ->constrained()
+        ->onDelete('set null');
+
+    $table->string('academic_session', 50);
+
+    $table->timestamp('removed_at')->useCurrent();
+
+    $table->text('removal_reason')->nullable();
+
+    $table->integer('original_id')->nullable();
+
+    $table->timestamps();
+
+    $table->index(
+        ['academic_detail_id', 'department_course_id', 'academic_session'],
+        'rc_duplicates_lookup_idx'
+    );
+});
         
         // First, identify and handle duplicate registrations
         // Find duplicates of (academic_detail_id, department_course_id, academic_session)
@@ -52,6 +70,7 @@ return new class extends Migration
                     'student_level_id' => $row->student_level_id,
                     'academic_session' => $row->academic_session,
                     'original_id' => $row->id,
+                    'removal_reason' => 'Duplicate registration cleanup - same student, course, and session',
                     'created_at' => $row->created_at,
                     'updated_at' => $row->updated_at,
                 ]);
@@ -63,7 +82,7 @@ return new class extends Migration
         
         // Now it's safe to add the unique constraint
         Schema::table('registered_courses', function (Blueprint $table) {
-            $table->unique(['academic_detail_id', 'department_course_id', 'academic_session'], 'unique_course_per_session');
+            $table->unique(['academic_detail_id', 'department_course_id', 'academic_session'], 'reg_course_session_unique');
         });
         
         // Add other performance indexes
@@ -96,7 +115,7 @@ return new class extends Migration
         
         // Drop the constraints and indexes
         Schema::table('registered_courses', function (Blueprint $table) {
-            $table->dropUnique('unique_course_per_session');
+            $table->dropUnique('reg_course_session_unique');
             $table->dropIndex('idx_academic_session');
             $table->dropIndex('idx_student_session');
             $table->dropIndex('idx_course_session');

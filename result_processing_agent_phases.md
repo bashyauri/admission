@@ -21,7 +21,7 @@ To implement the entire system safely on production, execute the phases in this 
 ```mermaid
 graph TD
     P1["Phase 1: DB & Versioning Foundation<br/>(COMPLETED)"] --> P2["Phase 2: Calculation & Carry-Overs Services<br/>(COMPLETED)"]
-    P2 --> P3["Phase 3: Lecturer Result Entry<br/>(Livewire & CSV Templates)"]
+    P2 --> P3["Phase 3: Lecturer Result Entry<br/>(COMPLETED)"]
     P3 --> P4["Phase 4: Multi-Level Approval Workflows<br/>(HOD & Exam Officer Panels)"]
     P4 --> P5["Phase 5: Student Portal & Transcripts<br/>(Result view & PDF generation)"]
     P5 --> P6["Phase 6: Graduation & Graduation Lists<br/>(Eligibility & Certificate records)"]
@@ -80,39 +80,39 @@ graph TD
 
 ---
 
-## Phase 3: Lecturer Result Entry (Web Form & CSV Upload)
+## Phase 3: Lecturer Result Entry (Web Form & CSV Upload) (✅ COMPLETED)
 * **Goal:** Let teachers manage allocated courses, enter results individually via a Livewire table, or download a CSV template and upload results in bulk.
 * **Risk Profile:** Low (behind new routes under `routes/lecturer.php`).
+* **Status:** **Completed & Verified** (August 2026)
 
-### Agent Instructions Prompt
-> **Prompt for Agent:**
-> "Please implement Phase 3: Lecturer Result Entry Module.
-> 
-> Tasks:
-> 1. Create routes file `routes/lecturer.php` and map it in `RouteServiceProvider` protected by `capability:lecturer` middleware.
-> 2. Create the `LecturerDashboard` and `ResultEntry` Livewire components.
-> 3. Implement the Individual Web Entry Form (Livewire grid with inline validation: CA: 0-40, Exam: 0-60).
-> 4. Implement CSV Bulk Upload:
->    - Download template containing enrolled students' matric numbers.
->    - Import CSV, validate data integrity, and show error reports if records are missing or scores exceed limits.
->    - Allow lecturers to review changes before clicking 'Submit'."
+### Completed Tasks Checklist
+- [x] Created `routes/lecturer.php` mapped via `RouteServiceProvider` with `capability:lecturer` middleware.
+- [x] Created `CourseAllocation` model and relationship mapping.
+- [x] Implemented `LecturerDashboard` component (`LecturerDashboard.php` & `lecturer-dashboard.blade.php`).
+- [x] Implemented `ResultEntry` component (`ResultEntry.php` & `result-entry.blade.php`) with inline CA (0-40) and Exam (0-60) validation.
+- [x] Integrated `AcademicSessionService` with session & semester override dropdowns.
+- [x] Implemented CSV template download (`ResultTemplateExport.php`) and bulk CSV upload (`ResultImport.php`).
+- [x] Implemented submission workflow (`submitAll`) to transition pending results to `submitted` status for HOD review.
+- [x] Created test suite: `tests/Feature/LecturerResultEntryTest.php`.
 
 ---
 
-## Phase 4: Multi-Level Approval Workflows
-* **Goal:** Implement the step-by-step submission and approval workflow (Lecturer -> HOD -> Exam Officer -> VC).
-* **Risk Profile:** Low (affects status values on `results` and `result_approvals` tables).
+## Phase 4: Course Allocations & Multi-Level Approval Workflows
+* **Goal:** Implement Course Allocation (assigning courses to lecturers by Admin/CIT, similar to Manage Capabilities) and the step-by-step submission and approval workflow (Lecturer -> HOD -> Exam Officer -> VC).
+* **Risk Profile:** Low.
 
 ### Agent Instructions Prompt
 > **Prompt for Agent:**
-> "Please implement Phase 4: Result Approvals Workflow.
+> "Please implement Phase 4: Course Allocations & Result Approvals Workflow.
 > 
 > Tasks:
-> 1. Set up the state machine transition rules for Results (`pending` -> `submitted` -> `hod_approved` -> `exam_officer_approved` -> `released`).
-> 2. Create the HOD Result Review Livewire component (`HodResultReview` and approval action buttons).
-> 3. Create the Exam Officer Dashboard and approval actions.
-> 4. Add capability switcher toggles to the navigation sidebar using layout checks (e.g. `auth()->user()->canActAsLecturer()`).
-> 5. Create Feature tests simulating the full submission-to-approval flow, verifying that unauthorized users are rejected by policies."
+> 1. Create `course_allocations` database migration (`create_course_allocations_table`).
+> 2. Create the `CourseAllocationManager` Livewire component (`app/Http/Livewire/Admin/CourseAllocationManager.php` and view) for Admin/CIT to assign department courses to lecturers across departments (with session, semester, department, course, and lecturer selection).
+> 3. Add 'Course Allocations' navigation links under Staff & Roles in `admin-sidebar.blade.php` (`admin.course-allocations`) and `cit-sidebar.blade.php`.
+> 4. Set up the state machine transition rules for Results (`pending` -> `submitted` -> `hod_approved` -> `exam_officer_approved` -> `released`).
+> 5. Create the HOD Result Review Livewire component (`HodResultReview` and approval action buttons).
+> 6. Create the Exam Officer Dashboard and approval actions.
+> 7. Create Feature tests for course allocation and the full submission-to-approval flow."
 
 ---
 

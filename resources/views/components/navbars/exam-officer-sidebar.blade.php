@@ -45,13 +45,50 @@
             </li>
 
             <!-- Roles Switcher (only shown if user has extra capabilities) -->
-            @if(auth()->user()->isHod() || auth()->user()->canActAsLecturer())
+            @if(auth()->user()->canActAsAdmin() || auth()->user()->canActAsCit() || auth()->user()->canActAsHod() || auth()->user()->canActAsLecturer())
             <li class="w-full mt-4">
                 <h6 class="pl-6 ml-2 font-bold leading-tight uppercase text-size-xs opacity-60 dark:text-white">Roles</h6>
             </li>
             @endif
 
-            @if(auth()->user()->isHod())
+            @if(auth()->user()->canActAsAdmin())
+            <li class="mt-0.5 w-full">
+                <a class="ease-soft-in-out py-2.7 text-size-sm my-0 mx-4 flex items-center whitespace-nowrap px-4 font-medium text-slate-500 shadow-none transition-colors dark:text-white dark:opacity-80 hover:bg-slate-100 rounded-lg"
+                    href="{{ route('admin.dashboard') }}">
+                    <div class="stroke-none mr-2 flex h-8 w-8 items-center justify-center rounded-lg bg-white bg-center fill-current p-2.5 text-center text-black shadow-soft-2xl">
+                        <svg width="12px" height="12px" viewBox="0 0 40 40" version="1.1" xmlns="http://www.w3.org/2000/svg">
+                            <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+                                <circle class="fill-slate-800" cx="20" cy="12" r="8"/>
+                                <path class="fill-slate-800" d="M6,36 C6,28 12,24 20,24 C28,24 34,28 34,36 L6,36 Z"/>
+                            </g>
+                        </svg>
+                    </div>
+                    <span class="ml-1 duration-300 opacity-100 pointer-events-none ease-soft">Switch to Admin</span>
+                </a>
+            </li>
+            @endif
+
+            @if(auth()->user()->canActAsCit())
+            <li class="mt-0.5 w-full">
+                <a class="ease-soft-in-out py-2.7 text-size-sm my-0 mx-4 flex items-center whitespace-nowrap px-4 font-medium text-slate-500 shadow-none transition-colors dark:text-white dark:opacity-80 hover:bg-slate-100 rounded-lg"
+                    href="{{ route('cit.dashboard') }}">
+                    <div class="stroke-none mr-2 flex h-8 w-8 items-center justify-center rounded-lg bg-white bg-center fill-current p-2.5 text-center text-black shadow-soft-2xl">
+                        {{-- Computer / CIT icon --}}
+                        <svg width="12px" height="12px" viewBox="0 0 40 40" version="1.1" xmlns="http://www.w3.org/2000/svg">
+                            <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+                                <rect class="fill-slate-800" x="4" y="6" width="32" height="20" rx="3"/>
+                                <rect fill="#FFFFFF" x="7" y="9" width="26" height="14" rx="1"/>
+                                <path class="fill-slate-800" d="M14,26 L26,26 L28,32 L12,32 Z"/>
+                                <rect class="fill-slate-800" x="10" y="32" width="20" height="3" rx="1"/>
+                            </g>
+                        </svg>
+                    </div>
+                    <span class="ml-1 duration-300 opacity-100 pointer-events-none ease-soft">Switch to CIT</span>
+                </a>
+            </li>
+            @endif
+
+            @if(auth()->user()->canActAsHod())
             <li class="mt-0.5 w-full">
                 <a class="ease-soft-in-out py-2.7 text-size-sm my-0 mx-4 flex items-center whitespace-nowrap px-4 font-medium text-slate-500 shadow-none transition-colors dark:text-white dark:opacity-80 hover:bg-slate-100 rounded-lg"
                     href="{{ route('hod.dashboard') }}">
