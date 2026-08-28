@@ -5,6 +5,7 @@ namespace App\Http\Livewire\Admin;
 use App\Models\CourseAllocation;
 use App\Models\Department;
 use App\Models\DepartmentCourse;
+use App\Models\RegisteredCourse;
 use App\Models\Setting;
 use App\Models\User;
 use App\Services\AcademicSessionService;
@@ -93,8 +94,24 @@ class CourseAllocationManager extends Component
             ->values()
             ->toArray();
 
+        $registeredCourseSessions = RegisteredCourse::query()
+            ->pluck('academic_session')
+            ->filter()
+            ->unique()
+            ->values()
+            ->toArray();
+
+        $allocationSessions = CourseAllocation::query()
+            ->pluck('academic_session')
+            ->filter()
+            ->unique()
+            ->values()
+            ->toArray();
+
         $this->availableSessions = collect([
             ...$dbSessions,
+            ...$registeredCourseSessions,
+            ...$allocationSessions,
             $defaultSession,
         ])
             ->filter()

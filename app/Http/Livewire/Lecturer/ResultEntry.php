@@ -6,9 +6,7 @@ use Livewire\Component;
 use App\Models\CourseAllocation;
 use App\Models\RegisteredCourse;
 use App\Models\Result;
-use App\Models\Setting;
 use App\Services\GradeCalculationService;
-use App\Services\AcademicSessionService;
 use Illuminate\Support\Facades\Auth;
 use Jantinnerezo\LivewireAlert\LivewireAlert;
 use Livewire\WithFileUploads;
@@ -42,23 +40,9 @@ class ResultEntry extends Component
         $this->allocation = $courseAllocation->loadMissing(['departmentCourse.studentCourse']);
         $this->allocationId = $courseAllocation->id;
 
-        // Resolve default session from AcademicSessionService
-        /** @var \App\Models\User $user */
-        $user = Auth::user();
-        $service = new AcademicSessionService();
-        $defaultSession = $service->getAcademicSession($user);
-
-        // Build available sessions from the settings table
-        $sessionKeys = ['ACADEMIC_SESSION', 'HOD_ACADEMIC_SESSION', 'PG_ACADEMIC_SESSION', 'ADMIN_ACADEMIC_SESSION'];
-        $dbSessions = Setting::whereIn('key', $sessionKeys)->pluck('value')->filter()->unique()->values()->toArray();
-
-        $this->availableSessions = array_values(array_unique(array_merge(
-            $dbSessions,
-            [$defaultSession]
-        )));
-        sort($this->availableSessions);
-
-        $this->selectedSession = $defaultSession;
+        $this->availableSessions = [$this->allocation->academic_session];
+        $this->selectedSession = $this->allocation->academic_session;
+        $this->selectedSemester = $this->allocation->semester ?: 'first';
 
         $this->loadStudentsAndResults();
     }
@@ -75,18 +59,28 @@ class ResultEntry extends Component
 
     public function updatedSelectedSession()
     {
+        $this->enforceAllocationContext();
         $this->loadStudentsAndResults();
     }
 
     public function updatedSelectedSemester()
     {
+        $this->enforceAllocationContext();
         $this->loadStudentsAndResults();
+    }
+
+    protected function enforceAllocationContext(): void
+    {
+        $this->selectedSession = $this->allocation->academic_session;
+        $this->selectedSemester = $this->allocation->semester ?: 'first';
     }
 
     public function loadStudentsAndResults()
     {
-        $session = $this->selectedSession;
-        $semester = $this->selectedSemester;
+        $this->enforceAllocationContext();
+
+        $session = $this->allocation->academic_session;
+        $semester = $this->allocation->semester ?: 'first';
 
         // Find registered courses for this department_course and selected session
         $registeredCourses = RegisteredCourse::with(['academicDetail.user'])
@@ -144,8 +138,8 @@ class ResultEntry extends Component
             return;
         }
 
-        $session = $this->selectedSession;
-        $semester = $this->selectedSemester;
+        $session = $this->allocation->academic_session;
+        $semester = $this->allocation->semester ?: 'first';
         $gradeService = new GradeCalculationService();
 
         $total = floatval($ca ?? 0) + floatval($exam ?? 0);
@@ -155,6 +149,12 @@ class ResultEntry extends Component
         $regCourse = $this->students->first(function ($rc) use ($userId) {
             return ($rc->academicDetail->user_id ?? null) == $userId;
         });
+
+        if (!$regCourse) {
+            $this->alert('error', 'This student is not registered for this allocated course and session.');
+            return;
+        }
+
         $creditUnits = $regCourse->units ?? 0;
 
         Result::updateOrCreate(
@@ -185,8 +185,8 @@ class ResultEntry extends Component
 
     public function submitAll()
     {
-        $session = $this->selectedSession;
-        $semester = $this->selectedSemester;
+        $session = $this->allocation->academic_session;
+        $semester = $this->allocation->semester ?: 'first';
 
         $updated = Result::where('department_course_id', $this->allocation->department_course_id)
             ->where('academic_session', $session)
@@ -205,7 +205,7 @@ class ResultEntry extends Component
     public function downloadTemplate()
     {
         $courseCode = $this->allocation->departmentCourse->studentCourse->code ?? 'Course';
-        $fileName = 'Result_Template_' . str_replace(' ', '_', $courseCode) . '_' . str_replace('/', '-', $this->selectedSession) . '.csv';
+        $fileName = 'Result_Template_' . str_replace(' ', '_', $courseCode) . '_' . str_replace('/', '-', $this->allocation->academic_session) . '.csv';
         return Excel::download(new ResultTemplateExport($this->students), $fileName);
     }
 
@@ -216,7 +216,7 @@ class ResultEntry extends Component
         ]);
 
         try {
-            $import = new ResultImport($this->allocation, $this->selectedSession, $this->selectedSemester);
+            $import = new ResultImport($this->allocation, $this->allocation->academic_session, $this->allocation->semester ?: 'first');
             Excel::import($import, $this->file->getRealPath());
 
             if (count($import->errors) > 0) {

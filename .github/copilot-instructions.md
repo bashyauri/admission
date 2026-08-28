@@ -302,3 +302,10 @@ document.addEventListener('livewire:init', function () {
 
 - Always use Tailwind CSS v3; verify you're using only classes supported by this version.
 </laravel-boost-guidelines>
+
+<!-- mermaid-ai-skills:start -->
+## Mermaid Diagrams
+
+When the user asks to create, edit, or visualize a diagram, follow the
+instructions in `.github/instructions/mermaid.instructions.md`.
+<!-- mermaid-ai-skills:end -->

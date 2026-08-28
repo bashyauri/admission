@@ -63,36 +63,39 @@ class ApplicantReportService
         }
         return $query;
     }
-    public function getApplicants($status)
-    {
+public function getApplicants($status)
+{
+    $query = ProposedCourse::select(
+        'proposed_courses.*',
+        'users.surname as surname',
+        'users.programme_id as programme_id',
+        'users.firstname as firstname',
+        'users.m_name as middlename',
+        'users.email as email',
+        'users.picture as picture',
+        'users.phone as phone',
+        'courses.name as course_name'
+    )
+        ->join('users', 'proposed_courses.user_id', '=', 'users.id')
+        ->join('courses', 'proposed_courses.course_id', '=', 'courses.id')
+        ->where('users.programme_id', ProgrammesEnum::PG->value)
+        ->where('proposed_courses.status', $status)
+        ->where(
+            'proposed_courses.academic_session',
+            app(AcademicSessionService::class)
+                ->getAcademicSession(Auth::user())
+        );
 
-        $query = ProposedCourse::select(
-            'proposed_courses.*',
-            'users.surname as surname',
-            'users.programme_id as programme_id',
-            'users.firstname as firstname',
-            'users.m_name as middlename',
-            'users.picture as picture',
-            'users.phone as phone',
-            'courses.name AS course_name'
-        )
-            ->join('users', 'proposed_courses.user_id', '=', 'users.id')
-            ->join('courses', 'proposed_courses.course_id', '=', 'courses.id')
-            ->where('users.programme_id', ProgrammesEnum::PG->value)
-            ->where('proposed_courses.status', $status)
-            ->where('proposed_courses.academic_session', app(AcademicSessionService::class)->getAcademicSession(Auth::user()));
-
-
-        // Add department filter if the user is a HOD
-        if ($departmentId = auth()->user()->hodDetails?->department_id) {
-            $query->where('proposed_courses.department_id', $departmentId);
-        }
-
-
-
-        return $query->latest()->get();
+    // Add department filter if the user is a HOD
+    if ($departmentId = auth()->user()->hodDetails?->department_id) {
+        $query->where(
+            'proposed_courses.department_id',
+            $departmentId
+        );
     }
 
+    return $query->latest()->get();
+}
 
 
 

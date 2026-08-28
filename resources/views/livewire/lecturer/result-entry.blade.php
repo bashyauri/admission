@@ -9,7 +9,7 @@
                         <h6 class="dark:text-white font-bold text-lg">
                             Result Entry: {{ $allocation->departmentCourse->studentCourse->code ?? 'Course' }}
                         </h6>
-                        <p class="text-sm text-slate-500">{{ $allocation->departmentCourse->studentCourse->name ?? '' }}</p>
+                        <p class="text-sm text-slate-500">{{ $allocation->departmentCourse->studentCourse->title ?? $allocation->departmentCourse->studentCourse->name ?? '' }}</p>
                     </div>
 
                     {{-- Actions --}}
@@ -37,23 +37,19 @@
                     </div>
                 </div>
 
-                {{-- Session & Semester Filter --}}
+                {{-- Allocation Context --}}
                 <div class="px-6 py-4 border-b bg-slate-50 flex flex-wrap items-center gap-6">
                     <div>
                         <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Academic Session</label>
-                        <select wire:model="selectedSession" class="text-sm border border-gray-300 rounded-lg px-3 py-1.5 focus:ring-2 focus:ring-fuchsia-400">
-                            @foreach($availableSessions as $sess)
-                                <option value="{{ $sess }}">{{ $sess }}</option>
-                            @endforeach
-                        </select>
-                        <span class="ml-2 text-xs text-slate-400 italic">(auto-detected — override if needed)</span>
+                        <span class="inline-flex text-sm border border-gray-200 bg-white rounded-lg px-3 py-1.5 text-slate-700">
+                            {{ $allocation->academic_session }}
+                        </span>
                     </div>
                     <div>
                         <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Semester</label>
-                        <select wire:model="selectedSemester" class="text-sm border border-gray-300 rounded-lg px-3 py-1.5 focus:ring-2 focus:ring-fuchsia-400">
-                            <option value="first">Harmattan (First)</option>
-                            <option value="second">Rain (Second)</option>
-                        </select>
+                        <span class="inline-flex text-sm border border-gray-200 bg-white rounded-lg px-3 py-1.5 text-slate-700">
+                            {{ ($allocation->semester ?? 'first') === 'second' ? 'Rain (Second)' : 'Harmattan (First)' }}
+                        </span>
                     </div>
                     <div class="mt-auto">
                         <span class="text-xs text-slate-400">
