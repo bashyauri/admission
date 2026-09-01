@@ -148,11 +148,11 @@ class ExamOfficerResultReview extends Component
             ->where('department_course_id', $targetCourseId)
             ->where('academic_session', $session)
             ->where('semester', $semester)
-            ->where('status', 'hod_approved')
+            ->where('status', 'exam_officer_approved')
             ->get();
 
         if ($results->isEmpty()) {
-            $this->alert('info', 'No HOD-approved results ready for release in this course.');
+            $this->alert('info', 'No coordinator-approved results ready for release in this course.');
             return;
         }
 
@@ -163,7 +163,7 @@ class ExamOfficerResultReview extends Component
         Result::where('department_course_id', $targetCourseId)
             ->where('academic_session', $session)
             ->where('semester', $semester)
-            ->where('status', 'hod_approved')
+            ->where('status', 'exam_officer_approved')
             ->update([
                 'status' => 'released',
                 'exam_officer_approved_by' => Auth::id(),
@@ -237,7 +237,7 @@ class ExamOfficerResultReview extends Component
         $updatedCount = Result::where('department_course_id', $this->selectedCourseId)
             ->where('academic_session', $session)
             ->where('semester', $semester)
-            ->where('status', 'hod_approved')
+            ->where('status', 'exam_officer_approved')
             ->update([
                 'status' => 'submitted', // Returns to HOD for review
                 'remarks' => '[Exam Officer]: ' . $this->rejectionReason,

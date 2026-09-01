@@ -89,7 +89,7 @@
                         @foreach ($selectedCourses as $pickedCourse)
                                                 @php
     $course = StudentCourse::find($pickedCourse->student_course_id);
-    $lastDigit = substr($course->code, -1);
+    $lastDigit = (int) substr($course->code, -1);
     $semester = $lastDigit % 2 === 0 ? 2 : 1;
 
                                                 @endphp

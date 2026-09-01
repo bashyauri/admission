@@ -12,6 +12,7 @@ class AcademicDetail extends Model
 {
     use HasFactory;
     protected $guarded = ['id'];
+    protected $fillable = ['admission_session']; // Allow mass assignment for admission session
 
     public function user()
     {
@@ -36,6 +37,72 @@ class AcademicDetail extends Model
     public function coordinator()
     {
         return $this->belongsTo(Coordinator::class);
+    }
+    
+    /**
+     * Get the appropriate coordinator for this student based on their cohort
+     * Supports both course-based (new) and department-based (legacy) coordinators for backward compatibility
+     */
+    public function getCourseCohortCoordinatorAttribute(): ?Coordinator
+    {
+        $admissionSession = $this->admission_session ?? $this->acad_session ?? null;
+        
+        // 1. Try exact course-based cohort coordinator (course + level + admission session)
+        if ($this->course_id && $admissionSession && $this->student_level_id) {
+            $courseCoordinator = Coordinator::forCourseCohort(
+                $this->course_id,
+                $this->student_level_id,
+                $admissionSession
+            )->first();
+            
+            if ($courseCoordinator) {
+                return $courseCoordinator;
+            }
+        }
+        
+        // 2. Try department-based cohort coordinator (dept + level + admission session)
+        if ($this->department_id && $admissionSession && $this->student_level_id) {
+            $deptCoord = Coordinator::forDepartmentCohort(
+                $this->department_id,
+                $this->student_level_id,
+                $admissionSession
+            )->first();
+
+            if ($deptCoord) {
+                return $deptCoord;
+            }
+        }
+
+        // 3. Try course-based coordinator (course + level, session agnostic)
+        if ($this->course_id && $this->student_level_id) {
+            $courseLevelCoord = Coordinator::forCourseAndLevel(
+                $this->course_id,
+                $this->student_level_id
+            )->first();
+
+            if ($courseLevelCoord) {
+                return $courseLevelCoord;
+            }
+        }
+
+        // 4. Try department-based coordinator (dept + level, session agnostic)
+        if ($this->department_id && $this->student_level_id) {
+            $deptLevelCoord = Coordinator::forDepartmentAndLevel(
+                $this->department_id,
+                $this->student_level_id
+            )->first();
+
+            if ($deptLevelCoord) {
+                return $deptLevelCoord;
+            }
+        }
+
+        // 5. Fallback to direct legacy coordinator_id relationship
+        if ($this->coordinator_id) {
+            return Coordinator::find($this->coordinator_id);
+        }
+        
+        return null;
     }
     public function registeredCourses()
     {

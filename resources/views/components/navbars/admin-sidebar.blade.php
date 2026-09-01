@@ -167,6 +167,17 @@
                 </div>
                 <span class="ml-1 duration-300 opacity-100 pointer-events-none ease-soft">Course Allocations</span>
             </a>
+        <li class="mt-0.5 w-full">
+            <a class="ease-soft-in-out py-2.7 text-size-sm my-0 mx-4 flex items-center whitespace-nowrap px-4 font-medium text-slate-500 shadow-none transition-colors dark:text-white dark:opacity-80 hover:bg-slate-100 rounded-lg {{ in_array(Route::currentRouteName(), ['admin.coordinator-manager', 'admin.coordinators']) ? 'font-semibold text-slate-700 xl:shadow-soft-xl rounded-lg bg-white' : '' }}"
+                href="{{ route('admin.coordinator-manager') }}">
+                <div class="stroke-none mr-2 flex h-8 w-8 items-center justify-center rounded-lg bg-white bg-center fill-current p-2.5 text-center text-black {{ in_array(Route::currentRouteName(), ['admin.coordinator-manager', 'admin.coordinators']) ? 'shadow-soft-sm bg-gradient-fuchsia' : 'shadow-soft-2xl' }}">
+                    {{-- Users / Coordinator icon --}}
+                    <svg width="12px" height="12px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" class="{{ in_array(Route::currentRouteName(), ['admin.coordinator-manager', 'admin.coordinators']) ? '' : 'stroke-slate-800' }}"/>
+                    </svg>
+                </div>
+                <span class="ml-1 duration-300 opacity-100 pointer-events-none ease-soft">Coordinator Manager</span>
+            </a>
         </li>
 
         <li class="w-full mt-4">

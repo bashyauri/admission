@@ -64,9 +64,35 @@ Schema::table('proposed_courses', function (Blueprint $table) {
 **Risk:** None
 **Downtime:** None
 
+### 4. Coordinator Result Review Index
+
+The department coordinator review page filters result queues by coordinator assignment, course, academic session, semester, and status. The following additive index supports both its course-summary aggregation and selected-course pagination. `status` remains outside this composite index because the two string period columns already approach MySQL's `utf8mb4` index-size limit.
+
+```php
+Schema::table('results', function (Blueprint $table) {
+    $table->index(
+        [
+            'coordinator_id',
+            'department_course_id',
+            'academic_session',
+            'semester',
+        ],
+        'results_coordinator_course_period_index'
+    );
+});
+```
+
+**Migration:** `2026_09_01_122537_add_coordinator_review_index_to_results_table.php`
+
+**Impact:** Keeps coordinator review scoped and avoids scanning unrelated result rows as result volume grows.
+
+**Risk:** Additive index only. Confirm it is absent from the target database before applying the migration.
+
+**Downtime:** None expected; monitor index creation on large production tables.
+
 ## Requires Maintenance Window (Schedule downtime)
 
-### 4. Fix registered_courses Unique Constraint
+### 5. Fix registered_courses Unique Constraint
 
 **Current Issue:** 
 ```php
@@ -106,7 +132,7 @@ Schema::rename('registered_courses_v2', 'registered_courses');
 **Downtime:** 30-60 minutes
 **Backup Required:** Yes
 
-### 5. Fix Data Types (transactions table)
+### 6. Fix Data Types (transactions table)
 
 **Current Issue:**
 - `amount` is string instead of decimal
@@ -150,7 +176,7 @@ Schema::table('transactions', function (Blueprint $table) {
 **Backup Required:** Yes
 **Testing Required:** Extensive
 
-### 6. Fix registered_courses units Data Type
+### 7. Fix registered_courses units Data Type
 
 **Current Issue:** `units` is string instead of integer
 
@@ -187,7 +213,7 @@ Schema::table('registered_courses', function (Blueprint $table) {
 
 ## NOT Recommended for Production
 
-### 7. UUID to Integer Conversion
+### 8. UUID to Integer Conversion
 
 **Issue:** UUID foreign keys are slower than integers
 

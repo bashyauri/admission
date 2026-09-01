@@ -46,6 +46,9 @@ class HodResultReview extends Component
         if (!$user || !$user->canActAsHod()) {
             abort(403, 'Unauthorized access to HOD Result Review.');
         }
+        
+        // Note: HOD result review is deprecated
+        // Results now flow: Lecturer → Coordinator → Exam Officer
 
         // Determine if user can select department (Admin/CIT)
         if ($user->canActAsAdmin() || $user->canActAsCit()) {
@@ -169,27 +172,10 @@ class HodResultReview extends Component
         $session = $this->selectedSession;
         $semester = $this->selectedSemester;
 
-        // Fetch pending submitted results for this course
-        $results = Result::where('department_course_id', $this->selectedCourseId)
-            ->where('academic_session', $session)
-            ->where('semester', $semester)
-            ->where('status', 'submitted')
-            ->get();
-
-        if ($results->isEmpty()) {
-            $this->alert('info', 'No submitted results pending HOD approval for this course.');
-            return;
-        }
-
-        $updatedCount = Result::where('department_course_id', $this->selectedCourseId)
-            ->where('academic_session', $session)
-            ->where('semester', $semester)
-            ->where('status', 'submitted')
-            ->update([
-                'status' => 'hod_approved',
-                'hod_approved_by' => Auth::id(),
-                'hod_approved_at' => now(),
-            ]);
+        // Note: HOD is no longer in the result approval workflow
+        // Results now flow: Lecturer → Coordinator → Exam Officer
+        $this->alert('info', 'HOD result review is no longer required. Results are processed by coordinators and exam officers.');
+        return;
 
         // Create approval audit record
         ResultApproval::create([
@@ -293,19 +279,20 @@ class HodResultReview extends Component
                         ->pluck('count', 'status')
                         ->toArray();
 
+                    $dc->total_registered = $totalRegistered;
+                    $dc->pending_count = $resultCounts['pending'] ?? 0;
+                    $dc->submitted_count = $resultCounts['submitted'] ?? 0;
+                    $dc->coordinator_approved_count = $resultCounts['coordinator_approved'] ?? 0;
+                    $dc->hod_approved_count = $resultCounts['hod_approved'] ?? 0;
+                    $dc->released_count = $resultCounts['released'] ?? 0;
+
                     // Assigned lecturer
                     $allocation = CourseAllocation::with('lecturer')
                         ->where('department_course_id', $dc->id)
                         ->where('academic_session', $session)
                         ->where('semester', $semester)
                         ->first();
-                        
 
-                    $dc->total_registered = $totalRegistered;
-                    $dc->pending_count = $resultCounts['pending'] ?? 0;
-                    $dc->submitted_count = $resultCounts['submitted'] ?? 0;
-                    $dc->hod_approved_count = $resultCounts['hod_approved'] ?? 0;
-                    $dc->released_count = $resultCounts['released'] ?? 0;
                     $dc->allocated_lecturer = $allocation ? trim(($allocation->lecturer->surname ?? '') . ' ' . ($allocation->lecturer->firstname ?? '')) : 'Unallocated';
 
                     return $dc;
@@ -313,18 +300,21 @@ class HodResultReview extends Component
 
             if ($this->statusFilter === 'submitted') {
                 $departmentCourses = $departmentCourses->filter(fn($dc) => $dc->submitted_count > 0);
+            } elseif ($this->statusFilter === 'coordinator_approved') {
+                $departmentCourses = $departmentCourses->filter(fn($dc) => $dc->coordinator_approved_count > 0);
             } elseif ($this->statusFilter === 'hod_approved') {
                 $departmentCourses = $departmentCourses->filter(fn($dc) => $dc->hod_approved_count > 0);
             } elseif ($this->statusFilter === 'released') {
                 $departmentCourses = $departmentCourses->filter(fn($dc) => $dc->released_count > 0);
             } elseif ($this->statusFilter === 'pending') {
-                $departmentCourses = $departmentCourses->filter(fn($dc) => $dc->pending_count > 0 || ($dc->total_registered > 0 && ($dc->submitted_count + $dc->hod_approved_count + $dc->released_count) === 0));
+                $departmentCourses = $departmentCourses->filter(fn($dc) => $dc->pending_count > 0 || ($dc->total_registered > 0 && ($dc->submitted_count + $dc->coordinator_approved_count + $dc->hod_approved_count + $dc->released_count) === 0));
             }
         }
 
         // Summary counts
         $totalCoursesCount = $departmentCourses->count();
         $submittedCoursesCount = $departmentCourses->filter(fn($dc) => $dc->submitted_count > 0)->count();
+        $coordinatorApprovedCoursesCount = $departmentCourses->filter(fn($dc) => $dc->coordinator_approved_count > 0)->count();
         $approvedCoursesCount = $departmentCourses->filter(fn($dc) => $dc->hod_approved_count > 0)->count();
         $releasedCoursesCount = $departmentCourses->filter(fn($dc) => $dc->released_count > 0)->count();
 
@@ -332,6 +322,7 @@ class HodResultReview extends Component
             'departmentCourses' => $departmentCourses,
             'totalCoursesCount' => $totalCoursesCount,
             'submittedCoursesCount' => $submittedCoursesCount,
+            'coordinatorApprovedCoursesCount' => $coordinatorApprovedCoursesCount,
             'approvedCoursesCount' => $approvedCoursesCount,
             'releasedCoursesCount' => $releasedCoursesCount,
         ])->layout('layouts.app');

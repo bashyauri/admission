@@ -34,8 +34,9 @@ class Result extends Model
         'grade_point_total',
         'status',
         'lecturer_id',
-        'hod_approved_by',
-        'hod_approved_at',
+        'coordinator_id',
+        'coordinator_approved_by',
+        'coordinator_approved_at',
         'exam_officer_approved_by',
         'exam_officer_approved_at',
         'remarks',
@@ -51,7 +52,7 @@ class Result extends Model
         'credit_units' => 'integer',
         'grade_point_total' => 'integer',
         'is_repeated' => 'boolean',
-        'hod_approved_at' => 'datetime',
+        'coordinator_approved_at' => 'datetime',
         'exam_officer_approved_at' => 'datetime',
     ];
 
@@ -90,9 +91,14 @@ class Result extends Model
         return $this->belongsTo(User::class, 'lecturer_id');
     }
 
-    public function hodApprover(): BelongsTo
+    public function coordinator(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'hod_approved_by');
+        return $this->belongsTo(Coordinator::class, 'coordinator_id');
+    }
+
+    public function coordinatorApprover(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'coordinator_approved_by');
     }
 
     public function examOfficerApprover(): BelongsTo
@@ -121,9 +127,17 @@ class Result extends Model
         return $query->where('status', 'submitted');
     }
 
-    public function scopeHodApproved($query)
+    public function scopeCoordinatorApproved($query)
     {
-        return $query->where('status', 'hod_approved');
+        return $query->where('status', 'exam_officer_approved');
+    }
+    
+    /**
+     * Scope to get results submitted to a specific coordinator
+     */
+    public function scopeForCoordinator($query, $coordinatorId)
+    {
+        return $query->where('coordinator_id', $coordinatorId)->where('status', 'submitted');
     }
 
     public function scopeExamOfficerApproved($query)

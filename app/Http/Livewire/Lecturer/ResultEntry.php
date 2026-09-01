@@ -188,17 +188,40 @@ class ResultEntry extends Component
         $session = $this->allocation->academic_session;
         $semester = $this->allocation->semester ?: 'first';
 
-        $updated = Result::where('department_course_id', $this->allocation->department_course_id)
+        // Get pending results and assign them to students' respective coordinators
+        $pendingResults = Result::with('academicDetail')
+            ->where('department_course_id', $this->allocation->department_course_id)
             ->where('academic_session', $session)
             ->where('semester', $semester)
             ->where('status', 'pending')
-            ->update(['status' => 'submitted']);
+            ->get();
+
+        $updated = 0;
+        $unassignedCount = 0;
+        foreach ($pendingResults as $result) {
+            // Get the student's course cohort coordinator
+            $student = $result->academicDetail;
+            $coordinator = $student?->courseCohortCoordinator;
+            
+            if ($coordinator) {
+                $result->update([
+                    'status' => 'submitted',
+                    'coordinator_id' => $coordinator->id,
+                ]);
+                $updated++;
+            } else {
+                $unassignedCount++;
+                if ($student) {
+                    \Log::warning("No coordinator found for student {$student->user_id} in course {$student->course_id}, level {$student->student_level_id}, session {$student->admission_session}");
+                }
+            }
+        }
 
         if ($updated > 0) {
-            $this->alert('success', "{$updated} results submitted to HOD successfully.");
+            $this->alert('success', "{$updated} results submitted to respective course coordinators successfully.");
             $this->loadStudentsAndResults();
         } else {
-            $this->alert('info', 'No pending results to submit.');
+            $this->alert('info', 'No pending results to submit or no coordinators assigned to students.');
         }
     }
 

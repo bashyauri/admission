@@ -30,9 +30,9 @@
                         @endif
 
                         <button wire:click="submitAll"
-                            onclick="confirm('Submit all results to HOD? This locks them from further editing.') || event.stopImmediatePropagation()"
+                            onclick="confirm('Submit all results to coordinators? This locks them from further editing.') || event.stopImmediatePropagation()"
                             class="px-4 py-2 text-xs font-bold text-white uppercase bg-green-600 rounded-lg shadow hover:bg-green-500 transition">
-                            ✅ Submit to HOD
+                            ✅ Submit to Coordinators
                         </button>
                     </div>
                 </div>

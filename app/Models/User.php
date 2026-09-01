@@ -307,10 +307,15 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return $this->hasOne(HodUser::class, 'user_id');
     }
-    public function coordinator()
-    {
-        return $this->hasOne(Coordinator::class, 'user_id');
-    }
+   public function coordinator()
+{
+    return $this->hasOne(Coordinator::class, 'user_id');
+}
+
+public function coordinators()
+{
+    return $this->hasMany(Coordinator::class, 'user_id');
+}
     public function academicDetail()
     {
         return $this->hasOne(AcademicDetail::class);
