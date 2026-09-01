@@ -27,6 +27,7 @@ class ResultTemplateExport implements FromCollection, WithHeadings
                 'Surname' => $student->academicDetail->user->surname ?? '',
                 'CA Score' => '', // Blank for lecturer to fill
                 'Exam Score' => '', // Blank for lecturer to fill
+                'Absent' => 'No',
             ];
         });
     }
@@ -39,6 +40,7 @@ class ResultTemplateExport implements FromCollection, WithHeadings
             'Surname',
             'CA Score (Max 40)',
             'Exam Score (Max 60)',
+            'Absent (Yes/No)',
         ];
     }
 }

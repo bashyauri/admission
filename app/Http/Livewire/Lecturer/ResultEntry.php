@@ -23,6 +23,9 @@ class ResultEntry extends Component
     public $students = [];
     public $results = []; // Format: [user_id => ['ca' => x, 'exam' => y]]
     public $file;
+    public array $uploadPreviewRows = [];
+    public array $uploadErrors = [];
+    public int $previewValidCount = 0;
 
     // Session management
     public string $selectedSession;
@@ -69,6 +72,13 @@ class ResultEntry extends Component
         $this->loadStudentsAndResults();
     }
 
+    public function updatedFile(): void
+    {
+        $this->uploadPreviewRows = [];
+        $this->uploadErrors = [];
+        $this->previewValidCount = 0;
+    }
+
     protected function enforceAllocationContext(): void
     {
         $this->selectedSession = $this->allocation->academic_session;
@@ -107,12 +117,14 @@ class ResultEntry extends Component
                     'ca' => $existingResults[$userId]->ca_score,
                     'exam' => $existingResults[$userId]->exam_score,
                     'status' => $existingResults[$userId]->status,
+                    'is_absent' => $existingResults[$userId]->remarks === 'Absent',
                 ];
             } else {
                 $this->results[$userId] = [
                     'ca' => null,
                     'exam' => null,
                     'status' => 'pending',
+                    'is_absent' => false,
                 ];
             }
         }
@@ -122,6 +134,12 @@ class ResultEntry extends Component
     {
         $ca = $this->results[$userId]['ca'];
         $exam = $this->results[$userId]['exam'];
+        $isAbsent = (bool) ($this->results[$userId]['is_absent'] ?? false);
+
+        if ($isAbsent) {
+            $ca = 0;
+            $exam = 0;
+        }
 
         if ($ca !== null && $ca !== '' && ($ca < 0 || $ca > 40)) {
             $this->alert('error', 'CA Score must be between 0 and 40.');
@@ -142,9 +160,10 @@ class ResultEntry extends Component
         $semester = $this->allocation->semester ?: 'first';
         $gradeService = new GradeCalculationService();
 
-        $total = floatval($ca ?? 0) + floatval($exam ?? 0);
-        $grade = $gradeService->calculateGrade($total);
-        $gradePoint = $gradeService->calculateGradePoint($grade);
+        $hasCompleteScore = $isAbsent || ($ca !== null && $ca !== '' && $exam !== null && $exam !== '');
+        $total = $hasCompleteScore ? floatval($ca) + floatval($exam) : null;
+        $grade = $hasCompleteScore ? ($isAbsent ? 'F' : $gradeService->calculateGrade($total)) : null;
+        $gradePoint = $grade ? $gradeService->calculateGradePoint($grade) : null;
 
         $regCourse = $this->students->first(function ($rc) use ($userId) {
             return ($rc->academicDetail->user_id ?? null) == $userId;
@@ -173,9 +192,10 @@ class ResultEntry extends Component
                 'grade' => $grade,
                 'grade_point' => $gradePoint,
                 'credit_units' => $creditUnits,
-                'grade_point_total' => $gradePoint * $creditUnits,
+                'grade_point_total' => $gradePoint === null ? null : $gradePoint * $creditUnits,
                 'status' => 'pending',
                 'lecturer_id' => Auth::id(),
+                'remarks' => $isAbsent ? 'Absent' : null,
             ]
         );
 
@@ -195,6 +215,19 @@ class ResultEntry extends Component
             ->where('semester', $semester)
             ->where('status', 'pending')
             ->get();
+
+        $incompleteResults = $pendingResults->filter(function (Result $result): bool {
+            return $result->ca_score === null || $result->exam_score === null;
+        });
+
+        if ($incompleteResults->isNotEmpty()) {
+            $this->alert(
+                'error',
+                "{$incompleteResults->count()} pending result(s) have incomplete CA or exam scores. Complete them before submitting."
+            );
+
+            return;
+        }
 
         $updated = 0;
         $unassignedCount = 0;
@@ -232,29 +265,69 @@ class ResultEntry extends Component
         return Excel::download(new ResultTemplateExport($this->students), $fileName);
     }
 
-    public function importResults()
+    public function previewResults(): void
     {
         $this->validate([
             'file' => 'required|mimes:csv,txt,xlsx|max:2048',
         ]);
 
         try {
-            $import = new ResultImport($this->allocation, $this->allocation->academic_session, $this->allocation->semester ?: 'first');
+            $import = new ResultImport(
+                $this->allocation,
+                $this->allocation->academic_session,
+                $this->allocation->semester ?: 'first',
+                false
+            );
             Excel::import($import, $this->file->getRealPath());
 
-            if (count($import->errors) > 0) {
-                $this->alert('warning', count($import->errors) . ' error(s). First: ' . $import->errors[0]);
-            }
+            $this->uploadPreviewRows = $import->previewRows;
+            $this->uploadErrors = $import->errors;
+            $this->previewValidCount = $import->successCount;
+        } catch (\Exception $e) {
+            $this->alert('error', 'Unable to preview file: ' . $e->getMessage());
+        }
+    }
+
+    public function importResults(): void
+    {
+        if (!$this->file || $this->previewValidCount === 0) {
+            $this->alert('error', 'Preview a file with at least one valid result before importing.');
+
+            return;
+        }
+
+        try {
+            $import = new ResultImport(
+                $this->allocation,
+                $this->allocation->academic_session,
+                $this->allocation->semester ?: 'first'
+            );
+            Excel::import($import, $this->file->getRealPath());
 
             if ($import->successCount > 0) {
                 $this->alert('success', $import->successCount . ' records imported successfully!');
             }
 
+            if (count($import->errors) > 0) {
+                $this->alert('warning', count($import->errors) . ' record(s) were not imported. First: ' . $import->errors[0]);
+            }
+
             $this->loadStudentsAndResults();
             $this->file = null;
+            $this->uploadPreviewRows = [];
+            $this->uploadErrors = [];
+            $this->previewValidCount = 0;
         } catch (\Exception $e) {
             $this->alert('error', 'Failed to import: ' . $e->getMessage());
         }
+    }
+
+    public function discardUploadPreview(): void
+    {
+        $this->file = null;
+        $this->uploadPreviewRows = [];
+        $this->uploadErrors = [];
+        $this->previewValidCount = 0;
     }
 
     public function render()
