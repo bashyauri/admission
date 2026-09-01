@@ -1,0 +1,704 @@
+ and @use('App\Models\Course')
+<div class="p-4 sm:p-6 max-w-7xl mx-auto">
+    @if($inspectingCourse)
+        <div class="mb-6 p-4 rounded-2xl bg-white border border-slate-200 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+                <span class="text-xs font-extrabold uppercase tracking-wider text-fuchsia-600">Assigned Cohort Review</span>
+                <h2 class="text-xl font-black text-slate-900">{{ $inspectingCourse->name }}</h2>
+                <p class="text-xs text-slate-500 font-medium mt-0.5">
+                    Department: {{ $inspectingCourse->department->name ?? 'N/A' }} 
+                    @if(auth()->user()->coordinator?->studentLevel)
+                        | Level: <span class="font-bold text-slate-700">{{ auth()->user()->coordinator->studentLevel->level }}L</span>
+                    @endif
+                    @if(auth()->user()->coordinator?->academic_session)
+                        | Cohort Session: <span class="font-bold text-slate-700">{{ auth()->user()->coordinator->academic_session }}</span>
+                    @endif
+                </p>
+            </div>
+            <div class="shrink-0">
+                <span class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-extrabold bg-fuchsia-50 text-fuchsia-700 border border-fuchsia-200">
+                    <span class="w-2 h-2 rounded-full bg-fuchsia-600 animate-pulse"></span>
+                    Coordinator Portal
+                </span>
+            </div>
+        </div>
+    @elseif($inspectingDepartment)
+        <div class="mb-6 p-4 rounded-2xl bg-white border border-slate-200 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+                <span class="text-xs font-extrabold uppercase tracking-wider text-amber-600">Department Coordinator Review</span>
+                <h2 class="text-xl font-black text-slate-900">{{ $inspectingDepartment->name }}</h2>
+            </div>
+            @if(!empty($departmentCourses))
+                <div class="min-w-[240px]">
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Select Program Course</label>
+                    <select wire:model.live="selectedCourseId" class="w-full text-xs font-bold px-3 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-fuchsia-500">
+                        @foreach($departmentCourses as $dc)
+                            <option value="{{ $dc['id'] }}">{{ $dc['name'] }}</option>
+                        @endforeach
+                    </select>
+                </div>
+            @endif
+        </div>
+    @endif
+
+    <div class="flex flex-wrap gap-4 mb-6">
+        <div class="flex-1 min-w-[200px]">
+            <label class="block text-sm font-medium text-gray-700 mb-1">Academic Session</label>
+            <select wire:model.live="selectedSession" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-fuchsia-500 focus:border-transparent">
+                @foreach($availableSessions as $session)
+                    <option value="{{ $session }}">{{ $session }}</option>
+                @endforeach
+            </select>
+        </div>
+        
+        <div class="flex-1 min-w-[200px]">
+            <label class="block text-sm font-medium text-gray-700 mb-1">Semester</label>
+            <select wire:model.live="selectedSemester" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-fuchsia-500 focus:border-transparent">
+                <option value="first">First Semester</option>
+                <option value="second">Second Semester</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- Status Summary -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <div class="bg-white p-4 rounded-lg shadow border border-gray-200">
+            <h3 class="text-sm font-medium text-gray-500">Submitted Results</h3>
+            <p class="text-2xl font-bold text-blue-600">{{ $submittedCount }}</p>
+        </div>
+        <div class="bg-white p-4 rounded-lg shadow border border-gray-200">
+            <h3 class="text-sm font-medium text-gray-500">Coordinator Approved</h3>
+            <p class="text-2xl font-bold text-green-600">{{ $coordinatorApprovedCount }}</p>
+        </div>
+        <div class="bg-white p-4 rounded-lg shadow border border-gray-200">
+            <h3 class="text-sm font-medium text-gray-500">Released Results</h3>
+            <p class="text-2xl font-bold text-purple-600">{{ $releasedCount }}</p>
+        </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="flex gap-3 mb-6">
+        <button wire:click="approveStudentResults" 
+            class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
+            Approve All Results
+        </button>
+        <button wire:click="openRejectModal" 
+            class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">
+            Reject Results
+        </button>
+    </div>
+
+    <!-- Student Results Table -->
+    <div class="bg-white rounded-lg shadow overflow-hidden">
+        <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Matric No</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">CA Score</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Exam Score</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Grade</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+                @forelse($studentsWithResults as $student)
+                    <tr>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ $student['matric_no'] }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ $student['name'] }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ $student['ca_score'] ?? '-' }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ $student['exam_score'] ?? '-' }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ $student['total_score'] ?? '-' }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ $student['grade'] }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm">
+                            <span class="px-2 py-1 text-xs font-semibold rounded-full
+                                @if($student['status'] === 'submitted') bg-blue-100 text-blue-800
+                                @elseif($student['status'] === 'exam_officer_approved') bg-green-100 text-green-800
+                                @elseif($student['status'] === 'released') bg-purple-100 text-purple-800
+                                @else bg-gray-100 text-gray-800
+                                @endif">
+                                {{ ucfirst(str_replace('_', ' ', $student['status'])) }}
+                            </span>
+                        </td>
+                    </tr>
+                @empty
+                    <tr>
+                        <td colspan="7" class="px-6 py-4 text-center text-sm text-gray-500">
+                            No results found for this course and session.
+                        </td>
+                    </tr>
+                @endforelse
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Rejection Modal -->
+    @if($showRejectModal)
+        <div class="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50">
+            <div class="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+                <h3 class="text-lg font-medium text-gray-900 mb-4">Reject Results</h3>
+                <textarea wire:model="rejectionReason" 
+                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-fuchsia-500 focus:border-transparent"
+                    rows="4"
+                    placeholder="Please state the reason for rejecting these results..."></textarea>
+                <div class="flex justify-end gap-3 mt-4">
+                    <button wire:click="closeRejectModal" 
+                        class="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors">
+                        Cancel
+                    </button>
+                    <button wire:click="rejectStudentResults" 
+                        class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">
+                        Reject Results
+                    </button>
+                </div>
+            </div>
+        </div>
+    @endif
+</div> i want the coordinator to only see the students that are in his cohortany student not in his cohort is <?php
+
+
+
+declare(strict_types=1);
+
+
+
+namespace App\Http\Livewire\Coordinator;
+
+
+
+use App\Models\AcademicDetail;
+
+use App\Models\Course;
+
+use App\Models\DepartmentCourse;
+
+use App\Models\RegisteredCourse;
+
+use App\Models\Result;
+
+use App\Models\ResultApproval;
+
+use App\Services\AcademicSessionService;
+
+use Illuminate\Support\Facades\Auth;
+
+use Jantinnerezo\LivewireAlert\LivewireAlert;
+
+use Livewire\Component;
+
+
+
+class CoordinatorResultReview extends Component
+
+{
+
+    use LivewireAlert;
+
+
+
+    // Academic Filter Context
+
+    public string $selectedSession = '';
+
+    public string $selectedSemester = 'first';
+
+    public array $availableSessions = [];
+
+
+
+    // Course Selection & Inspection
+
+    public $selectedCourseId = null;
+
+    public ?Course $inspectingCourse = null;
+
+    public $inspectingDepartment = null;
+
+    public array $departmentCourses = [];
+
+    public $studentsWithResults = [];
+
+    public string $searchQuery = '';
+
+    public string $statusFilter = 'all';
+
+
+
+    // Rejection Modal State
+
+    public bool $showRejectModal = false;
+
+    public string $rejectionReason = '';
+
+
+
+    public function mount(): void
+
+    {
+
+        $user = Auth::user();
+
+        if (!$user || !$user->coordinator) {
+
+            abort(403, 'Unauthorized access to Coordinator Result Review.');
+
+        }
+
+
+
+        $coordinator = $user->coordinator->load(['course.department', 'department', 'studentLevel']);
+
+        $this->selectedCourseId = $coordinator->course_id;
+
+
+
+        // Load the coordinator's assigned course/department
+
+        if ($coordinator->isCourseBased()) {
+
+            $this->inspectingCourse = $coordinator->course;
+
+        } elseif ($coordinator->isDepartmentBased()) {
+
+            $this->inspectingDepartment = $coordinator->department;
+
+            $this->departmentCourses = Course::where('department_id', $coordinator->department_id)->get()->toArray();
+
+            if (!$this->selectedCourseId && !empty($this->departmentCourses)) {
+
+                $this->selectedCourseId = $this->departmentCourses[0]['id'];
+
+                $this->inspectingCourse = Course::find($this->selectedCourseId);
+
+            }
+
+        }
+
+
+
+        // Resolve sessions
+
+        $service = new AcademicSessionService();
+
+        $defaultSession = $service->getAcademicSession($user);
+
+
+
+        // Pull actual sessions from registered_courses (filtered by coordinator's course via academic_details)
+
+        $rcQuery = \App\Models\RegisteredCourse::distinct();
+
+        if ($coordinator->isCourseBased()) {
+
+            $rcQuery->whereHas('academicDetail', fn($q) => $q->where('course_id', $coordinator->course_id));
+
+        } elseif ($coordinator->isDepartmentBased()) {
+
+            $rcQuery->whereHas('academicDetail', fn($q) => $q->where('department_id', $coordinator->department_id));
+
+        }
+
+        $actualSessions = $rcQuery->pluck('academic_session')->filter()->toArray();
+
+
+
+        $allSessions = array_values(array_unique(array_merge($actualSessions, [$defaultSession])));
+
+        sort($allSessions);
+
+        $this->availableSessions = $allSessions;
+
+
+
+        // Default to the most recent session
+
+        $latestSessionQuery = \App\Models\RegisteredCourse::query();
+
+        if ($coordinator->isCourseBased()) {
+
+            $latestSessionQuery->whereHas('academicDetail', fn($q) => $q->where('course_id', $coordinator->course_id));
+
+        } elseif ($coordinator->isDepartmentBased()) {
+
+            $latestSessionQuery->whereHas('academicDetail', fn($q) => $q->where('department_id', $coordinator->department_id));
+
+        }
+
+        $sessionWithData = $latestSessionQuery->orderByDesc('academic_session')
+
+            ->value('academic_session');
+
+
+
+        $this->selectedSession = $sessionWithData ?? $defaultSession;
+
+        $this->loadStudentScores();
+
+    }
+
+
+
+    public function updatedSelectedSession(): void
+
+    {
+
+        $this->loadStudentScores();
+
+    }
+
+
+
+    public function updatedSelectedSemester(): void
+
+    {
+
+        $this->loadStudentScores();
+
+    }
+
+
+
+    public function loadStudentScores(): void
+
+    {
+
+        if (!$this->selectedCourseId) {
+
+            $this->studentsWithResults = [];
+
+            return;
+
+        }
+
+
+
+        // Get registered students for this course & session
+
+        $registered = RegisteredCourse::with(['academicDetail.user'])
+
+            ->whereHas('academicDetail', function ($query) {
+
+                $query->where('course_id', $this->selectedCourseId);
+
+            })
+
+            ->where('academic_session', $this->selectedSession)
+
+            ->get();
+
+
+
+        // Get existing results submitted to this coordinator
+
+        $results = Result::where('coordinator_id', Auth::user()->coordinator->id)
+
+            ->where('academic_session', $this->selectedSession)
+
+            ->where('semester', $this->selectedSemester)
+
+            ->get()
+
+            ->keyBy('user_id');
+
+
+
+        $rows = [];
+
+        foreach ($registered as $reg) {
+
+            $userId = $reg->academicDetail->user_id ?? null;
+
+            if (!$userId) continue;
+
+
+
+            $result = $results[$userId] ?? null;
+
+
+
+            $rows[] = [
+
+                'user_id' => $userId,
+
+                'matric_no' => $reg->academicDetail->matric_no ?? 'N/A',
+
+                'name' => trim(($reg->academicDetail->user->surname ?? '') . ' ' . ($reg->academicDetail->user->firstname ?? '') . ' ' . ($reg->academicDetail->user->m_name ?? '')),
+
+                'ca_score' => $result?->ca_score,
+
+                'exam_score' => $result?->exam_score,
+
+                'total_score' => $result?->total_score,
+
+                'grade' => $result?->grade ?? '-',
+
+                'grade_point' => $result?->grade_point ?? '-',
+
+                'status' => $result?->status ?? 'pending',
+
+                'remarks' => $result?->remarks,
+
+            ];
+
+        }
+
+
+
+        $this->studentsWithResults = $rows;
+
+    }
+
+
+
+    public function approveStudentResults(): void
+
+    {
+
+        $session = $this->selectedSession;
+
+        $semester = $this->selectedSemester;
+
+        $coordinatorId = Auth::user()->coordinator->id;
+
+
+
+        // Fetch pending submitted results for this coordinator
+
+        $results = Result::where('coordinator_id', $coordinatorId)
+
+            ->where('academic_session', $session)
+
+            ->where('semester', $semester)
+
+            ->where('status', 'submitted')
+
+            ->get();
+
+
+
+        if ($results->isEmpty()) {
+
+            $this->alert('info', 'No submitted results pending coordinator approval.');
+
+            return;
+
+        }
+
+
+
+        $updatedCount = Result::where('coordinator_id', $coordinatorId)
+
+            ->where('academic_session', $session)
+
+            ->where('semester', $semester)
+
+            ->where('status', 'submitted')
+
+            ->update([
+
+                'status' => 'exam_officer_approved',
+
+                'coordinator_approved_by' => Auth::id(),
+
+                'coordinator_approved_at' => now(),
+
+            ]);
+
+
+
+        // Create approval audit record
+
+        ResultApproval::create([
+
+            'course_id' => $this->selectedCourseId,
+
+            'academic_session' => $session,
+
+            'semester' => $semester,
+
+            'approval_level' => 'coordinator',
+
+            'approved_by' => Auth::id(),
+
+            'approved_at' => now(),
+
+            'status' => 'approved',
+
+            'comments' => "Coordinator approved {$updatedCount} result(s) for course ID {$this->selectedCourseId} and forwarded to Exam Officer",
+
+        ]);
+
+
+
+        $this->alert('success', "{$updatedCount} result(s) approved and forwarded to Exam Officer.");
+
+        $this->loadStudentScores();
+
+    }
+
+
+
+    public function openRejectModal(): void
+
+    {
+
+        $this->rejectionReason = '';
+
+        $this->showRejectModal = true;
+
+    }
+
+
+
+    public function closeRejectModal(): void
+
+    {
+
+        $this->showRejectModal = false;
+
+        $this->rejectionReason = '';
+
+    }
+
+
+
+    public function rejectStudentResults(): void
+
+    {
+
+        $this->validate([
+
+            'rejectionReason' => 'required|min:5|max:500',
+
+        ], [
+
+            'rejectionReason.required' => 'Please state the reason for rejecting these results.',
+
+            'rejectionReason.min' => 'The reason must be at least 5 characters long.',
+
+        ]);
+
+
+
+        $session = $this->selectedSession;
+
+        $semester = $this->selectedSemester;
+
+        $coordinatorId = Auth::user()->coordinator->id;
+
+
+
+        $updatedCount = Result::where('coordinator_id', $coordinatorId)
+
+            ->where('academic_session', $session)
+
+            ->where('semester', $semester)
+
+            ->whereIn('status', ['submitted', 'coordinator_approved'])
+
+            ->update([
+
+                'status' => 'pending',
+
+                'remarks' => $this->rejectionReason,
+
+            ]);
+
+
+
+        // Create audit log
+
+        ResultApproval::create([
+
+            'course_id' => $this->selectedCourseId,
+
+            'academic_session' => $session,
+
+            'semester' => $semester,
+
+            'approval_level' => 'coordinator',
+
+            'approved_by' => Auth::id(),
+
+            'approved_at' => now(),
+
+            'status' => 'rejected',
+
+            'comments' => $this->rejectionReason,
+
+        ]);
+
+
+
+        $this->showRejectModal = false;
+
+        $this->rejectionReason = '';
+
+        $this->alert('warning', "Results returned to lecturer for revision. Reason recorded.");
+
+        $this->loadStudentScores();
+
+    }
+
+
+
+    public function render()
+
+    {
+
+        $session = $this->selectedSession;
+
+        $semester = $this->selectedSemester;
+
+        $coordinatorId = Auth::user()->coordinator->id;
+
+
+
+        // Get result counts for this coordinator
+
+        $resultCounts = Result::where('coordinator_id', $coordinatorId)
+
+            ->where('academic_session', $session)
+
+            ->where('semester', $semester)
+
+            ->selectRaw('status, count(*) as count')
+
+            ->groupBy('status')
+
+            ->pluck('count', 'status')
+
+            ->toArray();
+
+
+
+        $pendingCount = $resultCounts['pending'] ?? 0;
+
+        $submittedCount = $resultCounts['submitted'] ?? 0;
+
+        $coordinatorApprovedCount = $resultCounts['exam_officer_approved'] ?? 0;
+
+        $releasedCount = $resultCounts['released'] ?? 0;
+
+        $totalCount = array_sum($resultCounts);
+
+
+
+        return view('livewire.coordinator.coordinator-result-review', [
+
+            'pendingCount' => $pendingCount,
+
+            'submittedCount' => $submittedCount,
+
+            'coordinatorApprovedCount' => $coordinatorApprovedCount,
+
+            'releasedCount' => $releasedCount,
+
+            'totalCount' => $totalCount,
+
+        ])->layout('layouts.app');
+
+    }
+
+}result should not be seeing

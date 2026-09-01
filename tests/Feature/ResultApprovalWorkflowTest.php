@@ -3,9 +3,10 @@
 namespace Tests\Feature;
 
 use App\Enums\Role;
+use App\Http\Livewire\Coordinator\CoordinatorResultReview;
 use App\Http\Livewire\ExamOfficer\ExamOfficerResultReview;
-use App\Http\Livewire\Hod\HodResultReview;
 use App\Models\AcademicDetail;
+use App\Models\Coordinator;
 use App\Models\Course;
 use App\Models\CourseAllocation;
 use App\Models\Department;
@@ -30,6 +31,7 @@ class ResultApprovalWorkflowTest extends TestCase
 
     protected User $student;
     protected User $lecturer;
+    protected User $coordinator;
     protected User $hod;
     protected User $examOfficer;
     protected Department $department;
@@ -67,7 +69,7 @@ class ResultApprovalWorkflowTest extends TestCase
             'programme_id' => $this->programme->id,
         ]);
 
-        $this->academicDetail = AcademicDetail::create([
+        $this->academicDetail = AcademicDetail::forceCreate([
             'user_id' => $this->student->id,
             'matric_no' => 'MAT/' . rand(10000, 99999),
             'course_id' => $this->course->id,
@@ -85,6 +87,23 @@ class ResultApprovalWorkflowTest extends TestCase
             'firstname' => 'Ibrahim',
             'password' => bcrypt('password'),
             'vpassword' => 'password',
+        ]);
+
+        $this->coordinator = User::create([
+            'email' => 'coordinator_wf_' . uniqid() . '@example.com',
+            'role' => 'coordinator',
+            'programme_id' => $this->programme->id,
+            'surname' => 'Dr. Okafor',
+            'firstname' => 'Ada',
+            'password' => bcrypt('password'),
+            'vpassword' => 'password',
+        ]);
+
+        Coordinator::create([
+            'user_id' => $this->coordinator->id,
+            'department_id' => $this->department->id,
+            'student_level_id' => $this->level->id,
+            'academic_session' => '2024-2025',
         ]);
 
         // HOD
@@ -137,7 +156,7 @@ class ResultApprovalWorkflowTest extends TestCase
         ]);
     }
 
-    public function test_hod_can_review_and_approve_submitted_results(): void
+    public function test_coordinator_can_review_and_approve_submitted_results(): void
     {
         $reg = RegisteredCourse::create([
             'department_course_id' => $this->departmentCourse->id,
@@ -161,38 +180,38 @@ class ResultApprovalWorkflowTest extends TestCase
             'grade_point' => 5,
             'credit_units' => 3,
             'grade_point_total' => 15,
-            'status' => 'submitted', // Lecturer submitted to HOD
+            'status' => 'submitted',
             'lecturer_id' => $this->lecturer->id,
+            'coordinator_id' => $this->coordinator->coordinator->id,
         ]);
 
-        $this->actingAs($this->hod);
+        $this->actingAs($this->coordinator);
 
-        Livewire::test(HodResultReview::class)
+        Livewire::test(CoordinatorResultReview::class)
             ->set('selectedSession', '2024-2025')
             ->set('selectedSemester', 'first')
-            ->set('selectedDepartmentId', $this->department->id)
-            ->call('inspectCourse', $this->departmentCourse->id)
+            ->call('selectCourse', $this->departmentCourse->id)
             ->assertSee('CSC101')
             ->assertSee('Audu Musa')
-            ->call('approveCourseResults')
+            ->call('approveStudentResults')
             ->assertHasNoErrors();
 
         $result->refresh();
-        $this->assertEquals('hod_approved', $result->status);
-        $this->assertEquals($this->hod->id, $result->hod_approved_by);
-        $this->assertNotNull($result->hod_approved_at);
+        $this->assertEquals('exam_officer_approved', $result->status);
+        $this->assertEquals($this->coordinator->id, $result->coordinator_approved_by);
+        $this->assertNotNull($result->coordinator_approved_at);
 
         // Verify audit record created
         $approval = ResultApproval::where('department_id', $this->department->id)
-            ->where('approval_level', 'hod')
+            ->where('approval_level', 'coordinator')
             ->where('status', 'approved')
             ->first();
 
         $this->assertNotNull($approval);
-        $this->assertEquals($this->hod->id, $approval->approved_by);
+        $this->assertEquals($this->coordinator->id, $approval->approved_by);
     }
 
-    public function test_hod_can_reject_results_back_to_lecturer(): void
+    public function test_coordinator_can_return_results_to_lecturer(): void
     {
         $reg = RegisteredCourse::create([
             'department_course_id' => $this->departmentCourse->id,
@@ -217,17 +236,17 @@ class ResultApprovalWorkflowTest extends TestCase
             'credit_units' => 3,
             'status' => 'submitted',
             'lecturer_id' => $this->lecturer->id,
+            'coordinator_id' => $this->coordinator->coordinator->id,
         ]);
 
-        $this->actingAs($this->hod);
+        $this->actingAs($this->coordinator);
 
-        Livewire::test(HodResultReview::class)
+        Livewire::test(CoordinatorResultReview::class)
             ->set('selectedSession', '2024-2025')
             ->set('selectedSemester', 'first')
-            ->set('selectedDepartmentId', $this->department->id)
-            ->call('inspectCourse', $this->departmentCourse->id)
+            ->call('selectCourse', $this->departmentCourse->id)
             ->set('rejectionReason', 'CA scores require recalculation for Musa.')
-            ->call('rejectCourseResults')
+            ->call('rejectStudentResults')
             ->assertHasNoErrors();
 
         $result->refresh();
@@ -236,7 +255,7 @@ class ResultApprovalWorkflowTest extends TestCase
 
         // Verify audit log
         $approval = ResultApproval::where('department_id', $this->department->id)
-            ->where('approval_level', 'hod')
+            ->where('approval_level', 'coordinator')
             ->where('status', 'rejected')
             ->first();
 
@@ -268,10 +287,11 @@ class ResultApprovalWorkflowTest extends TestCase
             'grade_point' => 5,
             'credit_units' => 3,
             'grade_point_total' => 15,
-            'status' => 'hod_approved', // HOD approved, ready for release
+            'status' => 'exam_officer_approved',
             'lecturer_id' => $this->lecturer->id,
-            'hod_approved_by' => $this->hod->id,
-            'hod_approved_at' => now(),
+            'coordinator_id' => $this->coordinator->coordinator->id,
+            'coordinator_approved_by' => $this->coordinator->id,
+            'coordinator_approved_at' => now(),
         ]);
 
         $this->actingAs($this->examOfficer);
@@ -310,7 +330,7 @@ class ResultApprovalWorkflowTest extends TestCase
         $this->assertNotNull($approval);
     }
 
-    public function test_exam_officer_can_return_results_to_hod(): void
+    public function test_exam_officer_can_return_results_to_coordinator(): void
     {
         $reg = RegisteredCourse::create([
             'department_course_id' => $this->departmentCourse->id,
@@ -333,7 +353,10 @@ class ResultApprovalWorkflowTest extends TestCase
             'grade' => 'B',
             'grade_point' => 4,
             'credit_units' => 3,
-            'status' => 'hod_approved',
+            'status' => 'exam_officer_approved',
+            'coordinator_id' => $this->coordinator->coordinator->id,
+            'coordinator_approved_by' => $this->coordinator->id,
+            'coordinator_approved_at' => now(),
         ]);
 
         $this->actingAs($this->examOfficer);

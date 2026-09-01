@@ -22,7 +22,7 @@ To implement the entire system safely on production, execute the phases in this 
 graph TD
     P1["Phase 1: DB & Versioning Foundation<br/>(COMPLETED)"] --> P2["Phase 2: Calculation & Carry-Overs Services<br/>(COMPLETED)"]
     P2 --> P3["Phase 3: Lecturer Result Entry<br/>(COMPLETED)"]
-    P3 --> P4["Phase 4: Multi-Level Approval Workflows<br/>(HOD & Exam Officer Panels)"]
+    P3 --> P4["Phase 4: Multi-Level Approval Workflows<br/>(Coordinator & Exam Officer Panels)"]
     P4 --> P5["Phase 5: Student Portal & Transcripts<br/>(Result view & PDF generation)"]
     P5 --> P6["Phase 6: Graduation & Graduation Lists<br/>(Eligibility & Certificate records)"]
 ```
@@ -92,13 +92,13 @@ graph TD
 - [x] Implemented `ResultEntry` component (`ResultEntry.php` & `result-entry.blade.php`) with inline CA (0-40) and Exam (0-60) validation.
 - [x] Integrated `AcademicSessionService` with session & semester override dropdowns.
 - [x] Implemented CSV template download (`ResultTemplateExport.php`) and bulk CSV upload (`ResultImport.php`).
-- [x] Implemented submission workflow (`submitAll`) to transition pending results to `submitted` status for HOD review.
+- [x] Implemented submission workflow (`submitAll`) to transition pending results to `submitted` status for each student's assigned coordinator.
 - [x] Created test suite: `tests/Feature/LecturerResultEntryTest.php`.
 
 ---
 
 ## Phase 4: Course Allocations & Multi-Level Approval Workflows (✅ COMPLETED)
-* **Goal:** Implement Course Allocation (assigning courses to lecturers by Admin/CIT) and the multi-level submission and approval workflow (Lecturer -> HOD -> Exam Officer -> Released).
+* **Goal:** Implement Course Allocation (assigning courses to lecturers by Admin/CIT) and the multi-level submission and approval workflow (Lecturer -> Coordinator -> Exam Officer -> Released).
 * **Risk Profile:** Low.
 * **Status:** **Completed & Verified** (August 2026)
 
@@ -106,11 +106,16 @@ graph TD
 - [x] Created `course_allocations` table migration & model (`CourseAllocation.php`).
 - [x] Created `CourseAllocationManager` Livewire component (`Admin/CourseAllocationManager.php` and view) for Admin/CIT to allocate department courses to lecturers.
 - [x] Added Course Allocation links in `admin-sidebar.blade.php` and `cit-sidebar.blade.php`.
-- [x] Implemented HOD Result Review component (`HodResultReview.php` & `hod-result-review.blade.php`) with course inspection, batch approval (`status = 'hod_approved'`), and return/rejection actions.
+- [x] Implemented Coordinator Result Review component (`CoordinatorResultReview.php` & `coordinator-result-review.blade.php`) with multi-level course inspection, SQL summaries, paginated review, batch approval (`status = 'exam_officer_approved'`), and return/rejection audit actions.
 - [x] Implemented Exam Officer Result Review component (`ExamOfficerResultReview.php` & `exam-officer-result-review.blade.php`) with institutional grade auditing, batch result release (`status = 'released'`), GPA calculation triggering (`ResultGpaRecord`), and carry-over processing.
-- [x] Registered routes in `routes/hod.php` (`hod.results-review`) and `routes/exam_officer.php` (`exam-officer.results-review`).
-- [x] Added navigation menu links in `hod-sidebar.blade.php` and `exam-officer-sidebar.blade.php`.
-- [x] Created & passed automated Feature test suite: `tests/Feature/ResultApprovalWorkflowTest.php` (4 tests, 26 assertions).
+- [x] Registered routes in `routes/coordinator.php` (`coordinator.result-review`) and `routes/exam_officer.php` (`exam-officer.results-review`).
+- [x] Added navigation menu links in `coordinator-sidebar.blade.php` and `exam-officer-sidebar.blade.php`.
+- [x] Created and passed `tests/Feature/ResultApprovalWorkflowTest.php` (4 tests) for coordinator approval, return, Exam Officer release, and Exam Officer return.
+
+### Next Prerequisite: Admission Cohort Population
+- [ ] Populate `academic_details.admission_session` when each student's academic detail is created during admission or import.
+- [x] Provide an admin-reviewed backfill queue that derives historical admission sessions from the first two matric-number digits, for example `24...` to `2024/2025` and `25...` to `2025/2026`.
+- [ ] Add feature coverage proving coordinator resolution remains cohort-specific across multiple admission sessions.
 
 ---
 

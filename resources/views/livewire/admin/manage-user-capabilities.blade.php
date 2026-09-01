@@ -86,7 +86,7 @@
     <div class="flex flex-wrap -mx-3">
         <div class="w-full max-w-full px-3">
             <div class="relative flex flex-col min-w-0 break-words bg-white border-0 shadow-soft-xl rounded-2xl bg-clip-border">
-                
+
                 {{-- Card Header & Filter Bar --}}
                 <div class="p-6 pb-0 mb-0 bg-white border-b-0 rounded-t-2xl">
                     <div class="flex flex-wrap items-center justify-between gap-4">
@@ -113,6 +113,7 @@
                                 <option value="">All Capabilities</option>
                                 <option value="exam_officer">Exam Officer</option>
                                 <option value="lecturer">Lecturer</option>
+                                <option value="coordinator">Coordinator</option>
                             </select>
                         </div>
                         <div class="min-w-[180px]">
@@ -185,6 +186,10 @@
                                             @elseif($cap->capability === 'lecturer')
                                                 <span class="px-3.6 text-xs rounded-1.8 py-2.2 inline-block whitespace-nowrap text-center align-baseline font-bold uppercase leading-none text-white bg-gradient-lime">
                                                     Lecturer
+                                                </span>
+                                            @elseif($cap->capability === 'coordinator')
+                                                <span class="px-3.6 text-xs rounded-1.8 py-2.2 inline-block whitespace-nowrap text-center align-baseline font-bold uppercase leading-none text-white bg-sky-600">
+                                                    Coordinator
                                                 </span>
                                             @else
                                                 <span class="px-3.6 text-xs rounded-1.8 py-2.2 inline-block whitespace-nowrap text-center align-baseline font-bold uppercase leading-none text-white bg-slate-500">
@@ -261,7 +266,7 @@
     @if($showAssignModal)
         <div class="fixed inset-0 z-sticky flex items-center justify-center overflow-x-hidden overflow-y-auto bg-black bg-opacity-50 p-4 transition-all">
             <div class="relative w-full max-w-2xl mx-auto bg-white rounded-2xl shadow-soft-2xl border-0 overflow-hidden">
-                
+
                 {{-- Modal Header --}}
                 <div class="flex items-center justify-between p-6 pb-4 border-b border-gray-100">
                     <div>
@@ -275,7 +280,7 @@
 
                 {{-- Modal Body --}}
                 <div class="p-6 space-y-4">
-                    
+
                     {{-- Staff Selection --}}
                     <div>
                         <label class="block mb-2 text-xs font-bold uppercase text-slate-700">Select Staff Member <span class="text-red-500">*</span></label>
@@ -296,7 +301,7 @@
                     {{-- Capability Type --}}
                     <div>
                         <label class="block mb-2 text-xs font-bold uppercase text-slate-700">Capability Role <span class="text-red-500">*</span></label>
-                        <div class="grid grid-cols-2 gap-4">
+                        <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
                             <label class="relative flex items-center p-3 border rounded-xl cursor-pointer hover:bg-slate-50 {{ $capability === 'exam_officer' ? 'border-fuchsia-500 bg-fuchsia-50/30' : 'border-gray-200' }}">
                                 <input type="radio" wire:model="capability" value="exam_officer" class="mr-3 text-fuchsia-600 focus:ring-fuchsia-500" />
                                 <div>
@@ -312,8 +317,19 @@
                                     <span class="block text-xxs text-slate-500">Enter results & manage courses</span>
                                 </div>
                             </label>
+
+                            <label class="relative flex items-center p-3 border rounded-xl cursor-pointer hover:bg-slate-50 {{ $capability === 'coordinator' ? 'border-sky-500 bg-sky-50/30' : 'border-gray-200' }}">
+                                <input type="radio" wire:model="capability" value="coordinator" class="mr-3 text-sky-600 focus:ring-sky-500" />
+                                <div>
+                                    <span class="block text-sm font-semibold text-slate-700">Coordinator</span>
+                                    <span class="block text-xxs text-slate-500">Review assigned course cohorts</span>
+                                </div>
+                            </label>
                         </div>
                         @error('capability') <span class="text-xs text-red-500">{{ $message }}</span> @enderror
+                        @if($capability === 'coordinator')
+                            <p class="mt-2 text-xxs text-slate-500">Capability grants coordinator route access. Create a coordinator assignment separately to define the department, level, and admission cohort.</p>
+                        @endif
                     </div>
 
                     {{-- Department Scope --}}

@@ -29,12 +29,14 @@ use App\Http\Livewire\Admin\ManagePostgraduateApplicants;
 use App\Http\Livewire\Admin\ManageUserCapabilities;
 use App\Http\Livewire\Admin\CourseAllocationManager;
 use App\Http\Livewire\Admin\CoordinatorManager;
+use App\Http\Livewire\Admin\AdmissionSessionSynchronizer;
 
 Route::get('dashboard', AdminIndex::class)->name('dashboard');
 Route::get('manage-capabilities', ManageUserCapabilities::class)->name('manage-capabilities');
 Route::get('course-allocations', CourseAllocationManager::class)->name('course-allocations');
 Route::get('coordinator-manager', CoordinatorManager::class)->name('coordinator-manager');
 Route::get('coordinators', CoordinatorManager::class)->name('coordinators');
+Route::get('admission-session-synchronization', AdmissionSessionSynchronizer::class)->name('admission-session-synchronization');
 Route::get('fubk', FubkReport::class)->name('fubk');
 Route::get('fubk/export', FubkReportExportController::class)->name('fubk.export');
 Route::get('fubk/pdf/queue', [FubkReportPdfJobController::class, 'queue'])->name('fubk.pdf.queue');

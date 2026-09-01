@@ -139,6 +139,8 @@ Admins need to create coordinators with:
 ### Student Admission Session
 When admitting students, set their `admission_session` to match the coordinator's academic_session to ensure proper course cohort assignment.
 
+For legacy students, administrators review and explicitly approve admission-session values through the Admission Session Review queue. The queue derives its proposal from the first two digits of the matric number, for example `2410901001` maps to `2024/2025`. It does not update records automatically.
+
 ### New Components Created
 - `CoordinatorResultReview.php` - Coordinator result review and approval component
 - `ResultStatus.php` - Enum for result approval statuses
