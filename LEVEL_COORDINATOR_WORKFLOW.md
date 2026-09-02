@@ -15,13 +15,15 @@ The system now implements a course-based coordinator assignment system where stu
 ### 2. Result Submission Flow (Updated)
 1. **Course Lecturers** submit results to **Students' Respective Course Coordinators**
 2. **Course Coordinators** review and approve results for their assigned course cohort
-3. **Course Coordinators** submit directly to **Exam Officer** for final approval
-4. **Exam Officer** releases results to students (triggers GPA and carry-over calculations)
+3. **Course Coordinators** generate preliminary Broadsheets/Score Sheets for departmental review
+4. **Course Coordinators** submit directly to **Exam Officer** for final approval
+5. **Exam Officer** reviews and generates the final Academic Board/Senate reports (Broadsheets)
+6. **Exam Officer** releases results to students (triggers GPA and carry-over calculations) after Academic Board/Senate approval
 
 ### 3. Result Approval Status Flow
 - `pending` → Lecturer draft (editable)
 - `submitted` → Submitted to course coordinator
-- `exam_officer_approved` → Coordinator approved, awaiting Exam Officer release
+- `exam_officer_approved` → Coordinator approved, awaiting Exam Officer release (Reports generated here)
 - `released` → Exam Officer released, visible to students
 
 ### 4. Database Changes

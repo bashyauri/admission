@@ -12,7 +12,6 @@ class AcademicDetail extends Model
 {
     use HasFactory;
     protected $guarded = ['id'];
-    protected $fillable = ['admission_session']; // Allow mass assignment for admission session
 
     public function user()
     {

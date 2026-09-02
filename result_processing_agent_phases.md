@@ -22,9 +22,9 @@ To implement the entire system safely on production, execute the phases in this 
 graph TD
     P1["Phase 1: DB & Versioning Foundation<br/>(COMPLETED)"] --> P2["Phase 2: Calculation & Carry-Overs Services<br/>(COMPLETED)"]
     P2 --> P3["Phase 3: Lecturer Result Entry<br/>(COMPLETED)"]
-    P3 --> P4["Phase 4: Multi-Level Approval Workflows<br/>(Coordinator & Exam Officer Panels)"]
-    P4 --> P5["Phase 5: Student Portal & Transcripts<br/>(Result view & PDF generation)"]
-    P5 --> P6["Phase 6: Graduation & Graduation Lists<br/>(Eligibility & Certificate records)"]
+    P3 --> P4["Phase 4: Multi-Level Approval & Academic Board Broadsheets<br/>(Coordinator & Exam Officer Panels + Senate Broadsheet Export)"]
+    P4 --> P5["Phase 5: Student Portal & Transcripts<br/>(Result view, Statement of Results & PDF transcripts)"]
+    P5 --> P6["Phase 6: Graduation & Senate Degree Approval<br/>(Final Degree Broadsheet, Senate Pass List & Certificates)"]
 ```
 
 ---
@@ -97,10 +97,10 @@ graph TD
 
 ---
 
-## Phase 4: Course Allocations & Multi-Level Approval Workflows (✅ COMPLETED)
-* **Goal:** Implement Course Allocation (assigning courses to lecturers by Admin/CIT) and the multi-level submission and approval workflow (Lecturer -> Coordinator -> Exam Officer -> Released).
+## Phase 4: Course Allocations, Multi-Level Approval & Senate Broadsheets (✅ CORE COMPLETED)
+* **Goal:** Course Allocation, multi-level approval workflow (Lecturer -> Coordinator -> Exam Officer -> Released), and generating official Departmental / Senate Broadsheets for Academic Board approval.
 * **Risk Profile:** Low.
-* **Status:** **Completed & Verified** (August 2026)
+* **Status:** **Core Completed & Verified** (August 2026)
 
 ### Completed Tasks Checklist
 - [x] Created `course_allocations` table migration & model (`CourseAllocation.php`).
@@ -112,15 +112,21 @@ graph TD
 - [x] Added navigation menu links in `coordinator-sidebar.blade.php` and `exam-officer-sidebar.blade.php`.
 - [x] Created and passed `tests/Feature/ResultApprovalWorkflowTest.php` (4 tests) for coordinator approval, return, Exam Officer release, and Exam Officer return.
 
-### Next Prerequisite: Admission Cohort Population
-- [ ] Populate `academic_details.admission_session` when each student's academic detail is created during admission or import.
-- [x] Provide an admin-reviewed backfill queue that derives historical admission sessions from the first two matric-number digits, for example `24...` to `2024/2025` and `25...` to `2025/2026`.
-- [ ] Add feature coverage proving coordinator resolution remains cohort-specific across multiple admission sessions.
+### Admission Cohort Population (✅ COMPLETED)
+- [x] Populate `academic_details.admission_session` when each student's academic detail is created during admission or import (`AcademicDetailForm.php` & `UgAcademicDetailForm.php`).
+- [x] Provide an admin-reviewed backfill queue that derives historical admission sessions from the first two matric-number digits, for example `24...` to `2024/2025` and `25...` to `2025/2026` (`AdmissionSessionSynchronizer.php`).
+- [x] Added feature coverage proving coordinator resolution remains cohort-specific across multiple admission sessions (`AdmissionSessionPopulationTest.php`).
+
+### Academic Board & Senate Broadsheet Reporting Deliverables (Phase 4 Extension)
+> **Academic Board Review Context:** Before official release to students, results are reviewed by the Departmental Board of Examiners, Faculty Board, and Academic Board / Senate.
+- **Departmental Semester Broadsheet (Master Sheet)**: Matrix PDF/Excel showing students vs all registered courses, CA/Exam scores, Total, Grade, Semester GPA, and Academic Standing (Promoted, Probation, Spillover, Repeat).
+- **Course-Level Official Score Sheet**: Printable signed sheet with Lecturer, Coordinator, and Exam Officer endorsements.
+- **Senate Summary Report**: Institutional summary of pass/fail statistics and GPA distributions presented for Academic Board approval before final release.
 
 ---
 
 ## Phase 5: Student Portal & Transcript Generator
-* **Goal:** Allow students to view their released results and generate unofficial transcripts. Generate official PDFs via Snappy/DomPDF.
+* **Goal:** Allow students to view their released results, print Semester Statements of Results, and generate official NUC-compliant transcripts with QR verification.
 * **Risk Profile:** Low-Medium (wires to student-facing dashboards).
 
 ### Agent Instructions Prompt
@@ -129,14 +135,19 @@ graph TD
 > 
 > Tasks:
 > 1. Create the `MyResults` student Livewire component displaying released grades organized by Session and Semester.
-> 2. Implement the `TranscriptService` (detailed in RESULT_PROCESSING_EXTENSION_PLAN.md L1020) to generate a PDF formatted according to NUC standards (showing all repeated course attempts, grades, semester GPAs, and cumulative details).
-> 3. Integrate QR code markers on generated transcripts linking back to database verification."
+> 2. Implement Semester Statement of Result printable slip for students.
+> 3. Implement the `TranscriptService` (detailed in RESULT_PROCESSING_EXTENSION_PLAN.md L1020) to generate an official PDF transcript formatted according to NUC standards (showing all repeated course attempts, grades, semester GPAs, and cumulative details).
+> 4. Integrate QR code markers on generated transcripts linking back to database verification."
 
 ---
 
-## Phase 6: Graduation Processing
-* **Goal:** Automatically check student graduation eligibility, generate the graduation lists, and track certificate issuances.
+## Phase 6: Graduation Processing & Senate Final Degree Approval
+* **Goal:** Automatically check student graduation eligibility, generate the Senate Graduation Broadsheet, and track certificate issuances.
 * **Risk Profile:** Low (primarily report/utility views).
+
+### Academic Board / Senate Deliverables in Phase 6:
+- **Senate Graduation Broadsheet**: Master list of graduands by department with total credits earned, final CGPA, and recommended Class of Degree (First Class, Second Class Upper, etc.) presented for Senate degree conferment.
+- **Official Graduating List / Pass List**: Approved publication list for convocation, degree certificates, and NYSC mobilization.
 
 ### Agent Instructions Prompt
 > **Prompt for Agent:**
@@ -147,7 +158,7 @@ graph TD
 >    - Check minimum CGPA threshold (>= 1.00 or 1.50).
 >    - Confirm completion of General Studies, SIWES, and Entrepreneurship credits.
 >    - Ensure no outstanding failed courses remain in `carry_over_courses`.
-> 2. Create the Admin panel Livewire views to publish graduation ceremonies and view/print the Graduation List.
+> 2. Create the Admin / Exam Officer panel to generate and export the **Senate Graduation Broadsheet** and **Official Graduating List**.
 > 3. Create the Certificate tracking module."
 
 ---

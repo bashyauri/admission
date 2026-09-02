@@ -224,17 +224,18 @@ resources/
 
 ### Role: Exam Officer
 **Can:**
-- Audit and review HOD-approved results across departments
+- Audit and review coordinator-approved results across departments
+- Generate and export **Departmental Broadsheets**, **Course Score Sheets**, and **Senate Summary Reports** for Academic Board / Senate approval
 - Release official semester results to students (auto-triggering GPA and carry-over updates)
-- Return results to HOD with feedback remarks
-- Generate result statistics
+- Return results to Coordinator with feedback remarks
+- Generate result and performance statistics
 
 **Cannot:**
 - Enter initial scores directly (handled by allocated lecturer)
 
 **Accessible Modules:**
 - Exam officer portal (`/exam-officer/dashboard`)
-- Result auditing and release (`/exam-officer/results-review`)
+- Result auditing, Senate broadsheets, and release (`/exam-officer/results-review`)
 
 ### Role: CIT
 **Can:**
@@ -251,17 +252,20 @@ resources/
 
 ### Role: Coordinator
 **Can:**
-- Coordinate programmes
-- Oversee student progress
-- View programme statistics
+- Review and approve submitted course cohort results
+- Export Departmental Score Sheets and cohort result summaries for Departmental Board of Examiners
+- Return results to Lecturer with required correction remarks
+- Oversee student cohort progress and academic standing
+- Generate Student PINs for course registration
 
 **Cannot:**
-- Modify course structure
-- Approve results
+- Enter initial scores directly (handled by allocated lecturer)
+- Release results directly to students without Exam Officer / Senate release
 
 **Accessible Modules:**
-- Coordinator portal
-- Programme oversight
+- Coordinator portal (`/coordinator/dashboard`)
+- Course cohort result review (`/coordinator/result-review`)
+- Student PIN generation (`/coordinator/generate-student-pin`)
 
 ### Role: IdCard Officer
 **Can:**
@@ -414,22 +418,28 @@ Authorization checks permission via Policies
 - Unique on department_course_id (prevents retakes - needs fixing)
 
 #### `academic_details`
-**Purpose:** Student academic information
+**Purpose:** Student academic information & cohort tracking
 
 **Important Columns:**
 - `id`
 - `user_id`
 - `matric_no` (unique)
-- `course_id` (foreign key - should be department_id)
+- `course_id` (foreign key to courses)
 - `programme_id`
 - `department_id`
 - `student_level_id`
+- `acad_session` (e.g. '2024/2025')
+- `admission_session` (e.g. '2024/2025' - essential for cohort-specific coordinator mapping)
+- `coordinator_id` (nullable legacy coordinator reference)
 
 **Relationships:**
 - belongsTo User
 - belongsTo Programme
 - belongsTo Department
 - belongsTo StudentLevel
+- belongsTo Course
+- belongsTo Coordinator
+- hasMany RegisteredCourses
 
 #### `transactions`
 **Purpose:** Fee payment transactions
@@ -546,18 +556,18 @@ Results follow a strict multi-level approval state machine:
 
 | Status | Set By | Meaning |
 |---|---|---|
-| `pending` | System / HOD Rejection | Lecturer draft — editable |
-| `submitted` | Lecturer | Locked, awaiting HOD review |
-| `hod_approved` | HOD | Approved, awaiting Exam Officer release |
+| `pending` | System / Coordinator Return | Lecturer draft — editable |
+| `submitted` | Lecturer | Locked, awaiting Course Cohort Coordinator review |
+| `exam_officer_approved` | Coordinator | Approved by Coordinator, awaiting Exam Officer release |
 | `released` | Exam Officer | Official; visible to students; GPA & carry-overs computed |
 
-1. Lecturer enters CA + Exam scores and clicks **Submit to HOD** → `pending` → `submitted`
-2. HOD reviews the score sheet:
-   - If correct → clicks **Approve & Forward** → `submitted` → `hod_approved`
+1. Lecturer enters CA + Exam scores and clicks **Submit to Coordinator** → `pending` → `submitted` (automatically directed to each student's course cohort coordinator via `courseCohortCoordinator`)
+2. Coordinator reviews the score sheet:
+   - If correct → clicks **Approve & Forward** → `submitted` → `exam_officer_approved` (records `coordinator_approved_by` and `coordinator_approved_at`)
    - If issues found → clicks **Return to Lecturer**, types detailed reason → `submitted` → `pending` (remarks saved; scores unlocked again so lecturer can correct and resubmit)
-3. Exam Officer audits HOD-approved score sheets:
-   - If correct → clicks **Release to Students** → `hod_approved` → `released` (auto-triggers GPA & carry-over computation)
-   - If issues found → clicks **Return to HOD**, types reason → `hod_approved` → `submitted` (returned to HOD queue)
+3. Exam Officer audits coordinator-approved score sheets:
+   - If correct → clicks **Release to Students** → `exam_officer_approved` → `released` (auto-triggers GPA & carry-over computation)
+   - If issues found → clicks **Return to Coordinator**, types reason → `exam_officer_approved` → `submitted` (returned to coordinator queue)
 
 ---
 
@@ -620,15 +630,15 @@ Lecturer Enters Scores — CA (0–40) + Exam (0–60) (ResultEntry)
   ↓
   [Optional: CSV Template Download → Bulk Fill → CSV Import]
   ↓
-Lecturer Submits → status = 'submitted'
+Lecturer Submits → status = 'submitted' (routed to student's Course Cohort Coordinator)
   ↓
-HOD Reviews Score Sheet (HodResultReview)
+Coordinator Reviews Course Cohort Score Sheet (CoordinatorResultReview)
   ├── Issues Found → Return to Lecturer + Reason → status = 'pending'
   │     ↓ (Lecturer corrects and resubmits)
-  └── Approved → status = 'hod_approved'
+  └── Approved → status = 'exam_officer_approved'
         ↓
 Exam Officer Audits (ExamOfficerResultReview)
-  ├── Issues Found → Return to HOD + Audit Comment → status = 'submitted'
+  ├── Issues Found → Return to Coordinator + Audit Comment → status = 'submitted'
   └── Release to Students → status = 'released'
         ↓
 GPA / CGPA Calculated (GradeCalculationService → result_gpa_records)

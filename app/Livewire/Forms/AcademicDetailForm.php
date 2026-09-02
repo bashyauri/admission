@@ -31,13 +31,16 @@ class AcademicDetailForm extends Form
     {
         $this->validate();
         $user = auth()->user();
-        DB::transaction(function () use ($user) {
+        $session = app(\App\Services\AcademicSessionService::class)->getAcademicSession($user);
+        DB::transaction(function () use ($user, $session) {
             $user->academicDetail()->create([
                 'matric_no' => $this->matricNumber,
                 'department_id' => $user->proposedCourse->department_id,
                 'programme_id' =>  $user->programme_id,
                 'course_id' =>  $user->proposedCourse->course_id,
                 'student_level_id' => StudentLevel::YEAR_ONE,
+                'acad_session' => $session,
+                'admission_session' => $session,
             ]);
             $this->changeToStudent($user);
         });
