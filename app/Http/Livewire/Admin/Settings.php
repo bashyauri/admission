@@ -170,6 +170,21 @@ class Settings extends Component
         file_put_contents($envPath, $env);
     }
 
+    public function createUser(): void
+    {
+        try {
+            $this->form->store();
+            $this->showSuccessAlert('User Created Successfully');
+            $this->form->reset();
+        } catch (ValidationException $e) {
+            $this->setErrorBag($e->validator->errors());
+            $this->showValidationErrors($e);
+        } catch (\Exception $e) {
+            report($e);
+            $this->showErrorAlert('User creation failed.');
+        }
+    }
+
     public function createCourse(): void
     {
         try {

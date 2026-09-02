@@ -35,7 +35,7 @@ class CreateUserForm extends Form
             'surName' => 'required',
             'firstName' => 'required',
             'department_id' => 'required',
-            'role' => 'required',
+            'role' => 'required|in:hod,admin,cit,coordinator,idcard_officer,lecturer,exam_officer',
 
         ];
     }
@@ -47,17 +47,20 @@ class CreateUserForm extends Form
             'surname' => $this->surName,
             'firstname' => $this->firstName,
             'email' => $this->email,
-            'role' => $this->role["value"],
+            'role' => $this->role,
             'password' => Hash::make($this->password),
             'vpassword' => $this->password,
         ]);
 
-
-        $this->storeHod($user, $this->department_id["value"]);
+        // Only create HodUser if the role is HOD
+        if ($this->role === 'hod') {
+            $this->storeHod($user, $this->department_id);
+        }
     }
+
     public function storeHod(User $user, $department_id)
     {
-        return   HodUser::create([
+        return HodUser::create([
             'user_id' => $user->id,
             'department_id' => $department_id,
         ]);

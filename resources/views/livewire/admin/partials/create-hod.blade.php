@@ -45,23 +45,12 @@
                 <div class="w-full max-w-full px-3 flex-0">
                     <label class="mt-6 mb-2 ml-1 font-bold text-size-xs text-slate-700 dark:text-white/80"
                         for="users">Role</label>
-                    <div wire:ignore x-data x-init="
-                  choices = new Choices($refs.users, {
-                      searchEnabled: false
-                  });
-                  $refs.roles.addEventListener('change', function (event) {
-                      values = event.detail.value;
-                      @this.set('form.role', values);
-                  })">
-                        <select wire:model="form.role" choice name="choices-users" id="choices-gender" x-ref="users">
+                    <div class="relative flex flex-wrap items-stretch w-full rounded-lg">
+                        <select wire:model="form.role" class="focus:shadow-soft-primary-outline dark:bg-gray-950 dark:placeholder:text-white/80 dark:text-white/80 text-size-sm leading-5.6 ease-soft block w-full appearance-none rounded-lg border border-solid border-gray-300 bg-white bg-clip-padding px-3 py-2 font-normal text-gray-700 outline-none transition-all placeholder:text-gray-500 focus:border-fuchsia-300 focus:outline-none">
                             <option value="">Select Roles</option>
-
-
                             @foreach ($roles as $role)
                                 <option value="{{ $role['value'] }}">{{ $role['name'] }}</option>
                             @endforeach
-
-
                         </select>
                     </div>
                 </div>
@@ -71,21 +60,11 @@
                 <div class="w-full max-w-full px-3 flex-0">
                     <label class="mt-6 mb-2 ml-1 font-bold text-size-xs text-slate-700 dark:text-white/80"
                         for="department">Department</label>
-                    <div wire:ignore x-data x-init="
-                  choices = new Choices($refs.roles, {
-                      searchEnabled: false
-                  });
-                  $refs.roles.addEventListener('change', function (event) {
-                      values = event.detail.value;
-                      @this.set('form.department_id', values);
-                  })">
-                        <select wire:model="form.department_id" choice name="choices-department" id="choices-gender"
-                            x-ref="roles">
+                    <div class="relative flex flex-wrap items-stretch w-full rounded-lg">
+                        <select wire:model="form.department_id" class="focus:shadow-soft-primary-outline dark:bg-gray-950 dark:placeholder:text-white/80 dark:text-white/80 text-size-sm leading-5.6 ease-soft block w-full appearance-none rounded-lg border border-solid border-gray-300 bg-white bg-clip-padding px-3 py-2 font-normal text-gray-700 outline-none transition-all placeholder:text-gray-500 focus:border-fuchsia-300 focus:outline-none">
                             <option value="">Select Department</option>
                             @foreach ($departments as $department)
-
                                 <option value="{{$department->id}}">{{$department->name}}</option>
-
                             @endforeach
                         </select>
                     </div>
