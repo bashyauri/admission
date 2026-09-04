@@ -51,11 +51,11 @@ class UgSchoolFeesController extends Controller
 
             $studenttransaction = $this->paymentService->createPayment($data);
 
+            if (!$studenttransaction || !$studenttransaction->id) {
+                return redirect()->back()->with('error', 'Failed to record transaction.');
+            }
 
-
-
-
-            return to_route('cit.payment', ['studenttransaction' => $studenttransaction])->with('success', 'Remita Generated ' . $response->status);
+            return to_route('cit.payment', ['studenttransaction' => $studenttransaction->id])->with('success', 'Remita Generated ' . ($response->status ?? ''));
         } catch (\Exception $ex) {
             Log::alert($ex->getMessage());
             return redirect()->back()->with('error', 'Something went wrong:');

@@ -67,24 +67,52 @@
 
                         </div>
 
-                        <div class="flex flex-col items-center">
-                        <div><h5>Payment for {{App\Models\StudentLevel::find($nextLevel)->level}}</h5></div>
-                        <div><select wire:model.live='selectedInstallment' class="focus:shadow-soft-primary-outline text-sm leading-5.6 ease-soft block w-full appearance-none rounded-lg border border-solid border-gray-300 bg-white bg-clip-padding  
- px-3 py-1 font-normal text-gray-700 outline-none transition-all placeholder:text-gray-500 focus:border-fuchsia-300 focus:outline-none">
-    <option value="">Choose payment</option>
-    @foreach (config('schoolfees.installments') as $key => $installment)
-        <option value={{ $installment / 100 }}>{{ ucfirst($key) }} Installment ({{ $installment }}%)</option>
-    @endforeach
-    <option value="1">Full Payment</option>
-</select></div>
+                        <div class="flex flex-col items-center px-4 w-full max-w-lg mx-auto">
+                            <h5 class="mb-4 font-bold text-gray-800 dark:text-white">Payment for {{ App\Models\StudentLevel::find($nextLevel)->level ?? ('Level ' . $nextLevel) }}</h5>
+                            
+                            @if ($totalLevelAmount > 0)
+                                <div class="w-full bg-slate-50 dark:bg-gray-900 border border-slate-200 dark:border-gray-800 rounded-xl p-4 mb-4 text-sm shadow-sm">
+                                    <div class="flex justify-between py-1 border-b border-slate-200 dark:border-gray-800">
+                                        <span class="text-slate-600 dark:text-gray-400">Total Level Fee:</span>
+                                        <span class="font-bold text-slate-800 dark:text-white">{{ config('remita.currency') }} {{ number_format($totalLevelAmount, 2) }}</span>
+                                    </div>
+                                    <div class="flex justify-between py-1 border-b border-slate-200 dark:border-gray-800">
+                                        <span class="text-slate-600 dark:text-gray-400">Paid So Far:</span>
+                                        <span class="font-bold text-green-600 dark:text-green-400">{{ config('remita.currency') }} {{ number_format($totalPaid, 2) }}</span>
+                                    </div>
+                                    <div class="flex justify-between py-1 pt-2">
+                                        <span class="font-semibold text-slate-700 dark:text-gray-300">Remaining Balance:</span>
+                                        <span class="font-bold text-fuchsia-600 dark:text-fuchsia-400">{{ config('remita.currency') }} {{ number_format($remainingBalance, 2) }}</span>
+                                    </div>
+                                </div>
+                            @endif
 
+                            @if ($message)
+                                <div class="w-full p-3 mb-4 text-xs font-semibold text-red-700 bg-red-100 border border-red-300 rounded-lg dark:bg-red-900/40 dark:text-red-300 dark:border-red-800">
+                                    {{ $message }}
+                                </div>
+                            @endif
+
+                            <div class="w-full">
+                                <label class="block mb-1 text-xs font-semibold text-slate-600 dark:text-gray-300">Select Installment / Payment Option:</label>
+                                <select wire:model.live='selectedInstallment' class="focus:shadow-soft-primary-outline text-sm leading-5.6 ease-soft block w-full appearance-none rounded-lg border border-solid border-gray-300 bg-white bg-clip-padding px-3 py-2 font-normal text-gray-700 outline-none transition-all placeholder:text-gray-500 focus:border-fuchsia-300 focus:outline-none dark:bg-gray-900 dark:text-white dark:border-gray-800">
+                                    <option value="">-- Choose payment option --</option>
+                                    @if ($totalPaid <= 0)
+                                        <option value="0.7">First Installment (70% = {{ config('remita.currency') }} {{ number_format(0.7 * $totalLevelAmount, 2) }})</option>
+                                        <option value="1">Full Payment (100% = {{ config('remita.currency') }} {{ number_format($totalLevelAmount, 2) }})</option>
+                                        <option value="0.3" disabled class="bg-gray-100 text-gray-400">Second Installment (30% - Must pay 70% First Installment first)</option>
+                                    @else
+                                        <option value="0.3">Second Installment (30% = {{ config('remita.currency') }} {{ number_format($remainingBalance, 2) }})</option>
+                                        <option value="balance">Pay Remaining Balance ({{ config('remita.currency') }} {{ number_format($remainingBalance, 2) }})</option>
+                                        <option value="1">Full Remaining Balance ({{ config('remita.currency') }} {{ number_format($remainingBalance, 2) }})</option>
+                                    @endif
+                                </select>
+                            </div>
                         </div>
 
-
-
-    <div class="mt-3 text-center text-lime-500" wire:loading wire:target="selectedInstallment" >
-        Calculating payment...
-    </div>
+                        <div class="mt-3 text-center text-lime-500 font-semibold text-sm" wire:loading wire:target="selectedInstallment">
+                            Calculating payment...
+                        </div>
 
 
 @if ($selectedInstallment)
@@ -175,14 +203,13 @@
 
                                 <div
                                     class="w-full max-w-full px-3 mt-4 lg:flex-0 shrink-0 md:mt-0 md:text-right lg:w-7/12">
-                                    @if (auth()->user()->hasPaid(config('remita.schoolfees.description')))
-                                    <button onclick="window.print()" type="button"
-                                        class="inline-block px-6 py-3 mb-0 font-bold text-right text-white uppercase align-middle transition-all border-0 rounded-lg cursor-pointer hover:scale-102 active:opacity-85 hover:shadow-soft-xs bg-gradient-cyan leading-pro text-size-xs ease-soft-in tracking-tight-soft shadow-soft-md bg-150 bg-x-25 lg:mt-24">Print</button>
+                                    @if ($remainingBalance <= 0 && $totalLevelAmount > 0 && $totalPaid >= $totalLevelAmount)
+                                        <button onclick="window.print()" type="button"
+                                            class="inline-block px-6 py-3 mb-0 font-bold text-right text-white uppercase align-middle transition-all border-0 rounded-lg cursor-pointer hover:scale-102 active:opacity-85 hover:shadow-soft-xs bg-gradient-cyan leading-pro text-size-xs ease-soft-in tracking-tight-soft shadow-soft-md bg-150 bg-x-25 lg:mt-24">Print Full Receipt</button>
                                     @else
-                                    <button  type="submit"
-                                        class="inline-block px-6 py-3 mb-0 font-bold text-right text-white uppercase align-middle transition-all border-0 rounded-lg cursor-pointer hover:scale-102 active:opacity-85 hover:shadow-soft-xs bg-gradient-cyan leading-pro text-size-xs ease-soft-in tracking-tight-soft shadow-soft-md bg-150 bg-x-25 lg:mt-24">Generate Invoice</button>
+                                        <button type="submit" @if(!$amount || $amount <= 0) disabled @endif
+                                            class="inline-block px-6 py-3 mb-0 font-bold text-right text-white uppercase align-middle transition-all border-0 rounded-lg cursor-pointer hover:scale-102 active:opacity-85 hover:shadow-soft-xs bg-gradient-cyan leading-pro text-size-xs ease-soft-in tracking-tight-soft shadow-soft-md bg-150 bg-x-25 lg:mt-24 disabled:opacity-50 disabled:cursor-not-allowed">Generate Invoice & Proceed to Payment</button>
                                     @endif
-
                                 </div>
                             </div>
                         </div>

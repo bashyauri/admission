@@ -40,16 +40,16 @@ class SchoolFeesTransactionController extends Controller
             //  $response = $this->paymentService->generateInvoice($data);
 
 
-            $data['RRR'] = $response->RRR;
-            $data['statuscode'] = $response->statuscode;
-            $data['status'] = $response->status;
+            $data['RRR'] = $response->RRR ?? null;
+            $data['statuscode'] = $response->statuscode ?? null;
+            $data['status'] = $response->status ?? null;
             $studenttransaction = $this->transactionService->createPayment($data);
 
+            if (!$studenttransaction || !$studenttransaction->id) {
+                return redirect()->back()->with('error', 'Failed to record transaction.');
+            }
 
-
-
-
-            return to_route('student.payment', ['studenttransaction' => $studenttransaction])->with('success', 'Remita Generated ' . $response->status);
+            return to_route('student.payment', ['studenttransaction' => $studenttransaction->id])->with('success', 'Remita Generated ' . ($response->status ?? ''));
         } catch (\Exception $ex) {
             Log::alert($ex->getMessage());
             return redirect()->back()->with('error', 'Something went wrong:');
@@ -67,7 +67,7 @@ class SchoolFeesTransactionController extends Controller
 
             $studentTransaction = StudentTransaction::where('RRR', $rrr)->first();
 
-            if (!$studentTransaction) {
+            if (!$studentTransaction || !$studentTransaction->id) {
                 return redirect()->back()->with('error', 'Transaction not found.');
             }
 
@@ -81,18 +81,18 @@ class SchoolFeesTransactionController extends Controller
             if (in_array($response->status, [\App\Enums\TransactionStatus::APPROVED->value, \App\Enums\TransactionStatus::ACTIVATED->value])) {
                 if (isset($response->amount) && $response->amount >= $studentTransaction->amount) {
                     $service->updateTransactionStatus(\App\Enums\TransactionStatus::APPROVED->value, $response->rrr);
-                    return to_route('student.payment', ['studenttransaction' => $studentTransaction])->with('success', 'Payment successful!');
+                    return to_route('student.payment', ['studenttransaction' => $studentTransaction->id])->with('success', 'Payment successful!');
                 } else {
                     $service->updateTransactionStatus('PARTIAL_PAYMENT', $response->rrr);
                     Log::alert("Underpayment detected for RRR: {$rrr}. Expected: {$studentTransaction->amount}, Paid: " . ($response->amount ?? 0));
-                    return to_route('student.payment', ['studenttransaction' => $studentTransaction])->with('error', 'Incomplete payment amount detected.');
+                    return to_route('student.payment', ['studenttransaction' => $studentTransaction->id])->with('error', 'Incomplete payment amount detected.');
                 }
             }
 
             $service->updateTransactionStatus($response->status, $response->rrr);
 
 
-            return to_route('student.payment', ['studenttransaction' => $studentTransaction])
+            return to_route('student.payment', ['studenttransaction' => $studentTransaction->id])
                 ->with('info', $response->message ?? 'Transaction pending or failed.');
         } catch (\Exception $ex) {
             Log::alert($ex->getMessage());

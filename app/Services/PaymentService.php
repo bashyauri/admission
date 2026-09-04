@@ -140,24 +140,31 @@ class PaymentService
     public function createPayment($data)
     {
         // Normalize user_id
-        $data['user_id'] = $data['user_id'] ?? $data['userId'] ?? null;
+        $data['user_id'] = $data['user_id'] ?? $data['userId'] ?? auth()->id();
 
-        $values = $this->generateInvoice($data);
+        if (empty($data['RRR'])) {
+            $values = $this->generateInvoice($data);
+            $data['RRR'] = $values->RRR ?? null;
+            $data['statuscode'] = $values->statuscode ?? null;
+            $data['status'] = $values->status ?? null;
+        }
 
-        if (!empty($values)) {
+        if (!empty($data['RRR']) || !empty($data['transactionId'])) {
             return StudentTransaction::create([
                 'transaction_id' => $data['transactionId'],
                 'user_id' => $data['user_id'],
-                'student_levels_id' => $data['student_level_id'],
+                'student_levels_id' => $data['student_level_id'] ?? null,
                 'amount' => $data['amount'],
                 'date' => now(),
-                'status' => $data['statuscode'],
+                'status' => $data['statuscode'] ?? $data['status'] ?? '025',
                 'resource' => $data['description'],
-                'RRR' => $data['RRR'],
+                'RRR' => $data['RRR'] ?? null,
                 'acad_session' => app(AcademicSessionService::class)
-                    ->getAcademicSession(User::find($data['user_id']))
+                    ->getAcademicSession(User::find($data['user_id']) ?? auth()->user())
             ]);
         }
+
+        return null;
     }
 
     public function updateTransactionStatus(string $status, string $rrr)

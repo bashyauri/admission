@@ -69,22 +69,32 @@ class StudentTransactionService extends TransactionService
     }
     public function createPayment($data)
     {
-        $values = $this->generateInvoice($data);
-        if (!empty($values)) {
-            return  StudentTransaction::create(
+        if (empty($data['RRR'])) {
+            $values = $this->generateInvoice($data);
+            $data['RRR'] = $values->RRR ?? null;
+            $data['statuscode'] = $values->statuscode ?? null;
+            $data['status'] = $values->status ?? null;
+        }
+
+        $userId = $data['user_id'] ?? $data['userId'] ?? auth()->id();
+
+        if (!empty($data['RRR']) || !empty($data['transactionId'])) {
+            return StudentTransaction::create(
                 [
                     'transaction_id' => $data['transactionId'],
-                    'user_id' => auth()->user()->id,
-                    'student_levels_id' => $data['student_level_id'],
+                    'user_id' => $userId,
+                    'student_levels_id' => $data['student_level_id'] ?? null,
                     'amount' => $data['amount'],
                     'date' => now(),
-                    'status' => $data['statuscode'],
+                    'status' => $data['statuscode'] ?? $data['status'] ?? '025',
                     'resource' => $data['description'],
-                    'RRR' => $data['RRR'],
-                    'acad_session' => app(AcademicSessionService::class)->getAcademicSession(auth()->user())
+                    'RRR' => $data['RRR'] ?? null,
+                    'acad_session' => app(AcademicSessionService::class)->getAcademicSession(User::find($userId) ?? auth()->user())
                 ]
             );
         }
+
+        return null;
     }
     public function updateTransactionStatus(string $status, string $rrr)
     {
@@ -111,7 +121,7 @@ class StudentTransactionService extends TransactionService
         $totalPaid = StudentTransaction::where([
             'user_id' => $student->user_id,
             'student_levels_id' => $paidLevel,
-            'status' => TransactionStatus::APPROVED,
+            'status' => TransactionStatus::APPROVED->value,
         ])->sum('amount');
 
         $totalLevelAmount = $this->getSchoolFees($student->department_id, $paidLevel);

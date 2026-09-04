@@ -27,7 +27,9 @@ class AdmissionInvoice extends Component
                 'resource' => config('remita.admission.description')
             ])->first();
 
-            to_route('payment', ['transaction' => $data])->with('success', $data->status);
+            if ($data) {
+                to_route('payment', ['transaction' => $data])->with('success', $data->status);
+            }
         }
         $this->transactionId = $this->transactionService->generateTransactionId("WUFPDHS");
         $this->amount = config('remita.admission.fee');

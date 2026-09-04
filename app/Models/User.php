@@ -280,9 +280,18 @@ class User extends Authenticatable implements MustVerifyEmail
     }
     public function hasPaid(string $payment): bool
     {
+        $hasPaidStudentTx = StudentTransaction::where([
+            'user_id' => $this->id,
+            'status' => TransactionStatus::APPROVED->value,
+            'resource' => $payment
+        ])->exists();
+
+        if ($hasPaidStudentTx) {
+            return true;
+        }
 
         return $this->transactions()->where(
-            ['status' => TransactionStatus::APPROVED, 'resource' => $payment]
+            ['status' => TransactionStatus::APPROVED->value, 'resource' => $payment]
         )->exists() ?? false;
     }
     public function getFullNameAttribute()

@@ -24,7 +24,9 @@ class AcceptanceInvoice extends Component
                 'user_id' => auth()->user()->id,
                 'resource' => $paymentService->getAcceptanceResource()
             ])->first();
-            to_route('payment', ['transaction' => $data])->with('success', $data->status);
+            if ($data) {
+                to_route('payment', ['transaction' => $data])->with('success', $data->status);
+            }
         }
         $this->transactionId = $this->transactionService->generateTransactionId("WUFPDHS");
         $this->amount = $paymentService->getAcceptanceFee();

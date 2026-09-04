@@ -39,9 +39,11 @@ class TransactionController extends Controller
             $data['status'] = $response->status;
             $transaction = $this->transactionService->createPayment($data);
 
+            if (!$transaction || !$transaction->id) {
+                return redirect()->back()->with('error', 'Failed to record transaction.');
+            }
 
-
-            return to_route('payment', ['transaction' => $transaction])->with('success', 'Remita Generated ', $response->status);
+            return to_route('payment', ['transaction' => $transaction->id])->with('success', 'Remita Generated ' . ($response->status ?? ''));
         } catch (\Exception $ex) {
             Log::alert($ex->getMessage());
             return redirect()->back()->with('error', 'Something went wrong:');
