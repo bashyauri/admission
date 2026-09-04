@@ -1517,3 +1517,178 @@ The phased approach ensures systematic development with clear milestones and del
 **Last Updated**: August 2026  
 **Compliance**: NUC Standards 2018 onwards  
 **Implementation Timeline**: 16 weeks
+
+---
+
+## Senate Grade Report – Implementation Plan (Deferred Phase)
+
+> **Status**: Planned — to be implemented after result processing is complete.
+
+### Overview
+
+The Senate Grade Report is an official academic document submitted to the Senate for ratification of examination results at the end of each semester/session. It provides a consolidated view of every student's academic performance for a given Level, Department, Faculty, and Session.
+
+---
+
+### File Structure & Placement
+
+| Artefact | Path |
+|---|---|
+| Print Blade View | `resources/views/print/senate-grade-report.blade.php` |
+| Livewire Filter Component | `app/Http/Livewire/ExamOfficer/SenateGradeReport.php` |
+| Livewire Component View | `resources/views/livewire/exam-officer/senate-grade-report.blade.php` |
+| Print Controller | `app/Http/Controllers/PrintSenateGradeReport.php` |
+| Service / Logic Layer | `app/Services/Report/SenateGradeReportService.php` |
+
+---
+
+### Routes
+
+**`routes/exam_officer.php`**
+```php
+Route::get('/senate-grade-report', \App\Http\Livewire\ExamOfficer\SenateGradeReport::class)->name('senate-grade-report');
+Route::get('/print-senate-grade-report/{department}/{level}/{session}', [\App\Http\Controllers\PrintSenateGradeReport::class, 'print'])->name('print-senate-grade-report');
+```
+
+**`routes/hod.php`**
+```php
+Route::get('senate-grade-report', \App\Http\Livewire\ExamOfficer\SenateGradeReport::class)->name('senate-grade-report');
+```
+
+**`routes/admin.php`**
+```php
+Route::get('senate-grade-report', \App\Http\Livewire\ExamOfficer\SenateGradeReport::class)->name('senate-grade-report');
+```
+
+---
+
+### Report Header Fields
+
+| Field | Source |
+|---|---|
+| Faculty | `departments.faculty` |
+| Department | `departments.name` |
+| Programme | `programmes.name` (e.g., B.Eng, B.Sc, M.Sc) |
+| Session | `academic_sessions.name` |
+| Level | `student_levels.level` |
+| Semester | `first` / `second` |
+| Min/Max Credit Load | Config or programme settings |
+| Date Generated | `now()` |
+
+---
+
+### Per-Student Row Data
+
+| Column | Description |
+|---|---|
+| S/N | Serial Number |
+| Student Name | `users.full_name` |
+| Matric No | `academic_details.matric_no` |
+| UTS | Units Taken this Semester |
+| GPTS | Grade Points this Semester |
+| GPA | Semester GPA = GPTS / UTS |
+| UTD | Units Taken Cumulative (all sessions) |
+| GPTD | Grade Points Cumulative |
+| CGPA | Cumulative GPA = GPTD / UTD |
+| Course Breakdown | E.g. `CSC101-3-B, CSC102-2-C, ...` (Code–Units–Grade) |
+| Remark | `PASS`, `REPEAT: [course codes]`, `PROBATION`, `WITHDRAWN` |
+
+---
+
+### Remark / Status Rules
+
+| Condition | Remark |
+|---|---|
+| No failed courses, CGPA ≥ 1.00 | `PASS` |
+| Failed courses present | `REPEAT: [failed course codes]` |
+| CGPA between 1.00–1.49 (2nd consecutive) | `STATUS: ON PROBATION` |
+| CGPA < 1.00 or 3rd consecutive probation | `STATUS: WITHDRAWN FROM PROGRAMME` |
+| Withdrawn twice | `STATUS: WITHDRAWN FROM THE UNIVERSITY` |
+
+---
+
+### Senate Summary Footer
+
+The bottom of the report includes an aggregate count for the department/level:
+
+| Category | Count | Percentage |
+|---|---|---|
+| PASS | | |
+| REPEAT | | |
+| PROBATION | | |
+| WITHDRAWN FROM PROGRAMME | | |
+| WITHDRAWN FROM UNIVERSITY | | |
+| SPECIAL CASES / OTHERS | | |
+| **TOTAL** | | 100% |
+
+Followed by:
+- **External Examiner**: Name + Signature + Date  
+- **HOD**: Name + Signature + Date  
+- **Dean of Faculty**: Name + Signature + Date  
+- **Senate Chairman**: Name + Signature + Date  
+
+---
+
+### Service Class – `SenateGradeReportService.php`
+
+Key methods to implement:
+
+```php
+// Fetch all students for a given department, level, session
+public function getStudents(int $departmentId, int $level, string $acadSession): Collection;
+
+// Calculate semester GPA for one student
+public function calculateGPA(string $userId, string $session, string $semester): float;
+
+// Calculate cumulative CGPA for one student (all sessions)
+public function calculateCGPA(string $userId): float;
+
+// Build the course breakdown string (e.g. CSC101-3-B, CSC102-2-D)
+public function getCourseBreakdown(string $userId, string $session, string $semester): string;
+
+// Determine remark/status (PASS, REPEAT, PROBATION, WITHDRAWN)
+public function getRemark(string $userId, string $session, string $semester): string;
+
+// Build the full Senate summary footer counts
+public function getSenateFooterSummary(Collection $students): array;
+```
+
+---
+
+### Print View Layout – `senate-grade-report.blade.php`
+
+```
++--------------------------------------------------------+
+| FACULTY OF [FACULTY NAME]                              |
+| DEPARTMENT OF [DEPARTMENT NAME]                        |
+| PROGRAMME: [Programme]  SESSION: [Yr]  LEVEL: [Level] |
+| SENATE GRADE REPORT – [SEMESTER] SEMESTER [YEAR]       |
+| Min Units: [N]   Max Units: [N]                        |
++----+------------+----------+---+----+---+---+----+-----+---------+----------+--------+
+| SN | Name       | Matric   |UTS|GPTS|GPA|UTD|GPTD|CGPA | Courses | Class    | Remark |
++----+------------+----------+---+----+---+---+----+-----+---------+----------+--------+
+| 1  | JOHN DOE   | CSC/001  |18 | 72 |4.0|36 | 145|4.03 |CSC101...| 2nd Upp  | PASS   |
++----+------------+----------+---+----+---+---+----+-----+---------+----------+--------+
+
+SUMMARY:
+  PASS:  __  | REPEAT: __ | PROBATION: __ | WITHDRAWN: __ | TOTAL: __
+
+External Examiner: ____________  HOD: ____________  Dean: ____________  Senate Chairman: ____________
+```
+
+---
+
+### Dependencies
+
+Before this phase begins, the following must be completed:
+- [ ] Course Registration (per student, per semester)
+- [ ] Score Entry / Result Upload (CA + Exam scores per course)
+- [ ] Grade Calculation Engine (score → letter grade → grade point)
+- [ ] GPA/CGPA computation and storage
+- [ ] Probation and withdrawal tracking per student
+
+---
+
+**Deferred Phase Reference**: Senate Grade Report  
+**Target Phase**: After Phase 3 (Result Processing & GPA Engine) is complete  
+**NUC Compliance**: Required for Senate ratification of results  

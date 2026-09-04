@@ -23,8 +23,13 @@
                             <button wire:click="closeInspection" class="px-4 py-2 text-xs font-bold text-slate-700 uppercase bg-slate-100 rounded-lg shadow hover:bg-slate-200 transition">
                                 ⬅ Back to Courses
                             </button>
+                            <a href="{{ route('exam-officer.course-score-sheet', ['departmentCourse' => $inspectingCourse->id, 'session' => str_replace('/', '-', $selectedSession), 'semester' => $selectedSemester]) }}"
+                               target="_blank"
+                               class="px-4 py-2 text-xs font-bold text-slate-700 uppercase bg-slate-100 rounded-lg shadow hover:bg-slate-200 transition inline-flex items-center gap-1">
+                                🖨️ Score Sheet
+                            </a>
                             <button wire:click="openRejectModal" class="px-4 py-2 text-xs font-bold text-white uppercase bg-amber-600 rounded-lg shadow hover:bg-amber-500 transition">
-                                ↩ Return to HOD
+                                ↩ Return to Coordinator
                             </button>
                             <button wire:click="releaseCourseResults"
                                 onclick="confirm('Release and publish these results to students? This will recalculate student GPAs and process carry-overs.') || event.stopImmediatePropagation()"
@@ -32,8 +37,19 @@
                                 🚀 Release to Students
                             </button>
                         </div>
+                    @else
+                        @if($selectedDepartmentId !== 'all')
+                            <div class="flex items-center gap-2">
+                                <a href="{{ route('exam-officer.senate-broadsheet', ['department' => $selectedDepartmentId, 'session' => str_replace('/', '-', $selectedSession), 'semester' => $selectedSemester]) }}"
+                                   target="_blank"
+                                   class="px-4 py-2 text-xs font-bold text-white uppercase bg-slate-900 rounded-lg shadow hover:bg-slate-800 transition inline-flex items-center gap-1.5">
+                                    📄 Senate Broadsheet
+                                </a>
+                            </div>
+                        @endif
                     @endif
                 </div>
+
 
                 {{-- Filters --}}
                 <div class="px-6 py-4 border-b bg-slate-50 flex flex-wrap items-center gap-6">

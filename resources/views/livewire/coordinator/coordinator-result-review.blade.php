@@ -81,17 +81,28 @@
                 </div>
 
 
-                <div class="inline-flex w-fit items-center gap-2 rounded-xl border border-fuchsia-200 bg-fuchsia-50 px-4 py-2.5">
+                <div class="flex flex-wrap items-center gap-2">
+                    @if($inspectingDepartment)
+                        <a
+                            href="{{ route('coordinator.senate-broadsheet', ['department' => $inspectingDepartment->id, 'session' => str_replace('/', '-', $selectedSession), 'semester' => $selectedSemester, 'level' => $selectedLevelId]) }}"
+                            target="_blank"
+                            class="inline-flex w-fit items-center gap-1.5 rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-xs font-bold text-slate-700 shadow-sm transition hover:bg-slate-50 hover:text-slate-900"
+                        >
+                            <svg class="h-4 w-4 text-slate-500" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 3v11.25A2.25 2.25 0 006 16.5h2.25M3.75 3h-1.5m1.5 0h16.5m0 0h1.5m-1.5 0v11.25A2.25 2.25 0 0118 16.5h-2.25m-7.5 0h7.5m-7.5 0l-1 3m8.5-3l1 3m0 0l.5 1.5m-.5-1.5h-9.5m0 0l-.5 1.5M9 11.25v1.5M12 9v3.75m3-6v6" />
+                            </svg>
+                            📄 Department Broadsheet
+                        </a>
+                    @endif
 
-                    <span class="inline-flex h-2.5 w-2.5 rounded-full bg-fuchsia-600"></span>
-
-                    </span>
-
-                    <span class="text-xs font-extrabold text-fuchsia-700">
-                        Coordinator Review
-                    </span>
-
+                    <div class="inline-flex w-fit items-center gap-2 rounded-xl border border-fuchsia-200 bg-fuchsia-50 px-4 py-2">
+                        <span class="inline-flex h-2.5 w-2.5 rounded-full bg-fuchsia-600"></span>
+                        <span class="text-xs font-extrabold text-fuchsia-700">
+                            Coordinator Review
+                        </span>
+                    </div>
                 </div>
+
 
             </div>
 
@@ -674,7 +685,20 @@
                             {{ $totalStudentResults }} result(s)
                         </p>
 
+                        <div class="mt-3">
+                            <a
+                                href="{{ route('coordinator.course-score-sheet', ['departmentCourse' => $this->selectedCourse['department_course_id'], 'session' => str_replace('/', '-', $selectedSession), 'semester' => $selectedSemester, 'level' => $selectedLevelId]) }}"
+                                target="_blank"
+                                class="inline-flex items-center justify-center gap-1.5 rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-xs font-bold text-slate-700 shadow-sm transition hover:bg-slate-50 hover:text-slate-900"
+                            >
+                                <svg class="h-4 w-4 text-slate-500" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M6.72 13.829c-.24-1.127.6-2.129 1.748-2.129h8.064c1.148 0 1.988 1.002 1.748 2.129l-.66 3.1A2.25 2.25 0 0115.42 19H8.58a2.25 2.25 0 01-2.2-1.871l-.66-3.1zM6.75 9.75v-.75A2.25 2.25 0 019 6.75h6a2.25 2.25 0 012.25 2.25v.75m-9 0h9" />
+                                </svg>
+                                Print Official Score Sheet
+                            </a>
+                        </div>
                     </div>
+
 
 
                     {{-- Review Decision --}}

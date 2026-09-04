@@ -1,30 +1,34 @@
-# Playbook: Implementing Result Processing via AI Coding Agent
+# Playbook: Implementing Undergraduate Result Processing via AI Coding Agent
 
-This document outlines how to safely and systematically instruct an AI coding agent to implement the entire **Result Processing & Student MIS Extension** in production-safe phases.
+This document outlines how to safely and systematically instruct an AI coding agent to implement the entire **Undergraduate Result Processing & Student MIS Extension** in production-safe phases.
+
+> 📌 **SCOPE NOTICE: STRICTLY UNDERGRADUATE (UG)**  
+> This result processing playbook, grading framework (NUC 5-point scale), academic standing rules, broadsheets, transcripts, and graduation workflows are **strictly for Undergraduate (UG) students**. Postgraduate (PG) workflows, grading scales, pass marks, and degree classifications are decoupled and must remain completely untouched.
 
 ---
 
-## ⚠️ The 3 Golden Rules for Agent-Led Development
+## ⚠️ The 4 Golden Rules for Agent-Led Development
 
 AI agents are powerful, but they can suffer from **context drift** or **accidentally break existing code** if asked to do too much at once. When prompting your agent, enforce these constraints:
 
-1. **Strict Feature Gating (Feature Flags):** All new tables, routes, and controllers must be inactive for normal users until explicitly enabled via `config/features.php` or `.env`.
-2. **Test-Driven Development (TDD):** Instruct the agent to write a Feature/Unit test *before* or *alongside* any new service (e.g., test GPA calculation with mock data before linking to a controller).
-3. **No Large Single Tasks:** Do not tell the agent: *"Implement result processing."* Tell it: *"Implement Phase 1, Step 1: Create the migrations and models for the new database tables."*
+1. **Strict Scope Boundaries (Undergraduate Only):** All calculation logic, progression rules, broadsheets, statements of results, transcripts, and graduation eligibility checks apply **strictly to Undergraduate students**. Ensure Postgraduate data remains completely isolated and unaffected.
+2. **Strict Feature Gating (Feature Flags):** All new tables, routes, and controllers must be inactive for normal users until explicitly enabled via `config/features.php` or `.env`.
+3. **Test-Driven Development (TDD):** Instruct the agent to write a Feature/Unit test *before* or *alongside* any new service (e.g., test GPA calculation with mock data before linking to a controller).
+4. **No Large Single Tasks:** Do not tell the agent: *"Implement result processing."* Tell it: *"Implement Phase 1, Step 1: Create the migrations and models for the new database tables."*
 
 ---
 
-## Overall Phased Roadmap
+## Overall Phased Roadmap (Undergraduate)
 
 To implement the entire system safely on production, execute the phases in this order:
 
 ```mermaid
 graph TD
-    P1["Phase 1: DB & Versioning Foundation<br/>(COMPLETED)"] --> P2["Phase 2: Calculation & Carry-Overs Services<br/>(COMPLETED)"]
+    P1["Phase 1: DB & Versioning Foundation<br/>(COMPLETED)"] --> P2["Phase 2: UG Calculation & Carry-Overs Services<br/>(COMPLETED)"]
     P2 --> P3["Phase 3: Lecturer Result Entry<br/>(COMPLETED)"]
-    P3 --> P4["Phase 4: Multi-Level Approval & Academic Board Broadsheets<br/>(Coordinator & Exam Officer Panels + Senate Broadsheet Export)"]
-    P4 --> P5["Phase 5: Student Portal & Transcripts<br/>(Result view, Statement of Results & PDF transcripts)"]
-    P5 --> P6["Phase 6: Graduation & Senate Degree Approval<br/>(Final Degree Broadsheet, Senate Pass List & Certificates)"]
+    P3 --> P4["Phase 4: Multi-Level Approval & Academic Board Broadsheets<br/>(COMPLETED)"]
+    P4 --> P5["Phase 5: UG Student Portal & Transcripts<br/>(⏳ UP NEXT FOR IMPLEMENTATION)"]
+    P5 --> P6["Phase 6: UG Graduation & Senate Degree Approval<br/>(Final Degree Broadsheet, Senate Pass List & Certificates)"]
 ```
 
 ---
@@ -97,10 +101,10 @@ graph TD
 
 ---
 
-## Phase 4: Course Allocations, Multi-Level Approval & Senate Broadsheets (✅ CORE COMPLETED)
+## Phase 4: Course Allocations, Multi-Level Approval & Senate Broadsheets (✅ COMPLETED)
 * **Goal:** Course Allocation, multi-level approval workflow (Lecturer -> Coordinator -> Exam Officer -> Released), and generating official Departmental / Senate Broadsheets for Academic Board approval.
 * **Risk Profile:** Low.
-* **Status:** **Core Completed & Verified** (August 2026)
+* **Status:** **Completed & Verified** (September 2026)
 
 ### Completed Tasks Checklist
 - [x] Created `course_allocations` table migration & model (`CourseAllocation.php`).
@@ -117,45 +121,47 @@ graph TD
 - [x] Provide an admin-reviewed backfill queue that derives historical admission sessions from the first two matric-number digits, for example `24...` to `2024/2025` and `25...` to `2025/2026` (`AdmissionSessionSynchronizer.php`).
 - [x] Added feature coverage proving coordinator resolution remains cohort-specific across multiple admission sessions (`AdmissionSessionPopulationTest.php`).
 
-### Academic Board & Senate Broadsheet Reporting Deliverables (Phase 4 Extension)
-> **Academic Board Review Context:** Before official release to students, results are reviewed by the Departmental Board of Examiners, Faculty Board, and Academic Board / Senate.
-- **Departmental Semester Broadsheet (Master Sheet)**: Matrix PDF/Excel showing students vs all registered courses, CA/Exam scores, Total, Grade, Semester GPA, and Academic Standing (Promoted, Probation, Spillover, Repeat).
-- **Course-Level Official Score Sheet**: Printable signed sheet with Lecturer, Coordinator, and Exam Officer endorsements.
-- **Senate Summary Report**: Institutional summary of pass/fail statistics and GPA distributions presented for Academic Board approval before final release.
+### Academic Board & Senate Broadsheet Reporting Deliverables (✅ COMPLETED)
+- [x] **Departmental Semester Broadsheet (Master Sheet)**: Implemented via `ResultReportingService::getDepartmentalBroadsheet()` and printable view `resources/views/reports/senate-broadsheet.blade.php` via `SenateBroadsheetController.php`.
+- [x] **Course-Level Official Score Sheet**: Implemented via `ResultReportingService::getCourseScoreSheet()`.
+- [x] **Senate Summary Report**: Institutional summary of pass/fail statistics and GPA distributions via `ResultReportingService::getSenateSummaryStats()`.
+- [x] Created & passed automated test suite: `tests/Unit/ResultReportingServiceTest.php` (2 tests, 17 assertions).
 
 ---
 
-## Phase 5: Student Portal & Transcript Generator
-* **Goal:** Allow students to view their released results, print Semester Statements of Results, and generate official NUC-compliant transcripts with QR verification.
+## Phase 5: Undergraduate Student Portal & Transcript Generator (⏳ NEXT UP FOR IMPLEMENTATION)
+* **Goal:** Allow undergraduate students to view their released results, print Semester Statements of Results, and generate official NUC-compliant undergraduate transcripts with QR verification.
 * **Risk Profile:** Low-Medium (wires to student-facing dashboards).
+* **Status:** **Ready to Start**
 
-### Agent Instructions Prompt
+### Agent Prompt for Phase 5 (Copy & paste to AI agent to begin):
 > **Prompt for Agent:**
-> "Please implement Phase 5: Student Results & Transcripts.
+> "Please implement Phase 5: Undergraduate Student Results & Transcripts as defined in `result_processing_agent_phases.md` (Strictly Undergraduate Scope).
 > 
 > Tasks:
-> 1. Create the `MyResults` student Livewire component displaying released grades organized by Session and Semester.
-> 2. Implement Semester Statement of Result printable slip for students.
-> 3. Implement the `TranscriptService` (detailed in RESULT_PROCESSING_EXTENSION_PLAN.md L1020) to generate an official PDF transcript formatted according to NUC standards (showing all repeated course attempts, grades, semester GPAs, and cumulative details).
+> 1. Create the `MyResults` student Livewire component displaying released grades organized by Session and Semester for undergraduate students.
+> 2. Implement Semester Statement of Result printable slip for undergraduate students.
+> 3. Implement the `TranscriptService` (detailed in RESULT_PROCESSING_EXTENSION_PLAN.md L1020) to generate an official PDF transcript formatted according to NUC undergraduate standards (showing all repeated course attempts, grades, semester GPAs, cumulative details, and Class of Degree).
 > 4. Integrate QR code markers on generated transcripts linking back to database verification."
 
 ---
 
-## Phase 6: Graduation Processing & Senate Final Degree Approval
-* **Goal:** Automatically check student graduation eligibility, generate the Senate Graduation Broadsheet, and track certificate issuances.
+## Phase 6: Undergraduate Graduation Processing & Senate Final Degree Approval (⌛ PENDING PHASE 5)
+* **Goal:** Automatically check undergraduate student graduation eligibility, generate the Senate Graduation Broadsheet, and track certificate issuances.
 * **Risk Profile:** Low (primarily report/utility views).
+* **Status:** **Pending Phase 5 Completion**
 
 ### Academic Board / Senate Deliverables in Phase 6:
-- **Senate Graduation Broadsheet**: Master list of graduands by department with total credits earned, final CGPA, and recommended Class of Degree (First Class, Second Class Upper, etc.) presented for Senate degree conferment.
+- **Senate Graduation Broadsheet**: Master list of graduands by department with total credits earned, final CGPA, and recommended NUC Class of Degree (First Class, Second Class Upper, etc.) presented for Senate degree conferment.
 - **Official Graduating List / Pass List**: Approved publication list for convocation, degree certificates, and NYSC mobilization.
 
-### Agent Instructions Prompt
+### Agent Prompt for Phase 6 (To execute after Phase 5):
 > **Prompt for Agent:**
-> "Please implement Phase 6: Graduation Eligibility & Processing.
+> "Please implement Phase 6: Undergraduate Graduation Eligibility & Processing as defined in `result_processing_agent_phases.md` (Strictly Undergraduate Scope).
 > 
 > Tasks:
 > 1. Implement `App\Services\GraduationService` (detailed in RESULT_PROCESSING_EXTENSION_PLAN.md L1102):
->    - Check minimum CGPA threshold (>= 1.00 or 1.50).
+>    - Check minimum undergraduate CGPA threshold (>= 1.00 or 1.50).
 >    - Confirm completion of General Studies, SIWES, and Entrepreneurship credits.
 >    - Ensure no outstanding failed courses remain in `carry_over_courses`.
 > 2. Create the Admin / Exam Officer panel to generate and export the **Senate Graduation Broadsheet** and **Official Graduating List**.
