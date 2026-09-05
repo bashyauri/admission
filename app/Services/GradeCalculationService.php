@@ -34,6 +34,7 @@ class GradeCalculationService
             'B' => 4,
             'C' => 3,
             'D' => 2,
+            'E' => 1,
             default => 0,
         };
     }
@@ -65,6 +66,11 @@ class GradeCalculationService
                 'grade' => 'D',
                 'grade_point' => 2,
                 'description' => 'Fair',
+            ],
+            $totalScore >= 40.0 => [
+                'grade' => 'E',
+                'grade_point' => 1,
+                'description' => 'Pass',
             ],
             default => [
                 'grade' => 'F',

@@ -29,7 +29,7 @@ class CarryOverRegistrationService
      */
     public function recordFailedCourse(Result $result): ?CarryOverCourse
     {
-        if ($result->grade !== 'F' && (float) $result->total_score >= 45.0) {
+        if ($result->grade !== 'F' && (float) $result->total_score >= 40.0) {
             return null;
         }
 
@@ -56,7 +56,7 @@ class CarryOverRegistrationService
      */
     public function processResultClearance(Result $result): bool
     {
-        if ($result->grade === 'F' || (float) $result->total_score < 45.0) {
+        if ($result->grade === 'F' || (float) $result->total_score < 40.0) {
             $this->recordFailedCourse($result);
             return false;
         }

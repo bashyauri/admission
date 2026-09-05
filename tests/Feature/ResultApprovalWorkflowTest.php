@@ -21,13 +21,13 @@ use App\Models\StudentCourse;
 use App\Models\StudentLevel;
 use App\Models\User;
 use App\Models\UserCapability;
-use Illuminate\Foundation\Testing\DatabaseTransactions;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 use Tests\TestCase;
 
 class ResultApprovalWorkflowTest extends TestCase
 {
-    use DatabaseTransactions;
+    use RefreshDatabase;
 
     protected User $student;
     protected User $lecturer;

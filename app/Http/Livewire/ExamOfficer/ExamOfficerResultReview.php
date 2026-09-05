@@ -178,7 +178,7 @@ class ExamOfficerResultReview extends Component
             // Re-fetch updated model instance
             $freshResult = Result::find($result->id);
             if ($freshResult) {
-                if ((float) $freshResult->total_score >= 45.0) {
+                if ((float) $freshResult->total_score >= 40.0) {
                     $carryOverService->processResultClearance($freshResult);
                 } else {
                     $carryOverService->recordFailedCourse($freshResult);

@@ -166,6 +166,7 @@
                                             $total >= 60 => 'B',
                                             $total >= 50 => 'C',
                                             $total >= 45 => 'D',
+                                            $total >= 40 => 'E',
                                             default => 'F',
                                         });
                                         $status = $results[$userId]['status'] ?? 'pending';

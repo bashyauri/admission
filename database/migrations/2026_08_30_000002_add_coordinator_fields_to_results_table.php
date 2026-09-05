@@ -33,9 +33,12 @@ return new class extends Migration
             }
 
             // Add index for coordinator-based queries (only if not already present)
-            $indexExists = collect(\Illuminate\Support\Facades\DB::select(
-                "SHOW INDEX FROM results WHERE Key_name = 'coordinator_status_index'"
-            ))->isNotEmpty();
+            $indexExists = false;
+            if (\Illuminate\Support\Facades\DB::getDriverName() === 'mysql') {
+                $indexExists = collect(\Illuminate\Support\Facades\DB::select(
+                    "SHOW INDEX FROM results WHERE Key_name = 'coordinator_status_index'"
+                ))->isNotEmpty();
+            }
             if (!$indexExists) {
                 $table->index(['coordinator_id', 'status'], 'coordinator_status_index');
             }

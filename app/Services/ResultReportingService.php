@@ -103,7 +103,7 @@ class ResultReportingService
             if ($total !== null) {
                 $satCount++;
                 $totalScoresList[] = $total;
-                if ($total >= 45.0 && $grade !== 'F') {
+                if ($total >= 40.0 && $grade !== 'F') {
                     $passedCount++;
                 } else {
                     $failedCount++;
@@ -316,7 +316,7 @@ class ResultReportingService
                     $uts += $units;
                     $gpts += $qualityPoints;
 
-                    if ($grade === 'F' || ($total !== null && $total < 45.0)) {
+                    if ($grade === 'F' || ($total !== null && $total < 40.0)) {
                         $failedCoursesThisSemester[] = $code;
                     }
 

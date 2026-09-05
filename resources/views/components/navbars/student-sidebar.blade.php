@@ -126,12 +126,40 @@
                     </div>
                 </li>
 
-
-
-                {{-- <li class="w-full mt-4">
+                @if(auth()->user()->isUndergraduate())
+                <li class="w-full mt-4">
                     <h6 class="pl-6 ml-2 font-bold leading-tight uppercase text-size-xs opacity-60 dark:text-white">
-                        ADMISSION</h6>
-                </li> --}}
+                        Academics
+                    </h6>
+                </li>
+                <li class="mt-0.5 w-full">
+                    <a class="ease-soft-in-out py-2.7 my-0 mx-4 flex items-center whitespace-nowrap px-4 rounded-lg {{ Route::currentRouteName() == 'student.my-results' ? 'bg-white shadow-soft-xl font-semibold text-slate-700' : 'text-slate-500 font-medium' }}"
+                        href="{{ route('student.my-results') }}">
+                        <div class="stroke-none mr-2 flex h-8 w-8 items-center justify-center rounded-lg bg-white bg-center fill-current p-2.5 text-center text-black {{ Route::currentRouteName() == 'student.my-results' ? 'shadow-soft-sm bg-gradient-fuchsia text-white' : 'shadow-soft-2xl' }}">
+                            <i class="fas fa-poll text-xs"></i>
+                        </div>
+                        <span class="ml-1 duration-300 opacity-100 pointer-events-none ease-soft">My Results</span>
+                    </a>
+                </li>
+                <li class="mt-0.5 w-full">
+                    <a class="ease-soft-in-out py-2.7 my-0 mx-4 flex items-center whitespace-nowrap px-4 rounded-lg {{ Route::currentRouteName() == 'student.course-registration' ? 'bg-white shadow-soft-xl font-semibold text-slate-700' : 'text-slate-500 font-medium' }}"
+                        href="{{ route('student.course-registration') }}">
+                        <div class="stroke-none mr-2 flex h-8 w-8 items-center justify-center rounded-lg bg-white bg-center fill-current p-2.5 text-center text-black {{ Route::currentRouteName() == 'student.course-registration' ? 'shadow-soft-sm bg-gradient-fuchsia text-white' : 'shadow-soft-2xl' }}">
+                            <i class="fas fa-book-reader text-xs"></i>
+                        </div>
+                        <span class="ml-1 duration-300 opacity-100 pointer-events-none ease-soft">Course Registration</span>
+                    </a>
+                </li>
+                <li class="mt-0.5 w-full">
+                    <a class="ease-soft-in-out py-2.7 my-0 mx-4 flex items-center whitespace-nowrap px-4 rounded-lg {{ Route::currentRouteName() == 'student.exam-card' ? 'bg-white shadow-soft-xl font-semibold text-slate-700' : 'text-slate-500 font-medium' }}"
+                        href="{{ route('student.exam-card') }}">
+                        <div class="stroke-none mr-2 flex h-8 w-8 items-center justify-center rounded-lg bg-white bg-center fill-current p-2.5 text-center text-black {{ Route::currentRouteName() == 'student.exam-card' ? 'shadow-soft-sm bg-gradient-fuchsia text-white' : 'shadow-soft-2xl' }}">
+                            <i class="fas fa-id-card text-xs"></i>
+                        </div>
+                        <span class="ml-1 duration-300 opacity-100 pointer-events-none ease-soft">Exam Card</span>
+                    </a>
+                </li>
+                @endif
                 <!-- Transactions -->
 
                 {{-- <li class="mt-0.5 w-full">

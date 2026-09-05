@@ -15,12 +15,12 @@ use App\Models\StudentCourse;
 use App\Models\StudentLevel;
 use App\Models\User;
 use App\Services\AcademicProgressionService;
-use Illuminate\Foundation\Testing\DatabaseTransactions;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 class AcademicProgressionTest extends TestCase
 {
-    use DatabaseTransactions;
+    use RefreshDatabase;
 
     protected AcademicProgressionService $progressionService;
     protected Department $department;
@@ -49,6 +49,7 @@ class AcademicProgressionTest extends TestCase
 
         $this->level100 = StudentLevel::where('level', '100')->first() ?? StudentLevel::create(['level' => '100']);
         $this->level200 = StudentLevel::where('level', '200')->first() ?? StudentLevel::create(['level' => '200']);
+        $level300 = StudentLevel::where('level', '300')->first() ?? StudentLevel::create(['level' => '300']);
         $this->level400 = StudentLevel::where('level', '400')->first() ?? StudentLevel::create(['level' => '400']);
     }
 
@@ -209,7 +210,7 @@ class AcademicProgressionTest extends TestCase
         $reg = RegisteredCourse::create([
             'department_course_id' => $deptCourse->id,
             'academic_detail_id' => $academicDetail->id,
-            'student_level_id' => 4,
+            'student_level_id' => $this->level400->id,
             'units' => '3',
             'academic_session' => '2023-2024',
         ]);

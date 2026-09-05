@@ -9,13 +9,13 @@ use App\Models\Department;
 use App\Models\Programme;
 use App\Models\StudentLevel;
 use App\Models\User;
-use Illuminate\Foundation\Testing\DatabaseTransactions;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 use Tests\TestCase;
 
 class AdmissionSessionPopulationTest extends TestCase
 {
-    use DatabaseTransactions;
+    use RefreshDatabase;
 
     public function test_admin_can_synchronize_admission_session_from_matric_number(): void
     {

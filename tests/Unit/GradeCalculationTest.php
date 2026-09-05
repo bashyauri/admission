@@ -13,12 +13,12 @@ use App\Models\StudentCourse;
 use App\Models\StudentLevel;
 use App\Models\User;
 use App\Services\GradeCalculationService;
-use Illuminate\Foundation\Testing\DatabaseTransactions;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 class GradeCalculationTest extends TestCase
 {
-    use DatabaseTransactions;
+    use RefreshDatabase;
 
     protected GradeCalculationService $service;
 

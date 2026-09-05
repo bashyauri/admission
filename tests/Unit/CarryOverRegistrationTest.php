@@ -14,12 +14,12 @@ use App\Models\StudentCourse;
 use App\Models\StudentLevel;
 use App\Models\User;
 use App\Services\CarryOverRegistrationService;
-use Illuminate\Foundation\Testing\DatabaseTransactions;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 class CarryOverRegistrationTest extends TestCase
 {
-    use DatabaseTransactions;
+    use RefreshDatabase;
 
     protected CarryOverRegistrationService $carryOverService;
     protected User $student;

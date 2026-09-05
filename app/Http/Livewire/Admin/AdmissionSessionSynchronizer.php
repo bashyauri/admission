@@ -91,12 +91,17 @@ class AdmissionSessionSynchronizer extends Component
         }
 
         $updated = DB::transaction(function (): int {
-            $academicDetails = AcademicDetail::query()
+            $academicDetailsQuery = AcademicDetail::query()
                 ->whereIn('id', $this->selectedAcademicDetailIds)
-                ->whereNull('admission_session')
-                ->whereRaw("matric_no REGEXP '^[0-9]{2}'")
-                ->lockForUpdate()
-                ->get();
+                ->whereNull('admission_session');
+
+            if (DB::getDriverName() === 'sqlite') {
+                $academicDetailsQuery->whereRaw("matric_no GLOB '[0-9][0-9]*'");
+            } else {
+                $academicDetailsQuery->whereRaw("matric_no REGEXP '^[0-9]{2}'");
+            }
+
+            $academicDetails = $academicDetailsQuery->lockForUpdate()->get();
 
             foreach ($academicDetails as $academicDetail) {
                 $academicDetail->update([
@@ -120,20 +125,36 @@ class AdmissionSessionSynchronizer extends Component
 
     public function render()
     {
-        $academicDetails = AcademicDetail::query()
+        $academicDetailsQuery = AcademicDetail::query()
             ->with(['user', 'department'])
-            ->whereNull('admission_session')
-            ->whereRaw("matric_no REGEXP '^[0-9]{2}'")
+            ->whereNull('admission_session');
+
+        if (DB::getDriverName() === 'sqlite') {
+            $academicDetailsQuery->whereRaw("matric_no GLOB '[0-9][0-9]*'");
+        } else {
+            $academicDetailsQuery->whereRaw("matric_no REGEXP '^[0-9]{2}'");
+        }
+
+        $academicDetails = $academicDetailsQuery
             ->when(
                 $this->filterDepartmentId !== '',
                 fn ($query) => $query->where('department_id', $this->filterDepartmentId)
             )
             ->when(
                 $this->filterAdmissionSession !== '',
-                fn ($query) => $query->whereRaw(
-                    "CONCAT('20', LEFT(matric_no, 2), '/20', LPAD(CAST(LEFT(matric_no, 2) AS UNSIGNED) + 1, 2, '0')) = ?",
-                    [$this->filterAdmissionSession]
-                )
+                function ($query) {
+                    if (DB::getDriverName() === 'sqlite') {
+                        $query->whereRaw(
+                            "('20' || SUBSTR(matric_no, 1, 2) || '/20' || PRINTF('%02d', CAST(SUBSTR(matric_no, 1, 2) AS INTEGER) + 1)) = ?",
+                            [$this->filterAdmissionSession]
+                        );
+                    } else {
+                        $query->whereRaw(
+                            "CONCAT('20', LEFT(matric_no, 2), '/20', LPAD(CAST(LEFT(matric_no, 2) AS UNSIGNED) + 1, 2, '0')) = ?",
+                            [$this->filterAdmissionSession]
+                        );
+                    }
+                }
             )
             ->when($this->search !== '', function ($query) {
                 $search = '%' . trim($this->search) . '%';
@@ -172,17 +193,24 @@ class AdmissionSessionSynchronizer extends Component
 
     private function availableAdmissionSessions(): array
     {
-        return AcademicDetail::query()
-            ->whereNull('admission_session')
-            ->whereRaw("matric_no REGEXP '^[0-9]{2}'")
-            ->selectRaw('DISTINCT LEFT(matric_no, 2) as admission_year')
-            ->orderByDesc('admission_year')
+        $query = AcademicDetail::query()->whereNull('admission_session');
+
+        if (DB::getDriverName() === 'sqlite') {
+            $query->whereRaw("matric_no GLOB '[0-9][0-9]*'")
+                ->selectRaw('DISTINCT SUBSTR(matric_no, 1, 2) as admission_year');
+        } else {
+            $query->whereRaw("matric_no REGEXP '^[0-9]{2}'")
+                ->selectRaw('DISTINCT LEFT(matric_no, 2) as admission_year');
+        }
+
+        return $query->orderByDesc('admission_year')
             ->pluck('admission_year')
             ->map(function (string $admissionYear): string {
                 $year = 2000 + (int) $admissionYear;
 
                 return $year . '/' . ($year + 1);
             })
+            ->values()
             ->all();
     }
 

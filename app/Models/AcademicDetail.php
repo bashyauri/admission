@@ -112,6 +112,11 @@ class AcademicDetail extends Model
         return $this->belongsTo(Department::class);
     }
 
+    public function programme(): BelongsTo
+    {
+        return $this->belongsTo(Programme::class);
+    }
+
     public function course(): BelongsTo
     {
         return $this->belongsTo(Course::class);

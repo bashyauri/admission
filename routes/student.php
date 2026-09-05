@@ -12,6 +12,7 @@ use App\Http\Livewire\Applications\Profile;
 use App\Http\Livewire\Dashboards\StudentIndex;
 use App\Http\Controllers\UgSchoolFeesController;
 use App\Http\Livewire\Student\CourseRegistration;
+use App\Http\Livewire\Student\MyResults;
 use App\Http\Livewire\Student\PrintCourseHistory;
 use App\Http\Livewire\Transactions\SchoolFeesInvoice;
 use App\Http\Controllers\SchoolFeesTransactionController;
@@ -25,6 +26,7 @@ Route::get('/exam-card', ExamCard::class)->middleware('paid.student.school.fees'
 // courses
 Route::get('course-registration', CourseRegistration::class)->middleware('paid.student.school.fees')->name('course-registration');
 Route::get('course-history', PrintCourseHistory::class)->name('course-history');
+Route::get('my-results', MyResults::class)->name('my-results');
 Route::get('print-course-form/{user}', [PrintCourseForm::class, 'print'])->middleware('paid.student.school.fees')->name('print-course-form');
 Route::get('print-course-form/{user}/{session}', [PrintCourseForm::class, 'printSession'])->middleware('paid.student.school.fees')->where('session', '[0-9]{4}-[0-9]{4}')->name('print-course-form-session');
 Route::get('print-exam-card/{session}/{semester}', PrintExamCard::class)

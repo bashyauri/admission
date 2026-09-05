@@ -9,6 +9,8 @@ class Department extends Model
 {
     use HasFactory;
 
+    protected $guarded = ['id'];
+
     public function programs()
     {
         return $this->belongsToMany(Programme::class, 'department_programmes');
