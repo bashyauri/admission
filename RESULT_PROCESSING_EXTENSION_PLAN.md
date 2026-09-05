@@ -14,7 +14,8 @@ This document outlines the comprehensive plan to extend the current admission sy
 | B | 60-69% | 4 | Very Good |
 | C | 50-59% | 3 | Good |
 | D | 45-49% | 2 | Fair |
-| F | 0-44% | 0 | Fail |
+| E | 40-44% | 1 | Pass |
+| F | 0-39%  | 0 | Fail |
 
 #### Degree Classification
 | CGPA Range | Class of Degree |
@@ -725,6 +726,7 @@ class GradeCalculationService
         if ($totalScore >= 60) return 'B';
         if ($totalScore >= 50) return 'C';
         if ($totalScore >= 45) return 'D';
+        if ($totalScore >= 40) return 'E';
         return 'F';
     }
 
@@ -738,6 +740,7 @@ class GradeCalculationService
             'B' => 4,
             'C' => 3,
             'D' => 2,
+            'E' => 1,
             'F' => 0,
             default => 0
         };
@@ -934,7 +937,8 @@ pending → submitted → hod_approved → released
 - Inspects HOD-approved results before release.
 - If satisfied → **Release to Students** → `hod_approved` → `released`:
   - Auto-triggers `GradeCalculationService::processAndSaveGpaRecord()` for each student.
-  - Auto-triggers `CarryOverRegistrationService::processResultClearance()` (pass ≥45) or `recordFailedCourse()` (fail <45).
+  - Implements NUC rules for tracking Uncleared Carry Overs (`is_cleared` flag).
+  - Auto-triggers `CarryOverRegistrationService::processResultClearance()` (pass ≥40) or `recordFailedCourse()` (fail <40).
 - If issues found → **Return to HOD** → mandatory audit comment → `hod_approved` → `submitted` (returns to HOD queue).
 
 #### Step 5: Result Release ✅
@@ -1441,8 +1445,8 @@ class ResultPolicy
 ## Phase 9: NUC Compliance Checklist
 
 ### 9.1 Grading System
-- ✅ Use 5-point grade scale (A=5, B=4, C=3, D=2, F=0)
-- ✅ Follow NUC score ranges (A=70-100, B=60-69, C=50-59, D=45-49, F=0-44)
+- ✅ Generate individual score points dynamically (Total Score = CA + Exam)
+- ✅ Follow NUC score ranges (A=70-100, B=60-69, C=50-59, D=45-49, E=40-44, F=0-39)
 - ✅ Implement degree classification based on CGPA
 - ✅ Include all course attempts in CGPA calculation
 - ✅ Track repeated courses with all attempts

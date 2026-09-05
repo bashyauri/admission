@@ -96,7 +96,11 @@ class ResultEntry extends Component
         $registeredCourses = RegisteredCourse::with(['academicDetail.user'])
             ->where('department_course_id', $this->allocation->department_course_id)
             ->where('academic_session', $session)
-            ->get();
+            ->get()
+            ->sortBy(function ($rc) {
+                return $rc->academicDetail->matric_no ?? '';
+            })
+            ->values();
 
         $this->students = $registeredCourses;
 

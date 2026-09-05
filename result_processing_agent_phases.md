@@ -61,7 +61,7 @@ graph TD
 
 ### Completed Tasks Checklist
 - [x] Implemented `App\Services\GradeCalculationService`:
-  - NUC 5-point grading scale (A: 70-100, B: 60-69, C: 50-59, D: 45-49, F: 0-44).
+  - NUC 5-point grading scale (A: 70-100, B: 60-69, C: 50-59, D: 45-49, E: 40-44, F: 0-39).
   - Quality point math ($GP \times Units$).
   - Semester GPA calculation & Cumulative GPA (CGPA) aggregation.
   - Official NUC Class of Degree classification.
@@ -74,7 +74,7 @@ graph TD
 - [x] Implemented `App\Services\CarryOverRegistrationService`:
   - Automatic carry-over course recording upon failed results.
   - Active carry-over retrieval filtered by semester.
-  - Automatic clearance upon approved retake passing score ($\ge 45$).
+  - Automatic clearance upon approved retake passing score ($\ge 40$).
   - Credit unit load validation (minimum 15, maximum 24 units).
 - [x] Integrated `AcademicProgressionService` with `PaymentService::getUgStudentLevel()`.
 - [x] Created & passed automated test suites:
