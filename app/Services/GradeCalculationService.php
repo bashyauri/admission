@@ -172,4 +172,27 @@ class GradeCalculationService
             ]
         );
     }
+
+    /**
+     * Calculate CGPA (Cumulative GPA) and academic summary for a student.
+     *
+     * @return array{cgpa: float, total_credit_units: int, total_grade_points: int, class_of_degree: string}
+     */
+    public function calculateCGPA(string|int $userId): array
+    {
+        $allResults = Result::where('user_id', $userId)
+            ->where('status', 'released')
+            ->get();
+
+        $calc = $this->calculateSemesterGpa($allResults);
+        $cgpa = $calc['semester_gpa'];
+        $classOfDegree = $this->getClassOfDegree($cgpa);
+
+        return [
+            'cgpa' => $cgpa,
+            'total_credit_units' => $calc['total_units'],
+            'total_grade_points' => $calc['total_points'],
+            'class_of_degree' => $classOfDegree,
+        ];
+    }
 }

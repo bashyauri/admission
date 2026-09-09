@@ -28,6 +28,8 @@ Route::get('/exam-card', ExamCard::class)->middleware('paid.student.school.fees'
 Route::get('course-registration', CourseRegistration::class)->middleware('paid.student.school.fees')->name('course-registration');
 Route::get('course-history', PrintCourseHistory::class)->name('course-history');
 Route::get('my-results', MyResults::class)->name('my-results');
+Route::get('transcript', [\App\Http\Controllers\Student\TranscriptController::class, 'download'])->name('transcript');
+Route::get('transcript/preview', [\App\Http\Controllers\Student\TranscriptController::class, 'preview'])->name('transcript.preview');
 Route::get('print-statement/{session}/{semester}', PrintStatementOfResult::class)
     ->where(['session' => '[0-9]{4}-[0-9]{4}', 'semester' => 'first|second'])
     ->name('print-statement-of-result');

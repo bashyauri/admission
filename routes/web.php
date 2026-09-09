@@ -293,3 +293,7 @@ Route::group(['middleware' => 'role:applicant'], function () {
 // Email Verification Routes
 Route::get('/email/verify', \App\Http\Livewire\Authentication\Verification\Basic::class)
     ->middleware('auth')->name('verification.notice');
+
+// Official Academic Transcript Verification (Public QR Code Entrypoint)
+Route::get('transcripts/verify/{code}', [\App\Http\Controllers\TranscriptVerificationController::class, 'verify'])
+    ->name('transcripts.verify');

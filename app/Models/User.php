@@ -115,16 +115,16 @@ class User extends Authenticatable implements MustVerifyEmail
     public function isUndergraduate(): bool
     {
         if ($this->impersonateProgramme) {
-            return $this->impersonateProgramme === ProgrammesEnum::Undergraduate->value;
+            return (int) $this->impersonateProgramme === ProgrammesEnum::Undergraduate->value;
         }
-        return $this->programme_id === ProgrammesEnum::Undergraduate->value;
+        return (int) $this->programme_id === ProgrammesEnum::Undergraduate->value;
     }
     public function isPostgraduate(): bool
     {
         if ($this->impersonateProgramme) {
-            return $this->impersonateProgramme === ProgrammesEnum::PG->value;
+            return (int) $this->impersonateProgramme === ProgrammesEnum::PG->value;
         }
-        return $this->programme_id === ProgrammesEnum::PG->value;
+        return (int) $this->programme_id === ProgrammesEnum::PG->value;
     }
 
     /**

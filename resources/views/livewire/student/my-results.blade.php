@@ -25,8 +25,24 @@
                         </div>
                     </div>
 
-                    {{-- Session Filter --}}
-                    <div class="flex items-center gap-3">
+                    {{-- Session Filter & Transcript Action --}}
+                    <div class="flex flex-wrap items-center gap-3">
+                        @if(auth()->user()->isUndergraduate())
+                            <div>
+                                <label class="block text-xs font-bold uppercase text-slate-400 mb-1">
+                                    NUC Transcript
+                                </label>
+                                <a
+                                    href="{{ route('student.transcript') }}"
+                                    target="_blank"
+                                    class="inline-flex items-center gap-2 px-4 py-2 text-xs font-bold text-white uppercase bg-gradient-to-tl from-emerald-600 to-teal-500 rounded-lg shadow-soft-md hover:scale-102 transition-all"
+                                >
+                                    <i class="fas fa-file-pdf"></i>
+                                    Download Transcript
+                                </a>
+                            </div>
+                        @endif
+
                         <div>
                             <label for="session-filter" class="block text-xs font-bold uppercase text-slate-400 mb-1">
                                 Filter by Session
@@ -34,7 +50,7 @@
                             <select
                                 id="session-filter"
                                 wire:model.live="selectedSession"
-                                class="text-sm bg-gray-50 border border-gray-300 text-gray-900 rounded-lg focus:ring-fuchsia-500 focus:border-fuchsia-500 block w-full p-2.5"
+                                class="text-sm bg-gray-50 border border-gray-300 text-gray-900 rounded-lg focus:ring-fuchsia-500 focus:border-fuchsia-500 block w-full p-2"
                             >
                                 <option value="all">All Academic Sessions</option>
                                 @foreach($availableSessions as $session)

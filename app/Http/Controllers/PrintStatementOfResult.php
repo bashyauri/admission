@@ -26,9 +26,9 @@ class PrintStatementOfResult extends Controller
 
         abort_unless($student !== null, 401);
 
-        // Strictly Undergraduate only (cast to int for SQLite/MySQL compatibility)
-        if (!((int) $student->programme_id === ProgrammesEnum::Undergraduate->value)) {
-            abort(403, 'programme_id=' . var_export($student->programme_id, true) . ' enum=' . var_export(ProgrammesEnum::Undergraduate->value, true));
+        // Strictly Undergraduate only
+        if (!$student->isUndergraduate()) {
+            abort(403, 'This statement of result is only available for undergraduate students.');
         }
 
         // Normalise URL-safe dashes back to slashes: 2024-2025 → 2024/2025

@@ -55,7 +55,7 @@ class SemesterStatementOfResultTest extends TestCase
             ?? Department::create(['name' => 'CS Department ' . rand(100, 999)]);
 
         $this->programme = Programme::find(ProgrammesEnum::Undergraduate->value)
-            ?? Programme::create([
+            ?? Programme::forceCreate([
                 'id'   => ProgrammesEnum::Undergraduate->value,
                 'name' => 'Undergraduate',
                 'abv'  => 'UG',
@@ -190,7 +190,7 @@ class SemesterStatementOfResultTest extends TestCase
     public function test_postgraduate_student_is_forbidden(): void
     {
         $pgProgramme = Programme::where('id', '!=', ProgrammesEnum::Undergraduate->value)->first()
-            ?? Programme::create(['id' => 99, 'name' => 'Postgraduate', 'abv' => 'PG']);
+            ?? Programme::forceCreate(['id' => ProgrammesEnum::PG->value, 'name' => 'Postgraduate', 'abv' => 'PG']);
 
         $pgStudent = User::create([
             'email'             => 'pg_sor_' . uniqid() . '@example.com',
