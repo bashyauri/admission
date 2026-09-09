@@ -127,6 +127,22 @@
                                             CGPA: <strong class="text-emerald-700 font-bold">{{ number_format($data['cgpa'], 2) }}</strong>
                                         </span>
                                     @endif
+                                    {{-- Print Semester Statement of Result --}}
+                                    @if($isUndergraduate)
+                                        <a
+                                            href="{{ route('student.print-statement-of-result', [
+                                                'session'  => str_replace('/', '-', $session),
+                                                'semester' => $semesterName,
+                                            ]) }}"
+                                            target="_blank"
+                                            id="print-sor-{{ str_replace(['/', ' '], '-', $session) }}-{{ $semesterName }}"
+                                            title="Print {{ ucfirst($semesterName) }} Semester Statement of Result"
+                                            class="inline-flex items-center gap-1.5 px-3 py-1 bg-purple-700 hover:bg-purple-800 text-white text-xs font-semibold rounded-lg transition-colors shadow-sm"
+                                        >
+                                            <i class="fas fa-print text-xs"></i>
+                                            Print Slip
+                                        </a>
+                                    @endif
                                 </div>
                             </div>
 

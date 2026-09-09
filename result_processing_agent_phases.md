@@ -136,6 +136,12 @@ graph TD
 
 ### Completed Tasks Checklist
 - [x] Task 1: Created the `MyResults` student Livewire component displaying released grades organized by Session and Semester for undergraduate students.
+- [x] Task 2: Implemented Semester Statement of Result printable slip for undergraduate students.
+  - Created `PrintStatementOfResult` controller (UG-only, per-session/semester, 404 on empty results, 403 on PG).
+  - Created `resources/views/student/print-statement-of-result.blade.php` — NUC-formatted A4 slip with grading key, GPA/CGPA boxes, signature lines, reference number, and institutional header.
+  - Registered route `student.print-statement-of-result` in `routes/student.php`.
+  - Added **Print Slip** button to each semester block in `my-results.blade.php` (undergraduate guard).
+  - Created & passed `tests/Feature/SemesterStatementOfResultTest.php` (8 tests).
 
 ### Agent Prompt for Remaining Phase 5 Tasks (Copy & paste to AI agent to begin):
 > **Prompt for Agent:**
