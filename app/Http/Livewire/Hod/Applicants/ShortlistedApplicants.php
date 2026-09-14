@@ -11,7 +11,7 @@ class ShortlistedApplicants extends Component
 
     public function mount(ApplicantReportService $applicantReportService)
     {
-        $this->shortlistedApplicants = $applicantReportService->getApplicantsShortlisted(auth()->user()->hodDetails->department_id);
+        $this->shortlistedApplicants = $applicantReportService->getApplicantsShortlisted(auth()->user()->hodDetails?->department_id);
     }
 
     public function render()

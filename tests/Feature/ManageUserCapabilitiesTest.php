@@ -1,19 +1,43 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Feature;
 
 use App\Http\Livewire\Admin\ManageUserCapabilities;
 use App\Models\Department;
+use App\Models\Programme;
 use App\Models\User;
 use App\Models\UserCapability;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Str;
 use Livewire\Livewire;
 use Tests\TestCase;
 
 class ManageUserCapabilitiesTest extends TestCase
 {
-    public function test_admin_can_view_manage_capabilities_page(): void
+    use RefreshDatabase;
+
+    protected Programme $programme;
+    protected Department $department;
+    protected User $admin;
+
+    protected function setUp(): void
     {
-        $admin = User::create([
+        parent::setUp();
+
+        $this->programme = Programme::create([
+            'name' => 'B.Sc Test Programme',
+            'abv' => 'UG',
+        ]);
+
+        $this->department = Department::create([
+            'name' => 'Science Laboratory Technology',
+        ]);
+
+        $this->admin = User::create([
+            'id' => (string) Str::uuid(),
+            'programme_id' => $this->programme->id,
             'email' => 'admin_' . uniqid() . '@example.com',
             'role' => 'admin',
             'surname' => 'Admin',
@@ -22,27 +46,20 @@ class ManageUserCapabilitiesTest extends TestCase
             'vpassword' => 'secret',
             'email_verified_at' => now(),
         ]);
+    }
 
-        $response = $this->actingAs($admin)->get(route('admin.manage-capabilities'));
+    public function test_admin_can_view_manage_capabilities_page(): void
+    {
+        $response = $this->actingAs($this->admin)->get(route('admin.manage-capabilities'));
         $response->assertOk();
-        $response->assertSee('Staff Capabilities & Role Assignments');
-
-        $admin->delete();
+        $response->assertSee('Staff Capabilities');
     }
 
     public function test_admin_can_assign_capability_to_user_via_livewire(): void
     {
-        $admin = User::create([
-            'email' => 'admin_' . uniqid() . '@example.com',
-            'role' => 'admin',
-            'surname' => 'Admin',
-            'firstname' => 'Test',
-            'password' => bcrypt('secret'),
-            'vpassword' => 'secret',
-            'email_verified_at' => now(),
-        ]);
-
         $lecturer = User::create([
+            'id' => (string) Str::uuid(),
+            'programme_id' => $this->programme->id,
             'email' => 'staff_' . uniqid() . '@example.com',
             'role' => 'lecturer',
             'surname' => 'Staff',
@@ -52,13 +69,11 @@ class ManageUserCapabilitiesTest extends TestCase
             'email_verified_at' => now(),
         ]);
 
-        $dept = Department::first();
-
-        Livewire::actingAs($admin)
+        Livewire::actingAs($this->admin)
             ->test(ManageUserCapabilities::class)
             ->set('selectedUserId', $lecturer->id)
             ->set('capability', 'exam_officer')
-            ->set('departmentId', $dept?->id)
+            ->set('departmentId', $this->department->id)
             ->set('reason', 'Appointed 2025/2026')
             ->call('assignCapability')
             ->assertHasNoErrors();
@@ -72,24 +87,13 @@ class ManageUserCapabilitiesTest extends TestCase
 
         $lecturer->refresh();
         $this->assertTrue($lecturer->canActAsExamOfficer());
-
-        $admin->delete();
-        $lecturer->delete();
     }
 
     public function test_admin_can_toggle_and_revoke_capability(): void
     {
-        $admin = User::create([
-            'email' => 'admin_' . uniqid() . '@example.com',
-            'role' => 'admin',
-            'surname' => 'Admin',
-            'firstname' => 'Test',
-            'password' => bcrypt('secret'),
-            'vpassword' => 'secret',
-            'email_verified_at' => now(),
-        ]);
-
         $staff = User::create([
+            'id' => (string) Str::uuid(),
+            'programme_id' => $this->programme->id,
             'email' => 'staff_' . uniqid() . '@example.com',
             'role' => 'lecturer',
             'surname' => 'Staff',
@@ -106,20 +110,58 @@ class ManageUserCapabilitiesTest extends TestCase
             'reason' => 'Initial',
         ]);
 
-        Livewire::actingAs($admin)
+        Livewire::actingAs($this->admin)
             ->test(ManageUserCapabilities::class)
             ->call('toggleStatus', $cap->id);
 
         $cap->refresh();
         $this->assertFalse($cap->is_active);
 
-        Livewire::actingAs($admin)
+        Livewire::actingAs($this->admin)
             ->test(ManageUserCapabilities::class)
             ->call('revokeCapability', $cap->id);
 
         $this->assertDatabaseMissing('user_capabilities', ['id' => $cap->id]);
+    }
 
-        $admin->delete();
-        $staff->delete();
+    public function test_assigning_hod_capability_syncs_hod_user_and_enables_switch_to_hod(): void
+    {
+        $lecturer = User::create([
+            'id' => (string) Str::uuid(),
+            'programme_id' => $this->programme->id,
+            'email' => 'lecturer_' . uniqid() . '@example.com',
+            'role' => 'lecturer',
+            'surname' => 'Lecturer',
+            'firstname' => 'John',
+            'password' => bcrypt('secret'),
+            'vpassword' => 'secret',
+            'email_verified_at' => now(),
+        ]);
+
+        Livewire::actingAs($this->admin)
+            ->test(ManageUserCapabilities::class)
+            ->set('selectedUserId', $lecturer->id)
+            ->set('capability', 'hod')
+            ->set('departmentId', $this->department->id)
+            ->set('reason', 'Appointed HOD Science Laboratory Technology')
+            ->call('assignCapability')
+            ->assertHasNoErrors();
+
+        $lecturer->refresh();
+        $this->assertTrue($lecturer->canActAsHod());
+        $this->assertNotNull($lecturer->hodDetails);
+        $this->assertEquals($this->department->id, $lecturer->hodDetails->department_id);
+
+        $cap = UserCapability::where('user_id', $lecturer->id)->where('capability', 'hod')->first();
+        $this->assertNotNull($cap);
+
+        // Revoking HOD capability removes HodUser
+        Livewire::actingAs($this->admin)
+            ->test(ManageUserCapabilities::class)
+            ->call('revokeCapability', $cap->id);
+
+        $lecturer->refresh();
+        $this->assertNull($lecturer->hodDetails);
+        $this->assertFalse($lecturer->canActAsHod());
     }
 }

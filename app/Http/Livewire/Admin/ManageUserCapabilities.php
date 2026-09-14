@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Livewire\Admin;
 
 use App\Models\Department;
+use App\Models\HodUser;
 use App\Models\User;
 use App\Models\UserCapability;
 use Illuminate\Support\Facades\Auth;
@@ -139,6 +140,14 @@ class ManageUserCapabilities extends Component
             ]);
         }
 
+        // Sync with hod_users table if HOD capability
+        if ($this->capability === 'hod' && $this->departmentId) {
+            HodUser::updateOrCreate(
+                ['user_id' => $this->selectedUserId],
+                ['department_id' => $this->departmentId]
+            );
+        }
+
         $this->closeAssignModal();
     }
 
@@ -152,6 +161,17 @@ class ManageUserCapabilities extends Component
             'revoked_at' => $newStatus ? null : now(),
         ]);
 
+        if ($cap->capability === 'hod') {
+            if ($newStatus && $cap->department_id) {
+                HodUser::updateOrCreate(
+                    ['user_id' => $cap->user_id],
+                    ['department_id' => $cap->department_id]
+                );
+            } else {
+                HodUser::where('user_id', $cap->user_id)->delete();
+            }
+        }
+
         $statusText = $newStatus ? 'activated' : 'deactivated';
         $this->alert('info', "Capability {$statusText}", [
             'position' => 'center',
@@ -163,6 +183,11 @@ class ManageUserCapabilities extends Component
     public function revokeCapability(int $capabilityId): void
     {
         $cap = UserCapability::findOrFail($capabilityId);
+        
+        if ($cap->capability === 'hod') {
+            HodUser::where('user_id', $cap->user_id)->delete();
+        }
+
         $cap->delete();
 
         $this->alert('success', 'Capability Revoked', [

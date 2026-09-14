@@ -12,7 +12,7 @@ class NotRecommended extends Component
 
     public function mount(ApplicantReportService $applicantReportService)
     {
-        $this->notRecommendedApplicants = $applicantReportService->getApplicantsNotRecommended(auth()->user()->hodDetails->department_id);
+        $this->notRecommendedApplicants = $applicantReportService->getApplicantsNotRecommended(auth()->user()->hodDetails?->department_id);
     }
 
     #[Computed()]
