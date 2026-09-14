@@ -27,8 +27,8 @@ graph TD
     P1["Phase 1: DB & Versioning Foundation<br/>(COMPLETED)"] --> P2["Phase 2: UG Calculation & Carry-Overs Services<br/>(COMPLETED)"]
     P2 --> P3["Phase 3: Lecturer Result Entry<br/>(COMPLETED)"]
     P3 --> P4["Phase 4: Multi-Level Approval & Academic Board Broadsheets<br/>(COMPLETED)"]
-    P4 --> P5["Phase 5: UG Student Portal & Transcripts<br/>(⏳ UP NEXT FOR IMPLEMENTATION)"]
-    P5 --> P6["Phase 6: UG Graduation & Senate Degree Approval<br/>(Final Degree Broadsheet, Senate Pass List & Certificates)"]
+    P4 --> P5["Phase 5: UG Student Portal & Transcripts<br/>(COMPLETED)"]
+    P5 --> P6["Phase 6: UG Graduation & Senate Degree Approval<br/>(⏳ UP NEXT FOR IMPLEMENTATION)"]
 ```
 
 ---
@@ -160,26 +160,80 @@ graph TD
 
 ---
 
-## Phase 6: Undergraduate Graduation Processing & Senate Final Degree Approval (⌛ PENDING PHASE 5)
-* **Goal:** Automatically check undergraduate student graduation eligibility, generate the Senate Graduation Broadsheet, and track certificate issuances.
-* **Risk Profile:** Low (primarily report/utility views).
-* **Status:** **Pending Phase 5 Completion**
+## Phase 6: Undergraduate Graduation Processing & Senate Final Degree Approval (⏳ UP NEXT)
+* **Goal:** Automatically check undergraduate student graduation eligibility, generate the Senate Graduation Broadsheet, produce the Official Graduating/Pass List, and track certificate issuance.
+* **Risk Profile:** Low (primarily reports, eligibility evaluation, and certificate logging).
+* **Status:** **Ready for Execution (Structured into 6 Daily Tasks)**
 
-### Academic Board / Senate Deliverables in Phase 6:
-- **Senate Graduation Broadsheet**: Master list of graduands by department with total credits earned, final CGPA, and recommended NUC Class of Degree (First Class, Second Class Upper, etc.) presented for Senate degree conferment.
-- **Official Graduating List / Pass List**: Approved publication list for convocation, degree certificates, and NYSC mobilization.
+### Daily Tasks Breakdown (Token-Efficient Execution):
 
-### Agent Prompt for Phase 6 (To execute after Phase 5):
-> **Prompt for Agent:**
-> "Please implement Phase 6: Undergraduate Graduation Eligibility & Processing as defined in `result_processing_agent_phases.md` (Strictly Undergraduate Scope).
-> 
-> Tasks:
-> 1. Implement `App\Services\GraduationService` (detailed in RESULT_PROCESSING_EXTENSION_PLAN.md L1102):
->    - Check minimum undergraduate CGPA threshold (>= 1.00 or 1.50).
->    - Confirm completion of General Studies, SIWES, and Entrepreneurship credits.
->    - Ensure no outstanding failed courses remain in `carry_over_courses`.
-> 2. Create the Admin / Exam Officer panel to generate and export the **Senate Graduation Broadsheet** and **Official Graduating List**.
-> 3. Create the Certificate tracking module."
+#### Task 6.1: Database Foundation for Graduation & Certificates
+* **Scope:** Migrations & Eloquent Models only.
+* **Tasks:**
+  - [ ] Create `graduation_eligibilities` table migration & model (`GraduationEligibility.php`)
+  - [ ] Create `graduation_lists` & `graduation_list_items` migration & models (`GraduationList.php`, `GraduationListItem.php`)
+  - [ ] Create `degree_certificates` migration & model (`DegreeCertificate.php`)
+  - [ ] Establish relationships on `User` and `AcademicDetail`
+  - [ ] Automated unit test: `tests/Unit/Phase6DatabaseFoundationTest.php`
+* **Agent Prompt:**
+  > *"Please implement Phase 6, Task 6.1: Create the migrations, models, relationships, and unit tests for graduation eligibility, graduation lists, and degree certificates as defined in result_processing_agent_phases.md."*
+
+#### Task 6.2: Core Graduation Eligibility Engine (`GraduationService`)
+* **Scope:** Business logic & calculation service layer (strictly backend TDD).
+* **Tasks:**
+  - [ ] Implement `App\Services\GraduationService`:
+    - CGPA threshold verification ($\ge 1.00$ / $1.50$) via `GradeCalculationService`
+    - Total credit units earned check against program minimums (e.g., 120 / 150 units)
+    - Compulsory courses clearance: General Studies (GST), SIWES, and Entrepreneurship
+    - Uncleared failed courses check (`carry_over_courses`)
+    - Persistence to `GraduationEligibility` record
+  - [ ] Automated unit test suite: `tests/Unit/GraduationServiceTest.php`
+* **Agent Prompt:**
+  > *"Please implement Phase 6, Task 6.2: Implement App\Services\GraduationService and unit tests in tests/Unit/GraduationServiceTest.php (strictly Undergraduate scope)."*
+
+#### Task 6.3: Exam Officer Graduation Audit & Clearance UI
+* **Scope:** Exam Officer / Academic Affairs Livewire interface.
+* **Tasks:**
+  - [ ] Create `GraduationAudit` Livewire component (`app/Http/Livewire/ExamOfficer/GraduationAudit.php` & blade view)
+  - [ ] Session, Department, and Level filters with "Run Cohort Audit" batch action
+  - [ ] Eligibility audit grid showing status badges, breakdown of deficiencies, and final CGPA
+  - [ ] Batch clearance action to stage cleared students into the official `GraduationList`
+  - [ ] Route registration in `routes/exam_officer.php` & sidebar link in `exam-officer-sidebar.blade.php`
+  - [ ] Feature test: `tests/Feature/GraduationAuditTest.php`
+* **Agent Prompt:**
+  > *"Please implement Phase 6, Task 6.3: Create the Exam Officer Graduation Audit Livewire component and routes to audit final-year students and approve eligible graduands."*
+
+#### Task 6.4: Senate Graduation Broadsheet (Final Degree Master Sheet)
+* **Scope:** Printable / Exportable official Broadsheet for Senate degree conferment.
+* **Tasks:**
+  - [ ] Implement Senate Graduation Broadsheet generator in `ResultReportingService` / controller
+  - [ ] Create printable A3/A4 landscape view: `resources/views/reports/senate-graduation-broadsheet.blade.php`
+  - [ ] Include student metrics: Matric No, Name, Entry Year, Grad Session, Total Units Earned, CQP, Final CGPA, Class of Degree
+  - [ ] Include institutional summary statistics box (Graduand count by NUC Class of Degree)
+  - [ ] Print, PDF, and CSV export capabilities
+  - [ ] Feature test: `tests/Feature/SenateGraduationBroadsheetTest.php`
+* **Agent Prompt:**
+  > *"Please implement Phase 6, Task 6.4: Implement the Senate Graduation Broadsheet view and export controller for degree conferment approval."*
+
+#### Task 6.5: Official Senate Graduating Pass List & NYSC Mobilization Export
+* **Scope:** Senate Pass List publication document & NYSC mobilization export.
+* **Tasks:**
+  - [ ] Create publication-formatted Senate Pass List view: `resources/views/reports/senate-pass-list.blade.php` (grouped by Class of Degree)
+  - [ ] Create NYSC Mobilization export (`NyscMobilizationExport.php`) in standard NYSC data format
+  - [ ] Add download actions to Exam Officer graduation panel
+  - [ ] Feature test: `tests/Feature/GraduatingPassListTest.php`
+* **Agent Prompt:**
+  > *"Please implement Phase 6, Task 6.5: Implement the Senate Official Pass List printable view and NYSC Mobilization CSV/Excel export."*
+
+#### Task 6.6: Degree Certificate Generation & Collection Tracking
+* **Scope:** Certificate serial number generation, collection logging, and student clearance widget.
+* **Tasks:**
+  - [ ] Automatic generation of unique Certificate Serial Numbers upon Senate degree approval
+  - [ ] Admin/Exam Officer Certificate Management interface (`ManageCertificates.php`) to log collection date, recipient ID, and certificate status
+  - [ ] Student portal integration: Graduation clearance and certificate readiness badge on `MyResults` / dashboard
+  - [ ] Feature test: `tests/Feature/CertificateManagementTest.php`
+* **Agent Prompt:**
+  > *"Please implement Phase 6, Task 6.6: Implement Degree Certificate tracking, serial generation, collection logging, and student graduation clearance badge."*
 
 ---
 
