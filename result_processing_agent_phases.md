@@ -28,7 +28,8 @@ graph TD
     P2 --> P3["Phase 3: Lecturer Result Entry<br/>(COMPLETED)"]
     P3 --> P4["Phase 4: Multi-Level Approval & Academic Board Broadsheets<br/>(COMPLETED)"]
     P4 --> P5["Phase 5: UG Student Portal & Transcripts<br/>(COMPLETED)"]
-    P5 --> P6["Phase 6: UG Graduation & Senate Degree Approval<br/>(⏳ UP NEXT FOR IMPLEMENTATION)"]
+    P5 --> P6["Phase 6: UG Graduation & Senate Degree Approval<br/>(IN PROGRESS - Task 6.1 Completed)"]
+    P6 --> P7["Phase 7: Exam Malpractice & Senate Disciplinary Engine<br/>(⏳ SCHEDULED - FUTURE EXTENSION)"]
 ```
 
 ---
@@ -167,16 +168,14 @@ graph TD
 
 ### Daily Tasks Breakdown (Token-Efficient Execution):
 
-#### Task 6.1: Database Foundation for Graduation & Certificates
+#### Task 6.1: Database Foundation for Graduation & Certificates (✅ COMPLETED)
 * **Scope:** Migrations & Eloquent Models only.
 * **Tasks:**
-  - [ ] Create `graduation_eligibilities` table migration & model (`GraduationEligibility.php`)
-  - [ ] Create `graduation_lists` & `graduation_list_items` migration & models (`GraduationList.php`, `GraduationListItem.php`)
-  - [ ] Create `degree_certificates` migration & model (`DegreeCertificate.php`)
-  - [ ] Establish relationships on `User` and `AcademicDetail`
-  - [ ] Automated unit test: `tests/Unit/Phase6DatabaseFoundationTest.php`
-* **Agent Prompt:**
-  > *"Please implement Phase 6, Task 6.1: Create the migrations, models, relationships, and unit tests for graduation eligibility, graduation lists, and degree certificates as defined in result_processing_agent_phases.md."*
+  - [x] Create `graduation_eligibilities` table migration & model (`GraduationEligibility.php`)
+  - [x] Create `graduation_lists` & `graduation_list_items` migration & models (`GraduationList.php`, `GraduationListItem.php`)
+  - [x] Create `degree_certificates` migration & model (`DegreeCertificate.php`)
+  - [x] Establish relationships on `User` and `AcademicDetail`
+  - [x] Automated unit test: `tests/Unit/Phase6DatabaseFoundationTest.php` (4 tests, 41 assertions)
 
 #### Task 6.2: Core Graduation Eligibility Engine (`GraduationService`)
 * **Scope:** Business logic & calculation service layer (strictly backend TDD).
@@ -234,6 +233,70 @@ graph TD
   - [ ] Feature test: `tests/Feature/CertificateManagementTest.php`
 * **Agent Prompt:**
   > *"Please implement Phase 6, Task 6.6: Implement Degree Certificate tracking, serial generation, collection logging, and student graduation clearance badge."*
+
+---
+
+## Phase 7: Examination Malpractice & Senate Disciplinary Enforcement Engine (⏳ SCHEDULED - FUTURE EXTENSION)
+* **Goal:** Provide a centralized, statutory disciplinary ledger for the Exam Officer and Senate Disciplinary Committee (SDC) to enforce penalties (Course Cancellation, Repeat Session, Suspension, Expulsion), automatically lock progression levels, register carry-overs, and enforce graduation blocks.
+* **Risk Profile:** Low (additive table and service hooks).
+* **Status:** **Scheduled for Implementation Post-Phase 6**
+
+### Sanctions Covered by Architecture:
+1. **Course Paper Nullification:** Affected course score set to `0.00` (`F`), automatically fed into `CarryOverRegistrationService` as a mandatory uncleared carry-over.
+2. **Repeat the Session:** Overrides student academic standing to `STANDING_REPEAT`. `AcademicProgressionService::getNextEligibleLevel()` retains student at current level (e.g., 300L remains 300L for next session). Level fee and course registration locked to repeat curriculum.
+3. **Rustication / Suspension (1-2 Semesters / 1 Session):** Temporarily locks student registration portal and fee invoice generation for the sanction duration.
+4. **Expulsion:** Permanently revokes student privileges, terminates portal access, and places a permanent block on graduation clearance and certificate issuance.
+
+### Tasks Breakdown:
+
+#### Task 7.1: Database Foundation for Disciplinary Actions
+* **Scope:** Migration & Eloquent model (`DisciplinaryAction.php`).
+* **Fields:**
+  - `user_id` (foreignUuid cascade)
+  - `academic_detail_id` (foreignId cascade)
+  - `sanction_type` enum (`course_cancellation`, `repeat_session`, `suspension`, `expulsion`)
+  - `course_id` (foreignId nullable, for course cancellations)
+  - `academic_session` (e.g., '2024/2025')
+  - `semester` (nullable, 'first' or 'second')
+  - `senate_ref_no` (e.g., 'SEN/APP/2026/042')
+  - `verdict_date` (date)
+  - `effective_session` (string)
+  - `resumption_session` (nullable string, for suspensions)
+  - `is_active` (boolean default true)
+  - `is_appealed` (boolean default false)
+  - `appeal_status` (nullable string: 'pending', 'upheld', 'quashed')
+  - `sanctioned_by` (foreignUuid nullable -> users)
+  - `remarks` (text nullable)
+* **Relationships:** Wire on `User` (`disciplinaryActions`) and `AcademicDetail`.
+* **Automated Test:** `tests/Unit/DisciplinaryActionFoundationTest.php`
+
+#### Task 7.2: Core Disciplinary Enforcement Service (`DisciplinaryActionService`)
+* **Scope:** Backend orchestration service applying Senate sanctions.
+* **Tasks:**
+  - `applySanction(array $data)`: Enforces database changes based on `sanction_type`:
+    - If `course_cancellation`: updates `results` record to 0 score / grade `F` with remark `MALPRACTICE (SENATE REF)` and dispatches carry-over entry.
+    - If `repeat_session`: sets `AcademicProgressionService` standing to `STANDING_REPEAT`, flags session results as `is_repeated`, and blocks level progression.
+    - If `suspension`: places temporary lock flag on portal registration.
+    - If `expulsion`: deactivates user status and revokes active sessions.
+  - `liftSanction(int $actionId, string $resolutionRef)`: Reverses locks upon Senate appeal approval.
+  - Hook into `GraduationService`: Blocks eligibility if active disciplinary sanction exists.
+* **Automated Test:** `tests/Unit/DisciplinaryActionServiceTest.php`
+
+#### Task 7.3: Exam Officer Disciplinary Management UI
+* **Scope:** Livewire component under `app/Http/Livewire/ExamOfficer/ManageDisciplinaryActions.php` and view.
+* **Tasks:**
+  - Student search by Matriculation Number or Name.
+  - Modal form to apply Senate Sanction (Type, Course, Session, Senate Reference No, Reason).
+  - Data table showing Active vs Historical/Lifted sanctions with status badges.
+  - Action to record appeals or Senate reversals.
+  - Route: `/exam-officer/disciplinary-actions` & sidebar menu item.
+* **Automated Test:** `tests/Feature/ExamOfficerDisciplinaryManagementTest.php`
+
+#### Task 7.4: Broadsheet & Official Transcript Integration
+* **Scope:** Display and audit integration.
+* **Tasks:**
+  - `ResultReportingService`: Departmental & Senate broadsheets display remarks `REPEAT SESSION (SDC)` or `WITHHELD (MALPRACTICE)`.
+  - `TranscriptService`: Preserves historical accuracy of repeated attempts with standard NUC `[R]` markers and Senate disciplinary remarks where legally mandated.
 
 ---
 

@@ -1316,7 +1316,14 @@ class GraduationService
 - Add certificate printing
 - Create graduation ceremony management
 
-### Phase 7: Reporting and Analytics (Weeks 13-14)
+### Phase 7: Examination Malpractice & Senate Disciplinary Enforcement (Scheduled Extension)
+- Centralized Senate Disciplinary Committee (SDC) sanction ledger (`disciplinary_actions`)
+- Automated course nullification & carry-over registration
+- Session repeat enforcement & progression level freeze (`STANDING_REPEAT`)
+- Rustication / suspension portal locks & expulsion handling
+- Integration with graduation eligibility blocks and official transcripts
+
+### Phase 8: Reporting and Analytics (Weeks 13-14)
 - Install charting package: `composer require laraveldaily/laravel-charts`
 - Create result statistics dashboards
 - Implement departmental performance reports

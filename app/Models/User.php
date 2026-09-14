@@ -349,4 +349,35 @@ public function coordinators()
     {
         return $this->hasMany(CarryOverCourse::class, 'user_id');
     }
+
+    public function transcripts(): HasMany
+    {
+        return $this->hasMany(Transcript::class, 'user_id');
+    }
+
+    public function graduationEligibilities(): HasMany
+    {
+        return $this->hasMany(GraduationEligibility::class, 'user_id');
+    }
+
+    public function graduationEligibility(): HasOne
+    {
+        return $this->hasOne(GraduationEligibility::class, 'user_id')->latestOfMany();
+    }
+
+    public function graduationListItems(): HasMany
+    {
+        return $this->hasMany(GraduationListItem::class, 'user_id');
+    }
+
+    public function degreeCertificates(): HasMany
+    {
+        return $this->hasMany(DegreeCertificate::class, 'user_id');
+    }
+
+    public function degreeCertificate(): HasOne
+    {
+        return $this->hasOne(DegreeCertificate::class, 'user_id')->latestOfMany();
+    }
 }
+

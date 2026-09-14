@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use App\Models\Course;
@@ -121,4 +122,24 @@ class AcademicDetail extends Model
     {
         return $this->belongsTo(Course::class);
     }
-}
+
+    public function graduationEligibilities(): HasMany
+    {
+        return $this->hasMany(GraduationEligibility::class, 'academic_detail_id');
+    }
+
+    public function graduationEligibility(): HasOne
+    {
+        return $this->hasOne(GraduationEligibility::class, 'academic_detail_id')->latestOfMany();
+    }
+
+    public function graduationListItems(): HasMany
+    {
+        return $this->hasMany(GraduationListItem::class, 'academic_detail_id');
+    }
+
+    public function degreeCertificates(): HasMany
+    {
+        return $this->hasMany(DegreeCertificate::class, 'academic_detail_id');
+    }
+}
