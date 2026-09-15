@@ -177,16 +177,16 @@ graph TD
   - [x] Establish relationships on `User` and `AcademicDetail`
   - [x] Automated unit test: `tests/Unit/Phase6DatabaseFoundationTest.php` (4 tests, 41 assertions)
 
-#### Task 6.2: Core Graduation Eligibility Engine (`GraduationService`)
+#### Task 6.2: Core Graduation Eligibility Engine (`GraduationService`) (✅ COMPLETED)
 * **Scope:** Business logic & calculation service layer (strictly backend TDD).
 * **Tasks:**
-  - [ ] Implement `App\Services\GraduationService`:
+  - [x] Implement `App\Services\GraduationService`:
     - CGPA threshold verification ($\ge 1.00$ / $1.50$) via `GradeCalculationService`
-    - Total credit units earned check against program minimums (e.g., 120 / 150 units)
+    - Total credit units earned check against program minimums (e.g., 120 / 150 units) and `department_max_units`
     - Compulsory courses clearance: General Studies (GST), SIWES, and Entrepreneurship
     - Uncleared failed courses check (`carry_over_courses`)
     - Persistence to `GraduationEligibility` record
-  - [ ] Automated unit test suite: `tests/Unit/GraduationServiceTest.php`
+  - [x] Automated unit test suite: `tests/Unit/GraduationServiceTest.php` (10 tests, 49 assertions passed)
 * **Agent Prompt:**
   > *"Please implement Phase 6, Task 6.2: Implement App\Services\GraduationService and unit tests in tests/Unit/GraduationServiceTest.php (strictly Undergraduate scope)."*
 

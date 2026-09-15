@@ -53,6 +53,17 @@ class ManageUserCapabilitiesTest extends TestCase
         $response = $this->actingAs($this->admin)->get(route('admin.manage-capabilities'));
         $response->assertOk();
         $response->assertSee('Staff Capabilities');
+        $response->assertSee('Active HODs');
+        $response->assertSee('HOD (Head of Dept)');
+    }
+
+    public function test_modal_displays_hod_capability_option(): void
+    {
+        Livewire::actingAs($this->admin)
+            ->test(ManageUserCapabilities::class)
+            ->call('openAssignModal')
+            ->assertSeeHtml('value="hod"')
+            ->assertSee('Head of Dept / Endorse results');
     }
 
     public function test_admin_can_assign_capability_to_user_via_livewire(): void

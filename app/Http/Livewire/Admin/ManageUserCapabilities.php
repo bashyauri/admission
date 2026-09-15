@@ -245,6 +245,7 @@ class ManageUserCapabilities extends Component
         $capabilities = $capabilitiesQuery->paginate(15);
         $departments = Department::orderBy('name')->get();
 
+        $activeHodCount = UserCapability::where('capability', 'hod')->where('is_active', true)->count();
         $activeExamOfficersCount = UserCapability::where('capability', 'exam_officer')->where('is_active', true)->count();
         $activeLecturersCount = UserCapability::where('capability', 'lecturer')->where('is_active', true)->count();
         $totalAssignmentsCount = UserCapability::count();
@@ -253,6 +254,7 @@ class ManageUserCapabilities extends Component
             'capabilities' => $capabilities,
             'departments' => $departments,
             'staffList' => $staffList,
+            'activeHodCount' => $activeHodCount,
             'activeExamOfficersCount' => $activeExamOfficersCount,
             'activeLecturersCount' => $activeLecturersCount,
             'totalAssignmentsCount' => $totalAssignmentsCount,
