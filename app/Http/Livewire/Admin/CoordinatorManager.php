@@ -102,6 +102,7 @@ class CoordinatorManager extends Component
             ->toArray();
 
         $registeredSessions = RegisteredCourse::query()
+            ->distinct()
             ->pluck('academic_session')
             ->filter()
             ->unique()
@@ -109,6 +110,7 @@ class CoordinatorManager extends Component
             ->toArray();
 
         $coordinatorSessions = Coordinator::query()
+            ->distinct()
             ->pluck('academic_session')
             ->filter()
             ->unique()
@@ -116,6 +118,7 @@ class CoordinatorManager extends Component
             ->toArray();
 
         $academicDetailSessions = AcademicDetail::query()
+            ->distinct()
             ->pluck('admission_session')
             ->filter()
             ->unique()

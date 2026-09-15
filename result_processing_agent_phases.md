@@ -300,6 +300,93 @@ graph TD
 
 ---
 
+## Phase 8: TALL Stack Performance Optimisation (🔧 IN PROGRESS)
+* **Goal:** Eliminate N+1 query patterns, redundant full-table loads, and missing DB indexes across all Livewire components in the system.
+* **Risk Profile:** Zero (no schema changes beyond index additions; no business logic altered).
+* **Status:** **Quick Wins Completed — Medium/High Impact Pending**
+
+> 📌 **SCOPE:** This phase targets only the Livewire backend components and blade views. No result calculations, grading logic, or progression rules are modified.
+
+### Quick Wins Checklist (✅ COMPLETED — September 2026)
+
+- [x] **`ManageUserCapabilities` — 4 COUNT → 1 `selectRaw` aggregate**
+  - Replaced 4 separate `UserCapability::count()` calls with a single `selectRaw(...)` — saves 3 DB round-trips on every render.
+- [x] **`ManageUserCapabilities` — `staffList` guarded behind `$showAssignModal`**
+  - Staff query (50-user scan) now only runs when the assign modal is open.
+- [x] **`manage-user-capabilities.blade.php` — filter `wire:model` → `wire:model.live`**
+  - `filterCapability`, `filterDepartment`, `filterStatus` now respond immediately on change.
+  - `searchQuery` debounce raised from `300ms` → `500ms`.
+- [x] **`exam-officer-result-review.blade.php` — filter selects `wire:model` → `wire:model.live`**
+  - `selectedDepartmentId`, `selectedSession`, `selectedSemester`, `statusFilter` now trigger immediately.
+- [x] **`CourseAllocationManager::mount()` — `->distinct()` on session plucks**
+  - `RegisteredCourse` and `CourseAllocation` plucks now use `SELECT DISTINCT` at SQL level.
+- [x] **`CoordinatorManager::mount()` — `->distinct()` on session plucks**
+  - `RegisteredCourse`, `Coordinator`, and `AcademicDetail` plucks now use `SELECT DISTINCT`.
+- [x] **DB Performance Indexes migrated** (`2026_09_15_105618_add_performance_indexes_to_key_tables.php`)
+  - `idx_ucap_capability_active` on `user_capabilities(capability, is_active)`
+  - `idx_results_dept_session_semester_status` on `results(department_course_id, academic_session, semester, status)`
+  - `idx_coordinators_cohort_lookup` on `coordinators(course_id, student_level_id, academic_session)`
+  - `idx_adetails_session_course_level` on `academic_details(admission_session, course_id, student_level_id)`
+
+---
+
+### Remaining Tasks (Medium / High Impact)
+
+#### Task 8.1: Fix N+1 Student Count Loop in `CoordinatorManager` (🔴 HIGH)
+* **File:** `app/Http/Livewire/Admin/CoordinatorManager.php`
+* **Problem:** `render()` fires one `AcademicDetail::count()` query per coordinator row on each page (up to 15 queries per Livewire update).
+* **Fix:** Replace the `foreach` loop with a single grouped `DB::table('academic_details')->selectRaw(...)->groupBy()->get()` keyed by coordinator ID.
+* **Tasks:**
+  - [ ] Replace lines 454–471 student count loop with a single `selectRaw` grouped query
+  - [ ] Pass results as a keyed collection to the view
+* **Agent Prompt:**
+  > *"In `app/Http/Livewire/Admin/CoordinatorManager.php`, replace the foreach N+1 student count loop inside `render()` (around lines 454–471) with a single grouped SQL aggregate query. Use `DB::table('academic_details')->selectRaw(...)` grouped by `course_id` and `student_level_id` to produce a keyed array `$coordinatorStudentCounts`. Preserve the existing view variable name and blade template display logic."*
+
+#### Task 8.2: Cache Lookup Tables in `CoordinatorManager` (🟠 HIGH)
+* **File:** `app/Http/Livewire/Admin/CoordinatorManager.php`
+* **Problem:** `render()` always calls `Department::orderBy('name')->get()`, `Course::with('department')->orderBy('name')->get()`, and `StudentLevel::all()` — three full-table loads on every Livewire interaction.
+* **Fix:** Move these into `mount()` as public component properties (they don't change during a session).
+* **Tasks:**
+  - [ ] Add `public $departments = []`, `public $courses = []`, `public $studentLevels = []` properties
+  - [ ] Populate them in `mount()` instead of `render()`
+  - [ ] Remove the three queries from `render()`
+* **Agent Prompt:**
+  > *"In `app/Http/Livewire/Admin/CoordinatorManager.php`, move the `Department::get()`, `Course::with('department')->get()`, and `StudentLevel::all()` queries from `render()` into `mount()` as public Livewire properties (`$departments`, `$courses`, `$studentLevels`). This prevents three full-table scans on every Livewire re-render. Update `render()` to pass the pre-loaded properties to the view instead."*
+
+#### Task 8.3: Fix `CoordinatorResultReview::loadCourseSummaries()` — PHP-side Aggregation (🟠 HIGH)
+* **File:** `app/Http/Livewire/Coordinator/CoordinatorResultReview.php`
+* **Problem:** `loadLegacyCourseSummaries()` pulls **all** `Result` rows for the department and session into a PHP collection, then groups/counts them in PHP. For large departments this transfers MB of data.
+* **Fix:** Replace with a `DB::table('results')->selectRaw('department_course_id, status, COUNT(*) as count')->groupBy(...)` aggregate.
+* **Tasks:**
+  - [ ] Rewrite `loadLegacyCourseSummaries()` to use a single grouped SQL aggregate instead of `Result::get()` + PHP collection grouping
+  - [ ] Verify the `$courseSummaries` array structure passed to the view remains unchanged
+  - [ ] Run `tests/Feature/ResultApprovalWorkflowTest.php` to confirm no regression
+* **Agent Prompt:**
+  > *"In `app/Http/Livewire/Coordinator/CoordinatorResultReview.php`, rewrite `loadLegacyCourseSummaries()` to replace the `Result::get()` full collection load with a single `DB::table('results')->selectRaw('department_course_id, status, COUNT(*) as count')->groupBy('department_course_id', 'status')->get()` query. Build the `$this->courseSummaries` array from the aggregated result rather than grouping in PHP. Run `ResultApprovalWorkflowTest.php` to verify correctness."*
+
+#### Task 8.4: Fix `ResultEntry::loadStudentsAndResults()` — PHP-side Sort (🟠 MEDIUM)
+* **File:** `app/Http/Livewire/Lecturer/ResultEntry.php`
+* **Problem:** `RegisteredCourse::with(['academicDetail.user'])->get()->sortBy(...)` pulls all students into PHP memory and sorts there instead of at the DB level.
+* **Fix:** Add a `join` on `academic_details` and use `->orderBy('academic_details.matric_no')` before `->get()`.
+* **Tasks:**
+  - [ ] Rewrite the `RegisteredCourse` query in `loadStudentsAndResults()` to use `->join('academic_details', ...)->orderBy('academic_details.matric_no')->select('registered_courses.*')->get()`
+  - [ ] Remove the `->sortBy()` and `->values()` PHP-side sort calls
+* **Agent Prompt:**
+  > *"In `app/Http/Livewire/Lecturer/ResultEntry.php`, in `loadStudentsAndResults()`, replace the `->get()->sortBy(fn($rc) => $rc->academicDetail->matric_no)` pattern with a SQL-level `->join('academic_details', 'academic_details.id', '=', 'registered_courses.academic_detail_id')->orderBy('academic_details.matric_no')->select('registered_courses.*')->get()`. Keep the existing `->with(['academicDetail.user'])` eager load."*
+
+#### Task 8.5: Fix `ResultEntry::hydrate()` — Redundant Relation Reloads (🟡 MEDIUM)
+* **File:** `app/Http/Livewire/Lecturer/ResultEntry.php`
+* **Problem:** `hydrate()` fires on every Livewire request and calls `loadMissing()` unconditionally, re-querying the DB for relations that are already loaded.
+* **Fix:** Store the IDs, not the full model, in Livewire state. Load relations once in `render()` using `->loadMissing()` only when needed.
+* **Tasks:**
+  - [ ] Store only `$allocationId` (not `$allocation` model) in Livewire state
+  - [ ] Fetch `$allocation` fresh in `render()` with `->with(['departmentCourse.studentCourse'])`
+  - [ ] Remove the `hydrate()` method entirely
+* **Agent Prompt:**
+  > *"In `app/Http/Livewire/Lecturer/ResultEntry.php`, remove the `hydrate()` method. Instead, in `mount()` store only `$this->allocationId`. In `render()`, fetch `$allocation = CourseAllocation::with(['departmentCourse.studentCourse'])->find($this->allocationId)` once and pass it to the view. Update all references to `$this->allocation` in action methods to re-fetch via `CourseAllocation::find($this->allocationId)` when needed."*
+
+---
+
 ## How to Manage Cache and Migrations on Production
 
 Instruct your agent to use this script template whenever executing updates:

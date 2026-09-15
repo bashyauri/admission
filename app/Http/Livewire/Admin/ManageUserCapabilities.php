@@ -200,21 +200,24 @@ class ManageUserCapabilities extends Component
 
     public function render()
     {
-        // Query for staff list in modal dropdown/search
-        $staffQuery = User::query()
-            ->whereIn('role', ['hod', 'lecturer', 'exam_officer', 'admin', 'coordinator', 'cit']);
+        // Only query staff list when the modal is open — avoids a 50-row scan on every filter change
+        $staffList = collect();
+        if ($this->showAssignModal) {
+            $staffQuery = User::query()
+                ->whereIn('role', ['hod', 'lecturer', 'exam_officer', 'admin', 'coordinator', 'cit']);
 
-        if (!empty($this->staffSearch)) {
-            $searchTerm = '%' . $this->staffSearch . '%';
-            $staffQuery->where(function ($q) use ($searchTerm) {
-                $q->where('firstname', 'like', $searchTerm)
-                    ->orWhere('surname', 'like', $searchTerm)
-                    ->orWhere('email', 'like', $searchTerm)
-                    ->orWhere('phone', 'like', $searchTerm);
-            });
+            if (!empty($this->staffSearch)) {
+                $searchTerm = '%' . $this->staffSearch . '%';
+                $staffQuery->where(function ($q) use ($searchTerm) {
+                    $q->where('firstname', 'like', $searchTerm)
+                        ->orWhere('surname', 'like', $searchTerm)
+                        ->orWhere('email', 'like', $searchTerm)
+                        ->orWhere('phone', 'like', $searchTerm);
+                });
+            }
+
+            $staffList = $staffQuery->orderBy('surname')->limit(50)->get();
         }
-
-        $staffList = $staffQuery->orderBy('surname')->limit(50)->get();
 
         // Query capabilities table with filters
         $capabilitiesQuery = UserCapability::with(['user', 'department', 'grantedBy'])
@@ -245,10 +248,18 @@ class ManageUserCapabilities extends Component
         $capabilities = $capabilitiesQuery->paginate(15);
         $departments = Department::orderBy('name')->get();
 
-        $activeHodCount = UserCapability::where('capability', 'hod')->where('is_active', true)->count();
-        $activeExamOfficersCount = UserCapability::where('capability', 'exam_officer')->where('is_active', true)->count();
-        $activeLecturersCount = UserCapability::where('capability', 'lecturer')->where('is_active', true)->count();
-        $totalAssignmentsCount = UserCapability::count();
+        // Single aggregate query replacing 4 individual COUNTs — saves 3 DB round-trips per render
+        $counts = UserCapability::selectRaw(
+            "SUM(CASE WHEN capability = 'hod'          AND is_active = 1 THEN 1 ELSE 0 END) as hod_count,
+             SUM(CASE WHEN capability = 'exam_officer' AND is_active = 1 THEN 1 ELSE 0 END) as exam_officer_count,
+             SUM(CASE WHEN capability = 'lecturer'     AND is_active = 1 THEN 1 ELSE 0 END) as lecturer_count,
+             COUNT(*) as total"
+        )->first();
+
+        $activeHodCount          = (int) ($counts->hod_count ?? 0);
+        $activeExamOfficersCount = (int) ($counts->exam_officer_count ?? 0);
+        $activeLecturersCount    = (int) ($counts->lecturer_count ?? 0);
+        $totalAssignmentsCount   = (int) ($counts->total ?? 0);
 
         return view('livewire.admin.manage-user-capabilities', [
             'capabilities' => $capabilities,

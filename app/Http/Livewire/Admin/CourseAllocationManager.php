@@ -95,6 +95,7 @@ class CourseAllocationManager extends Component
             ->toArray();
 
         $registeredCourseSessions = RegisteredCourse::query()
+            ->distinct()
             ->pluck('academic_session')
             ->filter()
             ->unique()
@@ -102,6 +103,7 @@ class CourseAllocationManager extends Component
             ->toArray();
 
         $allocationSessions = CourseAllocation::query()
+            ->distinct()
             ->pluck('academic_session')
             ->filter()
             ->unique()

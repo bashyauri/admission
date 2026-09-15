@@ -130,10 +130,10 @@
                     {{-- Filters Row --}}
                     <div class="flex flex-wrap items-center gap-3 mt-4 pb-4">
                         <div class="flex-1 min-w-[200px]">
-                            <input wire:model.debounce.300ms="searchQuery" type="text" placeholder="Search staff name, email, phone..." class="text-sm focus:shadow-soft-primary-outline leading-5.6 ease-soft block w-full appearance-none rounded-lg border border-solid border-gray-300 bg-white bg-clip-padding py-2 px-3 font-normal text-gray-700 transition-all focus:border-fuchsia-300 focus:outline-none focus:transition-shadow" />
+                            <input wire:model.live.debounce.500ms="searchQuery" type="text" placeholder="Search staff name, email, phone..." class="text-sm focus:shadow-soft-primary-outline leading-5.6 ease-soft block w-full appearance-none rounded-lg border border-solid border-gray-300 bg-white bg-clip-padding py-2 px-3 font-normal text-gray-700 transition-all focus:border-fuchsia-300 focus:outline-none focus:transition-shadow" />
                         </div>
                         <div class="min-w-[160px]">
-                            <select wire:model="filterCapability" class="text-sm focus:shadow-soft-primary-outline leading-5.6 ease-soft block w-full rounded-lg border border-solid border-gray-300 bg-white py-2 px-3 font-normal text-gray-700 focus:border-fuchsia-300 focus:outline-none">
+                            <select wire:model.live="filterCapability" class="text-sm focus:shadow-soft-primary-outline leading-5.6 ease-soft block w-full rounded-lg border border-solid border-gray-300 bg-white py-2 px-3 font-normal text-gray-700 focus:border-fuchsia-300 focus:outline-none">
                                 <option value="">All Capabilities</option>
                                 <option value="hod">HOD (Head of Dept)</option>
                                 <option value="exam_officer">Exam Officer</option>
@@ -142,7 +142,7 @@
                             </select>
                         </div>
                         <div class="min-w-[180px]">
-                            <select wire:model="filterDepartment" class="text-sm focus:shadow-soft-primary-outline leading-5.6 ease-soft block w-full rounded-lg border border-solid border-gray-300 bg-white py-2 px-3 font-normal text-gray-700 focus:border-fuchsia-300 focus:outline-none">
+                            <select wire:model.live="filterDepartment" class="text-sm focus:shadow-soft-primary-outline leading-5.6 ease-soft block w-full rounded-lg border border-solid border-gray-300 bg-white py-2 px-3 font-normal text-gray-700 focus:border-fuchsia-300 focus:outline-none">
                                 <option value="">All Departments</option>
                                 @foreach($departments as $dept)
                                     <option value="{{ $dept->id }}">{{ $dept->name }}</option>
@@ -150,7 +150,7 @@
                             </select>
                         </div>
                         <div class="min-w-[130px]">
-                            <select wire:model="filterStatus" class="text-sm focus:shadow-soft-primary-outline leading-5.6 ease-soft block w-full rounded-lg border border-solid border-gray-300 bg-white py-2 px-3 font-normal text-gray-700 focus:border-fuchsia-300 focus:outline-none">
+                            <select wire:model.live="filterStatus" class="text-sm focus:shadow-soft-primary-outline leading-5.6 ease-soft block w-full rounded-lg border border-solid border-gray-300 bg-white py-2 px-3 font-normal text-gray-700 focus:border-fuchsia-300 focus:outline-none">
                                 <option value="">All Statuses</option>
                                 <option value="1">Active Only</option>
                                 <option value="0">Inactive Only</option>

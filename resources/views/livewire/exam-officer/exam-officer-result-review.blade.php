@@ -55,7 +55,7 @@
                 <div class="px-6 py-4 border-b bg-slate-50 flex flex-wrap items-center gap-6">
                     <div>
                         <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Department</label>
-                        <select wire:model="selectedDepartmentId" class="text-sm border border-gray-300 rounded-lg px-3 py-1.5 focus:ring-2 focus:ring-fuchsia-400">
+                        <select wire:model.live="selectedDepartmentId" class="text-sm border border-gray-300 rounded-lg px-3 py-1.5 focus:ring-2 focus:ring-fuchsia-400">
                             <option value="all">All Departments</option>
                             @foreach($availableDepartments as $dept)
                                 <option value="{{ $dept['id'] }}">{{ $dept['name'] }}</option>
@@ -65,7 +65,7 @@
 
                     <div>
                         <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Academic Session</label>
-                        <select wire:model="selectedSession" class="text-sm border border-gray-300 rounded-lg px-3 py-1.5 focus:ring-2 focus:ring-fuchsia-400">
+                        <select wire:model.live="selectedSession" class="text-sm border border-gray-300 rounded-lg px-3 py-1.5 focus:ring-2 focus:ring-fuchsia-400">
                             @foreach($availableSessions as $sess)
                                 <option value="{{ $sess }}">{{ $sess }}</option>
                             @endforeach
@@ -74,7 +74,7 @@
 
                     <div>
                         <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Semester</label>
-                        <select wire:model="selectedSemester" class="text-sm border border-gray-300 rounded-lg px-3 py-1.5 focus:ring-2 focus:ring-fuchsia-400">
+                        <select wire:model.live="selectedSemester" class="text-sm border border-gray-300 rounded-lg px-3 py-1.5 focus:ring-2 focus:ring-fuchsia-400">
                             <option value="first">Harmattan (First)</option>
                             <option value="second">Rain (Second)</option>
                         </select>
@@ -89,7 +89,7 @@
 
                         <div>
                             <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Status Filter</label>
-                            <select wire:model="statusFilter" class="text-sm border border-gray-300 rounded-lg px-3 py-1.5 focus:ring-2 focus:ring-fuchsia-400">
+                            <select wire:model.live="statusFilter" class="text-sm border border-gray-300 rounded-lg px-3 py-1.5 focus:ring-2 focus:ring-fuchsia-400">
                                 <option value="all">All Courses</option>
                                 <option value="hod_approved">Ready for Release (HOD Approved)</option>
                                 <option value="released">Released to Students</option>
