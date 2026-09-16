@@ -63,6 +63,24 @@
                 </a>
             </li>
 
+            <!-- Graduation Audit & Clearance -->
+            <li class="mt-0.5 w-full">
+                <a class="ease-soft-in-out py-2.7 text-size-sm my-0 mx-4 flex items-center whitespace-nowrap px-4 {{ Route::currentRouteName() == 'exam-officer.graduation-audit' ? 'font-semibold text-slate-700 xl:shadow-soft-xl rounded-lg bg-white' : 'font-medium text-slate-500 shadow-none' }} transition-colors dark:text-white dark:opacity-80"
+                    href="{{ route('exam-officer.graduation-audit') }}">
+                    <div class="stroke-none mr-2 flex h-8 w-8 items-center justify-center rounded-lg bg-white bg-center fill-current p-2.5 text-center text-black {{ Route::currentRouteName() == 'exam-officer.graduation-audit' ? 'shadow-soft-sm bg-gradient-fuchsia' : 'shadow-soft-2xl' }}">
+                        {{-- Graduation Cap Icon --}}
+                        <svg width="12px" height="12px" viewBox="0 0 40 40" version="1.1" xmlns="http://www.w3.org/2000/svg">
+                            <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+                                <path class="{{ Route::currentRouteName() == 'exam-officer.graduation-audit' ? '' : 'fill-slate-800' }}" d="M20,4 L2,14 L20,24 L38,14 L20,4 Z" opacity="0.6"/>
+                                <path class="{{ Route::currentRouteName() == 'exam-officer.graduation-audit' ? '' : 'fill-slate-800' }}" d="M34,18.5 L34,28 L32,28 L32,19.6 L20,26.3 L8,19.6 L8,28 L6,28 L6,18.5 L20,26.3 L34,18.5 Z"/>
+                                <path class="{{ Route::currentRouteName() == 'exam-officer.graduation-audit' ? '' : 'fill-slate-800' }}" d="M12,24 L12,32 C12,35 15.6,37 20,37 C24.4,37 28,35 28,32 L28,24 C25.5,25.8 22.8,26.7 20,26.7 C17.2,26.7 14.5,25.8 12,24 Z"/>
+                            </g>
+                        </svg>
+                    </div>
+                    <span class="ml-1 duration-300 opacity-100 pointer-events-none ease-soft">Graduation Audit</span>
+                </a>
+            </li>
+
             <!-- Roles Switcher (only shown if user has extra capabilities) -->
             @if(auth()->user()->canActAsAdmin() || auth()->user()->canActAsCit() || auth()->user()->canActAsHod() || auth()->user()->canActAsLecturer() || auth()->user()->canActAsCoordinator())
             <li class="w-full mt-4">

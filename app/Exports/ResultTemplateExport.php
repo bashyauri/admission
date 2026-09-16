@@ -8,10 +8,14 @@ use Maatwebsite\Excel\Concerns\WithHeadings;
 class ResultTemplateExport implements FromCollection, WithHeadings
 {
     protected $students;
+    protected int $maxCa;
+    protected int $maxExam;
 
-    public function __construct($students)
+    public function __construct($students, int $maxCa = 40, int $maxExam = 60)
     {
         $this->students = $students;
+        $this->maxCa = $maxCa;
+        $this->maxExam = $maxExam;
     }
 
     public function collection()
@@ -38,8 +42,8 @@ class ResultTemplateExport implements FromCollection, WithHeadings
             'Matric No',
             'First Name',
             'Surname',
-            'CA Score (Max 40)',
-            'Exam Score (Max 60)',
+            "CA Score (Max {$this->maxCa})",
+            "Exam Score (Max {$this->maxExam})",
             'Absent (Yes/No)',
         ];
     }

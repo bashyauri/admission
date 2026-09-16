@@ -27,6 +27,10 @@ class ResultEntry extends Component
     public array $uploadErrors = [];
     public int $previewValidCount = 0;
 
+    // Course score weights
+    public int $maxCa = 40;
+    public int $maxExam = 60;
+
     // Session management
     public string $selectedSession;
     public string $selectedSemester = 'first';
@@ -47,6 +51,7 @@ class ResultEntry extends Component
         $this->selectedSession = $this->allocation->academic_session;
         $this->selectedSemester = $this->allocation->semester ?: 'first';
 
+        $this->loadCourseWeights();
         $this->loadStudentsAndResults();
     }
 
@@ -57,6 +62,16 @@ class ResultEntry extends Component
         }
         if ($this->students && method_exists($this->students, 'loadMissing')) {
             $this->students->loadMissing(['academicDetail.user']);
+        }
+        $this->loadCourseWeights();
+    }
+
+    protected function loadCourseWeights(): void
+    {
+        if (isset($this->allocation)) {
+            $studentCourse = $this->allocation->departmentCourse->studentCourse ?? null;
+            $this->maxCa = $studentCourse?->getMaxCa() ?? 40;
+            $this->maxExam = $studentCourse?->getMaxExam() ?? 60;
         }
     }
 
@@ -88,6 +103,7 @@ class ResultEntry extends Component
     public function loadStudentsAndResults()
     {
         $this->enforceAllocationContext();
+        $this->loadCourseWeights();
 
         $session = $this->allocation->academic_session;
         $semester = $this->allocation->semester ?: 'first';
@@ -145,13 +161,13 @@ class ResultEntry extends Component
             $exam = 0;
         }
 
-        if ($ca !== null && $ca !== '' && ($ca < 0 || $ca > 40)) {
-            $this->alert('error', 'CA Score must be between 0 and 40.');
+        if ($ca !== null && $ca !== '' && (!is_numeric($ca) || (float) $ca < 0 || (float) $ca > $this->maxCa)) {
+            $this->alert('error', "CA Score must be between 0 and {$this->maxCa}.");
             return;
         }
 
-        if ($exam !== null && $exam !== '' && ($exam < 0 || $exam > 60)) {
-            $this->alert('error', 'Exam Score must be between 0 and 60.');
+        if ($exam !== null && $exam !== '' && (!is_numeric($exam) || (float) $exam < 0 || (float) $exam > $this->maxExam)) {
+            $this->alert('error', "Exam Score must be between 0 and {$this->maxExam}.");
             return;
         }
 
@@ -160,113 +176,201 @@ class ResultEntry extends Component
             return;
         }
 
-        $session = $this->allocation->academic_session;
-        $semester = $this->allocation->semester ?: 'first';
-        $gradeService = new GradeCalculationService();
+        $student = RegisteredCourse::with('academicDetail')->where('department_course_id', $this->allocation->department_course_id)
+            ->whereHas('academicDetail', function ($query) use ($userId) {
+                $query->where('user_id', $userId);
+            })
+            ->where('academic_session', $this->selectedSession)
+            ->first();
 
-        $hasCompleteScore = $isAbsent || ($ca !== null && $ca !== '' && $exam !== null && $exam !== '');
-        $total = $hasCompleteScore ? floatval($ca) + floatval($exam) : null;
-        $grade = $hasCompleteScore ? ($isAbsent ? 'F' : $gradeService->calculateGrade($total)) : null;
-        $gradePoint = $grade ? $gradeService->calculateGradePoint($grade) : null;
-
-        $regCourse = $this->students->first(function ($rc) use ($userId) {
-            return ($rc->academicDetail->user_id ?? null) == $userId;
-        });
-
-        if (!$regCourse) {
-            $this->alert('error', 'This student is not registered for this allocated course and session.');
+        if (!$student) {
+            $this->alert('error', 'Student not found.');
             return;
         }
 
-        $creditUnits = $regCourse->units ?? 0;
+        $gradeService = new GradeCalculationService();
+        $total = ($ca !== null && $ca !== '' && $exam !== null && $exam !== '') ? ((float) $ca + (float) $exam) : null;
+        if ($isAbsent) {
+            $total = 0.0;
+        }
+        $grade = $isAbsent ? 'F' : ($total !== null ? $gradeService->calculateGrade($total) : null);
+        $gradePoint = $isAbsent ? 0 : ($grade ? $gradeService->calculateGradePoint($grade) : null);
+        $creditUnits = $student->units;
 
         Result::updateOrCreate(
             [
                 'user_id' => $userId,
-                'registered_course_id' => $regCourse->id,
-                'academic_session' => $session,
-                'semester' => $semester,
+                'registered_course_id' => $student->id,
+                'academic_session' => $this->selectedSession,
+                'semester' => $this->selectedSemester,
             ],
             [
                 'department_course_id' => $this->allocation->department_course_id,
-                'academic_detail_id' => $regCourse->academic_detail_id,
+                'academic_detail_id' => $student->academic_detail_id,
                 'ca_score' => ($ca === '' || $ca === null) ? null : $ca,
                 'exam_score' => ($exam === '' || $exam === null) ? null : $exam,
                 'total_score' => $total,
                 'grade' => $grade,
                 'grade_point' => $gradePoint,
                 'credit_units' => $creditUnits,
-                'grade_point_total' => $gradePoint === null ? null : $gradePoint * $creditUnits,
+                'grade_point_total' => $gradePoint !== null ? $gradePoint * $creditUnits : null,
                 'status' => 'pending',
                 'lecturer_id' => Auth::id(),
                 'remarks' => $isAbsent ? 'Absent' : null,
             ]
         );
 
-        $this->results[$userId]['status'] = 'pending'; // Refresh local state
-        $this->alert('success', 'Score saved!', ['toast' => true, 'position' => 'top-end', 'timer' => 1500]);
+        $this->alert('success', 'Score saved successfully.');
     }
 
-    public function submitAll()
+    public function submitAll(): void
     {
-        $session = $this->allocation->academic_session;
-        $semester = $this->allocation->semester ?: 'first';
+        $this->submitResults();
+    }
 
-        // Get pending results and assign them to students' respective coordinators
-        $pendingResults = Result::with('academicDetail')
-            ->where('department_course_id', $this->allocation->department_course_id)
+    public function submitResults()
+    {
+        $session  = $this->selectedSession;
+        $semester = $this->selectedSemester;
+
+        // 1. Load all pending results with academicDetail fields we need for coordinator lookup
+        $results = Result::where('department_course_id', $this->allocation->department_course_id)
             ->where('academic_session', $session)
             ->where('semester', $semester)
             ->where('status', 'pending')
+            ->with(['academicDetail:id,user_id,course_id,department_id,student_level_id,admission_session,coordinator_id'])
             ->get();
 
-        $incompleteResults = $pendingResults->filter(function (Result $result): bool {
-            return $result->ca_score === null || $result->exam_score === null;
-        });
-
-        if ($incompleteResults->isNotEmpty()) {
-            $this->alert(
-                'error',
-                "{$incompleteResults->count()} pending result(s) have incomplete CA or exam scores. Complete them before submitting."
-            );
-
+        if ($results->isEmpty()) {
+            $this->alert('warning', 'No pending results to submit.');
             return;
         }
 
-        $updated = 0;
-        $unassignedCount = 0;
-        foreach ($pendingResults as $result) {
-            // Get the student's course cohort coordinator
-            $student = $result->academicDetail;
-            $coordinator = $student?->courseCohortCoordinator;
-            
-            if ($coordinator) {
-                $result->update([
-                    'status' => 'submitted',
-                    'coordinator_id' => $coordinator->id,
-                ]);
-                $updated++;
-            } else {
-                $unassignedCount++;
-                if ($student) {
-                    \Log::warning("No coordinator found for student {$student->user_id} in course {$student->course_id}, level {$student->student_level_id}, session {$student->admission_session}");
-                }
+        // 2. Validate completeness before touching anything
+        $incomplete = $results->filter(fn ($r) =>
+            $r->remarks !== 'Absent' && ($r->ca_score === null || $r->exam_score === null)
+        );
+
+        if ($incomplete->isNotEmpty()) {
+            $this->alert('error', 'Cannot submit results. Some students do not have both CA and Exam scores entered, or are not marked as Absent.');
+            return;
+        }
+
+        // 3. Bulk-resolve coordinators in ONE query per (course+level+session) combination
+        //    instead of firing up to 5 queries per student inside the loop.
+        $acadDetails = $results->map->academicDetail->filter();
+
+        // Gather all unique (course_id, student_level_id, admission_session) combos
+        $cohortKeys = $acadDetails->map(fn ($ad) => [
+            'course_id'       => $ad->course_id,
+            'department_id'   => $ad->department_id,
+            'level_id'        => $ad->student_level_id,
+            'admission'       => $ad->admission_session,
+        ])->unique(fn ($k) => $k['course_id'] . '|' . $k['level_id'] . '|' . $k['admission'])->values();
+
+        // Single bulk fetch of all potentially matching coordinators
+        $coordinators = \App\Models\Coordinator::where(function ($q) use ($cohortKeys) {
+            foreach ($cohortKeys as $key) {
+                $q->orWhere(function ($sub) use ($key) {
+                    if ($key['course_id']) {
+                        $sub->where('course_id', $key['course_id'])
+                            ->where('student_level_id', $key['level_id']);
+                        if ($key['admission']) {
+                            $sub->where(function ($s2) use ($key) {
+                                $s2->where('academic_session', $key['admission'])
+                                   ->orWhereNull('academic_session');
+                            });
+                        }
+                    } elseif ($key['department_id']) {
+                        $sub->where('department_id', $key['department_id'])
+                            ->where('student_level_id', $key['level_id'])
+                            ->whereNull('course_id');
+                    }
+                });
+            }
+        })->get();
+
+        // Build a fast lookup: "courseId|levelId|admissionSession" => coordinator
+        $coordMap = [];
+        foreach ($coordinators as $coord) {
+            // Prefer course+level+session exact match
+            $key = $coord->course_id . '|' . $coord->student_level_id . '|' . $coord->academic_session;
+            $coordMap[$key] = $coordMap[$key] ?? $coord;
+            // Also index course+level (session-agnostic fallback)
+            $fallbackKey = $coord->course_id . '|' . $coord->student_level_id . '|';
+            $coordMap[$fallbackKey] = $coordMap[$fallbackKey] ?? $coord;
+            // Dept-level fallback
+            if (!$coord->course_id && $coord->department_id) {
+                $deptKey = 'dept|' . $coord->department_id . '|' . $coord->student_level_id;
+                $coordMap[$deptKey] = $coordMap[$deptKey] ?? $coord;
             }
         }
 
+        // 4. Resolve coordinator per academicDetail using the pre-built map (zero extra queries)
+        $resolveCoordinator = function (\App\Models\AcademicDetail $ad) use ($coordMap): ?\App\Models\Coordinator {
+            $exactKey    = $ad->course_id . '|' . $ad->student_level_id . '|' . $ad->admission_session;
+            $courseKey   = $ad->course_id . '|' . $ad->student_level_id . '|';
+            $deptKey     = 'dept|' . $ad->department_id . '|' . $ad->student_level_id;
+            $legacyCoord = $ad->coordinator_id ? \App\Models\Coordinator::find($ad->coordinator_id) : null;
+
+            return $coordMap[$exactKey]
+                ?? $coordMap[$courseKey]
+                ?? $coordMap[$deptKey]
+                ?? $legacyCoord;
+        };
+
+        // 5. Batch all updates: separate result IDs by coordinator
+        //    Then do ONE update per coordinator group instead of N individual updates
+        $byCoordinator = []; // coordinator_id => [result_ids]
+        $unassignedCount = 0;
+        $updated = 0;
+
+        foreach ($results as $result) {
+            $ad = $result->academicDetail;
+            if (!$ad) {
+                $unassignedCount++;
+                continue;
+            }
+
+            $coordinator = $resolveCoordinator($ad);
+
+            if ($coordinator) {
+                $byCoordinator[$coordinator->id][] = $result->id;
+                $updated++;
+            } else {
+                $unassignedCount++;
+                \Log::warning("No coordinator found for student {$ad->user_id} course={$ad->course_id} level={$ad->student_level_id} session={$ad->admission_session}");
+            }
+        }
+
+        // Single UPDATE per coordinator group (replaces N individual ->update() calls)
+        foreach ($byCoordinator as $coordinatorId => $resultIds) {
+            \Illuminate\Support\Facades\DB::table('results')
+                ->whereIn('id', $resultIds)
+                ->update([
+                    'status'         => 'submitted',
+                    'coordinator_id' => $coordinatorId,
+                    'updated_at'     => now(),
+                ]);
+        }
+
         if ($updated > 0) {
-            $this->alert('success', "{$updated} results submitted to respective course coordinators successfully.");
+            $this->alert('success', "{$updated} result(s) submitted to coordinator(s) successfully.");
             $this->loadStudentsAndResults();
+        } elseif ($unassignedCount > 0) {
+            $this->alert('warning', "No coordinator found for {$unassignedCount} student(s). Please ensure coordinators are assigned.");
         } else {
-            $this->alert('info', 'No pending results to submit or no coordinators assigned to students.');
+            $this->alert('info', 'No pending results to submit.');
         }
     }
 
     public function downloadTemplate()
     {
-        $courseCode = $this->allocation->departmentCourse->studentCourse->code ?? 'Course';
+        $this->loadCourseWeights();
+        $studentCourse = $this->allocation->departmentCourse->studentCourse ?? null;
+        $courseCode = $studentCourse->code ?? 'Course';
         $fileName = 'Result_Template_' . str_replace(' ', '_', $courseCode) . '_' . str_replace('/', '-', $this->allocation->academic_session) . '.csv';
-        return Excel::download(new ResultTemplateExport($this->students), $fileName);
+        return Excel::download(new ResultTemplateExport($this->students, $this->maxCa, $this->maxExam), $fileName);
     }
 
     public function previewResults(): void
@@ -275,12 +379,16 @@ class ResultEntry extends Component
             'file' => 'required|mimes:csv,txt,xlsx|max:2048',
         ]);
 
+        $this->loadCourseWeights();
+
         try {
             $import = new ResultImport(
                 $this->allocation,
                 $this->allocation->academic_session,
                 $this->allocation->semester ?: 'first',
-                false
+                false,
+                $this->maxCa,
+                $this->maxExam
             );
             Excel::import($import, $this->file->getRealPath());
 
@@ -296,15 +404,19 @@ class ResultEntry extends Component
     {
         if (!$this->file || $this->previewValidCount === 0) {
             $this->alert('error', 'Preview a file with at least one valid result before importing.');
-
             return;
         }
+
+        $this->loadCourseWeights();
 
         try {
             $import = new ResultImport(
                 $this->allocation,
                 $this->allocation->academic_session,
-                $this->allocation->semester ?: 'first'
+                $this->allocation->semester ?: 'first',
+                true,
+                $this->maxCa,
+                $this->maxExam
             );
             Excel::import($import, $this->file->getRealPath());
 
@@ -336,6 +448,10 @@ class ResultEntry extends Component
 
     public function render()
     {
-        return view('livewire.lecturer.result-entry')->layout('layouts.app');
+        $this->loadCourseWeights();
+        return view('livewire.lecturer.result-entry', [
+            'maxCa' => $this->maxCa,
+            'maxExam' => $this->maxExam,
+        ])->layout('layouts.app');
     }
 }

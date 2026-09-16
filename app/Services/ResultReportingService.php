@@ -141,8 +141,9 @@ class ResultReportingService
         $courseCode = $results->first()?->course_code_snapshot 
             ?? $departmentCourse->studentCourse?->code 
             ?? 'N/A';
+        // StudentCourse uses 'title' column (not 'name')
         $courseTitle = $results->first()?->course_title_snapshot 
-            ?? $departmentCourse->studentCourse?->name 
+            ?? $departmentCourse->studentCourse?->title 
             ?? 'N/A';
         $creditUnits = (int) ($results->first()?->credit_units_snapshot 
             ?? $departmentCourse->units 
@@ -157,7 +158,10 @@ class ResultReportingService
                 'department_id' => $departmentCourse->department_id,
                 'department_name' => $departmentCourse->department?->name ?? 'N/A',
                 'faculty_name' => $departmentCourse->department?->faculty ?? 'N/A',
-                'lecturer_name' => $allocation?->lecturer?->name ?? 'Not Allocated',
+                // User model uses surname + firstname fields, not a single 'name' column
+                'lecturer_name' => $allocation?->lecturer
+                    ? trim(($allocation->lecturer->surname ?? '') . ' ' . ($allocation->lecturer->firstname ?? ''))
+                    : 'Not Allocated',
                 'session' => $session,
                 'semester' => $semester,
                 'level_id' => $levelId,

@@ -70,7 +70,18 @@
                             {{ ($allocation->semester ?? 'first') === 'second' ? 'Rain (Second)' : 'Harmattan (First)' }}
                         </span>
                     </div>
-                    <div class="mt-auto">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Scoring Weight</label>
+                        <span class="inline-flex items-center gap-1.5 text-xs font-bold border border-fuchsia-200 bg-fuchsia-50 rounded-lg px-3 py-1.5 text-fuchsia-800">
+                            <span>CA: {{ $maxCa }}%</span>
+                            <span class="text-fuchsia-400">/</span>
+                            <span>Exam: {{ $maxExam }}%</span>
+                            @if($maxCa !== 40 || $maxExam !== 60)
+                                <span class="ml-1 text-[10px] bg-fuchsia-600 text-white px-1.5 py-0.5 rounded font-black tracking-wide uppercase">Practical / Custom</span>
+                            @endif
+                        </span>
+                    </div>
+                    <div class="mt-auto ml-auto">
                         <span class="text-xs text-slate-400">
                             Showing <strong class="text-slate-700">{{ $students->count() }}</strong> student(s)
                         </span>
@@ -140,8 +151,8 @@
                                 <tr>
                                     <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-gray-200 shadow-none text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Student</th>
                                     <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-gray-200 shadow-none text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Matric No</th>
-                                    <th class="px-6 py-3 font-bold text-center uppercase align-middle bg-transparent border-b border-gray-200 shadow-none text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">CA Score (40)</th>
-                                    <th class="px-6 py-3 font-bold text-center uppercase align-middle bg-transparent border-b border-gray-200 shadow-none text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Exam Score (60)</th>
+                                    <th class="px-6 py-3 font-bold text-center uppercase align-middle bg-transparent border-b border-gray-200 shadow-none text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">CA Score ({{ $maxCa }})</th>
+                                    <th class="px-6 py-3 font-bold text-center uppercase align-middle bg-transparent border-b border-gray-200 shadow-none text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Exam Score ({{ $maxExam }})</th>
                                     <th class="px-6 py-3 font-bold text-center uppercase align-middle bg-transparent border-b border-gray-200 shadow-none text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Total</th>
                                     <th class="px-6 py-3 font-bold text-center uppercase align-middle bg-transparent border-b border-gray-200 shadow-none text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Grade</th>
                                     <th class="px-6 py-3 font-bold text-center uppercase align-middle bg-transparent border-b border-gray-200 shadow-none text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Status</th>
@@ -155,8 +166,8 @@
                                         $ca = $results[$userId]['ca'] ?? null;
                                         $exam = $results[$userId]['exam'] ?? null;
                                         $isAbsent = (bool) ($results[$userId]['is_absent'] ?? false);
-                                        $hasInvalidCa = $ca !== null && $ca !== '' && (!is_numeric($ca) || (float) $ca < 0 || (float) $ca > 40);
-                                        $hasInvalidExam = $exam !== null && $exam !== '' && (!is_numeric($exam) || (float) $exam < 0 || (float) $exam > 60);
+                                        $hasInvalidCa = $ca !== null && $ca !== '' && (!is_numeric($ca) || (float) $ca < 0 || (float) $ca > $maxCa);
+                                        $hasInvalidExam = $exam !== null && $exam !== '' && (!is_numeric($exam) || (float) $exam < 0 || (float) $exam > $maxExam);
                                         $hasInvalidScore = $hasInvalidCa || $hasInvalidExam;
                                         $hasScore = ($ca !== null && $ca !== '') || ($exam !== null && $exam !== '');
                                         $hasCompleteScore = $isAbsent || ($ca !== null && $ca !== '' && $exam !== null && $exam !== '');
@@ -189,14 +200,14 @@
                                             <p class="mb-0 text-xs font-semibold leading-tight font-mono">{{ $student->academicDetail->matric_no ?? 'N/A' }}</p>
                                         </td>
                                         <td class="p-2 text-center align-middle bg-transparent border-b whitespace-nowrap shadow-transparent">
-                                            <input type="number" step="0.01" min="0" max="40"
+                                            <input type="number" step="0.01" min="0" max="{{ $maxCa }}"
                                                 wire:model.live.debounce.300ms="results.{{ $userId }}.ca"
                                                 aria-invalid="{{ $hasInvalidCa ? 'true' : 'false' }}"
                                                 class="text-sm px-2 py-1 border rounded w-20 text-center focus:ring-2 {{ $hasInvalidCa ? 'border-red-500 bg-red-50 text-red-700 focus:ring-red-200' : 'focus:ring-fuchsia-400' }} {{ !$isPending ? 'bg-gray-100 cursor-not-allowed' : '' }}"
                                                 {{ !$isPending || $isAbsent ? 'disabled' : '' }}>
                                         </td>
                                         <td class="p-2 text-center align-middle bg-transparent border-b whitespace-nowrap shadow-transparent">
-                                            <input type="number" step="0.01" min="0" max="60"
+                                            <input type="number" step="0.01" min="0" max="{{ $maxExam }}"
                                                 wire:model.live.debounce.300ms="results.{{ $userId }}.exam"
                                                 aria-invalid="{{ $hasInvalidExam ? 'true' : 'false' }}"
                                                 class="text-sm px-2 py-1 border rounded w-20 text-center focus:ring-2 {{ $hasInvalidExam ? 'border-red-500 bg-red-50 text-red-700 focus:ring-red-200' : 'focus:ring-fuchsia-400' }} {{ !$isPending ? 'bg-gray-100 cursor-not-allowed' : '' }}"

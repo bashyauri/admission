@@ -34,4 +34,14 @@ class DepartmentCourse extends Model
     {
         return $this->hasMany(CarryOverCourse::class, 'department_course_id');
     }
+
+    public function getMaxCa(): int
+    {
+        return $this->studentCourse?->getMaxCa() ?? 40;
+    }
+
+    public function getMaxExam(): int
+    {
+        return $this->studentCourse?->getMaxExam() ?? 60;
+    }
 }

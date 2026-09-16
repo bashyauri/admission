@@ -2,35 +2,45 @@
 
 namespace App\Imports;
 
-use Illuminate\Support\Collection;
-use Maatwebsite\Excel\Concerns\ToCollection;
-use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use App\Models\AcademicDetail;
+use App\Models\CourseAllocation;
 use App\Models\RegisteredCourse;
 use App\Models\Result;
-use App\Models\CourseAllocation;
 use App\Services\GradeCalculationService;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
+use Maatwebsite\Excel\Concerns\ToCollection;
+use Maatwebsite\Excel\Concerns\WithHeadingRow;
 
 class ResultImport implements ToCollection, WithHeadingRow
 {
     protected $allocation;
-    protected string $session;
-    protected string $semester;
+    protected $session;
+    protected $semester;
     public $errors = [];
     public $successCount = 0;
     public array $previewRows = [];
+    public int $maxCa;
+    public int $maxExam;
 
     public function __construct(
         CourseAllocation $allocation,
         string $session,
         string $semester,
-        private readonly bool $shouldPersist = true
-    )
-    {
+        private readonly bool $shouldPersist = true,
+        ?int $maxCa = null,
+        ?int $maxExam = null
+    ) {
         $this->allocation = $allocation;
         $this->session = $session;
         $this->semester = $semester;
+
+        $studentCourse = $allocation->relationLoaded('departmentCourse') && $allocation->departmentCourse
+            ? $allocation->departmentCourse->studentCourse
+            : ($allocation->departmentCourse()->with('studentCourse')->first()?->studentCourse ?? null);
+
+        $this->maxCa = $maxCa ?? $studentCourse?->getMaxCa() ?? 40;
+        $this->maxExam = $maxExam ?? $studentCourse?->getMaxExam() ?? 60;
     }
 
     public function collection(Collection $rows)
@@ -41,14 +51,19 @@ class ResultImport implements ToCollection, WithHeadingRow
 
         foreach ($rows as $index => $row) {
             $rowNumber = $index + 2;
-            $matricNo = trim($row['matric_no'] ?? '');
-            $caScore = trim($row['ca_score_max_40'] ?? '');
-            $examScore = trim($row['exam_score_max_60'] ?? '');
-            $absentValue = strtolower(trim($row['absent_yesno'] ?? 'no'));
+            $rowArray = $row->toArray();
+
+            $matricNo = trim((string) ($rowArray['matric_no'] ?? ''));
+            $caScore = $this->extractScore($rowArray, 'ca', $this->maxCa);
+            $examScore = $this->extractScore($rowArray, 'exam', $this->maxExam);
+
+            $absentValue = strtolower(trim((string) ($rowArray['absent_yesno'] ?? $rowArray['absent'] ?? 'no')));
             $isAbsent = in_array($absentValue, ['yes', 'y', 'true', '1'], true);
-            
+
             // Skip empty rows
-            if (empty($matricNo) && empty($caScore) && empty($examScore)) continue;
+            if (empty($matricNo) && empty($caScore) && empty($examScore)) {
+                continue;
+            }
 
             if (empty($matricNo)) {
                 $this->addPreviewError($rowNumber, $matricNo, $caScore, $examScore, 'Matric No is missing.');
@@ -73,17 +88,17 @@ class ResultImport implements ToCollection, WithHeadingRow
                 continue;
             }
 
-            // Validate scores
+            // Validate scores against dynamic max weights
             $ca = $caScore === '' ? null : floatval($caScore);
             $exam = $examScore === '' ? null : floatval($examScore);
 
-            if ($ca !== null && ($ca < 0 || $ca > 40)) {
-                $this->addPreviewError($rowNumber, $matricNo, $caScore, $examScore, 'CA score must be between 0 and 40.');
+            if ($ca !== null && ($ca < 0 || $ca > $this->maxCa)) {
+                $this->addPreviewError($rowNumber, $matricNo, $caScore, $examScore, "CA score must be between 0 and {$this->maxCa}.");
                 continue;
             }
 
-            if ($exam !== null && ($exam < 0 || $exam > 60)) {
-                $this->addPreviewError($rowNumber, $matricNo, $caScore, $examScore, 'Exam score must be between 0 and 60.');
+            if ($exam !== null && ($exam < 0 || $exam > $this->maxExam)) {
+                $this->addPreviewError($rowNumber, $matricNo, $caScore, $examScore, "Exam score must be between 0 and {$this->maxExam}.");
                 continue;
             }
 
@@ -123,7 +138,6 @@ class ResultImport implements ToCollection, WithHeadingRow
 
             if (!$this->shouldPersist) {
                 $this->successCount++;
-
                 continue;
             }
 
@@ -153,6 +167,38 @@ class ResultImport implements ToCollection, WithHeadingRow
 
             $this->successCount++;
         }
+    }
+
+    /**
+     * Flexible extraction of score from CSV row supporting various column naming patterns.
+     */
+    protected function extractScore(array $row, string $type, int $max): string
+    {
+        // 1. Direct slugified candidate keys
+        $candidates = [
+            "{$type}_score_max_{$max}",
+            "{$type}_score",
+            "{$type}_max_{$max}",
+            "{$type}",
+            "{$type}_score_max_40",
+            "{$type}_score_max_60",
+        ];
+
+        foreach ($candidates as $key) {
+            if (array_key_exists($key, $row) && $row[$key] !== null && trim((string) $row[$key]) !== '') {
+                return trim((string) $row[$key]);
+            }
+        }
+
+        // 2. Fuzzy matching by key prefix
+        foreach ($row as $k => $v) {
+            $normalizedKey = strtolower(preg_replace('/[^a-zA-Z0-9]/', '', (string) $k));
+            if (str_starts_with($normalizedKey, $type) && $v !== null && trim((string) $v) !== '') {
+                return trim((string) $v);
+            }
+        }
+
+        return '';
     }
 
     private function addPreviewError(
