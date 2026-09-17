@@ -10,5 +10,8 @@ Route::get('/results-review', ExamOfficerResultReview::class)->name('results-rev
 Route::get('/graduation-audit', GraduationAudit::class)->name('graduation-audit');
 Route::get('/course-score-sheet/{departmentCourse}/{session}/{semester}/{level?}', [\App\Http\Controllers\Report\CourseScoreSheetController::class, 'print'])->name('course-score-sheet');
 Route::get('/senate-broadsheet/{department}/{session}/{semester}/{level?}', [\App\Http\Controllers\Report\SenateBroadsheetController::class, 'print'])->name('senate-broadsheet');
+Route::get('/senate-graduation-broadsheet/{session}/{department?}', [\App\Http\Controllers\Report\SenateGraduationBroadsheetController::class, 'print'])->name('senate-graduation-broadsheet');
+Route::get('/senate-graduation-broadsheet-export/{session}/{department?}', [\App\Http\Controllers\Report\SenateGraduationBroadsheetController::class, 'exportCsv'])->name('senate-graduation-broadsheet.export');
+
 
 

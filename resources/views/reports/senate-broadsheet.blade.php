@@ -354,19 +354,19 @@
                 <div style="width: 50%;">
                     <div class="meta-row">
                         <span style="width: 85px;">MIN UNITS TS</span>
-                        <span>15</span>
+                        <span>{{ $min_units_ts ?? 'Set Min CU' }}</span>
                     </div>
                     <div class="meta-row">
                         <span style="width: 85px;">MAX UNITS TS</span>
-                        <span>24</span>
+                        <span>{{ $max_units_ts ?? 'Set Max CU' }}</span>
                     </div>
                     <div class="meta-row">
                         <span style="width: 85px;">MIN UNITS TD</span>
-                        <span>0</span>
+                        <span>{{ $min_units_td ?? '0' }}</span>
                     </div>
                     <div class="meta-row">
                         <span style="width: 85px;">MAX UNITS TD</span>
-                        <span>0</span>
+                        <span>{{ $max_units_td ?? '0' }}</span>
                     </div>
                 </div>
                 <div style="width: 50%; text-align: right;">

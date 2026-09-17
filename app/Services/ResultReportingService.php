@@ -11,6 +11,10 @@ use App\Models\Course;
 use App\Models\CourseAllocation;
 use App\Models\Department;
 use App\Models\DepartmentCourse;
+use App\Models\DepartmentMaxUnit;
+use App\Models\GraduationEligibility;
+use App\Models\GraduationList;
+use App\Models\GraduationListItem;
 use App\Models\Result;
 use App\Models\ResultGpaRecord;
 use App\Models\StudentLevel;
@@ -264,19 +268,39 @@ class ResultReportingService
 
         $studentIds = $students->pluck('id')->all();
 
-        // 2. Fetch all Results for these students in this session & semester
-        $results = Result::with(['departmentCourse.studentCourse'])
+        // 2. Fetch all Results for these students in this session (across both semesters for full session broadsheet)
+        $resultsQuery = Result::with(['departmentCourse.studentCourse'])
             ->whereIn('user_id', $studentIds)
-            ->where('academic_session', $session)
-            ->where('semester', $semester)
-            ->get();
+            ->where('academic_session', $session);
 
-        // 3. Fetch cumulative ResultGpaRecords for these students up to this session & semester
+        if (!empty($filters['single_semester_only']) && !empty($semester) && $semester !== 'second') {
+            $resultsQuery->where('semester', $semester);
+        }
+
+        $results = $resultsQuery->get();
+
+        // 3. Fetch cumulative ResultGpaRecords for these students for this session
         $gpaRecords = ResultGpaRecord::whereIn('user_id', $studentIds)
             ->where('academic_session', $session)
-            ->where('semester', $semester)
+            ->orderByDesc('id')
             ->get()
-            ->keyBy('user_id');
+            ->groupBy('user_id')
+            ->map(fn($recs) => $recs->first());
+
+        // Derive previous academic session for CGPA LS (e.g. 2024/2025 -> 2023/2024)
+        $parts = explode('/', $session);
+        $prevSession = (count($parts) === 2 && is_numeric($parts[0]) && is_numeric($parts[1]))
+            ? ((int) $parts[0] - 1) . '/' . ((int) $parts[1] - 1)
+            : null;
+
+        $prevGpaRecords = $prevSession
+            ? ResultGpaRecord::whereIn('user_id', $studentIds)
+                ->where('academic_session', $prevSession)
+                ->orderByDesc('id')
+                ->get()
+                ->groupBy('user_id')
+                ->map(fn($recs) => $recs->first())
+            : collect();
 
         // 4. Fetch all active carry-overs for remark calculation
         $carryOvers = CarryOverCourse::whereIn('user_id', $studentIds)
@@ -330,11 +354,11 @@ class ResultReportingService
                     ?? "CRS-{$r->department_course_id}";
             });
 
-            // Semester Units and Points calculation
-            $uts = 0; // Units Taken Semester
-            $gpts = 0; // Grade Points Semester
+            // Session Units and Points calculation (UTS & GPTS)
+            $uts = 0; // Units Taken Session
+            $gpts = 0; // Grade Points Session
             $courseScoresMap = [];
-            $failedCoursesThisSemester = [];
+            $failedCoursesThisSession = [];
 
             foreach ($headers as $hdr) {
                 $code = $hdr['code'];
@@ -352,7 +376,7 @@ class ResultReportingService
                     $gpts += $qualityPoints;
 
                     if ($grade === 'F' || ($total !== null && $total < 40.0)) {
-                        $failedCoursesThisSemester[] = $code;
+                        $failedCoursesThisSession[] = $code;
                     }
 
                     $courseScoresMap[$code] = [
@@ -372,7 +396,7 @@ class ResultReportingService
 
             $gpa = $uts > 0 ? round($gpts / $uts, 2) : 0.00;
 
-            // Cumulative Calculation
+            // Cumulative Calculation (UTD & GPTD & CGPA)
             /** @var ResultGpaRecord|null $gpaRecord */
             $gpaRecord = $gpaRecords->get($student->id);
 
@@ -394,6 +418,13 @@ class ResultReportingService
                 $classOfDegree = $this->gradeCalculator->getClassOfDegree($cgpa);
             }
 
+            // Last Session CGPA (CGPA LS)
+            /** @var ResultGpaRecord|null $prevGpa */
+            $prevGpa = $prevGpaRecords->get($student->id);
+            $cgpaLs = ($prevGpa && $prevGpa->cumulative_gpa > 0)
+                ? number_format((float) $prevGpa->cumulative_gpa, 2)
+                : '-';
+
             // Determine Academic Standing & Official Senate Remarks
             $standingInfo = $this->progressionService->determineAcademicStanding($student);
             $standing = $standingInfo['standing'] ?? AcademicProgressionService::STANDING_PROMOTED;
@@ -412,7 +443,7 @@ class ResultReportingService
                 return $co->departmentCourse?->studentCourse?->code ?? 'N/A';
             })->filter()->all();
 
-            $allUnclearedCourses = array_values(array_unique(array_merge($failedCoursesThisSemester, $activeCarryCodes)));
+            $allUnclearedCourses = array_values(array_unique(array_merge($failedCoursesThisSession, $activeCarryCodes)));
 
             $hasResults = ($uts > 0 || $utd > 0 || !empty($courseBreakdownItems));
 
@@ -449,7 +480,7 @@ class ResultReportingService
                 'gpa' => $gpa,
                 'utd' => $utd,
                 'gptd' => $gptd,
-                'cgpa_ls' => '-',
+                'cgpa_ls' => $cgpaLs,
                 'cgpa' => $cgpa,
                 'class_of_degree' => $classOfDegree,
                 'standing' => $standing,
@@ -463,16 +494,27 @@ class ResultReportingService
 
         $summaryStats = $this->getSenateSummaryStats(collect($broadsheetRows));
 
+        $deptMaxUnit = $levelId 
+            ? DepartmentMaxUnit::where('department_id', $departmentId)->where('student_level_id', $levelId)->value('max_units')
+            : DepartmentMaxUnit::where('department_id', $departmentId)->value('max_units');
+
+        $maxUnitsTs = $deptMaxUnit ? (int) ($deptMaxUnit * 2) : 48;
+        $minUnitsTs = $deptMaxUnit ? (int) floor($deptMaxUnit * 1.5) : 30;
+
         return [
             'department' => [
                 'id' => $department->id,
                 'name' => $department->name,
-                'faculty' => $department->faculty ?? 'N/A',
+                'faculty' => $department->faculty ?? 'AFFILIATION',
             ],
-            'programme' => $programmeCourse?->name ?? 'All Department Programmes',
+            'programme' => $programmeCourse?->name ?? ($department->name ? 'B.SC. ' . $department->name : 'All Department Programmes'),
             'session' => $session,
             'semester' => $semester,
             'level' => $this->formatLevelName($level?->level, $levelId),
+            'min_units_ts' => $minUnitsTs,
+            'max_units_ts' => $maxUnitsTs,
+            'min_units_td' => 0,
+            'max_units_td' => 0,
             'headers' => $headers,
             'students' => $broadsheetRows,
             'summary' => $summaryStats,
@@ -562,6 +604,239 @@ class ResultReportingService
             'special_cases_percentage' => $total > 0 ? round(($specialCasesCount / $total) * 100, 1) : 0.0,
             'others_percentage' => $total > 0 ? round(($othersCount / $total) * 100, 1) : 0.0,
             'class_distribution' => $classDistribution,
+        ];
+    }
+
+    /**
+     * Generate the consolidated Senate Graduation Broadsheet matrix.
+     *
+     * @param array{
+     *     academic_session: string,
+     *     department_id?: int|null,
+     *     course_id?: int|null,
+     *     cleared_only?: bool
+     * } $filters
+     * @return array<string, mixed>
+     */
+    public function getSenateGraduationBroadsheet(array $filters): array
+    {
+        $session = (string) $filters['academic_session'];
+        $departmentId = !empty($filters['department_id']) ? (int) $filters['department_id'] : null;
+        $courseId = !empty($filters['course_id']) ? (int) $filters['course_id'] : null;
+        $clearedOnly = !empty($filters['cleared_only']);
+
+        $department = $departmentId ? Department::find($departmentId) : null;
+        $programmeCourse = $courseId ? Course::find($courseId) : null;
+
+        // Query GraduationEligibility for Undergraduate candidates
+        $query = GraduationEligibility::with([
+            'user.academicDetail.department',
+            'user.academicDetail.programme',
+            'user.academicDetail.course',
+            'user.academicDetail.studentLevel',
+            'user.proposedCourse',
+            'academicDetail.department',
+            'academicDetail.programme',
+            'academicDetail.course',
+            'clearedBy',
+        ])
+        ->where('academic_session', $session)
+        ->whereHas('user', function ($q) use ($departmentId, $courseId) {
+            $q->where('programme_id', ProgrammesEnum::Undergraduate->value);
+            if ($departmentId !== null || $courseId !== null) {
+                $q->whereHas('academicDetail', function ($ad) use ($departmentId, $courseId) {
+                    if ($departmentId !== null) {
+                        $ad->where('department_id', $departmentId);
+                    }
+                    if ($courseId !== null) {
+                        $ad->where('course_id', $courseId);
+                    }
+                });
+            }
+        });
+
+        if ($clearedOnly) {
+            $query->where('is_cleared', true);
+        }
+
+        $eligibilityRecords = $query->get();
+
+        // If no eligibility records exist yet for this session/department, fallback to scanning final-year candidates in AcademicDetails
+        if ($eligibilityRecords->isEmpty()) {
+            $studentsQuery = User::with([
+                'academicDetail.department',
+                'academicDetail.programme',
+                'academicDetail.course',
+                'academicDetail.studentLevel',
+                'proposedCourse',
+            ])
+            ->where('programme_id', ProgrammesEnum::Undergraduate->value)
+            ->whereHas('academicDetail', function ($ad) use ($departmentId, $courseId) {
+                if ($departmentId !== null) {
+                    $ad->where('department_id', $departmentId);
+                }
+                if ($courseId !== null) {
+                    $ad->where('course_id', $courseId);
+                }
+            });
+
+            $students = $studentsQuery->get()->sortBy(function (User $u) {
+                return $u->academicDetail?->matric_no ?? $u->name;
+            })->values();
+
+            $graduationService = app(GraduationService::class);
+            $eligibilityRecords = collect();
+
+            foreach ($students as $student) {
+                $audit = $graduationService->checkEligibility($student, $session);
+                /** @var GraduationEligibility $eligibility */
+                $eligibility = $audit['eligibility'];
+                $eligibility->setRelation('user', $student);
+                $eligibility->setRelation('academicDetail', $student->academicDetail);
+                $eligibilityRecords->push($eligibility);
+            }
+        }
+
+        $studentIds = $eligibilityRecords->pluck('user_id')->unique()->filter()->all();
+
+        // Fetch cumulative GPA records for CQP and UTD
+        $gpaRecords = ResultGpaRecord::whereIn('user_id', $studentIds)
+            ->where('academic_session', $session)
+            ->latest('id')
+            ->get()
+            ->keyBy('user_id');
+
+        $sortedRecords = $eligibilityRecords->sortBy(function (GraduationEligibility $rec) {
+            return $rec->academicDetail?->matric_no ?? $rec->user?->academicDetail?->matric_no ?? $rec->user?->name ?? '';
+        })->values();
+
+        $graduandRows = [];
+
+        foreach ($sortedRecords as $rec) {
+            $user = $rec->user;
+            $acad = $rec->academicDetail ?? $user?->academicDetail;
+            $matricNo = $acad?->matric_no ?? 'N/A';
+            $studentName = trim(($user?->surname ?? '') . ' ' . ($user?->firstname ?? '') . ' ' . ($user?->m_name ?? ''));
+            if (empty($studentName)) {
+                $studentName = $user?->name ?? 'Unknown Graduand';
+            }
+
+            $entrySession = $acad?->admission_session ?? $acad?->acad_session ?? 'N/A';
+            $isDe = $user?->isDe ?? false;
+            $modeOfEntry = $isDe ? 'Direct Entry (200L)' : 'UTME (100L)';
+            $deptName = $acad?->department?->name ?? $department?->name ?? 'N/A';
+            $progName = $acad?->course?->name ?? $acad?->programme?->name ?? $programmeCourse?->name ?? 'B.Sc Degree';
+
+            $totalUnitsEarned = (int) $rec->total_units_earned;
+            $totalUnitsRequired = (int) $rec->total_units_required;
+            $finalCgpa = (float) $rec->final_cgpa;
+            $classOfDegree = $rec->class_of_degree ?? $this->gradeCalculator->getClassOfDegree($finalCgpa);
+
+            /** @var ResultGpaRecord|null $gpaRec */
+            $gpaRec = $gpaRecords->get($rec->user_id);
+            $cqp = $gpaRec?->cumulative_grade_points ? (int) $gpaRec->cumulative_grade_points : (int) round($finalCgpa * $totalUnitsEarned);
+
+            $statusText = $rec->is_cleared
+                ? 'CLEARED FOR GRADUATION'
+                : ($rec->meets_requirements ? 'QUALIFIED (PENDING SENATE CLEARANCE)' : 'DEFICIENT');
+
+            $graduandRows[] = [
+                'eligibility_id' => $rec->id,
+                'user_id' => $rec->user_id,
+                'matric_no' => $matricNo,
+                'student_name' => $studentName,
+                'entry_session' => $entrySession,
+                'mode_of_entry' => $modeOfEntry,
+                'department_name' => $deptName,
+                'programme_name' => $progName,
+                'total_units_required' => $totalUnitsRequired,
+                'total_units_earned' => $totalUnitsEarned,
+                'cqp' => $cqp,
+                'final_cgpa' => $finalCgpa,
+                'class_of_degree' => $classOfDegree,
+                'meets_requirements' => (bool) $rec->meets_requirements,
+                'is_cleared' => (bool) $rec->is_cleared,
+                'cleared_by_name' => $rec->clearedBy ? trim(($rec->clearedBy->surname ?? '') . ' ' . ($rec->clearedBy->firstname ?? '')) : null,
+                'cleared_at' => $rec->cleared_at?->format('d/m/Y H:i'),
+                'status_text' => $statusText,
+                'remarks' => $rec->remarks ?? ($rec->meets_requirements ? 'Degree Conferment Recommended' : 'Requirements Not Met'),
+            ];
+        }
+
+        $summaryStats = $this->getSenateGraduationSummaryStats(collect($graduandRows));
+
+        return [
+            'department' => [
+                'id' => $department?->id,
+                'name' => $department?->name ?? 'All Academic Departments',
+                'faculty' => $department?->faculty ?? 'Faculty of Science / Affiliation Directorate',
+            ],
+            'programme' => $programmeCourse?->name ?? 'All Undergraduate Degree Programmes',
+            'session' => $session,
+            'graduands' => $graduandRows,
+            'summary' => $summaryStats,
+        ];
+    }
+
+    /**
+     * Compute institutional summary statistics for Senate Graduation Broadsheet.
+     *
+     * @param Collection<int, array<string, mixed>> $graduands
+     * @return array<string, mixed>
+     */
+    public function getSenateGraduationSummaryStats(Collection $graduands): array
+    {
+        $total = $graduands->count();
+        $clearedCount = 0;
+        $qualifiedCount = 0;
+        $deficientCount = 0;
+
+        $firstClass = 0;
+        $secondUpper = 0;
+        $secondLower = 0;
+        $thirdClass = 0;
+        $passCount = 0;
+
+        foreach ($graduands as $g) {
+            if (!empty($g['is_cleared'])) {
+                $clearedCount++;
+            }
+            if (!empty($g['meets_requirements'])) {
+                $qualifiedCount++;
+            } else {
+                $deficientCount++;
+            }
+
+            $class = (string) ($g['class_of_degree'] ?? '');
+            if (str_contains($class, 'First Class')) {
+                $firstClass++;
+            } elseif (str_contains($class, 'Upper') || str_contains($class, '2.1') || str_contains($class, 'Second Class (Upper')) {
+                $secondUpper++;
+            } elseif (str_contains($class, 'Lower') || str_contains($class, '2.2') || str_contains($class, 'Second Class (Lower')) {
+                $secondLower++;
+            } elseif (str_contains($class, 'Third Class')) {
+                $thirdClass++;
+            } elseif (str_contains($class, 'Pass')) {
+                $passCount++;
+            }
+        }
+
+        return [
+            'total_graduands' => $total,
+            'cleared_count' => $clearedCount,
+            'qualified_count' => $qualifiedCount,
+            'deficient_count' => $deficientCount,
+            'first_class_count' => $firstClass,
+            'first_class_percentage' => $total > 0 ? round(($firstClass / $total) * 100, 1) : 0.0,
+            'second_upper_count' => $secondUpper,
+            'second_upper_percentage' => $total > 0 ? round(($secondUpper / $total) * 100, 1) : 0.0,
+            'second_lower_count' => $secondLower,
+            'second_lower_percentage' => $total > 0 ? round(($secondLower / $total) * 100, 1) : 0.0,
+            'third_class_count' => $thirdClass,
+            'third_class_percentage' => $total > 0 ? round(($thirdClass / $total) * 100, 1) : 0.0,
+            'pass_count' => $passCount,
+            'pass_percentage' => $total > 0 ? round(($passCount / $total) * 100, 1) : 0.0,
+            'deficient_percentage' => $total > 0 ? round(($deficientCount / $total) * 100, 1) : 0.0,
         ];
     }
 

@@ -43,6 +43,17 @@
                                 class="px-4 py-2 text-xs font-bold text-white uppercase bg-slate-800 rounded-lg shadow-soft-md hover:bg-slate-700 transition inline-flex items-center gap-1.5 disabled:opacity-50">
                             <span>📜 Stage to Pass List</span>
                         </button>
+
+                        <a href="{{ route('exam-officer.senate-graduation-broadsheet', ['session' => str_replace('/', '-', $selectedSession), 'department' => $selectedDepartmentId]) }}"
+                           target="_blank"
+                           class="px-4 py-2 text-xs font-bold text-slate-700 uppercase bg-white border border-slate-300 rounded-lg shadow-soft-md hover:bg-slate-50 transition inline-flex items-center gap-1.5">
+                            <span>📄 Senate Broadsheet</span>
+                        </a>
+
+                        <a href="{{ route('exam-officer.senate-graduation-broadsheet.export', ['session' => str_replace('/', '-', $selectedSession), 'department' => $selectedDepartmentId]) }}"
+                           class="px-3.5 py-2 text-xs font-bold text-emerald-700 uppercase bg-emerald-50 border border-emerald-200 rounded-lg shadow-soft-md hover:bg-emerald-100 transition inline-flex items-center gap-1.5">
+                            <span>📥 CSV</span>
+                        </a>
                     </div>
                 </div>
 
