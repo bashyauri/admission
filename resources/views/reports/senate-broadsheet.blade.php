@@ -346,7 +346,7 @@
                 </div>
                 <div class="meta-row">
                     <span class="meta-label">SESSION-LEVEL</span>
-                    <span class="meta-value">{{ $session }} - {{ is_numeric($level) ? $level.'00 Level' : $level }}</span>
+                    <span class="meta-value">{{ $session }} - {{ $level }}</span>
                 </div>
             </div>
 

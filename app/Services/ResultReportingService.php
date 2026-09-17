@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Enums\ProgrammesEnum;
 use App\Models\AcademicDetail;
 use App\Models\CarryOverCourse;
 use App\Models\Course;
@@ -23,6 +24,34 @@ class ResultReportingService
         protected GradeCalculationService $gradeCalculator,
         protected AcademicProgressionService $progressionService
     ) {}
+
+    /**
+     * Format academic level name into standard format (e.g., '100 Level', '200 Level').
+     */
+    public function formatLevelName(?string $levelVal, ?int $levelId = null): string
+    {
+        if (empty($levelVal) && empty($levelId)) {
+            return 'All Levels';
+        }
+
+        $raw = trim((string) ($levelVal ?: $levelId));
+
+        if (stripos($raw, 'Level') !== false) {
+            return $raw;
+        }
+
+        if (is_numeric($raw)) {
+            $num = (int) $raw;
+            if ($num >= 1 && $num <= 9) {
+                return ($num * 100) . ' Level';
+            }
+            if ($num >= 100 && $num <= 900) {
+                return $num . ' Level';
+            }
+        }
+
+        return $raw . ' Level';
+    }
 
     /**
      * Generate an official course-level score sheet with student breakdown and summary statistics.
@@ -165,6 +194,7 @@ class ResultReportingService
                 'session' => $session,
                 'semester' => $semester,
                 'level_id' => $levelId,
+                'level_name' => $this->formatLevelName(null, $levelId),
             ],
             'students' => $studentsList,
             'statistics' => [
@@ -209,8 +239,9 @@ class ResultReportingService
         $level = $levelId ? StudentLevel::find($levelId) : null;
         $programmeCourse = $courseId ? Course::find($courseId) : null;
 
-        // 1. Fetch Students in this cohort/department/level
-        $studentsQuery = User::with(['academicDetail.course', 'academicDetail.studentLevel'])
+        // 1. Fetch Students in this cohort/department/level (Undergraduate degree only)
+        $studentsQuery = User::with(['academicDetail.course', 'academicDetail.studentLevel', 'proposedCourse'])
+            ->where('programme_id', ProgrammesEnum::Undergraduate->value)
             ->whereHas('academicDetail', function ($query) use ($departmentId, $courseId, $levelId, $admissionSession) {
                 $query->where('department_id', $departmentId);
 
@@ -383,22 +414,34 @@ class ResultReportingService
 
             $allUnclearedCourses = array_values(array_unique(array_merge($failedCoursesThisSemester, $activeCarryCodes)));
 
-            $statusText = null;
-            if ($cgpa < 0.50) {
-                $statusText = 'WITHDRAWN FROM THE UNIVERSITY';
-            } elseif ($cgpa < 0.75) {
-                $statusText = 'WITHDRAWN FROM PROGRAM';
-            } elseif ($cgpa < 1.00 || $cgpa < 1.50) {
-                $statusText = 'ON PROBATION';
-            }
+            $hasResults = ($uts > 0 || $utd > 0 || !empty($courseBreakdownItems));
 
-            $isPass = empty($allUnclearedCourses) && $cgpa >= 1.50;
+            if (!$hasResults) {
+                // Student has no exam records for this cohort/level (e.g. Direct Entry starting at 200L, unexamined, or deferred)
+                $statusText = $student->isDe ? 'DIRECT ENTRY (200L ENTRY)' : 'NO REGISTRATION / NO RESULT';
+                $remark = $student->isDe ? 'D.E. CANDIDATE (STARTS AT 200L)' : 'NO RESULT';
+                $isPass = false;
+            } else {
+                $statusText = null;
+                if ($cgpa < 0.50) {
+                    $statusText = 'WITHDRAWN FROM THE UNIVERSITY';
+                } elseif ($cgpa < 0.75) {
+                    $statusText = 'WITHDRAWN FROM PROGRAM';
+                } elseif ($cgpa < 1.00 || $cgpa < 1.50) {
+                    $statusText = 'ON PROBATION';
+                }
+
+                $isPass = empty($allUnclearedCourses) && $cgpa >= 1.50;
+                $remark = !empty($allUnclearedCourses) 
+                    ? 'REPEAT: ' . implode(', ', $allUnclearedCourses) 
+                    : ($isPass ? 'PASS' : ($statusText ?? 'PASS'));
+            }
 
             $broadsheetRows[] = [
                 'user_id' => $student->id,
                 'matric_no' => $matricNo,
                 'student_name' => $studentName,
-                'level' => $acadDetail?->studentLevel?->level ?? $level?->level ?? '100',
+                'level' => $this->formatLevelName($acadDetail?->studentLevel?->level, (int) ($acadDetail?->student_level_id ?? $levelId)),
                 'course_scores' => $courseScoresMap,
                 'course_breakdown_items' => $courseBreakdownItems,
                 'uts' => $uts,
@@ -413,7 +456,7 @@ class ResultReportingService
                 'is_pass' => $isPass,
                 'repeat_courses' => $allUnclearedCourses,
                 'status_text' => $statusText,
-                'remark' => !empty($allUnclearedCourses) ? 'REPEAT: ' . implode(', ', $allUnclearedCourses) : ($isPass ? 'PASS' : ($statusText ?? 'PASS')),
+                'remark' => $remark,
             ];
 
         }
@@ -429,7 +472,7 @@ class ResultReportingService
             'programme' => $programmeCourse?->name ?? 'All Department Programmes',
             'session' => $session,
             'semester' => $semester,
-            'level' => $level?->level ?? ($levelId ? "{$levelId}00" : 'All Levels'),
+            'level' => $this->formatLevelName($level?->level, $levelId),
             'headers' => $headers,
             'students' => $broadsheetRows,
             'summary' => $summaryStats,
@@ -450,6 +493,7 @@ class ResultReportingService
         $withdrawnCount = 0;
         $repeatCount = 0;
         $spilloverCount = 0;
+        $specialCasesCount = 0;
 
         $classDistribution = [
             'First Class Honours' => 0,
@@ -466,6 +510,8 @@ class ResultReportingService
             $statusText = (string) ($student['status_text'] ?? '');
             $repeatCourses = $student['repeat_courses'] ?? [];
             $class = (string) ($student['class_of_degree'] ?? '');
+            $uts = (int) ($student['uts'] ?? 0);
+            $utd = (int) ($student['utd'] ?? 0);
 
             $isPass = (bool) ($student['is_pass'] ?? false);
             if (!$isPass && ($remark === 'PASS' || str_starts_with($remark, 'PASS'))) {
@@ -474,6 +520,9 @@ class ResultReportingService
 
             if ($isPass) {
                 $passCount++;
+            } elseif ($uts === 0 && $utd === 0) {
+                // Students with 0 examination units (Direct Entry, unexamined, special cases)
+                $specialCasesCount++;
             } else {
                 if (!empty($repeatCourses) || str_starts_with($remark, 'REPEAT')) {
                     $repeatCount++;
@@ -484,15 +533,17 @@ class ResultReportingService
                     $withdrawnCount++;
                 } elseif (str_contains($statusText, 'SPILLOVER') || $remark === 'SPILLOVER' || $standing === AcademicProgressionService::STANDING_SPILLOVER) {
                     $spilloverCount++;
+                } else {
+                    $specialCasesCount++;
                 }
             }
 
-            if (isset($classDistribution[$class])) {
+            if (isset($classDistribution[$class]) && ($uts > 0 || $utd > 0)) {
                 $classDistribution[$class]++;
             }
         }
 
-        $othersCount = max(0, $total - $passCount);
+        $othersCount = max(0, $total - ($passCount + $probationCount + $withdrawnCount + $specialCasesCount));
 
         return [
             'total_students' => $total,
@@ -501,14 +552,14 @@ class ResultReportingService
             'withdrawn_count' => $withdrawnCount,
             'repeat_count' => $repeatCount,
             'spillover_count' => $spilloverCount,
-            'special_cases_count' => 0,
+            'special_cases_count' => $specialCasesCount,
             'others_count' => $othersCount,
             'pass_percentage' => $total > 0 ? round(($passCount / $total) * 100, 1) : 0.0,
             'probation_percentage' => $total > 0 ? round(($probationCount / $total) * 100, 1) : 0.0,
             'withdrawn_percentage' => $total > 0 ? round(($withdrawnCount / $total) * 100, 1) : 0.0,
             'repeat_percentage' => $total > 0 ? round(($repeatCount / $total) * 100, 1) : 0.0,
             'spillover_percentage' => $total > 0 ? round(($spilloverCount / $total) * 100, 1) : 0.0,
-            'special_cases_percentage' => 0.0,
+            'special_cases_percentage' => $total > 0 ? round(($specialCasesCount / $total) * 100, 1) : 0.0,
             'others_percentage' => $total > 0 ? round(($othersCount / $total) * 100, 1) : 0.0,
             'class_distribution' => $classDistribution,
         ];

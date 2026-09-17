@@ -373,7 +373,7 @@
             </div>
             <div class="meta-item">
                 <span class="meta-label">Level / Cohort</span>
-                <span class="meta-val">{{ $course['level_id'] ? $course['level_id'].'00 Level' : 'All Cohorts' }}</span>
+                <span class="meta-val">{{ $course['level_name'] ?? ($course['level_id'] ? $course['level_id'].' Level' : 'All Cohorts') }}</span>
             </div>
             <div class="meta-item">
                 <span class="meta-label">Date Generated</span>
