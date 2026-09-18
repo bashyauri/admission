@@ -73,6 +73,32 @@ class ManageUserCapabilities extends Component
         $this->resetPage();
     }
 
+    public function selectStaff(string $userId): void
+    {
+        $this->selectedUserId = $userId;
+        $this->resetValidation('selectedUserId');
+    }
+
+    public function clearSelectedStaff(): void
+    {
+        $this->selectedUserId = '';
+    }
+
+    public function getSelectedUserProperty(): ?User
+    {
+        if (empty($this->selectedUserId)) {
+            return null;
+        }
+
+        return User::with(['capabilities.department', 'hodDetails.department'])->find($this->selectedUserId);
+    }
+
+    public function resetFilters(): void
+    {
+        $this->reset(['searchQuery', 'filterCapability', 'filterDepartment', 'filterStatus']);
+        $this->resetPage();
+    }
+
     public function openAssignModal(): void
     {
         $this->resetValidation();
@@ -84,6 +110,7 @@ class ManageUserCapabilities extends Component
     public function closeAssignModal(): void
     {
         $this->showAssignModal = false;
+        $this->resetValidation();
     }
 
     public function assignCapability(): void
@@ -200,23 +227,46 @@ class ManageUserCapabilities extends Component
 
     public function render()
     {
-        // Only query staff list when the modal is open — avoids a 50-row scan on every filter change
+        // Query eligible staff candidates only when assign modal is open
         $staffList = collect();
         if ($this->showAssignModal) {
             $staffQuery = User::query()
-                ->whereIn('role', ['hod', 'lecturer', 'exam_officer', 'admin', 'coordinator', 'cit']);
+                ->with(['capabilities.department', 'hodDetails.department'])
+                ->where(function ($query) {
+                    $query->whereIn('role', [
+                        'lecturer',
+                        'hod',
+                        'exam_officer',
+                        'admin',
+                        'coordinator',
+                        'cit',
+                        'idcard_officer',
+                        'staff',
+                    ])
+                    ->orWhere(function ($sub) {
+                        $sub->whereNotIn('role', ['student', 'applicant', 'graduate'])
+                            ->whereNotNull('role');
+                    })
+                    ->orWhereHas('capabilities')
+                    ->orWhereHas('hodDetails');
+                });
 
-            if (!empty($this->staffSearch)) {
-                $searchTerm = '%' . $this->staffSearch . '%';
-                $staffQuery->where(function ($q) use ($searchTerm) {
+            if (!empty(trim($this->staffSearch))) {
+                $term = trim($this->staffSearch);
+                $searchTerm = '%' . $term . '%';
+                $staffQuery->where(function ($q) use ($searchTerm, $term) {
                     $q->where('firstname', 'like', $searchTerm)
                         ->orWhere('surname', 'like', $searchTerm)
+                        ->orWhere('m_name', 'like', $searchTerm)
                         ->orWhere('email', 'like', $searchTerm)
-                        ->orWhere('phone', 'like', $searchTerm);
+                        ->orWhere('phone', 'like', $searchTerm)
+                        ->orWhereRaw("CONCAT(firstname, ' ', surname) LIKE ?", [$searchTerm])
+                        ->orWhereRaw("CONCAT(surname, ' ', firstname) LIKE ?", [$searchTerm])
+                        ->orWhereRaw("CONCAT(surname, ' ', firstname, ' ', COALESCE(m_name, '')) LIKE ?", [$searchTerm]);
                 });
             }
 
-            $staffList = $staffQuery->orderBy('surname')->limit(50)->get();
+            $staffList = $staffQuery->orderBy('surname')->orderBy('firstname')->limit(100)->get();
         }
 
         // Query capabilities table with filters
@@ -265,6 +315,7 @@ class ManageUserCapabilities extends Component
             'capabilities' => $capabilities,
             'departments' => $departments,
             'staffList' => $staffList,
+            'selectedUser' => $this->selectedUser,
             'activeHodCount' => $activeHodCount,
             'activeExamOfficersCount' => $activeExamOfficersCount,
             'activeLecturersCount' => $activeLecturersCount,

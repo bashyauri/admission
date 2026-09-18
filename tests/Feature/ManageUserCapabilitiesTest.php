@@ -175,4 +175,31 @@ class ManageUserCapabilitiesTest extends TestCase
         $this->assertNull($lecturer->hodDetails);
         $this->assertFalse($lecturer->canActAsHod());
     }
+
+    public function test_modal_staff_live_search_and_selection_works(): void
+    {
+        $lecturer = User::create([
+            'id' => (string) Str::uuid(),
+            'programme_id' => $this->programme->id,
+            'email' => 'zubairu_' . uniqid() . '@example.com',
+            'role' => 'lecturer',
+            'surname' => 'Zubairu',
+            'firstname' => 'Ibrahim',
+            'password' => bcrypt('secret'),
+            'vpassword' => 'secret',
+            'email_verified_at' => now(),
+        ]);
+
+        Livewire::actingAs($this->admin)
+            ->test(ManageUserCapabilities::class)
+            ->call('openAssignModal')
+            ->set('staffSearch', 'Zubairu')
+            ->assertSee('Zubairu Ibrahim')
+            ->call('selectStaff', $lecturer->id)
+            ->assertSet('selectedUserId', $lecturer->id)
+            ->assertSee('Selected')
+            ->call('clearSelectedStaff')
+            ->assertSet('selectedUserId', '');
+    }
 }
+
