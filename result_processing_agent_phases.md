@@ -214,6 +214,21 @@ graph TD
 * **Agent Prompt:**
   > *"Please implement Phase 6, Task 6.4: Implement the Senate Graduation Broadsheet view and export controller for degree conferment approval."*
 
+#### Task 6.4.B: Cohort Progression Master Broadsheet & Carry-Over Audit Ledger (✅ COMPLETED)
+* **Scope:** Printable / Exportable official multi-session Broadsheet for an entire admission cohort (100L -> 400L/500L), detailing session GPAs, cumulative CGPA progression, and an explicit Carry-Over Incurred vs. Cleared Resolution Ledger.
+* **Tasks:**
+  - [x] Implement `getCohortProgressionBroadsheet()` in `ResultReportingService`
+  - [x] Create `CohortProgressionBroadsheetController` with printable view and streamed CSV export
+  - [x] Create printable A3/A4 landscape view: `resources/views/reports/cohort-progression-broadsheet.blade.php`
+  - [x] Include session progression metrics ($TCR$, $TCP$, session $GPA$, running $CGPA$) and full carry-over audit trail (incurred session/score, retake session/score, cleared date, status badge)
+  - [x] Include institutional cohort summary statistics (Clean progression, all cleared, active deficiencies)
+  - [x] Integrate navigation buttons in Exam Officer Hub 3 and Coordinator Result Review panel
+  - [x] Register routes in `routes/exam_officer.php` & `routes/coordinator.php`
+  - [x] Feature test: `tests/Feature/CohortProgressionBroadsheetTest.php`
+* **Agent Prompt:**
+  > *"Please implement Task 6.4.B: Implement the Cohort Progression Master Broadsheet (All Sessions & Carry-Over Audit) with print view, CSV export, and dashboard integration."*
+
+
 #### Task 6.5: Official Senate Graduating Pass List & NYSC Mobilization Export
 * **Scope:** Senate Pass List publication document & NYSC mobilization export.
 * **Tasks:**

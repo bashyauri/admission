@@ -18,5 +18,7 @@ Route::get('result-review/{course}', CoordinatorCourseResultReview::class)->name
 Route::get('result-review', CoordinatorResultReview::class)->name('result-review');
 Route::get('course-score-sheet/{departmentCourse}/{session}/{semester}/{level?}', [\App\Http\Controllers\Report\CourseScoreSheetController::class, 'print'])->name('course-score-sheet');
 Route::get('senate-broadsheet/{department}/{session}/{semester}/{level?}', [\App\Http\Controllers\Report\SenateBroadsheetController::class, 'print'])->name('senate-broadsheet');
+Route::get('cohort-progression-broadsheet/{department}/{admissionSession}', [\App\Http\Controllers\Report\CohortProgressionBroadsheetController::class, 'print'])->name('cohort-progression-broadsheet');
+
 
 

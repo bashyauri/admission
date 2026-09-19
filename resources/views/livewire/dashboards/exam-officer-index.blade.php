@@ -239,18 +239,24 @@
                         </div>
                     @endif
                 </div>
-                <div class="mt-4 pt-3 border-t border-slate-100 flex items-center gap-2">
+                <div class="mt-4 pt-3 border-t border-slate-100 flex flex-wrap items-center gap-2">
                     @if($quickReportDeptId)
                         <a href="{{ route('exam-officer.senate-broadsheet', ['department' => $quickReportDeptId, 'session' => str_replace('/', '-', $selectedSession), 'semester' => $selectedSemester]) }}"
                            target="_blank"
-                           class="flex-1 inline-flex items-center justify-center text-xs font-bold text-blue-700 bg-blue-50 hover:bg-blue-100 py-2.5 rounded-xl transition">
-                            Senate Broadsheet &rarr;
+                           class="flex-1 inline-flex items-center justify-center text-xs font-bold text-blue-700 bg-blue-50 hover:bg-blue-100 py-2 rounded-xl transition">
+                            Semester Broadsheet
+                        </a>
+                        <a href="{{ route('exam-officer.cohort-progression-broadsheet', ['department' => $quickReportDeptId, 'admissionSession' => 'all']) }}"
+                           target="_blank"
+                           title="View Complete Multi-Session Master Broadsheet (All Historical Sessions, Courses & Carry-Overs)"
+                           class="inline-flex items-center justify-center text-xs font-bold text-emerald-800 bg-emerald-100 hover:bg-emerald-200 px-3 py-2 rounded-xl transition border border-emerald-300 shadow-sm">
+                            🎓 All-Sessions Master
                         </a>
                     @endif
                     <a href="{{ route('exam-officer.senate-graduation-broadsheet', ['session' => str_replace('/', '-', $selectedSession)]) }}"
                        target="_blank"
                        title="Print Senate Graduation Broadsheet"
-                       class="inline-flex items-center justify-center text-xs font-bold text-purple-700 bg-purple-50 hover:bg-purple-100 px-3 py-2.5 rounded-xl transition">
+                       class="inline-flex items-center justify-center text-xs font-bold text-purple-700 bg-purple-50 hover:bg-purple-100 px-2.5 py-2 rounded-xl transition">
                         Grad Broadsheet
                     </a>
                 </div>
@@ -444,6 +450,13 @@
                                            class="px-2.5 py-1.5 text-xxs font-bold text-blue-700 bg-blue-50 hover:bg-blue-100 rounded-lg transition inline-flex items-center gap-1">
                                             <span>📄</span>
                                             <span>Broadsheet</span>
+                                        </a>
+                                        <a href="{{ route('exam-officer.cohort-progression-broadsheet', ['department' => $dept->department_id, 'admissionSession' => str_replace('/', '-', $selectedSession)]) }}"
+                                           target="_blank"
+                                           title="Print All-Sessions Cohort Progression Master Broadsheet with Carry-Over Audit"
+                                           class="px-2.5 py-1.5 text-xxs font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 rounded-lg transition inline-flex items-center gap-1">
+                                            <span>🎓</span>
+                                            <span>Cohort Master</span>
                                         </a>
                                     </div>
                                 </td>

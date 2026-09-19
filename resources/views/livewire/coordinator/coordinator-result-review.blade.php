@@ -104,6 +104,14 @@
                             </svg>
                             📄 Department Broadsheet
                         </a>
+                        <a
+                            href="{{ route('coordinator.cohort-progression-broadsheet', ['department' => $inspectingDepartment->id, 'admissionSession' => str_replace('/', '-', $selectedSession)]) }}"
+                            target="_blank"
+                            title="Cohort Progression Master Broadsheet (All Sessions & Carry-Over Audit)"
+                            class="inline-flex w-fit items-center gap-1.5 rounded-xl border border-emerald-300 bg-emerald-50 px-3.5 py-2 text-xs font-bold text-emerald-800 shadow-sm transition hover:bg-emerald-100"
+                        >
+                            🎓 Cohort Master
+                        </a>
                     @endif
 
                     <div class="inline-flex w-fit items-center gap-2 rounded-xl border border-fuchsia-200 bg-fuchsia-50 px-4 py-2">

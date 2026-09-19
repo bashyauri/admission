@@ -44,6 +44,15 @@
                             <span>📜 Stage to Pass List</span>
                         </button>
 
+                        @if($selectedDepartmentId)
+                            <a href="{{ route('exam-officer.cohort-progression-broadsheet', ['department' => $selectedDepartmentId, 'admissionSession' => str_replace('/', '-', $selectedSession)]) }}"
+                               target="_blank"
+                               class="px-3.5 py-2 text-xs font-bold text-emerald-800 uppercase bg-emerald-50 border border-emerald-300 rounded-lg shadow-soft-md hover:bg-emerald-100 transition inline-flex items-center gap-1.5"
+                               title="View All-Sessions Cohort Progression Master Broadsheet with Carry-Over Audit">
+                                <span>🎓 Cohort Master</span>
+                            </a>
+                        @endif
+
                         <a href="{{ route('exam-officer.senate-graduation-broadsheet', ['session' => str_replace('/', '-', $selectedSession), 'department' => $selectedDepartmentId]) }}"
                            target="_blank"
                            class="px-4 py-2 text-xs font-bold text-slate-700 uppercase bg-white border border-slate-300 rounded-lg shadow-soft-md hover:bg-slate-50 transition inline-flex items-center gap-1.5">
