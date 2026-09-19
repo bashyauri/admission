@@ -38,6 +38,15 @@ class CoordinatorResultReview extends Component
 
     public array $availableLevels = [];
 
+    /**
+     * Admission cohort session(s) this coordinator is responsible for.
+     * Derived from the coordinator's own Coordinator.academic_session column.
+     * This is the gold standard — a student's cohort never changes even if they repeat.
+     *
+     * @var array<string>
+     */
+    public array $cohortSessions = [];
+
 
     /*
     |--------------------------------------------------------------------------
@@ -131,6 +140,28 @@ class CoordinatorResultReview extends Component
             ->all();
 
         $this->selectedLevelId = $this->availableLevels[0]['id'] ?? null;
+
+        /*
+        |--------------------------------------------------------------------------
+        | Cohort Sessions (Admission Year Gold Standard)
+        |--------------------------------------------------------------------------
+        |
+        | Capture the admission cohort year(s) this coordinator manages.
+        | We read from Coordinator.academic_session — the year the coordinator
+        | was assigned to this cohort. This NEVER changes, even if a student
+        | repeats and remains at the same level in a later academic year.
+        |
+        | This prevents bleed: a 2024/2025-cohort coordinator will never see
+        | 2025/2026-cohort students in their dashboard, and vice versa.
+        */
+
+        $this->cohortSessions = $coordinators
+            ->where('department_id', $coordinator->department_id)
+            ->whereNotNull('academic_session')
+            ->pluck('academic_session')
+            ->unique()
+            ->values()
+            ->toArray();
 
 
         /*
@@ -541,7 +572,19 @@ class CoordinatorResultReview extends Component
             return;
         }
 
-        $this->courseSummaries = DB::table('department_courses')
+        /*
+        |--------------------------------------------------------------------------
+        | Cohort filter join
+        |--------------------------------------------------------------------------
+        |
+        | When cohortSessions is populated, we join academic_details and filter
+        | by the student's admission_session (gold standard). This ensures a
+        | 2024/2025 coordinator ONLY sees students admitted in 2024/2025,
+        | regardless of what coordinator_id was stamped on the result row.
+        */
+        $hasCohortFilter = !empty($this->cohortSessions);
+
+        $query = DB::table('department_courses')
             ->join('student_courses', 'student_courses.id', '=', 'department_courses.student_course_id')
             ->join('results', function ($join) use ($assignmentIds) {
                 $join->on('results.department_course_id', '=', 'department_courses.id')
@@ -549,7 +592,16 @@ class CoordinatorResultReview extends Component
                     ->where('results.semester', $this->selectedSemester)
                     ->whereIn('results.coordinator_id', $assignmentIds);
             })
-            ->where('department_courses.department_id', $this->inspectingDepartment?->id)
+            ->where('department_courses.department_id', $this->inspectingDepartment?->id);
+
+        // Admission year gold standard: filter by student's own admission_session
+        if ($hasCohortFilter) {
+            $query->join('academic_details', function ($join) {
+                $join->on('academic_details.id', '=', 'results.academic_detail_id')
+                     ->whereIn('academic_details.admission_session', $this->cohortSessions);
+            });
+        }
+        $this->courseSummaries = $query
             ->select([
                 'department_courses.id as department_course_id',
                 'department_courses.student_course_id',
@@ -951,6 +1003,23 @@ class CoordinatorResultReview extends Component
             ->where('semester', $this->selectedSemester)
             ->whereIn('coordinator_id', $this->assignedCoordinatorIds());
 
+        /*
+        |--------------------------------------------------------------------------
+        | Admission Year Gold Standard
+        |--------------------------------------------------------------------------
+        |
+        | Filter results to only those belonging to students whose admission_session
+        | matches this coordinator's cohort year(s). This is the true gold standard:
+        | even if coordinator_id was stamped incorrectly at submission, the student's
+        | own academic_details.admission_session never changes.
+        */
+        if (!empty($this->cohortSessions)) {
+            $cohort = $this->cohortSessions;
+            $query->whereHas('academicDetail', function ($q) use ($cohort) {
+                $q->whereIn('admission_session', $cohort);
+            });
+        }
+
         match ($this->statusFilter) {
             'submitted' => $query->where('status', 'submitted')->whereNull('coordinator_approved_at'),
             'coordinator_approved' => $query->where('status', 'exam_officer_approved'),
@@ -1331,6 +1400,13 @@ class CoordinatorResultReview extends Component
             return [];
         }
 
+        /*
+         * Scope by department + level only.
+         * Cohort isolation (admission_session gold standard) is enforced at the
+         * result query level via academic_details.admission_session — not here.
+         * This keeps this method responsible for SECURITY SCOPE (dept/level access)
+         * while the query methods handle COHORT ISOLATION.
+         */
         return $user->coordinators()
             ->where('department_id', $this->inspectingDepartment->id)
             ->when(
