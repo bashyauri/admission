@@ -164,7 +164,9 @@ graph TD
 ## Phase 6: Undergraduate Graduation Processing & Senate Final Degree Approval (⏳ UP NEXT)
 * **Goal:** Automatically check undergraduate student graduation eligibility, generate the Senate Graduation Broadsheet, produce the Official Graduating/Pass List, and track certificate issuance.
 * **Risk Profile:** Low (primarily reports, eligibility evaluation, and certificate logging).
-* **Status:** **Ready for Execution (Structured into 6 Daily Tasks)**
+* **Status:** **Ready for Execution (Structured into 15 Daily Tasks including Task 6.7 for Student Status Management)**
+
+> **Note:** Phase 6.7 (Student Academic Status, Withdrawal & Reinstatement Management) has been designed following Senate-compliant architecture principles. The detailed 9-task breakdown for Phase 6.7 is available in `phase_6.7_proposal.md` and should be inserted after Task 6.6 before Phase 7. This implementation provides auditable Senate workflows, historical record preservation, and proper separation of academic progression from institutional decisions.
 
 ### Daily Tasks Breakdown (Token-Efficient Execution):
 
