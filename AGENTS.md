@@ -316,111 +316,1091 @@ A feature intended for UG must not accidentally become a PG feature.
 
 ---
 
-# 6. 🎨 GLOBAL UI/UX DESIGN SYSTEM
+# 6. 🎨 GLOBAL UI/UX ENGINEERING STANDARD
 
-The application uses **Soft UI Dashboard** as its established visual design system.
+The application must provide a **consistent, professional, intuitive, accessible, responsive, and production-quality user experience**.
 
-This is a **system-wide rule**.
+The established visual system is **Soft UI Dashboard**.
 
-It applies to:
+Soft UI is the visual foundation, but **Soft UI alone is not sufficient**.
 
-* dashboards
-* forms
-* tables
-* reports
-* filters
-* modals
-* CRUD interfaces
-* student portals
-* admin interfaces
-* lecturer interfaces
-* coordinator interfaces
-* exam officer interfaces
-* mobile-responsive interfaces
-* all future features
+AI agents must consider both:
 
-New interfaces must look like they were designed as part of the existing application.
+```text
+Visual Design
+     +
+Interaction Design
+     +
+Information Architecture
+     +
+Accessibility
+     +
+Responsive Design
+     +
+Performance
+     +
+User Feedback
+```
+
+The goal is not merely to make a page look attractive.
+
+The goal is to make the page:
+
+* easy to understand
+* easy to navigate
+* fast to use
+* predictable
+* accessible
+* responsive
+* visually consistent
+* difficult to misuse
+* appropriate for the user's role
+* suitable for real institutional workflows
+
+A technically correct feature with poor UX is **not considered complete**.
 
 ---
 
-## 6.1 Soft UI is mandatory
+# 6.1 🎯 UX-FIRST PRINCIPLE
 
-Before creating UI, inspect existing screens and components.
+Before implementing a screen, the agent should understand:
 
-Reuse existing patterns whenever possible.
+1. Who is using the screen?
+2. What is the user's primary task?
+3. What information does the user need first?
+4. What action is most important?
+5. What actions are secondary?
+6. What information can be hidden until needed?
+7. What could the user accidentally do?
+8. What feedback does the user need after an action?
+9. What happens when there is no data?
+10. What happens when an error occurs?
+11. What happens on mobile?
+12. What happens for users with limited permissions?
 
-Match the existing:
+Do not design a screen by simply placing database fields on the page.
+
+The interface should be designed around the **user's task and workflow**.
+
+---
+
+# 6.2 🧭 INFORMATION HIERARCHY
+
+Every page should have a clear visual hierarchy.
+
+Prefer:
+
+```text
+Page title
+    ↓
+Context / description
+    ↓
+Primary action
+    ↓
+Important summary information
+    ↓
+Filters / controls
+    ↓
+Main content
+    ↓
+Secondary information
+```
+
+Users should be able to understand:
+
+* where they are
+* what the page does
+* what requires attention
+* what action they should take
+* what information is most important
+
+within a few seconds.
+
+Avoid pages where every element has equal visual weight.
+
+---
+
+# 6.3 🧩 PROGRESSIVE DISCLOSURE
+
+Do not display every available field, option, or technical detail at once.
+
+Show the information required for the current task first.
+
+Use:
+
+* accordions
+* tabs
+* expandable sections
+* modals
+* dropdowns
+* secondary panels
+* detail views
+
+when appropriate.
+
+Example:
+
+```text
+Student
+ ├── Basic information
+ ├── Academic summary
+ ├── Current status
+ ├── Results
+ ├── Payment history
+ └── Audit history
+```
+
+Do not place every detail into one extremely long page when the information can be logically organized.
+
+---
+
+# 6.4 🎨 SOFT UI IS MANDATORY
+
+The application uses **Soft UI Dashboard** as its established design system.
+
+New interfaces MUST visually belong to the existing application.
+
+Agents must inspect existing screens before creating new UI.
+
+Reuse existing patterns for:
 
 * cards
 * buttons
 * tables
 * forms
-* modals
+* inputs
+* selects
 * badges
 * alerts
+* modals
+* dropdowns
 * navigation
+* breadcrumbs
+* tabs
+* pagination
+* empty states
+* loading states
+* validation messages
+
+Match existing:
+
+* colors
 * typography
 * spacing
 * shadows
+* border radius
 * borders
+* sizing
+* icon treatment
 * responsive behavior
 * hover states
 * focus states
 * disabled states
-* loading states
-* validation states
-* empty states
-
-If an existing component is close but incomplete, extend it rather than creating another competing version.
 
 ---
 
-## 6.2 No competing design system
+# 6.5 🚫 NO COMPETING DESIGN SYSTEM
 
-Do **NOT** introduce:
+Do NOT introduce:
 
 * Bootstrap
 * Material UI
 * shadcn/ui
-* arbitrary UI libraries
 * another dashboard template
+* another component library
+* unrelated Tailwind patterns
 * another typography system
 * another spacing system
 * another visual language
 
 unless explicitly authorized.
 
-Do not introduce a second design system because an AI-generated component is easier to implement.
+Do not allow AI-generated interfaces to introduce a different design language.
 
 ---
 
-## 6.3 Component-first rule
+# 6.6 🧩 COMPONENT-FIRST UI
 
 Before creating a UI component:
 
 ```text
 Search existing component
         ↓
-Reuse existing component
+Reuse
         ↓
-Extend existing component
+Extend
         ↓
-Create new component only if necessary
+Create new component only when necessary
 ```
 
-Avoid multiple versions of the same:
+Avoid creating multiple versions of:
 
-* button
-* card
-* modal
-* table
-* badge
-* form field
-* alert
+* buttons
+* cards
+* tables
+* badges
+* alerts
+* modals
+* form fields
+* dropdowns
+* pagination
+* tabs
 
-when an established pattern can be reused.
+when an existing pattern can be reused.
 
 ---
+
+# 6.7 🖱️ INTERACTION DESIGN
+
+Interactions should be:
+
+* predictable
+* consistent
+* immediate where possible
+* clearly communicated
+* reversible where appropriate
+
+Buttons should look and behave like buttons.
+
+Links should look and behave like links.
+
+Destructive actions should not visually resemble normal actions.
+
+Actions that modify important institutional data should require appropriate confirmation.
+
+Avoid surprising behavior such as:
+
+* buttons changing meaning depending on context
+* unexpected page navigation
+* actions occurring without feedback
+* forms silently resetting
+* destructive operations occurring from accidental clicks
+
+---
+
+# 6.8 🔘 BUTTON HIERARCHY
+
+Each interface should have a clear action hierarchy.
+
+Use:
+
+### Primary action
+
+For the main task.
+
+Examples:
+
+```text
+Save
+Submit
+Approve
+Continue
+Release
+Register
+```
+
+### Secondary action
+
+For supporting actions.
+
+Examples:
+
+```text
+Cancel
+Back
+View
+Filter
+Export
+```
+
+### Destructive action
+
+For irreversible or dangerous actions.
+
+Examples:
+
+```text
+Delete
+Reject
+Withdraw
+Expel
+Reset
+```
+
+Destructive actions must be visually distinguishable and should require confirmation where appropriate.
+
+Do not present multiple competing primary buttons when one primary action is clearly dominant.
+
+---
+
+# 6.9 📝 FORM UX
+
+Forms should be easy to complete and understand.
+
+Every form should consider:
+
+* clear labels
+* appropriate input types
+* helpful placeholders only where useful
+* helper text when necessary
+* sensible field ordering
+* logical grouping
+* validation
+* error messages
+* required/optional indication
+* disabled states
+* loading states
+* success feedback
+
+Group related fields.
+
+Example:
+
+```text
+Student Information
+
+Academic Information
+
+Status Information
+
+Approval Information
+
+Additional Notes
+```
+
+Do not create one giant unstructured form.
+
+---
+
+# 6.10 ❌ VALIDATION UX
+
+Validation errors must be:
+
+* specific
+* understandable
+* close to the affected field
+* actionable
+
+Prefer:
+
+> Academic session is required.
+
+over:
+
+> Validation failed.
+
+Prefer:
+
+> Exam score must be between 0 and 60.
+
+over:
+
+> Invalid value.
+
+Do not expose raw Laravel/PHP/database exceptions to users.
+
+---
+
+# 6.11 ⏳ LOADING STATES
+
+Every operation that may take noticeable time should provide feedback.
+
+Examples:
+
+* saving
+* searching
+* filtering
+* loading a table
+* importing CSV
+* generating reports
+* approving results
+* releasing results
+
+Use appropriate:
+
+* loading indicators
+* skeleton states
+* disabled action states
+* progress indicators
+
+The user should never be left wondering whether the system is doing anything.
+
+Avoid unnecessary full-page loading when only one section is being updated.
+
+---
+
+# 6.12 ✅ SUCCESS FEEDBACK
+
+After a successful operation, clearly communicate the result.
+
+Examples:
+
+> Student status updated successfully.
+
+> Results submitted to the Coordinator successfully.
+
+> 147 results imported successfully.
+
+Success feedback should be:
+
+* visible
+* concise
+* relevant
+* non-disruptive
+
+Do not require the user to guess whether an action succeeded.
+
+---
+
+# 6.13 ⚠️ ERROR UX
+
+Errors should explain:
+
+1. What happened.
+2. What the user can do next.
+
+Example:
+
+> The results could not be submitted because 3 students have missing examination scores. Review the highlighted rows and try again.
+
+Avoid:
+
+> Something went wrong.
+
+unless no better information is available.
+
+Technical details belong in logs, not in normal user-facing messages.
+
+---
+
+# 6.14 🈳 EMPTY STATES
+
+Empty states should explain why the page is empty and what the user can do.
+
+Bad:
+
+```text
+No data.
+```
+
+Better:
+
+```text
+No results found for 2025/2026.
+
+Try changing the academic session or semester filter.
+```
+
+Where appropriate, provide an action:
+
+```text
+No courses have been assigned.
+
+[Assign Course]
+```
+
+Do not make empty pages look broken.
+
+---
+
+# 6.15 📊 TABLE UX
+
+Tables should be optimized for scanning.
+
+Use:
+
+* meaningful column ordering
+* clear headers
+* appropriate alignment
+* compact but readable spacing
+* pagination for large datasets
+* filtering
+* search
+* sorting where useful
+* status badges
+* row actions
+* responsive behavior
+
+Put the most important information toward the left.
+
+Avoid displaying unnecessary columns simply because the database contains them.
+
+For large tables, prefer:
+
+```text
+Search
+Filters
+Summary
+Paginated table
+```
+
+rather than loading thousands of records.
+
+---
+
+# 6.16 📱 RESPONSIVE UX
+
+All interfaces should work across:
+
+* desktop
+* laptop
+* tablet
+* mobile
+
+Responsive design is not simply making everything smaller.
+
+On smaller screens:
+
+* reorganize content
+* stack controls
+* collapse secondary information
+* allow appropriate horizontal scrolling for complex tables
+* move actions into menus where appropriate
+* preserve readability
+* maintain usable touch targets
+
+Do not create unusable desktop interfaces squeezed onto mobile screens.
+
+---
+
+# 6.17 ♿ ACCESSIBILITY
+
+Interfaces should follow accessible design practices.
+
+Consider:
+
+* semantic HTML
+* keyboard navigation
+* visible focus states
+* sufficient contrast
+* meaningful labels
+* accessible form errors
+* descriptive buttons
+* appropriate ARIA attributes where needed
+* screen-reader-friendly status messages
+* non-color-only status indicators
+
+Do not communicate important information using color alone.
+
+For example:
+
+```text
+🟢 Approved
+🟡 Pending
+🔴 Rejected
+```
+
+may use color, but the text must also communicate the status.
+
+---
+
+# 6.18 🎯 ACCESSIBILITY OF INTERACTIVE ELEMENTS
+
+Interactive elements must be usable with keyboard and mouse/touch.
+
+Ensure:
+
+* buttons are actual buttons
+* navigation items are actual links
+* form controls have labels
+* modals can be closed appropriately
+* focus is handled sensibly
+* disabled controls appear disabled
+* loading controls prevent duplicate submission where necessary
+
+Do not use clickable `<div>` elements where a semantic button or link is appropriate.
+
+---
+
+# 6.19 🪟 MODAL UX
+
+Use modals for focused tasks, not entire workflows.
+
+Good modal uses:
+
+* confirmation
+* quick edit
+* small form
+* focused detail
+* simple action
+
+Avoid putting extremely large workflows inside modals.
+
+For complex workflows, use a dedicated page.
+
+Modal behavior should include:
+
+* clear title
+* clear purpose
+* obvious close action
+* primary action
+* cancel action
+* validation feedback
+* loading state
+* appropriate focus behavior
+
+Modal visibility should normally use Alpine.js.
+
+---
+
+# 6.20 🔍 SEARCH UX
+
+Search should be predictable.
+
+For database-backed searches:
+
+```text
+Search input
+    ↓
+Debounced Livewire request
+    ↓
+Database query
+    ↓
+Paginated results
+```
+
+For small already-loaded datasets:
+
+```text
+Loaded data
+    ↓
+Alpine filtering
+```
+
+Search should provide an appropriate empty state.
+
+Avoid searching on every keystroke when it creates unnecessary server requests.
+
+---
+
+# 6.21 🎛️ FILTER UX
+
+Filters should be easy to understand.
+
+Where multiple filters exist:
+
+* group related filters
+* use clear labels
+* provide sensible defaults
+* make the active filtering state obvious
+* provide a clear/reset option where useful
+
+Example:
+
+```text
+Academic Session
+Semester
+Department
+Level
+Status
+
+[Apply Filters] [Reset]
+```
+
+Do not force users to remember hidden filter state.
+
+---
+
+# 6.22 🧭 NAVIGATION UX
+
+Navigation should be predictable and consistent.
+
+Use:
+
+* meaningful labels
+* logical grouping
+* clear active state
+* appropriate icons
+* role-aware navigation
+* breadcrumbs where useful
+
+Do not expose navigation options that the current user cannot use unless there is a deliberate reason.
+
+Authorization must still be enforced server-side.
+
+---
+
+# 6.23 👤 ROLE-BASED UX
+
+Different users have different responsibilities.
+
+The interface should prioritize the user's actual workflow.
+
+For example:
+
+### Lecturer
+
+Focus on:
+
+* assigned courses
+* result entry
+* submission status
+* returned/rejected results
+
+### Coordinator
+
+Focus on:
+
+* pending lecturer submissions
+* review
+* approval/rejection
+* course/student result information
+
+### Exam Officer
+
+Focus on:
+
+* Coordinator-approved results
+* verification
+* result review
+* release workflow
+* reports
+
+### Student
+
+Focus on:
+
+* registered courses
+* results
+* academic standing
+* status
+* transcript
+* permitted academic actions
+
+Do not expose unnecessary administrative complexity to users who do not need it.
+
+---
+
+# 6.24 🧠 REDUCE COGNITIVE LOAD
+
+Avoid making users think unnecessarily.
+
+Prefer:
+
+```text
+Clear title
+Clear context
+Clear next action
+```
+
+over:
+
+```text
+Many buttons
+Many colors
+Many cards
+Many filters
+Many competing actions
+```
+
+Do not fill dashboards with decorative cards that provide little value.
+
+Every major UI element should have a purpose.
+
+---
+
+# 6.25 📈 DASHBOARD UX
+
+Dashboards should answer:
+
+1. What is happening?
+2. What needs attention?
+3. What can I do?
+4. What changed?
+
+Prioritize actionable information.
+
+Avoid dashboards containing dozens of metrics simply because the database can calculate them.
+
+Use:
+
+* summary cards
+* trends where meaningful
+* alerts
+* pending actions
+* recent activity
+* relevant shortcuts
+
+The dashboard should support the user's role rather than become a collection of statistics.
+
+---
+
+# 6.26 🚨 IMPORTANT STATUS VISIBILITY
+
+Important institutional statuses must be visually obvious.
+
+Examples:
+
+* WITHDRAWN
+* SUSPENDED
+* EXPELLED
+* REINSTATED
+* PENDING
+* APPROVED
+* REJECTED
+* RELEASED
+
+Do not rely on subtle colors alone.
+
+Use:
+
+* status badges
+* labels
+* icons where appropriate
+* contextual explanation
+
+Example:
+
+```text
+WITHDRAWN FROM UNIVERSITY
+
+Effective: 2025/2026
+Date: 12 September 2026
+Reference: SEN-2026-104
+```
+
+Important status information must not be hidden inside a secondary page when it affects the user's current action.
+
+---
+
+# 6.27 🛡️ CONFIRMATION UX FOR IMPORTANT ACTIONS
+
+Confirmation should be used for actions that are:
+
+* destructive
+* difficult to reverse
+* institutionally significant
+* financially significant
+* academically significant
+
+Examples:
+
+* deleting records
+* rejecting results
+* releasing results
+* withdrawing students
+* expelling students
+* reinstating students
+* changing official status
+
+A confirmation dialog should explain:
+
+```text
+What will happen
++
+Who/what will be affected
++
+Whether it can be reversed
++
+Confirm action
+```
+
+Do not use meaningless confirmation messages such as:
+
+> Are you sure?
+
+Prefer:
+
+> Release results for 147 students for 2025/2026 Semester 1?
+
+---
+
+# 6.28 🔒 UI IS NOT THE SECURITY BOUNDARY
+
+UI restrictions improve UX but do not provide security.
+
+For example:
+
+```text
+Disabled button
+Hidden action
+Hidden menu
+Alpine condition
+Blade condition
+Livewire condition
+```
+
+must never be considered sufficient authorization.
+
+The backend must independently enforce:
+
+* permission
+* role
+* ownership
+* workflow state
+* business rules
+
+---
+
+# 6.29 ⚡ UX PERFORMANCE
+
+Good UX includes performance.
+
+Avoid:
+
+* unnecessary Livewire requests
+* unnecessary page reloads
+* unnecessary database queries
+* huge payloads
+* unnecessary polling
+* giant component state
+* loading entire datasets
+* unnecessary re-renders
+
+Prefer:
+
+```text
+Alpine
+ ↓
+Instant local interaction
+
+Livewire
+ ↓
+Server interaction only when required
+
+Laravel
+ ↓
+Efficient business logic
+
+Database
+ ↓
+Optimized query
+```
+
+A beautiful interface that feels slow is not good UX.
+
+---
+
+# 6.30 🔄 LIVEWIRE + ALPINE UX RULE
+
+Use both technologies together when appropriate.
+
+Example:
+
+```text
+Open modal
+    ↓
+Alpine.js
+
+Search student
+    ↓
+Livewire
+
+Load student information
+    ↓
+Livewire
+
+Show information
+    ↓
+Alpine.js
+
+Submit update
+    ↓
+Livewire
+
+Show success notification
+    ↓
+Alpine.js
+```
+
+Do not force every interaction through Livewire.
+
+Do not force server operations into Alpine.
+
+---
+
+# 6.31 🧪 UI/UX VERIFICATION CHECKLIST
+
+Before completing a UI task, verify:
+
+### Visual
+
+* [ ] Matches Soft UI.
+* [ ] Matches existing application.
+* [ ] Typography is consistent.
+* [ ] Spacing is consistent.
+* [ ] Colors are consistent.
+* [ ] Shadows and borders are consistent.
+* [ ] Buttons follow existing patterns.
+* [ ] Tables follow existing patterns.
+* [ ] Badges follow existing patterns.
+
+### UX
+
+* [ ] User understands the page purpose immediately.
+* [ ] Primary action is obvious.
+* [ ] Secondary actions are not competing with the primary action.
+* [ ] Important information is visible.
+* [ ] Complex information is logically grouped.
+* [ ] Forms are understandable.
+* [ ] Validation messages are useful.
+* [ ] Loading states exist where needed.
+* [ ] Success feedback exists.
+* [ ] Error feedback exists.
+* [ ] Empty states exist.
+* [ ] Destructive actions are confirmed appropriately.
+
+### Responsive
+
+* [ ] Desktop checked.
+* [ ] Tablet checked.
+* [ ] Mobile checked.
+* [ ] Tables remain usable.
+* [ ] Forms remain usable.
+* [ ] Buttons remain accessible.
+* [ ] Navigation remains usable.
+
+### Accessibility
+
+* [ ] Keyboard navigation considered.
+* [ ] Focus states visible.
+* [ ] Form labels exist.
+* [ ] Semantic elements are used.
+* [ ] Status is not communicated by color alone.
+* [ ] Interactive elements have meaningful labels.
+
+### Performance
+
+* [ ] No unnecessary Livewire request.
+* [ ] No unnecessary polling.
+* [ ] No unnecessary `$refresh`.
+* [ ] No unnecessary component re-render.
+* [ ] Large datasets are paginated.
+* [ ] Database queries are appropriate.
+* [ ] No obvious N+1 query.
+* [ ] Loading behavior is appropriate.
+
+### Security
+
+* [ ] Authorization is enforced server-side.
+* [ ] UI restrictions are not treated as security.
+* [ ] Sensitive actions are protected by backend authorization.
+
+---
+
+# 6.32 🏆 UI/UX GOLDEN RULE
+
+> **Do not build interfaces merely because they work. Build interfaces that are easy to understand, difficult to misuse, fast to operate, accessible, consistent with the application, and appropriate for the user's workflow.**
+
+The standard is:
+
+```text
+FUNCTIONAL
+    +
+CONSISTENT
+    +
+INTUITIVE
+    +
+ACCESSIBLE
+    +
+RESPONSIVE
+    +
+FAST
+    +
+SECURE
+    =
+PRODUCTION-QUALITY UX
+```
 
 # 7. 🎨 UI CONSISTENCY RULES
 
