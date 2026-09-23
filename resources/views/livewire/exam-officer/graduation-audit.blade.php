@@ -178,7 +178,7 @@
                     <div class="flex-1 min-w-[220px]">
                         <label class="block text-[11px] font-bold text-slate-500 uppercase mb-1">Search Candidate</label>
                         <input type="text"
-                               wire:model.debounce.300ms="searchQuery"
+                               wire:model.live.debounce.300ms="searchQuery"
                                placeholder="Search by Matric No or Name..."
                                class="w-full text-xs bg-white border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-fuchsia-400">
                     </div>
