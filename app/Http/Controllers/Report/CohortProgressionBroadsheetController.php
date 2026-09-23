@@ -43,29 +43,45 @@ class CohortProgressionBroadsheetController extends Controller
 
         $data = $this->reportingService->getCohortProgressionBroadsheet($filters);
 
-        // Toolbar filter options
-        $allDepartments = Department::orderBy('name')->get(['id', 'name']);
-        $allLevels      = StudentLevel::orderBy('level')->get(['id', 'level']);
+        
+        // Fetch options for on-page toolbar filters
+$allDepartments = Department::orderBy('name')->get(['id', 'name']);
+$allLevels      = StudentLevel::orderBy('level')->get(['id', 'level']);
 
-        $allCohorts = DB::table('academic_details')
-            ->whereNotNull('admission_session')
-            ->where('admission_session', '!=', '')
-            ->distinct()
-            ->orderByDesc('admission_session')
-            ->pluck('admission_session')
-            ->toArray();
+// 1. Admission / academic sessions from student records
+$fromAcademicDetails = DB::table('academic_details')
+    ->selectRaw('admission_session as session')
+    ->whereNotNull('admission_session')
+    ->where('admission_session', '!=', '')
+    ->union(
+        DB::table('academic_details')
+            ->selectRaw('acad_session as session')
+            ->whereNotNull('acad_session')
+            ->where('acad_session', '!=', '')
+    )
+    ->pluck('session')
+    ->toArray();
 
-        $resultSessions = DB::table('results')
-            ->whereNotNull('academic_session')
-            ->where('academic_session', '!=', '')
-            ->distinct()
-            ->pluck('academic_session')
-            ->toArray();
+// 2. Sessions that actually have results
+$fromResults = DB::table('results')
+    ->whereNotNull('academic_session')
+    ->where('academic_session', '!=', '')
+    ->distinct()
+    ->pluck('academic_session')
+    ->toArray();
 
-        $mergedCohorts = array_values(array_unique(array_filter(
-            array_merge($allCohorts, $resultSessions)
-        )));
-        rsort($mergedCohorts);
+// 3. Sessions that already have graduation eligibility records
+$fromEligibility = DB::table('graduation_eligibilities')
+    ->whereNotNull('academic_session')
+    ->where('academic_session', '!=', '')
+    ->distinct()
+    ->pluck('academic_session')
+    ->toArray();
+
+$mergedCohorts = array_values(array_unique(array_filter(
+    array_merge($fromAcademicDetails, $fromResults, $fromEligibility)
+)));
+rsort($mergedCohorts);   // newest first
 
         $viewData = array_merge($data, [
             'allDepartments'   => $allDepartments,
