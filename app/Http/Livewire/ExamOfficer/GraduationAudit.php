@@ -72,17 +72,53 @@ class GraduationAudit extends Component
         }
         $this->availableLevels = $levels;
 
-        // Resolve active session
-        $service = new AcademicSessionService();
-        $defaultSession = $service->getAcademicSession($user);
+     // Resolve active session
+$service = new AcademicSessionService();
+$defaultSession = $service->getAcademicSession($user);
 
-        $sessionKeys = ['ACADEMIC_SESSION', 'HOD_ACADEMIC_SESSION', 'PG_ACADEMIC_SESSION', 'ADMIN_ACADEMIC_SESSION'];
-        $dbSessions = Setting::whereIn('key', $sessionKeys)->pluck('value')->filter()->unique()->values()->toArray();
+// 1. Sessions stored in Settings
+$sessionKeys = ['ACADEMIC_SESSION', 'HOD_ACADEMIC_SESSION', 'PG_ACADEMIC_SESSION', 'ADMIN_ACADEMIC_SESSION'];
+$dbSessions = Setting::whereIn('key', $sessionKeys)
+    ->pluck('value')
+    ->filter()
+    ->unique()
+    ->values()
+    ->toArray();
 
-        $this->availableSessions = array_values(array_unique(array_merge($dbSessions, [$defaultSession])));
-        sort($this->availableSessions);
+// 2. Sessions that actually exist on student records
+$studentSessions = AcademicDetail::query()
+    ->where(function ($q) {
+        $q->whereNotNull('admission_session')->where('admission_session', '!=', '')
+          ->orWhere(function ($q2) {
+              $q2->whereNotNull('acad_session')->where('acad_session', '!=', '');
+          });
+    })
+    ->selectRaw('DISTINCT COALESCE(NULLIF(admission_session, ""), acad_session) as session')
+    ->pluck('session')
+    ->filter()
+    ->unique()
+    ->values()
+    ->toArray();
 
-        $this->selectedSession = $defaultSession;
+// 3. Also include sessions that already have graduation eligibility records
+$eligibilitySessions = GraduationEligibility::query()
+    ->whereNotNull('academic_session')
+    ->where('academic_session', '!=', '')
+    ->distinct()
+    ->pluck('academic_session')
+    ->toArray();
+
+$this->availableSessions = array_values(array_unique(array_merge(
+    $dbSessions,
+    $studentSessions,
+    $eligibilitySessions,
+    [$defaultSession]
+)));
+
+// Newest sessions first (optional but nicer UX)
+rsort($this->availableSessions);
+
+$this->selectedSession = $defaultSession;
     }
 
     public function updatedSelectedSession(): void

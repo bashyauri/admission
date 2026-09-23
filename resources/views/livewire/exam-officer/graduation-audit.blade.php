@@ -63,6 +63,18 @@
                            class="px-3.5 py-2 text-xs font-bold text-emerald-700 uppercase bg-emerald-50 border border-emerald-200 rounded-lg shadow-soft-md hover:bg-emerald-100 transition inline-flex items-center gap-1.5">
                             <span>📥 CSV</span>
                         </a>
+
+                        <a href="{{ route('exam-officer.senate-pass-list', ['session' => str_replace('/', '-', $selectedSession), 'department' => $selectedDepartmentId]) }}"
+                           target="_blank"
+                           class="px-4 py-2 text-xs font-bold text-indigo-700 uppercase bg-indigo-50 border border-indigo-200 rounded-lg shadow-soft-md hover:bg-indigo-100 transition inline-flex items-center gap-1.5">
+                            <span>📜 Senate Pass List</span>
+                        </a>
+
+                        <a href="{{ route('exam-officer.senate-pass-list.export', ['session' => str_replace('/', '-', $selectedSession), 'department' => $selectedDepartmentId]) }}"
+                           class="px-3.5 py-2 text-xs font-bold text-amber-700 uppercase bg-amber-50 border border-amber-200 rounded-lg shadow-soft-md hover:bg-amber-100 transition inline-flex items-center gap-1.5"
+                           title="Export NYSC Mobilization Data">
+                            <span>📋 NYSC Export</span>
+                        </a>
                     </div>
                 </div>
 

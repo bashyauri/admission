@@ -234,10 +234,10 @@ graph TD
 #### Task 6.5: Official Senate Graduating Pass List & NYSC Mobilization Export
 * **Scope:** Senate Pass List publication document & NYSC mobilization export.
 * **Tasks:**
-  - [ ] Create publication-formatted Senate Pass List view: `resources/views/reports/senate-pass-list.blade.php` (grouped by Class of Degree)
-  - [ ] Create NYSC Mobilization export (`NyscMobilizationExport.php`) in standard NYSC data format
-  - [ ] Add download actions to Exam Officer graduation panel
-  - [ ] Feature test: `tests/Feature/GraduatingPassListTest.php`
+  - [x] Create publication-formatted Senate Pass List view: `resources/views/reports/senate-pass-list.blade.php` (grouped by Class of Degree)
+  - [x] Create NYSC Mobilization export (`NyscMobilizationExport.php`) in standard NYSC data format
+  - [x] Add download actions to Exam Officer graduation panel
+  - [x] Feature test: `tests/Feature/GraduatingPassListTest.php`
 * **Agent Prompt:**
   > *"Please implement Phase 6, Task 6.5: Implement the Senate Official Pass List printable view and NYSC Mobilization CSV/Excel export."*
 

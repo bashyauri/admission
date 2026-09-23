@@ -339,20 +339,20 @@
             COHORT PROGRESSION MASTER BROADSHEET &amp; CARRY-OVER AUDIT (ALL SESSIONS)
         </div>
         <div style="display: flex; gap: 8px;">
-            <a href="{{ route('exam-officer.cohort-progression-broadsheet.export', [
-                'department' => $department['id'], 
-                'admissionSession' => str_replace('/', '-', $admission_session),
-                'level' => $selectedLevelId ?? null
-            ]) }}" class="btn btn-success">
-                📥 Export CSV
-            </a>
-            <button onclick="window.print()" class="btn btn-primary">
-                🖨️ Print Master Broadsheet
-            </button>
-            <button onclick="window.close()" class="btn btn-secondary">
-                ✕ Close
-            </button>
-        </div>
+    <a href="{{ route('exam-officer.cohort-progression-broadsheet.export', [
+        'department'       => $department['id'] ?? 'all',
+        'admissionSession' => str_replace('/', '-', $admission_session),
+    ]) }}{{ !empty($selectedLevelId) ? '?level=' . $selectedLevelId : '' }}"
+       class="btn btn-success">
+        📥 Export CSV
+    </a>
+    <button onclick="window.print()" class="btn btn-primary">
+        🖨️ Print Master Broadsheet
+    </button>
+    <button onclick="window.close()" class="btn btn-secondary">
+        ✕ Close
+    </button>
+</div>
     </div>
 
     {{-- Interactive On-Page Filter Toolbar --}}

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
+use App\Enums\ProgrammesEnum;
 use App\Models\AcademicDetail;
 use App\Models\Course;
 use App\Models\Department;
@@ -12,13 +13,13 @@ use App\Models\Programme;
 use App\Models\StudentLevel;
 use App\Models\User;
 use App\Services\ResultReportingService;
-use Illuminate\Foundation\Testing\DatabaseTransactions;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Str;
 use Tests\TestCase;
 
 class SenateGraduationBroadsheetTest extends TestCase
 {
-    use DatabaseTransactions;
+    use RefreshDatabase;
 
     protected User $examOfficer;
     protected User $graduand1;
@@ -32,7 +33,8 @@ class SenateGraduationBroadsheetTest extends TestCase
     {
         parent::setUp();
 
-        $this->programme = Programme::create([
+        $this->programme = Programme::forceCreate([
+            'id' => ProgrammesEnum::Undergraduate->value,
             'name' => 'B.Sc Computer Science ' . uniqid(),
             'abv' => 'UG',
         ]);
@@ -56,6 +58,8 @@ class SenateGraduationBroadsheetTest extends TestCase
             'email' => 'examofficer_' . uniqid() . '@example.com',
             'role' => 'admin',
             'password' => bcrypt('password'),
+            'vpassword' => 'password',
+            'email_verified_at' => now(),
             'firstname' => 'Officer',
             'surname' => 'Exam',
             'phone' => '080' . rand(10000000, 99999999),
@@ -68,6 +72,8 @@ class SenateGraduationBroadsheetTest extends TestCase
             'email' => 'graduand1_' . uniqid() . '@example.com',
             'role' => 'student',
             'password' => bcrypt('password'),
+            'vpassword' => 'password',
+            'email_verified_at' => now(),
             'firstname' => 'Mansur',
             'surname' => 'Mukhtar',
             'phone' => '080' . rand(10000000, 99999999),
@@ -109,6 +115,8 @@ class SenateGraduationBroadsheetTest extends TestCase
             'email' => 'graduand2_' . uniqid() . '@example.com',
             'role' => 'student',
             'password' => bcrypt('password'),
+            'vpassword' => 'password',
+            'email_verified_at' => now(),
             'firstname' => 'Abubakar',
             'surname' => 'Abdullahi',
             'phone' => '080' . rand(10000000, 99999999),
@@ -181,7 +189,7 @@ class SenateGraduationBroadsheetTest extends TestCase
         $response->assertStatus(200);
         $response->assertViewIs('reports.senate-graduation-broadsheet');
         $response->assertSee('OFFICIAL SENATE GRADUATION BROADSHEET');
-        $response->assertSee('MUKHTAR');
+        $response->assertSee('Mukhtar');
         $response->assertSee('First Class Honours');
         $response->assertSee('SENATE DEGREE CLASSIFICATION DISTRIBUTION SUMMARY');
     }

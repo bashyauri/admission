@@ -840,415 +840,687 @@ class ResultReportingService
         ];
     }
 
+   /**
+ * Generate the consolidated Cohort Progression Master Broadsheet across all academic sessions,
+ * including full chronological journey, session GPAs, cumulative CGPA, and a detailed
+ * Carry-Over Incurred vs Cleared Resolution Ledger.
+ *
+ * @param array{
+ *     department_id?: int|null,
+ *     admission_session: string,
+ *     course_id?: int|null,
+ *     student_level_id?: int|null,
+ *     status?: string|null
+ * } $filters
+ * @return array<string, mixed>
+ */
+public function getCohortProgressionBroadsheet(array $filters): array
+{
+    $departmentId     = !empty($filters['department_id']) ? (int) $filters['department_id'] : null;
+    $admissionSession = !empty($filters['admission_session']) ? (string) $filters['admission_session'] : 'all';
+    $levelId          = !empty($filters['student_level_id']) ? (int) $filters['student_level_id'] : null;
+    $courseId         = !empty($filters['course_id']) ? (int) $filters['course_id'] : null;
+
+    $department      = $departmentId ? Department::findOrFail($departmentId) : null;
+    $programmeCourse = $courseId ? Course::find($courseId) : null;
+    $level           = $levelId ? StudentLevel::find($levelId) : null;
+
+    // 1. Fetch Students belonging to this department & admission cohort (Undergraduate only)
+    $studentsQuery = User::with([
+        'academicDetail.course',
+        'academicDetail.studentLevel',
+        'academicDetail.programme',
+        'proposedCourse',
+    ])
+    ->where('programme_id', ProgrammesEnum::Undergraduate->value)
+    ->whereHas('academicDetail', function ($q) use ($departmentId, $courseId, $levelId, $admissionSession) {
+        if ($departmentId !== null) {
+            $q->where('department_id', $departmentId);
+        }
+
+        if ($courseId !== null) {
+            $q->where('course_id', $courseId);
+        }
+
+        if ($levelId !== null) {
+            $q->where('student_level_id', $levelId);
+        }
+
+        if (!empty($admissionSession) && strtolower($admissionSession) !== 'all') {
+            $q->where(function ($sq) use ($admissionSession) {
+                $sq->where('admission_session', $admissionSession)
+                   ->orWhere('acad_session', $admissionSession);
+            });
+        }
+    });
+
+    $students = $studentsQuery->get()->sortBy(function (User $u) {
+        return $u->academicDetail?->matric_no ?? $u->name;
+    })->values();
+
+    $studentIds = $students->pluck('id')->all();
+
+    // 2. Fetch all historical results for these students ordered chronologically
+    $rawResults = Result::with(['departmentCourse.studentCourse', 'courseVersion'])
+        ->whereIn('user_id', $studentIds)
+        ->whereIn('status', ['pending', 'submitted', 'hod_approved', 'exam_officer_approved', 'released'])
+        ->orderBy('academic_session', 'asc')
+        ->orderByRaw("CASE WHEN LOWER(semester) = 'first' THEN 1 ELSE 2 END")
+        ->orderBy('created_at', 'asc')
+        ->get();
+
+    $resultsGroupedByStudent = $rawResults->groupBy('user_id');
+
+    // 3. Fetch all carry-over records (both active and cleared)
+    $carryOversGrouped = CarryOverCourse::with([
+        'departmentCourse.studentCourse',
+        'registeredCourse',
+        'clearedResult.departmentCourse.studentCourse',
+    ])
+    ->whereIn('user_id', $studentIds)
+    ->orderBy('failed_session', 'asc')
+    ->orderBy('failed_semester', 'asc')
+    ->get()
+    ->groupBy('user_id');
+
+    // 4. Fetch ResultGpaRecords
+    $gpaRecordsGrouped = ResultGpaRecord::whereIn('user_id', $studentIds)
+        ->orderBy('academic_session', 'asc')
+        ->orderByRaw("CASE WHEN LOWER(semester) = 'first' THEN 1 ELSE 2 END")
+        ->get()
+        ->groupBy('user_id');
+
+    // Identify all unique academic sessions present across the entire cohort
+    $cohortSessions = $rawResults->pluck('academic_session')
+        ->filter()
+        ->unique()
+        ->values()
+        ->all();
+
+    sort($cohortSessions);
+
+    $studentRows               = [];
+    $totalOutstandingCarryOvers = 0;
+    $totalResolvedCarryOvers   = 0;
+    $studentsWithCleanRecord   = 0;
+    $studentsWithResolvedOnly  = 0;
+    $studentsWithDeficiencies  = 0;
+
+    foreach ($students as $student) {
+        $acadDetail  = $student->academicDetail;
+        $matricNo    = $acadDetail?->matric_no ?? 'N/A';
+        $studentName = trim("{$student->surname} {$student->firstname} {$student->m_name}");
+        if (empty(trim($studentName))) {
+            $studentName = $student->name ?? 'Unknown Student';
+        }
+
+        /** @var Collection<int, Result> $userResults */
+        $userResults = $resultsGroupedByStudent->get($student->id, collect());
+
+        // Build chronological sessions progression
+        $sessionsProgression = [];
+        $runningCcr = 0; // Cumulative Credit Registered
+        $runningCcp = 0; // Cumulative Credit Passed
+        $runningCqp = 0; // Cumulative Quality Points
+
+        $userSessions = $userResults->pluck('academic_session')->filter()->unique()->values();
+
+        // Sessional course collections for carryover detection
+        $failedAttempts = [];
+        $passedAttempts = [];
+
+        foreach ($userResults as $r) {
+            $code  = $r->course_code_snapshot
+                ?? $r->departmentCourse?->studentCourse?->code
+                ?? "CRS-{$r->department_course_id}";
+            $units = (int) ($r->credit_units_snapshot ?? $r->credit_units ?? $r->departmentCourse?->units ?? 0);
+            $total = $r->total_score !== null ? (float) $r->total_score : null;
+            $grade = strtoupper(trim((string) ($r->grade ?? ($total !== null ? $this->gradeCalculator->calculateGrade($total) : 'F'))));
+
+            $isFail = ($grade === 'F' || ($total !== null && $total < 40.0));
+            if ($isFail) {
+                $failedAttempts[] = [
+                    'result_id'            => $r->id,
+                    'course_code'          => $code,
+                    'course_title'         => $r->course_title_snapshot ?? $r->departmentCourse?->studentCourse?->name ?? 'Course',
+                    'units'                => $units,
+                    'session'              => $r->academic_session,
+                    'semester'             => ucfirst((string) $r->semester),
+                    'score'                => $total,
+                    'grade'                => $grade,
+                    'department_course_id' => $r->department_course_id,
+                ];
+            } else {
+                $passedAttempts[] = [
+                    'result_id'            => $r->id,
+                    'course_code'          => $code,
+                    'units'                => $units,
+                    'session'              => $r->academic_session,
+                    'semester'             => ucfirst((string) $r->semester),
+                    'score'                => $total,
+                    'grade'                => $grade,
+                    'department_course_id' => $r->department_course_id,
+                ];
+            }
+        }
+
+        foreach ($userSessions as $uSession) {
+            $sessionResults = $userResults->where('academic_session', $uSession);
+
+            $semestersMap = [];
+            $sessionTcr   = 0;
+            $sessionTcp   = 0;
+            $sessionTqp   = 0;
+
+            foreach (['first', 'second'] as $semKey) {
+                $semResults = $sessionResults->filter(fn ($r) => strtolower((string) $r->semester) === $semKey);
+                if ($semResults->isEmpty()) {
+                    continue;
+                }
+
+                $coursesList = [];
+                $semTcr      = 0;
+                $semTcp      = 0;
+                $semTqp      = 0;
+
+                foreach ($semResults as $res) {
+                    $code       = $res->course_code_snapshot
+                        ?? $res->departmentCourse?->studentCourse?->code
+                        ?? "CRS-{$res->department_course_id}";
+                    $title      = $res->course_title_snapshot
+                        ?? $res->departmentCourse?->studentCourse?->name
+                        ?? 'Course';
+                    $units      = (int) ($res->credit_units_snapshot ?? $res->credit_units ?? $res->departmentCourse?->units ?? 0);
+                    $total      = $res->total_score !== null ? (float) $res->total_score : null;
+                    $grade      = $res->grade ?? ($total !== null ? $this->gradeCalculator->calculateGrade($total) : 'F');
+                    $gradePoint = (int) ($res->grade_point ?? ($total !== null ? $this->gradeCalculator->calculateGradePoint($total) : 0));
+                    $qp         = $units * $gradePoint;
+
+                    $semTcr += $units;
+                    $semTqp += $qp;
+                    if ($grade !== 'F' && ($total === null || $total >= 40.0)) {
+                        $semTcp += $units;
+                    }
+
+                    $coursesList[] = [
+                        'code'           => $code,
+                        'title'          => $title,
+                        'units'          => $units,
+                        'score'          => $total,
+                        'grade'          => $grade,
+                        'grade_point'    => $gradePoint,
+                        'quality_points' => $qp,
+                        'is_repeated'    => (bool) $res->is_repeated,
+                    ];
+                }
+
+                $semGpa = $semTcr > 0 ? round($semTqp / $semTcr, 2) : 0.00;
+
+                $semestersMap[$semKey] = [
+                    'semester' => ucfirst($semKey),
+                    'tcr'      => $semTcr,
+                    'tcp'      => $semTcp,
+                    'tqp'      => $semTqp,
+                    'gpa'      => $semGpa,
+                    'courses'  => $coursesList,
+                ];
+
+                $sessionTcr += $semTcr;
+                $sessionTcp += $semTcp;
+                $sessionTqp += $semTqp;
+            }
+
+            $sessionGpa = $sessionTcr > 0 ? round($sessionTqp / $sessionTcr, 2) : 0.00;
+
+            $runningCcr  += $sessionTcr;
+            $runningCcp  += $sessionTcp;
+            $runningCqp  += $sessionTqp;
+            $runningCgpa  = $runningCcr > 0 ? round($runningCqp / $runningCcr, 2) : 0.00;
+
+            $sessionsProgression[$uSession] = [
+                'session'       => $uSession,
+                'tcr'           => $sessionTcr,
+                'tcp'           => $sessionTcp,
+                'tqp'           => $sessionTqp,
+                'session_gpa'   => $sessionGpa,
+                'running_ccr'   => $runningCcr,
+                'running_ccp'   => $runningCcp,
+                'running_cqp'   => $runningCqp,
+                'running_cgpa'  => $runningCgpa,
+                'semesters'     => $semestersMap,
+            ];
+        }
+
+        // Overall Cumulative calculations
+        $finalCgpa     = $runningCcr > 0 ? round($runningCqp / $runningCcr, 2) : 0.00;
+        $classOfDegree = $this->gradeCalculator->getClassOfDegree($finalCgpa);
+
+        // Build Carry-Over Incurred vs Cleared Ledger
+        /** @var Collection<int, CarryOverCourse> $studentCarryOvers */
+        $studentCarryOvers = $carryOversGrouped->get($student->id, collect());
+        $carryOverLedger   = [];
+        $handledCodes      = [];
+
+        // A. Incorporate records from carry_over_courses table
+        foreach ($studentCarryOvers as $co) {
+            $code  = $co->departmentCourse?->studentCourse?->code ?? "CRS-{$co->department_course_id}";
+            $title = $co->departmentCourse?->studentCourse?->name
+                ?? $co->departmentCourse?->studentCourse?->title
+                ?? 'Course';
+            $units = (int) ($co->departmentCourse?->units ?? 0);
+
+            $isCleared    = (bool) $co->is_cleared;
+            $clearedScore = $co->clearedResult?->total_score !== null ? (float) $co->clearedResult->total_score : null;
+            $clearedGrade = $co->clearedResult?->grade;
+
+            // Check if student passed it later
+            if (!$isCleared) {
+                $passing = collect($passedAttempts)->first(function ($pa) use ($co, $code) {
+                    return ($pa['department_course_id'] == $co->department_course_id
+                            || strtoupper($pa['course_code']) === strtoupper($code))
+                        && $pa['session'] >= $co->failed_session;
+                });
+                if ($passing) {
+                    $isCleared             = true;
+                    $clearedScore          = $passing['score'];
+                    $clearedGrade          = $passing['grade'];
+                    $co->retake_session    = $passing['session'];
+                    $co->retake_semester   = $passing['semester'];
+                }
+            }
+
+            $carryOverLedger[] = [
+                'course_code'     => $code,
+                'course_title'    => $title,
+                'units'           => $units,
+                'failed_session'  => $co->failed_session,
+                'failed_semester' => ucfirst((string) $co->failed_semester),
+                'failed_score'    => $co->failed_score !== null ? (float) $co->failed_score : null,
+                'failed_grade'    => $co->failed_grade ?? 'F',
+                'is_cleared'      => $isCleared,
+                'cleared_at'      => $co->cleared_at ? $co->cleared_at->format('d/m/Y') : null,
+                'retake_session'  => $co->retake_session,
+                'retake_semester' => $co->retake_semester ? ucfirst((string) $co->retake_semester) : null,
+                'cleared_score'   => $clearedScore,
+                'cleared_grade'   => $clearedGrade,
+                'status'          => $isCleared ? 'CLEARED' : 'OUTSTANDING',
+            ];
+
+            $handledCodes[] = strtoupper($code) . '_' . $co->failed_session;
+        }
+
+        // B. Auto-detect any failed results that were NOT in carry_over_courses table
+        foreach ($failedAttempts as $fa) {
+            $key = strtoupper($fa['course_code']) . '_' . $fa['session'];
+            if (in_array($key, $handledCodes, true)) {
+                continue;
+            }
+
+            $clearingAttempt = collect($passedAttempts)->first(function ($pa) use ($fa) {
+                return ($pa['department_course_id'] == $fa['department_course_id']
+                        || strtoupper($pa['course_code']) === strtoupper($fa['course_code']))
+                    && ($pa['session'] > $fa['session']
+                        || ($pa['session'] === $fa['session'] && $pa['semester'] !== $fa['semester']));
+            });
+
+            $isCleared = $clearingAttempt !== null;
+            $carryOverLedger[] = [
+                'course_code'     => $fa['course_code'],
+                'course_title'    => $fa['course_title'],
+                'units'           => $fa['units'],
+                'failed_session'  => $fa['session'],
+                'failed_semester' => $fa['semester'],
+                'failed_score'    => $fa['score'],
+                'failed_grade'    => $fa['grade'],
+                'is_cleared'      => $isCleared,
+                'cleared_at'      => null,
+                'retake_session'  => $clearingAttempt['session'] ?? null,
+                'retake_semester' => $clearingAttempt['semester'] ?? null,
+                'cleared_score'   => $clearingAttempt['score'] ?? null,
+                'cleared_grade'   => $clearingAttempt['grade'] ?? null,
+                'status'          => $isCleared ? 'CLEARED' : 'OUTSTANDING',
+            ];
+            $handledCodes[] = $key;
+        }
+
+        $hasOutstanding = collect($carryOverLedger)->contains('status', 'OUTSTANDING');
+        $hasResolved    = collect($carryOverLedger)->contains('status', 'CLEARED');
+
+        if ($hasResolved) {
+            $totalResolvedCarryOvers += collect($carryOverLedger)->where('status', 'CLEARED')->count();
+        }
+        if ($hasOutstanding) {
+            $totalOutstandingCarryOvers += collect($carryOverLedger)->where('status', 'OUTSTANDING')->count();
+        }
+
+        // Categorize student compliance
+        if (empty($carryOverLedger)) {
+            $studentsWithCleanRecord++;
+            $standingRemark = 'PASS (CLEAN RECORD)';
+        } elseif (!$hasOutstanding) {
+            $studentsWithResolvedOnly++;
+            $standingRemark = 'PASS (ALL CARRY-OVERS CLEARED)';
+        } else {
+            $studentsWithDeficiencies++;
+            $outstandingCodes = collect($carryOverLedger)
+                ->where('status', 'OUTSTANDING')
+                ->pluck('course_code')
+                ->all();
+            $standingRemark = 'DEFICIENT: ' . implode(', ', $outstandingCodes);
+        }
+
+        $entryMode = !empty($student->isDe) || str_contains(strtolower((string) $acadDetail?->student_level_id), '200')
+            ? 'DIRECT ENTRY (200L)'
+            : 'UTME (100L)';
+
+        $studentRows[] = [
+            'user_id'                    => $student->id,
+            'matric_no'                  => $matricNo,
+            'student_name'               => $studentName,
+            'entry_session'              => $acadDetail?->admission_session ?? $admissionSession,
+            'entry_mode'                 => $entryMode,
+            'current_level'              => $this->formatLevelName($acadDetail?->studentLevel?->level, (int) $acadDetail?->student_level_id),
+            'programme'                  => $acadDetail?->course?->name ?? $programmeCourse?->name ?? 'Degree',
+            'sessions'                   => $sessionsProgression,
+            'total_ccr'                  => $runningCcr,
+            'total_ccp'                  => $runningCcp,
+            'total_cqp'                  => $runningCqp,
+            'final_cgpa'                 => $finalCgpa,
+            'class_of_degree'            => $classOfDegree,
+            'carry_overs'                => $carryOverLedger,
+            'carry_overs_count'          => count($carryOverLedger),
+            'has_outstanding_carryovers' => $hasOutstanding,
+            'standing_remark'            => $standingRemark,
+        ];
+    }
+
+    $totalStudents = count($studentRows);
+
+    return [
+        'department' => [
+            'id'      => $department?->id,
+            'name'    => $department?->name ?? 'All Departments',
+            'faculty' => $department?->faculty ?? 'AFFILIATION',
+        ],
+        'admission_session' => $admissionSession,
+        'level'             => $level ? $this->formatLevelName($level->level, $level->id) : 'All Levels',
+        'student_level_id'  => $levelId,
+        'programme'         => $programmeCourse?->name
+            ?? ($department?->name ? 'B.SC. ' . $department->name : 'All Programmes'),
+        'cohort_sessions'   => $cohortSessions,
+        'students'          => $studentRows,
+        'statistics'        => [
+            'total_students'                => $totalStudents,
+            'clean_record_count'            => $studentsWithCleanRecord,
+            'clean_record_percentage'       => $totalStudents > 0 ? round(($studentsWithCleanRecord / $totalStudents) * 100, 1) : 0.0,
+            'resolved_carryover_count'      => $studentsWithResolvedOnly,
+            'resolved_carryover_percentage' => $totalStudents > 0 ? round(($studentsWithResolvedOnly / $totalStudents) * 100, 1) : 0.0,
+            'deficient_count'               => $studentsWithDeficiencies,
+            'deficient_percentage'          => $totalStudents > 0 ? round(($studentsWithDeficiencies / $totalStudents) * 100, 1) : 0.0,
+            'total_carryovers_recorded'     => $totalOutstandingCarryOvers + $totalResolvedCarryOvers,
+            'total_carryovers_cleared'      => $totalResolvedCarryOvers,
+            'total_carryovers_outstanding'  => $totalOutstandingCarryOvers,
+        ],
+    ];
+}
+
     /**
-     * Generate the consolidated Cohort Progression Master Broadsheet across all academic sessions,
-     * including full chronological journey, session GPAs, cumulative CGPA, and a detailed
-     * Carry-Over Incurred vs Cleared Resolution Ledger.
+     * Generate the Official Senate Pass List for publication, grouped by Class of Degree.
      *
      * @param array{
-     *     department_id: int,
-     *     admission_session: string,
+     *     academic_session: string,
+     *     department_id?: int|null,
      *     course_id?: int|null,
-     *     status?: string|null
+     *     cleared_only?: bool
      * } $filters
      * @return array<string, mixed>
      */
-    public function getCohortProgressionBroadsheet(array $filters): array
+    public function getSenatePassList(array $filters): array
     {
-        $departmentId = (int) $filters['department_id'];
-        $admissionSession = !empty($filters['admission_session']) ? (string) $filters['admission_session'] : 'all';
-        $levelId = !empty($filters['student_level_id']) ? (int) $filters['student_level_id'] : null;
+        $session = (string) $filters['academic_session'];
+        $departmentId = !empty($filters['department_id']) ? (int) $filters['department_id'] : null;
         $courseId = !empty($filters['course_id']) ? (int) $filters['course_id'] : null;
+        $clearedOnly = !empty($filters['cleared_only']);
 
-        $department = Department::findOrFail($departmentId);
+        $department = $departmentId ? Department::find($departmentId) : null;
         $programmeCourse = $courseId ? Course::find($courseId) : null;
-        $level = $levelId ? StudentLevel::find($levelId) : null;
 
-        // 1. Fetch Students belonging to this department & admission cohort (Undergraduate only)
-        $studentsQuery = User::with([
+        // Query GraduationListItems for students officially staged into the graduation list
+        $query = GraduationListItem::with([
+            'user.academicDetail.department',
+            'user.academicDetail.programme',
+            'user.academicDetail.course',
+            'user.academicDetail.studentLevel',
+            'user.proposedCourse',
+            'academicDetail.department',
+            'academicDetail.programme',
             'academicDetail.course',
             'academicDetail.studentLevel',
-            'academicDetail.programme',
-            'proposedCourse',
+            'graduationList',
+            'academicDetail.graduationEligibility',
         ])
-        ->where('programme_id', ProgrammesEnum::Undergraduate->value)
-        ->whereHas('academicDetail', function ($q) use ($departmentId, $courseId, $levelId, $admissionSession) {
-            $q->where('department_id', $departmentId);
-            if ($courseId !== null) {
-                $q->where('course_id', $courseId);
-            }
-            if ($levelId !== null) {
-                $q->where('student_level_id', $levelId);
-            }
-            if (!empty($admissionSession) && strtolower($admissionSession) !== 'all') {
-                $q->where(function ($sq) use ($admissionSession) {
-                    $sq->where('admission_session', $admissionSession)
-                       ->orWhere('acad_session', $admissionSession);
+        ->whereHas('graduationList', function ($gl) use ($session) {
+            $gl->where('academic_session', $session);
+        })
+        ->whereHas('user', function ($q) use ($departmentId, $courseId) {
+            $q->where('programme_id', ProgrammesEnum::Undergraduate->value);
+            if ($departmentId !== null || $courseId !== null) {
+                $q->whereHas('academicDetail', function ($ad) use ($departmentId, $courseId) {
+                    if ($departmentId !== null) {
+                        $ad->where('department_id', $departmentId);
+                    }
+                    if ($courseId !== null) {
+                        $ad->where('course_id', $courseId);
+                    }
                 });
             }
         });
 
-        $students = $studentsQuery->get()->sortBy(function (User $u) {
-            return $u->academicDetail?->matric_no ?? $u->name;
-        })->values();
+        if ($clearedOnly) {
+            $query->whereHas('academicDetail.graduationEligibility', function ($ge) {
+                $ge->where('is_cleared', true);
+            });
+        }
 
-        $studentIds = $students->pluck('id')->all();
+        $graduationListItems = $query->get();
 
-        // 2. Fetch all historical results for these students ordered chronologically
-        $rawResults = Result::with(['departmentCourse.studentCourse', 'courseVersion'])
-            ->whereIn('user_id', $studentIds)
-            ->whereIn('status', ['pending', 'submitted', 'hod_approved', 'exam_officer_approved', 'released'])
-            ->orderBy('academic_session', 'asc')
-            ->orderByRaw("CASE WHEN LOWER(semester) = 'first' THEN 1 ELSE 2 END")
-            ->orderBy('created_at', 'asc')
-            ->get();
+        // If no graduation list items exist, fallback to graduation eligibility records
+        if ($graduationListItems->isEmpty()) {
+            $eligibilityQuery = GraduationEligibility::with([
+                'academicDetail.department',
+                'academicDetail.programme',
+                'academicDetail.course',
+                'academicDetail.studentLevel',
+                'user.academicDetail.department',
+                'user.academicDetail.programme',
+                'user.academicDetail.course',
+                'user.academicDetail.studentLevel',
+                'user.proposedCourse',
+                'clearedBy',
+            ])
+            ->where('academic_session', $session)
+            ->where('meets_requirements', true)
+            ->whereHas('user', function ($q) use ($departmentId, $courseId) {
+                $q->where('programme_id', ProgrammesEnum::Undergraduate->value);
+                if ($departmentId !== null || $courseId !== null) {
+                    $q->whereHas('academicDetail', function ($ad) use ($departmentId, $courseId) {
+                        if ($departmentId !== null) {
+                            $ad->where('department_id', $departmentId);
+                        }
+                        if ($courseId !== null) {
+                            $ad->where('course_id', $courseId);
+                        }
+                    });
+                }
+            });
 
-        $resultsGroupedByStudent = $rawResults->groupBy('user_id');
+            if ($clearedOnly) {
+                $eligibilityQuery->where('is_cleared', true);
+            }
 
-        // 3. Fetch all carry-over records (both active and cleared)
-        $carryOversGrouped = CarryOverCourse::with([
-            'departmentCourse.studentCourse',
-            'registeredCourse',
-            'clearedResult.departmentCourse.studentCourse',
-        ])
-        ->whereIn('user_id', $studentIds)
-        ->orderBy('failed_session', 'asc')
-        ->orderBy('failed_semester', 'asc')
-        ->get()
-        ->groupBy('user_id');
+            $eligibilityRecords = $eligibilityQuery->get();
 
-        // 4. Fetch ResultGpaRecords
-        $gpaRecordsGrouped = ResultGpaRecord::whereIn('user_id', $studentIds)
-            ->orderBy('academic_session', 'asc')
-            ->orderByRaw("CASE WHEN LOWER(semester) = 'first' THEN 1 ELSE 2 END")
-            ->get()
-            ->groupBy('user_id');
+            $passListRows = [];
+            foreach ($eligibilityRecords as $rec) {
+                $user = $rec->user;
+                $acad = $rec->academicDetail ?? $user?->academicDetail;
+                $matricNo = $acad?->matric_no ?? 'N/A';
+                $studentName = trim(($user?->surname ?? '') . ' ' . ($user?->firstname ?? '') . ' ' . ($user?->m_name ?? ''));
+                if (empty($studentName)) {
+                    $studentName = $user?->name ?? 'Unknown Graduand';
+                }
 
-        // Identify all unique academic sessions present across the entire cohort
-        $cohortSessions = $rawResults->pluck('academic_session')
-            ->filter()
-            ->unique()
+                $entrySession = $acad?->admission_session ?? $acad?->acad_session ?? 'N/A';
+                $isDe = $user?->isDe ?? false;
+                $modeOfEntry = $isDe ? 'Direct Entry (200L)' : 'UTME (100L)';
+                $deptName = $acad?->department?->name ?? $department?->name ?? 'N/A';
+                $progName = $acad?->course?->name ?? $acad?->programme?->name ?? $programmeCourse?->name ?? 'B.Sc Degree';
+
+                $totalUnitsEarned = (int) $rec->total_units_earned;
+                $totalUnitsRequired = (int) $rec->total_units_required;
+                $finalCgpa = (float) $rec->final_cgpa;
+                $classOfDegree = $rec->class_of_degree ?? $this->gradeCalculator->getClassOfDegree($finalCgpa);
+
+                $passListRows[] = [
+                    'matric_no' => $matricNo,
+                    'student_name' => $studentName,
+                    'entry_session' => $entrySession,
+                    'mode_of_entry' => $modeOfEntry,
+                    'department_name' => $deptName,
+                    'programme_name' => $progName,
+                    'total_units_required' => $totalUnitsRequired,
+                    'total_units_earned' => $totalUnitsEarned,
+                    'final_cgpa' => $finalCgpa,
+                    'class_of_degree' => $classOfDegree,
+                    'is_cleared' => (bool) $rec->is_cleared,
+                    'remarks' => $rec->remarks ?? 'Recommended for Degree Conferment',
+                ];
+            }
+        } else {
+            $passListRows = [];
+            foreach ($graduationListItems as $item) {
+                $user = $item->user;
+                $acad = $item->academicDetail ?? $user?->academicDetail;
+                $matricNo = $item->matric_no ?? $acad?->matric_no ?? 'N/A';
+                $studentName = $item->full_name ?? trim(($user?->surname ?? '') . ' ' . ($user?->firstname ?? '') . ' ' . ($user?->m_name ?? ''));
+                if (empty($studentName)) {
+                    $studentName = $user?->name ?? 'Unknown Graduand';
+                }
+
+                $entrySession = $acad?->admission_session ?? $acad?->acad_session ?? 'N/A';
+                $isDe = $user?->isDe ?? false;
+                $modeOfEntry = $isDe ? 'Direct Entry (200L)' : 'UTME (100L)';
+                $deptName = $acad?->department?->name ?? $department?->name ?? 'N/A';
+                $progName = $acad?->course?->name ?? $acad?->programme?->name ?? $programmeCourse?->name ?? 'B.Sc Degree';
+
+                $finalCgpa = (float) ($item->final_cgpa ?? 0.00);
+                $classOfDegree = $item->class_of_degree ?? $this->gradeCalculator->getClassOfDegree($finalCgpa);
+
+                $passListRows[] = [
+                    'matric_no' => $matricNo,
+                    'student_name' => $studentName,
+                    'entry_session' => $entrySession,
+                    'mode_of_entry' => $modeOfEntry,
+                    'department_name' => $deptName,
+                    'programme_name' => $progName,
+                    'total_units_required' => (int) ($item->total_units_required ?? 0),
+                    'total_units_earned' => (int) ($item->total_units_earned ?? 0),
+                    'final_cgpa' => $finalCgpa,
+                    'class_of_degree' => $classOfDegree,
+                    'is_cleared' => true,
+                    'remarks' => 'Officially Staged for Degree Conferment',
+                ];
+            }
+        }
+
+        // Group by Class of Degree for publication format
+        $groupedByClass = [];
+        $classOrder = [
+            'First Class Honours',
+            'Second Class Upper Division',
+            'Second Class Lower Division',
+            'Third Class Honours',
+            'Pass',
+        ];
+
+        foreach ($classOrder as $class) {
+            $groupedByClass[$class] = collect($passListRows)
+                ->filter(fn($row) => str_contains((string) $row['class_of_degree'], $class))
+                ->sortBy(fn($row) => $row['matric_no'])
+                ->values()
+                ->all();
+        }
+
+        // Add any students with unmatched class names
+        $unmatchedClasses = collect($passListRows)
+            ->filter(fn($row) => !collect($classOrder)->contains(fn($class) => str_contains((string) $row['class_of_degree'], $class)))
+            ->sortBy(fn($row) => $row['matric_no'])
             ->values()
             ->all();
 
-        sort($cohortSessions);
-
-        $studentRows = [];
-        $totalOutstandingCarryOvers = 0;
-        $totalResolvedCarryOvers = 0;
-        $studentsWithCleanRecord = 0;
-        $studentsWithResolvedOnly = 0;
-        $studentsWithDeficiencies = 0;
-
-        foreach ($students as $student) {
-            $acadDetail = $student->academicDetail;
-            $matricNo = $acadDetail?->matric_no ?? 'N/A';
-            $studentName = trim("{$student->surname} {$student->firstname} {$student->m_name}");
-            if (empty(trim($studentName))) {
-                $studentName = $student->name ?? 'Unknown Student';
-            }
-
-            /** @var Collection<int, Result> $userResults */
-            $userResults = $resultsGroupedByStudent->get($student->id, collect());
-
-            // Build chronological sessions progression
-            $sessionsProgression = [];
-            $runningCcr = 0; // Cumulative Credit Registered
-            $runningCcp = 0; // Cumulative Credit Passed
-            $runningCqp = 0; // Cumulative Quality Points
-
-            $userSessions = $userResults->pluck('academic_session')->filter()->unique()->values();
-
-            // Sessional course collections for carryover detection
-            $failedAttempts = [];
-            $passedAttempts = [];
-
-            foreach ($userResults as $r) {
-                $code = $r->course_code_snapshot 
-                    ?? $r->departmentCourse?->studentCourse?->code 
-                    ?? "CRS-{$r->department_course_id}";
-                $units = (int) ($r->credit_units_snapshot ?? $r->credit_units ?? $r->departmentCourse?->units ?? 0);
-                $total = $r->total_score !== null ? (float) $r->total_score : null;
-                $grade = strtoupper(trim((string) ($r->grade ?? ($total !== null ? $this->gradeCalculator->calculateGrade($total) : 'F'))));
-                
-                $isFail = ($grade === 'F' || ($total !== null && $total < 40.0));
-                if ($isFail) {
-                    $failedAttempts[] = [
-                        'result_id' => $r->id,
-                        'course_code' => $code,
-                        'course_title' => $r->course_title_snapshot ?? $r->departmentCourse?->studentCourse?->name ?? 'Course',
-                        'units' => $units,
-                        'session' => $r->academic_session,
-                        'semester' => ucfirst((string) $r->semester),
-                        'score' => $total,
-                        'grade' => $grade,
-                        'department_course_id' => $r->department_course_id,
-                    ];
-                } else {
-                    $passedAttempts[] = [
-                        'result_id' => $r->id,
-                        'course_code' => $code,
-                        'units' => $units,
-                        'session' => $r->academic_session,
-                        'semester' => ucfirst((string) $r->semester),
-                        'score' => $total,
-                        'grade' => $grade,
-                        'department_course_id' => $r->department_course_id,
-                    ];
-                }
-            }
-
-            foreach ($userSessions as $uSession) {
-                $sessionResults = $userResults->where('academic_session', $uSession);
-
-                $semestersMap = [];
-                $sessionTcr = 0;
-                $sessionTcp = 0;
-                $sessionTqp = 0;
-
-                foreach (['first', 'second'] as $semKey) {
-                    $semResults = $sessionResults->filter(fn($r) => strtolower((string) $r->semester) === $semKey);
-                    if ($semResults->isEmpty()) {
-                        continue;
-                    }
-
-                    $coursesList = [];
-                    $semTcr = 0;
-                    $semTcp = 0;
-                    $semTqp = 0;
-
-                    foreach ($semResults as $res) {
-                        $code = $res->course_code_snapshot 
-                            ?? $res->departmentCourse?->studentCourse?->code 
-                            ?? "CRS-{$res->department_course_id}";
-                        $title = $res->course_title_snapshot 
-                            ?? $res->departmentCourse?->studentCourse?->name 
-                            ?? 'Course';
-                        $units = (int) ($res->credit_units_snapshot ?? $res->credit_units ?? $res->departmentCourse?->units ?? 0);
-                        $total = $res->total_score !== null ? (float) $res->total_score : null;
-                        $grade = $res->grade ?? ($total !== null ? $this->gradeCalculator->calculateGrade($total) : 'F');
-                        $gradePoint = (int) ($res->grade_point ?? ($total !== null ? $this->gradeCalculator->calculateGradePoint($total) : 0));
-                        $qp = $units * $gradePoint;
-
-                        $semTcr += $units;
-                        $semTqp += $qp;
-                        if ($grade !== 'F' && ($total === null || $total >= 40.0)) {
-                            $semTcp += $units;
-                        }
-
-                        $coursesList[] = [
-                            'code' => $code,
-                            'title' => $title,
-                            'units' => $units,
-                            'score' => $total,
-                            'grade' => $grade,
-                            'grade_point' => $gradePoint,
-                            'quality_points' => $qp,
-                            'is_repeated' => (bool) $res->is_repeated,
-                        ];
-                    }
-
-                    $semGpa = $semTcr > 0 ? round($semTqp / $semTcr, 2) : 0.00;
-
-                    $semestersMap[$semKey] = [
-                        'semester' => ucfirst($semKey),
-                        'tcr' => $semTcr,
-                        'tcp' => $semTcp,
-                        'tqp' => $semTqp,
-                        'gpa' => $semGpa,
-                        'courses' => $coursesList,
-                    ];
-
-                    $sessionTcr += $semTcr;
-                    $sessionTcp += $semTcp;
-                    $sessionTqp += $semTqp;
-                }
-
-                $sessionGpa = $sessionTcr > 0 ? round($sessionTqp / $sessionTcr, 2) : 0.00;
-
-                $runningCcr += $sessionTcr;
-                $runningCcp += $sessionTcp;
-                $runningCqp += $sessionTqp;
-                $runningCgpa = $runningCcr > 0 ? round($runningCqp / $runningCcr, 2) : 0.00;
-
-                $sessionsProgression[$uSession] = [
-                    'session' => $uSession,
-                    'tcr' => $sessionTcr,
-                    'tcp' => $sessionTcp,
-                    'tqp' => $sessionTqp,
-                    'session_gpa' => $sessionGpa,
-                    'running_ccr' => $runningCcr,
-                    'running_ccp' => $runningCcp,
-                    'running_cqp' => $runningCqp,
-                    'running_cgpa' => $runningCgpa,
-                    'semesters' => $semestersMap,
-                ];
-            }
-
-            // Overall Cumulative calculations
-            $finalCgpa = $runningCcr > 0 ? round($runningCqp / $runningCcr, 2) : 0.00;
-            $classOfDegree = $this->gradeCalculator->getClassOfDegree($finalCgpa);
-
-            // Build Carry-Over Incurred vs Cleared Ledger (Both from CarryOverCourse model and Results auto-detection)
-            /** @var Collection<int, CarryOverCourse> $studentCarryOvers */
-            $studentCarryOvers = $carryOversGrouped->get($student->id, collect());
-            $carryOverLedger = [];
-            $handledCodes = [];
-
-            // A. Incorporate records from carry_over_courses table if any exist
-            foreach ($studentCarryOvers as $co) {
-                $code = $co->departmentCourse?->studentCourse?->code ?? "CRS-{$co->department_course_id}";
-                $title = $co->departmentCourse?->studentCourse?->name ?? $co->departmentCourse?->studentCourse?->title ?? 'Course';
-                $units = (int) ($co->departmentCourse?->units ?? 0);
-
-                $isCleared = (bool) $co->is_cleared;
-                $clearedScore = $co->clearedResult?->total_score !== null ? (float) $co->clearedResult->total_score : null;
-                $clearedGrade = $co->clearedResult?->grade;
-
-                // Check if student passed it in $passedAttempts after failed session
-                if (!$isCleared) {
-                    $passing = collect($passedAttempts)->first(function ($pa) use ($co, $code) {
-                        return ($pa['department_course_id'] == $co->department_course_id || strtoupper($pa['course_code']) === strtoupper($code))
-                            && $pa['session'] >= $co->failed_session;
-                    });
-                    if ($passing) {
-                        $isCleared = true;
-                        $clearedScore = $passing['score'];
-                        $clearedGrade = $passing['grade'];
-                        $co->retake_session = $passing['session'];
-                        $co->retake_semester = $passing['semester'];
-                    }
-                }
-
-                $carryOverLedger[] = [
-                    'course_code' => $code,
-                    'course_title' => $title,
-                    'units' => $units,
-                    'failed_session' => $co->failed_session,
-                    'failed_semester' => ucfirst((string) $co->failed_semester),
-                    'failed_score' => $co->failed_score !== null ? (float) $co->failed_score : null,
-                    'failed_grade' => $co->failed_grade ?? 'F',
-                    'is_cleared' => $isCleared,
-                    'cleared_at' => $co->cleared_at ? $co->cleared_at->format('d/m/Y') : null,
-                    'retake_session' => $co->retake_session,
-                    'retake_semester' => $co->retake_semester ? ucfirst((string) $co->retake_semester) : null,
-                    'cleared_score' => $clearedScore,
-                    'cleared_grade' => $clearedGrade,
-                    'status' => $isCleared ? 'CLEARED' : 'OUTSTANDING',
-                ];
-
-                $handledCodes[] = strtoupper($code) . '_' . $co->failed_session;
-            }
-
-            // B. Auto-detect any failed results that were NOT in carry_over_courses table
-            foreach ($failedAttempts as $fa) {
-                $key = strtoupper($fa['course_code']) . '_' . $fa['session'];
-                if (in_array($key, $handledCodes, true)) {
-                    continue;
-                }
-
-                // Check if student passed this course in a subsequent session/semester
-                $clearingAttempt = collect($passedAttempts)->first(function ($pa) use ($fa) {
-                    return ($pa['department_course_id'] == $fa['department_course_id'] || strtoupper($pa['course_code']) === strtoupper($fa['course_code']))
-                        && ($pa['session'] > $fa['session'] || ($pa['session'] === $fa['session'] && $pa['semester'] !== $fa['semester']));
-                });
-
-                $isCleared = $clearingAttempt !== null;
-                $carryOverLedger[] = [
-                    'course_code' => $fa['course_code'],
-                    'course_title' => $fa['course_title'],
-                    'units' => $fa['units'],
-                    'failed_session' => $fa['session'],
-                    'failed_semester' => $fa['semester'],
-                    'failed_score' => $fa['score'],
-                    'failed_grade' => $fa['grade'],
-                    'is_cleared' => $isCleared,
-                    'cleared_at' => null,
-                    'retake_session' => $clearingAttempt['session'] ?? null,
-                    'retake_semester' => $clearingAttempt['semester'] ?? null,
-                    'cleared_score' => $clearingAttempt['score'] ?? null,
-                    'cleared_grade' => $clearingAttempt['grade'] ?? null,
-                    'status' => $isCleared ? 'CLEARED' : 'OUTSTANDING',
-                ];
-                $handledCodes[] = $key;
-            }
-
-            $hasOutstanding = collect($carryOverLedger)->contains('status', 'OUTSTANDING');
-            $hasResolved = collect($carryOverLedger)->contains('status', 'CLEARED');
-            if ($hasResolved) {
-                $totalResolvedCarryOvers += collect($carryOverLedger)->where('status', 'CLEARED')->count();
-            }
-            if ($hasOutstanding) {
-                $totalOutstandingCarryOvers += collect($carryOverLedger)->where('status', 'OUTSTANDING')->count();
-            }
-
-            // Categorize student compliance
-            if (empty($carryOverLedger)) {
-                $studentsWithCleanRecord++;
-                $standingRemark = 'PASS (CLEAN RECORD)';
-            } elseif (!$hasOutstanding) {
-                $studentsWithResolvedOnly++;
-                $standingRemark = 'PASS (ALL CARRY-OVERS CLEARED)';
-            } else {
-                $studentsWithDeficiencies++;
-                $outstandingCodes = collect($carryOverLedger)
-                    ->where('status', 'OUTSTANDING')
-                    ->pluck('course_code')
-                    ->all();
-                $standingRemark = 'DEFICIENT: ' . implode(', ', $outstandingCodes);
-            }
-
-            $entryMode = !empty($student->isDe) || str_contains(strtolower((string) $acadDetail?->student_level_id), '200')
-                ? 'DIRECT ENTRY (200L)'
-                : 'UTME (100L)';
-
-            $studentRows[] = [
-                'user_id' => $student->id,
-                'matric_no' => $matricNo,
-                'student_name' => $studentName,
-                'entry_session' => $acadDetail?->admission_session ?? $admissionSession,
-                'entry_mode' => $entryMode,
-                'current_level' => $this->formatLevelName($acadDetail?->studentLevel?->level, (int) $acadDetail?->student_level_id),
-                'programme' => $acadDetail?->course?->name ?? $programmeCourse?->name ?? 'Degree',
-                'sessions' => $sessionsProgression,
-                'total_ccr' => $runningCcr,
-                'total_ccp' => $runningCcp,
-                'total_cqp' => $runningCqp,
-                'final_cgpa' => $finalCgpa,
-                'class_of_degree' => $classOfDegree,
-                'carry_overs' => $carryOverLedger,
-                'carry_overs_count' => count($carryOverLedger),
-                'has_outstanding_carryovers' => $hasOutstanding,
-                'standing_remark' => $standingRemark,
-            ];
+        if (!empty($unmatchedClasses)) {
+            $groupedByClass['Other'] = $unmatchedClasses;
         }
 
-        $totalStudents = count($studentRows);
+        $summaryStats = $this->getSenatePassListSummaryStats(collect($passListRows));
 
         return [
             'department' => [
-                'id' => $department->id,
-                'name' => $department->name,
-                'faculty' => $department->faculty ?? 'AFFILIATION',
+                'id' => $department?->id,
+                'name' => $department?->name ?? 'All Academic Departments',
+                'faculty' => $department?->faculty ?? 'Faculty of Science / Affiliation Directorate',
             ],
-            'admission_session' => $admissionSession,
-            'level' => $level ? $this->formatLevelName($level->level, $level->id) : 'All Levels',
-            'student_level_id' => $levelId,
-            'programme' => $programmeCourse?->name ?? ($department->name ? 'B.SC. ' . $department->name : 'All Programmes'),
-            'cohort_sessions' => $cohortSessions,
-            'students' => $studentRows,
-            'statistics' => [
-                'total_students' => $totalStudents,
-                'clean_record_count' => $studentsWithCleanRecord,
-                'clean_record_percentage' => $totalStudents > 0 ? round(($studentsWithCleanRecord / $totalStudents) * 100, 1) : 0.0,
-                'resolved_carryover_count' => $studentsWithResolvedOnly,
-                'resolved_carryover_percentage' => $totalStudents > 0 ? round(($studentsWithResolvedOnly / $totalStudents) * 100, 1) : 0.0,
-                'deficient_count' => $studentsWithDeficiencies,
-                'deficient_percentage' => $totalStudents > 0 ? round(($studentsWithDeficiencies / $totalStudents) * 100, 1) : 0.0,
-                'total_carryovers_recorded' => $totalOutstandingCarryOvers + $totalResolvedCarryOvers,
-                'total_carryovers_cleared' => $totalResolvedCarryOvers,
-                'total_carryovers_outstanding' => $totalOutstandingCarryOvers,
-            ],
+            'programme' => $programmeCourse?->name ?? 'All Undergraduate Degree Programmes',
+            'session' => $session,
+            'graduands' => $passListRows,
+            'grouped_by_class' => $groupedByClass,
+            'summary' => $summaryStats,
+        ];
+    }
+
+    /**
+     * Compute summary statistics for Senate Pass List.
+     *
+     * @param Collection<int, array<string, mixed>> $graduands
+     * @return array<string, mixed>
+     */
+    public function getSenatePassListSummaryStats(Collection $graduands): array
+    {
+        $total = $graduands->count();
+
+        $firstClass = 0;
+        $secondUpper = 0;
+        $secondLower = 0;
+        $thirdClass = 0;
+        $passCount = 0;
+
+        foreach ($graduands as $g) {
+            $class = (string) ($g['class_of_degree'] ?? '');
+            if (str_contains($class, 'First Class')) {
+                $firstClass++;
+            } elseif (str_contains($class, 'Upper') || str_contains($class, '2.1') || str_contains($class, 'Second Class (Upper')) {
+                $secondUpper++;
+            } elseif (str_contains($class, 'Lower') || str_contains($class, '2.2') || str_contains($class, 'Second Class (Lower')) {
+                $secondLower++;
+            } elseif (str_contains($class, 'Third Class')) {
+                $thirdClass++;
+            } elseif (str_contains($class, 'Pass')) {
+                $passCount++;
+            }
+        }
+
+        return [
+            'total_graduands' => $total,
+            'first_class_count' => $firstClass,
+            'first_class_percentage' => $total > 0 ? round(($firstClass / $total) * 100, 1) : 0.0,
+            'second_upper_count' => $secondUpper,
+            'second_upper_percentage' => $total > 0 ? round(($secondUpper / $total) * 100, 1) : 0.0,
+            'second_lower_count' => $secondLower,
+            'second_lower_percentage' => $total > 0 ? round(($secondLower / $total) * 100, 1) : 0.0,
+            'third_class_count' => $thirdClass,
+            'third_class_percentage' => $total > 0 ? round(($thirdClass / $total) * 100, 1) : 0.0,
+            'pass_count' => $passCount,
+            'pass_percentage' => $total > 0 ? round(($passCount / $total) * 100, 1) : 0.0,
         ];
     }
 

@@ -20,38 +20,33 @@ class CohortProgressionBroadsheetController extends Controller
     ) {}
 
     /**
-     * Display and print official Cohort Progression Master Broadsheet (All Sessions & Carry-Over Audit).
-     *
-     * @param Request $request
-     * @param Department|int $department
-     * @param string $admissionSession
-     * @return View
+     * Display and print official Cohort Progression Master Broadsheet
+     * (All Sessions & Carry-Over Audit).
      */
     public function print(
         Request $request,
-        Department|int $department,
+        string|int $department,
         string $admissionSession
     ): View {
-        $departmentId = $department instanceof Department 
-            ? $department->id 
-            : (int) $department;
+        $departmentId = $this->normalizeDepartmentId($department);
 
         $normalizedSession = str_replace('-', '/', $admissionSession);
         $levelId = $request->query('level') ? (int) $request->query('level') : null;
 
         $filters = [
-            'department_id' => $departmentId,
-            'admission_session' => $normalizedSession,
-            'student_level_id' => $levelId,
-            'course_id' => $request->query('course_id') ? (int) $request->query('course_id') : null,
-            'status' => $request->query('status'),
+            'department_id'      => $departmentId,
+            'admission_session'  => $normalizedSession,
+            'student_level_id'   => $levelId,
+            'course_id'          => $request->query('course_id') ? (int) $request->query('course_id') : null,
+            'status'             => $request->query('status'),
         ];
 
         $data = $this->reportingService->getCohortProgressionBroadsheet($filters);
 
-        // Fetch options for on-page toolbar filters
+        // Toolbar filter options
         $allDepartments = Department::orderBy('name')->get(['id', 'name']);
-        $allLevels = StudentLevel::orderBy('level')->get(['id', 'level']);
+        $allLevels      = StudentLevel::orderBy('level')->get(['id', 'level']);
+
         $allCohorts = DB::table('academic_details')
             ->whereNotNull('admission_session')
             ->where('admission_session', '!=', '')
@@ -60,7 +55,6 @@ class CohortProgressionBroadsheetController extends Controller
             ->pluck('admission_session')
             ->toArray();
 
-        // Also add sessions from results if not already present
         $resultSessions = DB::table('results')
             ->whereNotNull('academic_session')
             ->where('academic_session', '!=', '')
@@ -68,56 +62,51 @@ class CohortProgressionBroadsheetController extends Controller
             ->pluck('academic_session')
             ->toArray();
 
-        $mergedCohorts = array_values(array_unique(array_filter(array_merge($allCohorts, $resultSessions))));
+        $mergedCohorts = array_values(array_unique(array_filter(
+            array_merge($allCohorts, $resultSessions)
+        )));
         rsort($mergedCohorts);
 
         $viewData = array_merge($data, [
-            'allDepartments' => $allDepartments,
-            'allLevels' => $allLevels,
-            'allCohorts' => $mergedCohorts,
-            'selectedLevelId' => $levelId,
+            'allDepartments'   => $allDepartments,
+            'allLevels'        => $allLevels,
+            'allCohorts'       => $mergedCohorts,
+            'selectedLevelId'  => $levelId,
         ]);
 
         return view('reports.cohort-progression-broadsheet', $viewData);
     }
 
     /**
-     * Export official Cohort Progression Master Broadsheet as a standard CSV download.
-     *
-     * @param Request $request
-     * @param Department|int $department
-     * @param string $admissionSession
-     * @return StreamedResponse
+     * Export official Cohort Progression Master Broadsheet as CSV.
      */
     public function exportCsv(
         Request $request,
-        Department|int $department,
+        string|int $department,
         string $admissionSession
     ): StreamedResponse {
-        $departmentId = $department instanceof Department 
-            ? $department->id 
-            : (int) $department;
+        $departmentId = $this->normalizeDepartmentId($department);
 
         $normalizedSession = str_replace('-', '/', $admissionSession);
 
         $filters = [
-            'department_id' => $departmentId,
-            'admission_session' => $normalizedSession,
-            'course_id' => $request->query('course_id') ? (int) $request->query('course_id') : null,
-            'status' => $request->query('status'),
+            'department_id'      => $departmentId,
+            'admission_session'  => $normalizedSession,
+            'course_id'          => $request->query('course_id') ? (int) $request->query('course_id') : null,
+            'status'             => $request->query('status'),
         ];
 
-        $data = $this->reportingService->getCohortProgressionBroadsheet($filters);
+        $data     = $this->reportingService->getCohortProgressionBroadsheet($filters);
         $students = $data['students'] ?? [];
 
-        $cleanDept = preg_replace('/[^A-Za-z0-9]/', '_', $data['department']['name'] ?? 'All_Depts');
+        $cleanDept    = preg_replace('/[^A-Za-z0-9]/', '_', $data['department']['name'] ?? 'All_Depts');
         $cleanSession = str_replace('/', '_', $normalizedSession);
-        $filename = "Cohort_Progression_Broadsheet_{$cleanDept}_{$cleanSession}.csv";
+        $filename     = "Cohort_Progression_Broadsheet_{$cleanDept}_{$cleanSession}.csv";
 
         return response()->streamDownload(function () use ($students, $data, $normalizedSession) {
             $handle = fopen('php://output', 'w');
 
-            // Institutional header rows
+            // Institutional header
             fputcsv($handle, ['WAZIRI UMARU FEDERAL POLYTECHNIC BIRNIN KEBBI']);
             fputcsv($handle, ['IN AFFILIATION WITH FEDERAL UNIVERSITY BIRNIN KEBBI']);
             fputcsv($handle, ['COHORT PROGRESSION MASTER BROADSHEET & CARRY-OVER AUDIT']);
@@ -127,21 +116,34 @@ class CohortProgressionBroadsheetController extends Controller
             fputcsv($handle, ['DATE GENERATED:', now()->format('Y-m-d H:i:s')]);
             fputcsv($handle, []);
 
-            // Summary Statistics
+            // Summary
             $stats = $data['statistics'] ?? [];
             fputcsv($handle, ['COHORT AUDIT SUMMARY']);
             fputcsv($handle, ['Total Students', $stats['total_students'] ?? 0]);
-            fputcsv($handle, ['Clean Progression (0 Carry-Overs)', $stats['clean_record_count'] ?? 0, ($stats['clean_record_percentage'] ?? 0) . '%']);
-            fputcsv($handle, ['Resolved Carry-Overs (All Cleared)', $stats['resolved_carryover_count'] ?? 0, ($stats['resolved_carryover_percentage'] ?? 0) . '%']);
-            fputcsv($handle, ['Active Carry-Over Deficiencies', $stats['deficient_count'] ?? 0, ($stats['deficient_percentage'] ?? 0) . '%']);
-            fputcsv($handle, ['Total Deficiencies Recorded / Cleared / Outstanding', 
-                $stats['total_carryovers_recorded'] ?? 0, 
-                $stats['total_carryovers_cleared'] ?? 0, 
-                $stats['total_carryovers_outstanding'] ?? 0
+            fputcsv($handle, [
+                'Clean Progression (0 Carry-Overs)',
+                $stats['clean_record_count'] ?? 0,
+                ($stats['clean_record_percentage'] ?? 0) . '%',
+            ]);
+            fputcsv($handle, [
+                'Resolved Carry-Overs (All Cleared)',
+                $stats['resolved_carryover_count'] ?? 0,
+                ($stats['resolved_carryover_percentage'] ?? 0) . '%',
+            ]);
+            fputcsv($handle, [
+                'Active Carry-Over Deficiencies',
+                $stats['deficient_count'] ?? 0,
+                ($stats['deficient_percentage'] ?? 0) . '%',
+            ]);
+            fputcsv($handle, [
+                'Total Deficiencies Recorded / Cleared / Outstanding',
+                $stats['total_carryovers_recorded'] ?? 0,
+                $stats['total_carryovers_cleared'] ?? 0,
+                $stats['total_carryovers_outstanding'] ?? 0,
             ]);
             fputcsv($handle, []);
 
-            // Table headers
+            // Column headers
             fputcsv($handle, [
                 'S/N',
                 'Matriculation Number',
@@ -159,18 +161,16 @@ class CohortProgressionBroadsheetController extends Controller
 
             // Data rows
             foreach ($students as $index => $row) {
-                // Format progression string
                 $progressionParts = [];
                 foreach ($row['sessions'] as $sess) {
                     $progressionParts[] = "{$sess['session']}: TCR={$sess['tcr']}, TCP={$sess['tcp']}, GPA={$sess['session_gpa']}, CGPA={$sess['running_cgpa']}";
                 }
                 $progressionString = implode(' | ', $progressionParts);
 
-                // Format carry-over audit string
-                $carryOverParts = [];
                 if (empty($row['carry_overs'])) {
                     $carryOverString = 'None (Clean)';
                 } else {
+                    $carryOverParts = [];
                     foreach ($row['carry_overs'] as $co) {
                         if ($co['is_cleared']) {
                             $carryOverParts[] = "[{$co['course_code']} (Failed: {$co['failed_session']} {$co['failed_semester']} with {$co['failed_score']}/{$co['failed_grade']} -> CLEARED in {$co['retake_session']} with {$co['cleared_score']}/{$co['cleared_grade']})]";
@@ -199,8 +199,22 @@ class CohortProgressionBroadsheetController extends Controller
 
             fclose($handle);
         }, $filename, [
-            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Content-Type'        => 'text/csv; charset=UTF-8',
             'Content-Disposition' => "attachment; filename=\"{$filename}\"",
         ]);
+    }
+
+    /**
+     * Normalize the department route parameter to an integer ID (or null for "all").
+     *
+     * Laravel route parameters always arrive as strings.
+     */
+    private function normalizeDepartmentId(string|int $department): ?int
+    {
+        if ($department === '' || strtolower(trim((string) $department)) === 'all') {
+            return null;
+        }
+
+        return (int) $department;
     }
 }

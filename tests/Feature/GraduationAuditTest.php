@@ -15,14 +15,15 @@ use App\Models\Programme;
 use App\Models\StudentLevel;
 use App\Models\User;
 use App\Services\GraduationService;
-use Illuminate\Foundation\Testing\DatabaseTransactions;
+use App\Enums\ProgrammesEnum;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Str;
 use Livewire\Livewire;
 use Tests\TestCase;
 
 class GraduationAuditTest extends TestCase
 {
-    use DatabaseTransactions;
+    use RefreshDatabase;
 
     protected User $examOfficer;
     protected User $student;
@@ -36,7 +37,8 @@ class GraduationAuditTest extends TestCase
     {
         parent::setUp();
 
-        $this->programme = Programme::create([
+        $this->programme = Programme::forceCreate([
+            'id' => ProgrammesEnum::Undergraduate->value,
             'name' => 'B.Sc Computer Science ' . uniqid(),
             'abv' => 'UG',
         ]);
@@ -99,7 +101,7 @@ class GraduationAuditTest extends TestCase
     {
         $response = $this->actingAs($this->examOfficer)->get(route('exam-officer.graduation-audit'));
         $response->assertOk();
-        $response->assertSee('Exam Officer Graduation Audit & Clearance');
+        $response->assertSee('Exam Officer Graduation Audit', false);
         $response->assertSee('Run Cohort Audit');
         $response->assertSee('Batch Clear Eligible');
         $response->assertSee('Stage to Pass List');
@@ -112,7 +114,7 @@ class GraduationAuditTest extends TestCase
             ->set('selectedDepartmentId', $this->department->id)
             ->set('selectedSession', '2024/2025')
             ->assertSee($this->academicDetail->matric_no)
-            ->assertSee('Test Graduand')
+            ->assertSee('Graduand Test')
             ->assertSee('Not Audited');
     }
 

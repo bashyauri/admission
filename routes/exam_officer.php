@@ -14,3 +14,5 @@ Route::get('/senate-graduation-broadsheet/{session}/{department?}', [\App\Http\C
 Route::get('/senate-graduation-broadsheet-export/{session}/{department?}', [\App\Http\Controllers\Report\SenateGraduationBroadsheetController::class, 'exportCsv'])->name('senate-graduation-broadsheet.export');
 Route::get('/cohort-progression-broadsheet/{department}/{admissionSession}', [\App\Http\Controllers\Report\CohortProgressionBroadsheetController::class, 'print'])->name('cohort-progression-broadsheet');
 Route::get('/cohort-progression-broadsheet-export/{department}/{admissionSession}', [\App\Http\Controllers\Report\CohortProgressionBroadsheetController::class, 'exportCsv'])->name('cohort-progression-broadsheet.export');
+Route::get('/senate-pass-list/{session}/{department?}', [\App\Http\Controllers\Report\SenatePassListController::class, 'print'])->name('senate-pass-list');
+Route::get('/senate-pass-list-export/{session}/{department?}', [\App\Http\Controllers\Report\SenatePassListController::class, 'exportCsv'])->name('senate-pass-list.export');
