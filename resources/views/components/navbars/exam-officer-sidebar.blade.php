@@ -81,6 +81,23 @@
                 </a>
             </li>
 
+            <!-- Degree Certificates & Collection -->
+            <li class="mt-0.5 w-full">
+                <a class="ease-soft-in-out py-2.7 text-size-sm my-0 mx-4 flex items-center whitespace-nowrap px-4 {{ Route::currentRouteName() == 'exam-officer.certificates' ? 'font-semibold text-slate-700 xl:shadow-soft-xl rounded-lg bg-white' : 'font-medium text-slate-500 shadow-none' }} transition-colors dark:text-white dark:opacity-80"
+                    href="{{ route('exam-officer.certificates') }}">
+                    <div class="stroke-none mr-2 flex h-8 w-8 items-center justify-center rounded-lg bg-white bg-center fill-current p-2.5 text-center text-black {{ Route::currentRouteName() == 'exam-officer.certificates' ? 'shadow-soft-sm bg-gradient-fuchsia' : 'shadow-soft-2xl' }}">
+                        {{-- Certificate / Scroll Icon --}}
+                        <svg width="12px" height="12px" viewBox="0 0 40 40" version="1.1" xmlns="http://www.w3.org/2000/svg">
+                            <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+                                <path class="{{ Route::currentRouteName() == 'exam-officer.certificates' ? '' : 'fill-slate-800' }}" d="M8,4 C5.8,4 4,5.8 4,8 L4,32 C4,34.2 5.8,36 8,36 L32,36 C34.2,36 36,34.2 36,32 L36,8 C36,5.8 34.2,4 32,4 L8,4 Z M8,8 L32,8 L32,28 L8,28 L8,8 Z" opacity="0.6"/>
+                                <path class="{{ Route::currentRouteName() == 'exam-officer.certificates' ? '' : 'fill-slate-800' }}" d="M12,12 L28,12 L28,14 L12,14 Z M12,18 L24,18 L24,20 L12,20 Z M12,24 L20,24 L20,26 L12,26 Z"/>
+                            </g>
+                        </svg>
+                    </div>
+                    <span class="ml-1 duration-300 opacity-100 pointer-events-none ease-soft">Certificates</span>
+                </a>
+            </li>
+
             <!-- Roles Switcher (only shown if user has extra capabilities) -->
             @if(auth()->user()->canActAsAdmin() || auth()->user()->canActAsCit() || auth()->user()->canActAsHod() || auth()->user()->canActAsLecturer() || auth()->user()->canActAsCoordinator())
             <li class="w-full mt-4">

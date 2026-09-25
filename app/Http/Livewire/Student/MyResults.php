@@ -158,6 +158,9 @@ class MyResults extends Component
         $classOfDegree = $totalTcr > 0 ? $gradeService->getClassOfDegree($overallCgpa) : 'N/A';
         $academicStanding = $progressionService->determineAcademicStanding($user);
 
+        $graduationEligibility = $user->graduationEligibility;
+        $degreeCertificate = $user->degreeCertificate;
+
         return view('livewire.student.my-results', [
             'academicDetail' => $academicDetail,
             'groupedResults' => $groupedResults,
@@ -168,6 +171,8 @@ class MyResults extends Component
             'classOfDegree' => $classOfDegree,
             'academicStanding' => $academicStanding,
             'isUndergraduate' => $user->isUndergraduate(),
+            'graduationEligibility' => $graduationEligibility,
+            'degreeCertificate' => $degreeCertificate,
         ])->layout('layouts.app');
     }
 }

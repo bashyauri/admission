@@ -100,6 +100,56 @@
                         @endif
                     </div>
                 </div>
+
+                {{-- Graduation Clearance & Certificate Readiness Badge --}}
+                @if($graduationEligibility || $degreeCertificate)
+                    <div class="mt-4 p-4 rounded-xl border {{ $degreeCertificate?->is_collected ? 'bg-emerald-50/60 border-emerald-200' : ($degreeCertificate ? 'bg-purple-50/60 border-purple-200' : ($graduationEligibility?->is_cleared ? 'bg-blue-50/60 border-blue-200' : 'bg-amber-50/60 border-amber-200')) }}">
+                        <div class="flex flex-wrap items-center justify-between gap-3">
+                            <div class="flex items-center gap-3">
+                                <span class="text-2xl">🎓</span>
+                                <div>
+                                    <div class="flex items-center gap-2">
+                                        <h6 class="font-bold text-slate-800 text-sm mb-0">Graduation &amp; Degree Status</h6>
+                                        @if($degreeCertificate?->is_collected)
+                                            <span class="px-2.5 py-0.5 text-[10px] font-bold rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300">
+                                                ✅ Degree Certificate Collected
+                                            </span>
+                                        @elseif($degreeCertificate)
+                                            <span class="px-2.5 py-0.5 text-[10px] font-bold rounded-full bg-purple-100 text-purple-800 border border-purple-300">
+                                                📜 Certificate Ready for Collection
+                                            </span>
+                                        @elseif($graduationEligibility?->is_cleared)
+                                            <span class="px-2.5 py-0.5 text-[10px] font-bold rounded-full bg-blue-100 text-blue-800 border border-blue-300">
+                                                ✅ Cleared for Graduation
+                                            </span>
+                                        @else
+                                            <span class="px-2.5 py-0.5 text-[10px] font-bold rounded-full bg-amber-100 text-amber-800 border border-amber-300">
+                                                ⏳ Clearance in Progress
+                                            </span>
+                                        @endif
+                                    </div>
+
+                                    <div class="text-xs text-slate-600 mt-1 flex flex-wrap items-center gap-x-4 gap-y-1">
+                                        @if($graduationEligibility?->class_of_degree)
+                                            <span><strong>Award:</strong> {{ $graduationEligibility->class_of_degree }}</span>
+                                        @endif
+                                        @if($degreeCertificate?->certificate_number)
+                                            <span><strong>Certificate No:</strong> <span class="font-mono text-purple-900 font-bold">{{ $degreeCertificate->certificate_number }}</span></span>
+                                        @endif
+                                        @if($degreeCertificate?->issue_date)
+                                            <span><strong>Date Issued:</strong> {{ $degreeCertificate->issue_date->format('d M Y') }}</span>
+                                        @endif
+                                        @if($degreeCertificate?->is_collected)
+                                            <span class="text-emerald-700"><strong>Collected:</strong> {{ $degreeCertificate->collected_at?->format('d M Y') }} ({{ $degreeCertificate->recipient_name }})</span>
+                                        @elseif($degreeCertificate)
+                                            <span class="text-purple-700 font-medium">Please present your student ID at the Exams & Records Registry for collection.</span>
+                                        @endif
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                @endif
             </div>
         </div>
     </div>
