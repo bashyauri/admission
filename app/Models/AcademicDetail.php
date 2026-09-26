@@ -142,4 +142,19 @@ class AcademicDetail extends Model
     {
         return $this->hasMany(DegreeCertificate::class, 'academic_detail_id');
     }
+
+    public function academicProgressionRecords(): HasMany
+    {
+        return $this->hasMany(AcademicProgressionRecord::class, 'academic_detail_id');
+    }
+
+    public function studentStatusRecords(): HasMany
+    {
+        return $this->hasMany(StudentStatusRecord::class, 'academic_detail_id');
+    }
+
+    public function latestStudentStatusRecord(): HasOne
+    {
+        return $this->hasOne(StudentStatusRecord::class, 'academic_detail_id')->latestOfMany();
+    }
 }

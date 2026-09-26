@@ -379,5 +379,20 @@ public function coordinators()
     {
         return $this->hasOne(DegreeCertificate::class, 'user_id')->latestOfMany();
     }
+
+    public function academicProgressionRecords(): HasMany
+    {
+        return $this->hasMany(AcademicProgressionRecord::class, 'user_id');
+    }
+
+    public function studentStatusRecords(): HasMany
+    {
+        return $this->hasMany(StudentStatusRecord::class, 'user_id');
+    }
+
+    public function latestStudentStatusRecord(): HasOne
+    {
+        return $this->hasOne(StudentStatusRecord::class, 'user_id')->latestOfMany();
+    }
 }
 

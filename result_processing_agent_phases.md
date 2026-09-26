@@ -274,19 +274,19 @@ The system must follow these governance rules:
 #### Task 6.7.1: Academic Status Foundation (Database & Models)
 * **Scope:** Migrations & Eloquent Models only.
 * **Tasks:**
-  - [ ] Create `academic_progression_records` table migration & model (`AcademicProgressionRecord.php`)
+  - [x] Create `academic_progression_records` table migration & model (`AcademicProgressionRecord.php`)
     - Fields: `user_id`, `academic_detail_id`, `academic_session`, `semester`, `level`, `cgpa`, `standing`, `withdrawal_recommended`
     - Purpose: Track academic progression history independent of institutional decisions
-  - [ ] Create `student_status_records` table migration & model (`StudentStatusRecord.php`)
+  - [x] Create `student_status_records` table migration & model (`StudentStatusRecord.php`)
     - Fields: `user_id`, `academic_detail_id`, `status`, `status_type`, `reason_code`, `reason`, `academic_session`, `semester`, `effective_date`, `end_date`, `senate_reference`, `senate_decision_date`, `senate_decision`, `reinstatement_eligible`, `processed_by`, `notes`
     - Purpose: Track actual institutional decisions (withdrawal, reinstatement, etc.)
-  - [ ] Create PHP enums: `StudentStatus`, `StudentStatusType`, `AcademicActivity`
+  - [x] Create PHP enums: `StudentStatus`, `StudentStatusType`, `AcademicActivity`
     - `StudentStatus`: ACTIVE, VOLUNTARY_WITHDRAWAL, ACADEMIC_WITHDRAWAL, MEDICAL_WITHDRAWAL, SUSPENDED, EXPELLED, REINSTATED
     - `StudentStatusType`: ACADEMIC, VOLUNTARY, MEDICAL, DISCIPLINARY
     - `AcademicActivity`: COURSE_REGISTRATION, SCHOOL_FEES, EXAM_REGISTRATION, RESULT_PROCESSING, GRADUATION
-  - [ ] Establish relationships on `User` and `AcademicDetail`
-  - [ ] Create historical status query scopes
-  - [ ] Automated unit test: `tests/Unit/Phase67StatusFoundationTest.php`
+  - [x] Establish relationships on `User` and `AcademicDetail`
+  - [x] Create historical status query scopes
+  - [x] Automated unit test: `tests/Unit/Phase67StatusFoundationTest.php`
 *Agent Prompt:*
   > *"Please implement Phase 6, Task 6.7.1: Create the academic progression records and student status records tables with proper enums, relationships, and unit tests."*
 
