@@ -18,3 +18,6 @@ Route::get('/cohort-progression-broadsheet/{department}/{admissionSession}', [\A
 Route::get('/cohort-progression-broadsheet-export/{department}/{admissionSession}', [\App\Http\Controllers\Report\CohortProgressionBroadsheetController::class, 'exportCsv'])->name('cohort-progression-broadsheet.export');
 Route::get('/senate-pass-list/{session}/{department?}', [\App\Http\Controllers\Report\SenatePassListController::class, 'print'])->name('senate-pass-list');
 Route::get('/senate-pass-list-export/{session}/{department?}', [\App\Http\Controllers\Report\SenatePassListController::class, 'exportCsv'])->name('senate-pass-list.export');
+Route::get('/withdrawal-ledger', [\App\Http\Controllers\Report\WithdrawalReportingController::class, 'index'])->name('withdrawal-ledger');
+Route::get('/withdrawal-ledger/export.csv', [\App\Http\Controllers\Report\WithdrawalReportingController::class, 'exportCsv'])->name('withdrawal-ledger.export.csv');
+Route::get('/withdrawal-ledger/export.pdf', [\App\Http\Controllers\Report\WithdrawalReportingController::class, 'exportPdf'])->name('withdrawal-ledger.export.pdf');

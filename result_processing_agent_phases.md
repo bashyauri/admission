@@ -161,12 +161,12 @@ graph TD
 
 ---
 
-## Phase 6: Undergraduate Graduation Processing & Senate Final Degree Approval (⏳ UP NEXT)
+## Phase 6: Undergraduate Graduation Processing & Senate Final Degree Approval (IN PROGRESS)
 * **Goal:** Automatically check undergraduate student graduation eligibility, generate the Senate Graduation Broadsheet, produce the Official Graduating/Pass List, and track certificate issuance.
 * **Risk Profile:** Low (primarily reports, eligibility evaluation, and certificate logging).
 * **Status:** **Ready for Execution (Structured into 15 Daily Tasks including Task 6.7 for Student Status Management)**
 
-> **Note:** Phase 6.7 (Student Academic Status, Withdrawal & Reinstatement Management) has been designed following Senate-compliant architecture principles. The detailed 9-task breakdown for Phase 6.7 is available in `phase_6.7_proposal.md` and should be inserted after Task 6.6 before Phase 7. This implementation provides auditable Senate workflows, historical record preservation, and proper separation of academic progression from institutional decisions.
+> **Note:** Phase 6.7 (Student Academic Status, Withdrawal & Reinstatement Management) is detailed below and is being implemented following Senate-compliant architecture principles. Its reports preserve historical records and keep institutional status separate from academic progression.
 
 ### Daily Tasks Breakdown (Token-Efficient Execution):
 
@@ -254,7 +254,7 @@ graph TD
 #### Task 6.7: Student Academic Status, Withdrawal & Reinstatement Management (⏳ UP NEXT)
 * **Goal:** Implement Senate-compliant student status management with auditable withdrawal/reinstatement workflows, academic progression history tracking, and proper separation of academic performance from institutional decisions.
 * **Risk Profile:** Low (additive tables and service layer with proper governance workflows).
-* **Status:** **In Progress (Tasks 6.7.1–6.7.5 completed)**
+* **Status:** **In Progress (Tasks 6.7.1–6.7.6 completed)**
 
 ### Design Principles
 The system must follow these governance rules:
@@ -355,19 +355,15 @@ The system must follow these governance rules:
   > *"Please implement Phase 6, Task 6.7.5: Create Senate-approved reinstatement workflow that preserves complete withdrawal history and uses academic progression logic to determine correct reinstatement level."*
 
 #### Task 6.7.6: Senate Withdrawal Reporting
-* **Scope:** Senate-compliant withdrawal ledger and reports.
+* **Scope:** Senate-compliant withdrawal ledger and reports. (✅ COMPLETED — September 2026)
 * **Tasks:**
-  - [ ] Extend `ResultReportingService` with withdrawal reporting methods:
-    - `getWithdrawalLedger()` - Complete withdrawal history with filters
-    - `getSenateWithdrawalReport()` - Senate compliance report
-    - `getDepartmentalWithdrawalReport()` - Department-level summary
-    - `getReinstatementReport()` - Reinstatement tracking report
-  - [ ] Create withdrawal ledger view: `resources/views/reports/withdrawal-ledger.blade.php`
+  - [x] Extend `ResultReportingService` with the withdrawal ledger, Senate compliance, departmental summary, and reinstatement tracking methods
+  - [x] Create the filterable withdrawal ledger at `resources/views/reports/withdrawal-ledger.blade.php`
     - Columns: Matric No, Student, Programme, Type, Session, Effective Date, Senate Ref, Reinstatement
     - Filters: Academic Session, Department, Programme, Withdrawal Type, Status, Date Range, Reinstatement Eligibility, Senate Reference
-  - [ ] Statistics by session/type/department
-  - [ ] Print, PDF, and CSV export capabilities
-  - [ ] Feature test: `tests/Feature/WithdrawalReportingTest.php`
+  - [x] Add statistics by session, withdrawal type, department, Senate decision, and reinstatement outcome
+  - [x] Add print, PDF, and CSV export capabilities under Exam Officer routes
+  - [x] Feature test: `tests/Feature/WithdrawalReportingTest.php` (4 tests, 24 assertions)
 *Agent Prompt:*
   > *"Please implement Phase 6, Task 6.7.6: Create Senate-compliant withdrawal reporting including withdrawal ledger, Senate reports, and statistical analysis with export capabilities."*
 

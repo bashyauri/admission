@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Enums\ProgrammesEnum;
+use App\Enums\StudentStatus;
 use App\Models\AcademicDetail;
 use App\Models\CarryOverCourse;
 use App\Models\Course;
@@ -18,6 +19,8 @@ use App\Models\GraduationListItem;
 use App\Models\Result;
 use App\Models\ResultGpaRecord;
 use App\Models\StudentLevel;
+use App\Models\StudentStatusRecord;
+use App\Models\Programme;
 use App\Models\User;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -1521,6 +1524,229 @@ public function getCohortProgressionBroadsheet(array $filters): array
             'third_class_percentage' => $total > 0 ? round(($thirdClass / $total) * 100, 1) : 0.0,
             'pass_count' => $passCount,
             'pass_percentage' => $total > 0 ? round(($passCount / $total) * 100, 1) : 0.0,
+        ];
+    }
+
+    /** Return the filtered UG withdrawal ledger and its report summaries. */
+    public function getWithdrawalLedger(array $filters = []): array
+    {
+        $query = $this->withdrawalQuery($filters);
+        $records = $query->orderByDesc('effective_date')->orderByDesc('id')->get();
+        $rows = $this->formatWithdrawalRows($records);
+
+        return [
+            'report_title' => 'Student Withdrawal Ledger',
+            'filters' => $filters,
+            'rows' => $rows,
+            'summary' => $this->getWithdrawalSummary($rows),
+            'by_session' => $rows->groupBy('academic_session')->map->count()->sortKeysDesc(),
+            'by_type' => $rows->groupBy('withdrawal_type')->map->count()->sortKeys(),
+            'by_department' => $rows->groupBy('department')->map->count()->sortKeys(),
+            'departments' => Department::query()->orderBy('name')->get(['id', 'name']),
+            'programmes' => Programme::query()->whereKey(ProgrammesEnum::Undergraduate->value)->orderBy('name')->get(['id', 'name']),
+            'sessions' => StudentStatusRecord::query()
+                ->whereIn('status', $this->withdrawalStatusValues())
+                ->whereHas('user', fn ($q) => $q->where('programme_id', ProgrammesEnum::Undergraduate->value))
+                ->whereNotNull('academic_session')->distinct()->orderByDesc('academic_session')->pluck('academic_session'),
+            'withdrawal_types' => collect(StudentStatus::cases())->filter(fn (StudentStatus $status) => $status->isWithdrawn()),
+            'senate_decisions' => $this->senateDecisionOptions(),
+        ];
+    }
+
+    /** Senate view of withdrawal decisions, references, and reinstatement outcomes. */
+    public function getSenateWithdrawalReport(array $filters = []): array
+    {
+        $data = $this->getWithdrawalLedger($filters);
+        $data['report_title'] = 'Senate Withdrawal Compliance Report';
+        $data['by_senate_decision'] = $data['rows']->groupBy('senate_decision')->map->count()->sortKeys();
+        $data['missing_senate_reference_count'] = $data['rows']
+            ->filter(fn (array $row) => in_array($row['senate_decision'], ['SENATE_APPROVED', 'APPROVED'], true) && !$row['senate_reference'])
+            ->count();
+
+        return $data;
+    }
+
+    /** Department-level withdrawal counts and status breakdowns. */
+    public function getDepartmentalWithdrawalReport(array $filters = []): array
+    {
+        $data = $this->getWithdrawalLedger($filters);
+        $data['report_title'] = 'Departmental Withdrawal Summary';
+        $data['department_summary'] = $data['rows']->groupBy('department')->map(function (Collection $rows, string $department) {
+            return [
+                'department' => $department,
+                'total' => $rows->count(),
+                'academic' => $rows->where('withdrawal_type', StudentStatus::ACADEMIC_WITHDRAWAL->label())->count(),
+                'voluntary' => $rows->where('withdrawal_type', StudentStatus::VOLUNTARY_WITHDRAWAL->label())->count(),
+                'medical' => $rows->where('withdrawal_type', StudentStatus::MEDICAL_WITHDRAWAL->label())->count(),
+                'senate_pending' => $rows->where('senate_decision', 'PENDING_SENATE')->count(),
+                'reinstated' => $rows->where('reinstatement_status', 'Reinstated')->count(),
+            ];
+        })->values();
+
+        return $data;
+    }
+
+    /** Reinstatement requests and decisions associated with withdrawal history. */
+    public function getReinstatementReport(array $filters = []): array
+    {
+        $data = $this->getWithdrawalLedger($filters);
+        $data['report_title'] = 'Reinstatement Tracking Report';
+        $data['rows'] = $data['rows']->filter(fn (array $row) => $row['reinstatement_request_state'] !== null)->values();
+        $data['by_session'] = $data['rows']->groupBy('academic_session')->map->count()->sortKeysDesc();
+        $data['by_type'] = $data['rows']->groupBy('withdrawal_type')->map->count()->sortKeys();
+        $data['by_department'] = $data['rows']->groupBy('department')->map->count()->sortKeys();
+        $data['summary'] = [
+            'total_requests' => $data['rows']->count(),
+            'requested' => $data['rows']->count(),
+            'pending' => $data['rows']->filter(fn (array $row) => in_array($row['reinstatement_request_state'], [
+                'REINSTATEMENT_REQUESTED', 'REINSTATEMENT_DEPARTMENT_APPROVED', 'REINSTATEMENT_FACULTY_APPROVED',
+            ], true))->count(),
+            'reinstated' => $data['rows']->where('reinstatement_status', 'Reinstated')->count(),
+            'rejected' => $data['rows']->filter(fn (array $row) => str_contains((string) $row['reinstatement_request_state'], 'REJECTED'))->count(),
+        ];
+
+        return $data;
+    }
+
+    private function withdrawalQuery(array $filters): \Illuminate\Database\Eloquent\Builder
+    {
+        $query = StudentStatusRecord::query()
+            ->with(['user.academicDetail.department', 'user.academicDetail.programme', 'academicDetail.department', 'academicDetail.programme'])
+            ->whereIn('status', $this->withdrawalStatusValues())
+            ->whereHas('user', fn ($q) => $q->where('programme_id', ProgrammesEnum::Undergraduate->value));
+
+        if (!empty($filters['academic_session'])) {
+            $query->where('academic_session', $filters['academic_session']);
+        }
+        if (!empty($filters['department_id'])) {
+            $query->whereHas('academicDetail', fn ($q) => $q->where('department_id', $filters['department_id']));
+        }
+        if (!empty($filters['programme_id'])) {
+            $query->whereHas('academicDetail', fn ($q) => $q->where('programme_id', $filters['programme_id']));
+        }
+        if (!empty($filters['withdrawal_type'])) {
+            $type = $filters['withdrawal_type'];
+            if (in_array($type, $this->withdrawalStatusValues(), true)) {
+                $query->where('status', $type);
+            } else {
+                $query->where('status_type', $type);
+            }
+        }
+        if (!empty($filters['status'])) {
+            if (in_array($filters['status'], $this->withdrawalStatusValues(), true)) {
+                $query->where('status', $filters['status']);
+            } else {
+                $query->where('senate_decision', $filters['status']);
+            }
+        }
+        if (!empty($filters['date_from'])) {
+            $query->whereDate('effective_date', '>=', $filters['date_from']);
+        }
+        if (!empty($filters['date_to'])) {
+            $query->whereDate('effective_date', '<=', $filters['date_to']);
+        }
+        if (array_key_exists('reinstatement_eligible', $filters) && $filters['reinstatement_eligible'] !== '' && $filters['reinstatement_eligible'] !== null) {
+            $query->where('reinstatement_eligible', (bool) $filters['reinstatement_eligible']);
+        }
+        if (!empty($filters['senate_reference'])) {
+            $query->where('senate_reference', 'like', '%' . $filters['senate_reference'] . '%');
+        }
+
+        return $query;
+    }
+
+    private function withdrawalStatusValues(): array
+    {
+        return array_values(array_map(
+            fn (StudentStatus $status) => $status->value,
+            array_filter(StudentStatus::cases(), fn (StudentStatus $status) => $status->isWithdrawn())
+        ));
+    }
+
+    private function senateDecisionOptions(): array
+    {
+        return [
+            'WITHDRAWAL_RECOMMENDED', 'PENDING_SENATE', 'SENATE_APPROVED', 'SENATE_REJECTED',
+        ];
+    }
+
+    private function formatWithdrawalRows(Collection $records): Collection
+    {
+        $userIds = $records->pluck('user_id')->unique()->all();
+        $events = StudentStatusRecord::query()
+            ->whereIn('user_id', $userIds)
+            ->where(function ($query) {
+                $query->where('reason_code', 'REINSTATEMENT_REQUEST')
+                    ->orWhere('reason_code', 'SENATE_REINSTATEMENT')
+                    ->orWhere('reason_code', 'REINSTATEMENT_REJECTED');
+            })
+            ->orderBy('effective_date')->orderBy('id')->get()->groupBy('user_id');
+        $usedEvents = [];
+
+        return $records->map(function (StudentStatusRecord $record) use ($events, &$usedEvents) {
+            $user = $record->user;
+            $detail = $record->academicDetail ?? $user?->academicDetail;
+            $request = $events->get($record->user_id, collect())
+                ->first(fn (StudentStatusRecord $event) => $event->reason_code === 'REINSTATEMENT_REQUEST'
+                    && !isset($usedEvents[$event->id])
+                    && (string) $event->effective_date >= (string) $record->effective_date);
+            $reinstatement = $events->get($record->user_id, collect())
+                ->first(fn (StudentStatusRecord $event) => in_array($event->reason_code, ['SENATE_REINSTATEMENT', 'REINSTATEMENT_REJECTED'], true)
+                    && !isset($usedEvents[$event->id])
+                    && (string) $event->effective_date >= (string) ($request?->effective_date ?? $record->effective_date));
+
+            if ($request) {
+                $usedEvents[$request->id] = true;
+            }
+            if ($reinstatement) {
+                $usedEvents[$reinstatement->id] = true;
+            }
+
+            $requestState = $request?->senate_decision;
+            $reinstatementStatus = match (true) {
+                $reinstatement?->reason_code === 'SENATE_REINSTATEMENT' => 'Reinstated',
+                $reinstatement?->reason_code === 'REINSTATEMENT_REJECTED' => 'Rejected',
+                $requestState === 'REINSTATEMENT_FACULTY_APPROVED' => 'Pending Senate',
+                $requestState === 'REINSTATEMENT_DEPARTMENT_APPROVED' => 'Faculty Review',
+                $requestState === 'REINSTATEMENT_REQUESTED' => 'Department Review',
+                str_contains((string) $requestState, 'REJECTED') => 'Rejected',
+                default => $record->reinstatement_eligible ? 'Eligible' : 'Not eligible',
+            };
+
+            return [
+                'id' => $record->id,
+                'matric_no' => $detail?->matric_no ?? '—',
+                'student_name' => trim(($user?->surname ?? '') . ' ' . ($user?->firstname ?? '') . ' ' . ($user?->m_name ?? '')),
+                'programme' => $detail?->programme?->name ?? $user?->programme?->name ?? '—',
+                'department' => $detail?->department?->name ?? 'Unassigned',
+                'withdrawal_type' => $record->status?->label() ?? (string) $record->status,
+                'status' => $record->status?->value ?? (string) $record->status,
+                'academic_session' => $record->academic_session,
+                'semester' => $record->semester,
+                'effective_date' => $record->effective_date?->toDateString(),
+                'end_date' => $record->end_date?->toDateString(),
+                'senate_reference' => $record->senate_reference,
+                'senate_decision' => (string) $record->senate_decision,
+                'senate_decision_date' => $record->senate_decision_date?->toDateString(),
+                'reinstatement_eligible' => (bool) $record->reinstatement_eligible,
+                'reinstatement_status' => $reinstatementStatus,
+                'reinstatement_request_state' => $requestState,
+                'reinstatement_session' => $reinstatement?->academic_session,
+                'reinstatement_reference' => $reinstatement?->senate_reference ?? $request?->senate_reference,
+                'reinstatement_date' => $reinstatement?->effective_date?->toDateString(),
+            ];
+        });
+    }
+
+    private function getWithdrawalSummary(Collection $rows): array
+    {
+        return [
+            'total_withdrawals' => $rows->count(),
+            'senate_approved' => $rows->filter(fn (array $row) => in_array($row['senate_decision'], ['SENATE_APPROVED', 'APPROVED'], true))->count(),
+            'pending_senate' => $rows->where('senate_decision', 'PENDING_SENATE')->count(),
+            'rejected' => $rows->where('senate_decision', 'SENATE_REJECTED')->count(),
+            'reinstatement_eligible' => $rows->where('reinstatement_eligible', true)->count(),
+            'reinstated' => $rows->where('reinstatement_status', 'Reinstated')->count(),
         ];
     }
 

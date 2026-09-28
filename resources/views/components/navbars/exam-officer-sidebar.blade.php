@@ -81,6 +81,19 @@
                 </a>
             </li>
 
+            <!-- Student Withdrawal Ledger -->
+            <li class="mt-0.5 w-full">
+                <a class="ease-soft-in-out py-2.7 text-size-sm my-0 mx-4 flex items-center whitespace-nowrap px-4 {{ Route::currentRouteName() == 'exam-officer.withdrawal-ledger' ? 'font-semibold text-slate-700 xl:shadow-soft-xl rounded-lg bg-white' : 'font-medium text-slate-500 shadow-none' }} transition-colors dark:text-white dark:opacity-80"
+                    href="{{ route('exam-officer.withdrawal-ledger') }}">
+                    <div class="mr-2 flex h-8 w-8 items-center justify-center rounded-lg bg-white p-2.5 text-center text-black shadow-soft-2xl">
+                        <svg class="h-4 w-4 fill-slate-800" viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M4 3h16a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1zm2 4v2h12V7H6zm0 4v2h12v-2H6zm0 4v2h8v-2H6z"/>
+                        </svg>
+                    </div>
+                    <span class="ml-1 duration-300 opacity-100 pointer-events-none ease-soft">Withdrawal Ledger</span>
+                </a>
+            </li>
+
             <!-- Degree Certificates & Collection -->
             <li class="mt-0.5 w-full">
                 <a class="ease-soft-in-out py-2.7 text-size-sm my-0 mx-4 flex items-center whitespace-nowrap px-4 {{ Route::currentRouteName() == 'exam-officer.certificates' ? 'font-semibold text-slate-700 xl:shadow-soft-xl rounded-lg bg-white' : 'font-medium text-slate-500 shadow-none' }} transition-colors dark:text-white dark:opacity-80"
