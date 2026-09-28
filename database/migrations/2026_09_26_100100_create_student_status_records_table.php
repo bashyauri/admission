@@ -15,7 +15,7 @@ return new class extends Migration
         Schema::create('student_status_records', function (Blueprint $table) {
             $table->id();
             $table->foreignUuid('user_id')->constrained('users')->cascadeOnDelete();
-   $table->foreignIdFor(AcademicDetail::class)->nullable()->constrained('academic_details')->nullOnDelete();         
+            $table->foreignIdFor(AcademicDetail::class)->nullable()->constrained('academic_details')->nullOnDelete();         
             $table->string('status');
             $table->string('status_type')->nullable();
             $table->string('reason_code')->nullable();
