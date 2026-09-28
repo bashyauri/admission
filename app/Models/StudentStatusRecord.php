@@ -81,7 +81,7 @@ class StudentStatusRecord extends Model
 
     public function scopeSenateApproved(Builder $query): Builder
     {
-        return $query->where('senate_decision', 'APPROVED');
+        return $query->whereIn('senate_decision', ['SENATE_APPROVED', 'APPROVED']);
     }
 
     public function scopeByStatusType(Builder $query, StudentStatusType|string $type): Builder

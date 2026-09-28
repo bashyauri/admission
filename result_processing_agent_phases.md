@@ -290,25 +290,25 @@ The system must follow these governance rules:
 *Agent Prompt:*
   > *"Please implement Phase 6, Task 6.7.1: Create the academic progression records and student status records tables with proper enums, relationships, and unit tests."*
 
-#### Task 6.7.2: Withdrawal Eligibility Engine
+#### Task 6.7.2: Withdrawal Eligibility Engine (✅ COMPLETED)
 * **Scope:** Business logic & calculation service layer (strictly backend TDD).
 * **Tasks:**
-  - [ ] Extend `AcademicProgressionService` with `evaluateWithdrawalEligibility()` method
+  - [x] Extend `AcademicProgressionService` with `evaluateWithdrawalEligibility()` method
     - Rule-driven evaluation (no hard-coded CGPA < 0.50 until institutionally confirmed)
     - Consecutive probation tracking
     - Maximum residency checks using existing programme duration logic
     - Registration/non-registration pattern analysis
     - Configurable institutional rules via configuration file
-  - [ ] Returns structured assessment: `['eligible' => bool, 'reason_code' => string, 'reason' => string, 'standing' => string]`
-  - [ ] Integration with existing `determineAcademicStanding()` method
-  - [ ] Automated unit test suite: `tests/Unit/WithdrawalEligibilityTest.php`
+  - [x] Returns structured assessment: `['eligible' => bool, 'reason_code' => string, 'reason' => string, 'standing' => string]`
+  - [x] Integration with existing `determineAcademicStanding()` method
+  - [x] Automated unit test suite: `tests/Unit/WithdrawalEligibilityTest.php` (14 tests, 47 assertions)
 *Agent Prompt:*
   > *"Please implement Phase 6, Task 6.7.2: Extend AcademicProgressionService with rule-driven withdrawal eligibility evaluation that supports configurable institutional policies and returns structured assessments."*
 
-#### Task 6.7.3: Senate Withdrawal Workflow Service
+#### Task 6.7.3: Senate Withdrawal Workflow Service (✅ COMPLETED)
 * **Scope:** Service layer with Senate governance workflow.
 * **Tasks:**
-  - [ ] Create `App\Services\StudentStatusService`:
+  - [x] Create `App\Services\StudentStatusService`:
     - `evaluateAcademicWithdrawal()` - Assessment gateway
     - `createWithdrawalRecommendation()` - Create recommendation records
     - `submitForSenate()` - Submit to Senate workflow
@@ -320,10 +320,10 @@ The system must follow these governance rules:
     - `getStatusHistory()` - Get complete status timeline
     - `isAcademicallyActive()` - Activity status check
     - `isEligibleForReinstatement()` - Reinstatement eligibility check
-  - [ ] Implement Senate workflow states: WITHDRAWAL_RECOMMENDED → PENDING_SENATE → SENATE_APPROVED/REJECTED
-  - [ ] Senate reference validation and format checking
-  - [ ] Effective date handling with session awareness
-  - [ ] Automated unit test suite: `tests/Unit/StudentStatusServiceTest.php`
+  - [x] Implement Senate workflow states: WITHDRAWAL_RECOMMENDED → PENDING_SENATE → SENATE_APPROVED/REJECTED
+  - [x] Senate reference validation and format checking
+  - [x] Effective date handling with session awareness
+  - [x] Automated unit test suite: `tests/Unit/StudentStatusServiceTest.php` (42 tests, 101 assertions)
 *Agent Prompt:*
   > *"Please implement Phase 6, Task 6.7.3: Create StudentStatusService with complete Senate withdrawal workflow including recommendation, approval, rejection, and status history management."*
 

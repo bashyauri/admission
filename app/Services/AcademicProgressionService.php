@@ -5,10 +5,12 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Models\AcademicDetail;
+use App\Models\AcademicProgressionRecord;
 use App\Models\CarryOverCourse;
 use App\Models\Programme;
 use App\Models\ResultGpaRecord;
 use App\Models\User;
+use Illuminate\Support\Collection;
 
 class AcademicProgressionService
 {
@@ -152,5 +154,341 @@ class AcademicProgressionService
         }
 
         return 4;
+    }
+
+    // =========================================================================
+    // Task 6.7.2: Withdrawal Eligibility Engine
+    // =========================================================================
+
+    /**
+     * Evaluate whether a student is eligible for an academic withdrawal recommendation.
+     *
+     * This method is RULE-DRIVEN and reads from config/academic_withdrawal.php.
+     * It does NOT automatically withdraw any student — it returns a structured
+     * assessment that an authorised officer must act upon.
+     *
+     * GOVERNANCE:
+     *   - PG students always return ['eligible' => false].
+     *   - All thresholds are configurable; no hard-coded CGPA is assumed.
+     *   - The CGPA minimum rule is disabled by default until institutionally confirmed.
+     *   - This method only produces a *recommendation*. Senate approval is
+     *     required before any official status change.
+     *
+     * @return array{
+     *     eligible: bool,
+     *     reason_code: string|null,
+     *     reason: string,
+     *     standing: string,
+     *     cgpa: float,
+     *     triggered_rules: string[],
+     * }
+     */
+    public function evaluateWithdrawalEligibility(User $user): array
+    {
+        // --- PG Guard: must never affect postgraduate workflows ---
+        if (!$user->isUndergraduate()) {
+            return [
+                'eligible'        => false,
+                'reason_code'     => null,
+                'reason'          => 'Withdrawal eligibility evaluation is not applicable to Postgraduate students.',
+                'standing'        => self::STANDING_PROMOTED,
+                'cgpa'            => 0.0,
+                'triggered_rules' => [],
+            ];
+        }
+
+        $standingInfo = $this->determineAcademicStanding($user);
+        $standing     = $standingInfo['standing'];
+        $cgpa         = $standingInfo['cgpa'];
+
+        $triggeredRules  = [];
+        $firstReasonCode = null;
+        $firstReason     = null;
+
+        // -------------------------------------------------------------------
+        // Rule 1: Consecutive Academic Probation
+        // -------------------------------------------------------------------
+        $rule = config('academic_withdrawal.consecutive_probation', []);
+        if (!empty($rule['enabled'])) {
+            $count = $this->countConsecutiveStandingSessions(
+                $user,
+                self::STANDING_PROBATION,
+                $rule['unit'] ?? 'session'
+            );
+            if ($count >= (int) $rule['threshold']) {
+                $triggeredRules[] = $rule['reason_code'];
+                if ($firstReasonCode === null) {
+                    $firstReasonCode = $rule['reason_code'];
+                    $firstReason = str_replace('{threshold}', (string) $rule['threshold'], $rule['reason']);
+                }
+            }
+        }
+
+        // -------------------------------------------------------------------
+        // Rule 2: Consecutive REPEAT Standing
+        // -------------------------------------------------------------------
+        $rule = config('academic_withdrawal.consecutive_repeat', []);
+        if (!empty($rule['enabled'])) {
+            $count = $this->countConsecutiveStandingSessions(
+                $user,
+                self::STANDING_REPEAT,
+                $rule['unit'] ?? 'session'
+            );
+            if ($count >= (int) $rule['threshold']) {
+                $triggeredRules[] = $rule['reason_code'];
+                if ($firstReasonCode === null) {
+                    $firstReasonCode = $rule['reason_code'];
+                    $firstReason = str_replace('{threshold}', (string) $rule['threshold'], $rule['reason']);
+                }
+            }
+        }
+
+        // -------------------------------------------------------------------
+        // Rule 3: Minimum CGPA Threshold (DISABLED by default)
+        // -------------------------------------------------------------------
+        $rule = config('academic_withdrawal.minimum_cgpa', []);
+        if (!empty($rule['enabled'])) {
+            $threshold = (float) $rule['threshold'];
+            if ($cgpa < $threshold) {
+                $triggeredRules[] = $rule['reason_code'];
+                if ($firstReasonCode === null) {
+                    $firstReasonCode = $rule['reason_code'];
+                    $firstReason = str_replace(
+                        ['{cgpa}', '{threshold}'],
+                        [number_format($cgpa, 2), number_format($threshold, 2)],
+                        $rule['reason']
+                    );
+                }
+            }
+        }
+
+        // -------------------------------------------------------------------
+        // Rule 4: Maximum Programme Residency Exceeded
+        // -------------------------------------------------------------------
+        $rule = config('academic_withdrawal.max_residency_exceeded', []);
+        if (!empty($rule['enabled'])) {
+            $maxLevel      = $this->getMaxProgramLevel($user);
+            $multiplier    = (float) ($rule['multiplier'] ?? 1.5);
+            $maxSessions   = (int) ceil($maxLevel * $multiplier);
+            $sessionsStudied = $this->countDistinctSessionsWithResults($user);
+            if ($sessionsStudied >= $maxSessions) {
+                $triggeredRules[] = $rule['reason_code'];
+                if ($firstReasonCode === null) {
+                    $firstReasonCode = $rule['reason_code'];
+                    $firstReason = str_replace('{max_sessions}', (string) $maxSessions, $rule['reason']);
+                }
+            }
+        }
+
+        // -------------------------------------------------------------------
+        // Rule 5: Non-Registration Pattern
+        // -------------------------------------------------------------------
+        $rule = config('academic_withdrawal.non_registration', []);
+        if (!empty($rule['enabled'])) {
+            $consecutiveNonReg = $this->countConsecutiveNonRegistrationSessions($user);
+            if ($consecutiveNonReg >= (int) $rule['threshold']) {
+                $triggeredRules[] = $rule['reason_code'];
+                if ($firstReasonCode === null) {
+                    $firstReasonCode = $rule['reason_code'];
+                    $firstReason = str_replace('{threshold}', (string) $rule['threshold'], $rule['reason']);
+                }
+            }
+        }
+
+        // -------------------------------------------------------------------
+        // Return structured assessment — never an automatic action
+        // -------------------------------------------------------------------
+        return [
+            'eligible'        => count($triggeredRules) > 0,
+            'reason_code'     => $firstReasonCode,
+            'reason'          => $firstReason ?? 'No withdrawal eligibility criteria met at this time.',
+            'standing'        => $standing,
+            'cgpa'            => $cgpa,
+            'triggered_rules' => $triggeredRules,
+        ];
+    }
+
+    // =========================================================================
+    // Private Helper Methods (Task 6.7.2)
+    // =========================================================================
+
+    /**
+     * Count consecutive academic sessions (most recent first) where the
+     * student held the given standing.
+     *
+     * Prefers persisted AcademicProgressionRecord rows (Task 6.7.3+).
+     * Falls back to on-the-fly derivation from ResultGpaRecord for
+     * students whose progression has not yet been persisted explicitly.
+     *
+     * @param string $standing  One of the STANDING_* constants.
+     * @param string $unit      'session' (default) groups all semesters per year;
+     *                          'semester' counts each semester individually.
+     */
+    private function countConsecutiveStandingSessions(User $user, string $standing, string $unit = 'session'): int
+    {
+        $records = AcademicProgressionRecord::where('user_id', $user->id)
+            ->orderByDesc('academic_session')
+            ->orderByDesc('semester')
+            ->get();
+
+        if ($records->isEmpty()) {
+            $records = $this->buildProgressionSnapshotsFromGpaRecords($user);
+        }
+
+        if ($unit === 'semester') {
+            $groups = $records->map(fn ($r) => [
+                'key'      => ($r->academic_session ?? '') . '-' . ($r->semester ?? ''),
+                'standing' => $r->standing,
+            ]);
+        } else {
+            // Group by session, pick worst standing per session
+            $groups = $records->groupBy('academic_session')->map(function ($sessionRecords) {
+                $standings = $sessionRecords->pluck('standing')->all();
+                return ['key' => $sessionRecords->first()->academic_session, 'standing' => $this->worstStanding($standings)];
+            })->values();
+        }
+
+        $consecutive = 0;
+        foreach ($groups as $group) {
+            if (($group['standing'] ?? '') === $standing) {
+                $consecutive++;
+            } else {
+                break;
+            }
+        }
+
+        return $consecutive;
+    }
+
+    /**
+     * Count distinct academic sessions in which the student has at least one GPA record.
+     */
+    private function countDistinctSessionsWithResults(User $user): int
+    {
+        return ResultGpaRecord::where('user_id', $user->id)
+            ->distinct('academic_session')
+            ->count('academic_session');
+    }
+
+    /**
+     * Count consecutive trailing sessions (most recent first) where the
+     * student has no GPA results (proxy for non-registration / absence).
+     */
+    private function countConsecutiveNonRegistrationSessions(User $user): int
+    {
+        $academicDetail = $user->academicDetail;
+        if (!$academicDetail) {
+            return 0;
+        }
+
+        $admissionSession = $academicDetail->admission_session ?? $academicDetail->acad_session;
+        if (!$admissionSession) {
+            return 0;
+        }
+
+        $currentSession = $academicDetail->acad_session;
+        if (!$currentSession && class_exists(AcademicSessionService::class)) {
+            try {
+                $currentSession = app(AcademicSessionService::class)->getAcademicSession($user);
+            } catch (\Throwable $e) {
+                // Ignore
+            }
+        }
+
+        if (!$currentSession) {
+            return 0;
+        }
+
+        $registeredSessions = ResultGpaRecord::where('user_id', $user->id)
+            ->pluck('academic_session')
+            ->unique();
+
+        $allExpectedSessions = $this->generateSessionRange($admissionSession, $currentSession);
+
+        $consecutive = 0;
+        foreach (array_reverse($allExpectedSessions) as $session) {
+            if ($registeredSessions->contains($session)) {
+                break;
+            }
+            $consecutive++;
+        }
+
+        return $consecutive;
+    }
+
+    /**
+     * Build lightweight standing snapshots from ResultGpaRecord entries when
+     * AcademicProgressionRecord rows do not yet exist.
+     */
+    private function buildProgressionSnapshotsFromGpaRecords(User $user): Collection
+    {
+        return ResultGpaRecord::where('user_id', $user->id)
+            ->orderByDesc('academic_session')
+            ->orderByDesc('id')
+            ->get()
+            ->map(function ($gpa) {
+                $cgpa = (float) $gpa->cumulative_gpa;
+
+                $standing = match (true) {
+                    $cgpa >= 1.50 => self::STANDING_PROMOTED,
+                    $cgpa >= 1.00 => self::STANDING_PROBATION,
+                    default       => self::STANDING_REPEAT,
+                };
+
+                return (object) [
+                    'academic_session' => $gpa->academic_session,
+                    'semester'         => $gpa->semester,
+                    'standing'         => $standing,
+                    'cgpa'             => $cgpa,
+                ];
+            });
+    }
+
+    /**
+     * Return the worst academic standing from a collection of standing values.
+     * Worst-first priority: REPEAT > PROBATION > SPILLOVER > PROMOTED > FRESH
+     */
+    private function worstStanding(array $standings): string
+    {
+        $priority = [
+            self::STANDING_REPEAT    => 4,
+            self::STANDING_PROBATION => 3,
+            self::STANDING_SPILLOVER => 2,
+            self::STANDING_PROMOTED  => 1,
+            self::STANDING_FRESH     => 0,
+        ];
+
+        $worst = self::STANDING_PROMOTED;
+        foreach ($standings as $s) {
+            if (($priority[$s] ?? 0) > ($priority[$worst] ?? 0)) {
+                $worst = $s;
+            }
+        }
+
+        return $worst;
+    }
+
+    /**
+     * Generate an ordered list of academic session strings (e.g. '2022/2023')
+     * spanning from $from to $to inclusive.
+     */
+    private function generateSessionRange(string $from, string $to): array
+    {
+        $fromParts = explode('/', $from);
+        $toParts   = explode('/', $to);
+
+        $fromYear = (int) ($fromParts[0] ?? 0);
+        $toYear   = (int) ($toParts[0] ?? 0);
+
+        if ($fromYear <= 0 || $toYear <= 0 || $fromYear > $toYear) {
+            return [$to];
+        }
+
+        $sessions = [];
+        for ($y = $fromYear; $y <= $toYear; $y++) {
+            $sessions[] = "{$y}/" . ($y + 1);
+        }
+
+        return $sessions;
     }
 }
