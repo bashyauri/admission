@@ -26,6 +26,8 @@ class UtmeSchoolFeesInvoice extends Component
     public $amount;
     #[Locked]
     public $transactionId;
+    #[Locked]
+    public ?string $activityBlockMessage = null;
 
     private PaymentService $paymentService;
     private StudentTransactionService $transactionService;
@@ -74,8 +76,19 @@ class UtmeSchoolFeesInvoice extends Component
 
     private function generateNewInvoice(): void
     {
+        try {
+            $this->paymentService->ensureStudentCanGenerateSchoolFeeInvoice($this->user->id);
+        } catch (\InvalidArgumentException $exception) {
+            $this->activityBlockMessage = $exception->getMessage();
+            return;
+        }
+
         $this->currentLevel = $this->paymentService->getUgStudentLevel($this->user->id);
         $paymentDetail = $this->paymentService->getStudentFee($this->user->id);
+        if (!$paymentDetail) {
+            $this->activityBlockMessage = 'A school-fee amount is not configured for your current academic level. Contact the Bursary for assistance.';
+            return;
+        }
         $this->amount = $paymentDetail->fee_amount;
 
         $this->transactionId = $this->transactionService->generateTransactionId("WUFPDHS");

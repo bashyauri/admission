@@ -254,7 +254,7 @@ graph TD
 #### Task 6.7: Student Academic Status, Withdrawal & Reinstatement Management (⏳ UP NEXT)
 * **Goal:** Implement Senate-compliant student status management with auditable withdrawal/reinstatement workflows, academic progression history tracking, and proper separation of academic performance from institutional decisions.
 * **Risk Profile:** Low (additive tables and service layer with proper governance workflows).
-* **Status:** **Ready for Execution (Structured into 10 Daily Tasks)**
+* **Status:** **In Progress (Tasks 6.7.1–6.7.5 completed)**
 
 ### Design Principles
 The system must follow these governance rules:
@@ -328,33 +328,29 @@ The system must follow these governance rules:
   > *"Please implement Phase 6, Task 6.7.3: Create StudentStatusService with complete Senate withdrawal workflow including recommendation, approval, rejection, and status history management."*
 
 #### Task 6.7.4: Academic Activity Enforcement Gate
-* **Scope:** Central activity authorization gate integration.
+* **Scope:** Central activity authorization gate integration. (✅ COMPLETED — September 2026)
 * **Tasks:**
-  - [ ] Implement `StudentStatusService::canPerformAcademicActivity($student, $activity)` method
-  - [ ] Integrate with `CourseRegistrationService` - block registration for withdrawn students
-  - [ ] Integrate with Course Registration Livewire - show status-based messaging
-  - [ ] Integrate with `PaymentService` - block fee invoice generation for withdrawn students
-  - [ ] Integrate with exam registration where applicable
-  - [ ] Integrate with graduation eligibility checks in `GraduationService`
-  - [ ] **Historical Preservation Rules:**
-    - ✅ Allow viewing old results, transcripts, payments, payment reconciliation
-    - ❌ Block new registration, fee invoices, course registration, graduation processing
-  - [ ] Feature test suite: `tests/Feature/ActivityEnforcementTest.php`
+  - [x] Implement `StudentStatusService::canPerformAcademicActivity($student, $activity)`; keep Phase 6.7 rules UG-only
+  - [x] Integrate with `CourseRegistrationService` and Livewire - block new registrations and changes, show current status messaging
+  - [x] Integrate with `PaymentService` - block UG school-fee invoice requests before contacting Remita
+  - [x] No exam registration workflow currently exists; the centralized gate supports `EXAM_REGISTRATION` for future integrations
+  - [x] Integrate with graduation eligibility, clearance, and graduation-list staging in `GraduationService`
+  - [x] **Historical Preservation Rules:**
+    - [x] Allow viewing old results, transcripts, payments, payment reconciliation
+    - [x] Block new registration, fee invoices, course registration, graduation processing
+  - [x] Feature test suite: `tests/Feature/ActivityEnforcementTest.php`
 *Agent Prompt:*
   > *"Please implement Phase 6, Task 6.7.4: Create centralized academic activity enforcement gate that integrates with existing services while preserving historical data access for withdrawn students."*
 
-#### Task 6.7.5: Reinstatement Workflow
+#### Task 6.7.5: Reinstatement Workflow (✅ COMPLETED — September 2026)
 * **Scope:** Senate-approved reinstatement process.
 * **Tasks:**
-  - [ ] Extend `StudentStatusService` with reinstatement methods:
-    - `requestReinstatement()` - Handle reinstatement requests
-    - `processReinstatement()` - Senate approval processing
-    - `determineReinstatementLevel()` - Calculate correct academic level/session
-  - [ ] Implement reinstatement workflow: WITHDRAWN → Reinstatement Request → Department/Faculty Review → Senate Decision → APPROVED/REJECTED → REINSTATED
-  - [ ] Reinstatement must be append-only (create new status record, don't erase withdrawal)
-  - [ ] Use existing academic progression logic to determine correct level
-  - [ ] Senate reference validation for reinstatement decisions
-  - [ ] Feature test: `tests/Feature/ReinstatementWorkflowTest.php`
+  - [x] Extend `StudentStatusService` with `requestReinstatement()`, `processReinstatement()`, and `determineReinstatementLevel()`
+  - [x] Implement ordered Department → Faculty → Senate review, with approval and rejection outcomes
+  - [x] Append a distinct final status event while preserving the historical withdrawal record
+  - [x] Use existing academic progression logic to determine return level and next academic session
+  - [x] Validate Senate reference for each Senate decision
+  - [x] Feature test: `tests/Feature/ReinstatementWorkflowTest.php` (4 tests, 16 assertions)
 *Agent Prompt:*
   > *"Please implement Phase 6, Task 6.7.5: Create Senate-approved reinstatement workflow that preserves complete withdrawal history and uses academic progression logic to determine correct reinstatement level."*
 

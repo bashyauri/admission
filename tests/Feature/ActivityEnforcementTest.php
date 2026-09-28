@@ -12,6 +12,7 @@ use App\Http\Livewire\Student\CourseRegistration;
 use App\Models\AcademicDetail;
 use App\Models\Course;
 use App\Models\Department;
+use App\Models\GraduationEligibility;
 use App\Models\DepartmentCourse;
 use App\Models\Programme;
 use App\Models\RegisteredCourse;
@@ -25,6 +26,7 @@ use App\Services\GraduationService;
 use App\Services\PaymentService;
 use App\Services\StudentStatusService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Http;
 use Livewire\Livewire;
 use Tests\TestCase;
 
@@ -215,6 +217,39 @@ class ActivityEnforcementTest extends TestCase
         ]);
     }
 
+    public function test_course_registration_service_blocks_a_direct_registration_for_withdrawn_student(): void
+    {
+        $studentCourse = StudentCourse::create([
+            'code' => 'CSC103',
+            'title' => 'Data Structures',
+            'units' => 3,
+            'semester' => 1,
+            'student_level_id' => $this->level100->id,
+        ]);
+        $departmentCourse = DepartmentCourse::create([
+            'department_id' => $this->department->id,
+            'student_course_id' => $studentCourse->id,
+            'units' => 3,
+        ]);
+
+        try {
+            $this->courseService->registerCourse(
+                $this->withdrawnStudent->academicDetail,
+                $departmentCourse,
+                '2025/2026'
+            );
+            $this->fail('A withdrawn student must not be able to create a course registration.');
+        } catch (\InvalidArgumentException $exception) {
+            $this->assertStringContainsString('Academic Withdrawal', $exception->getMessage());
+        }
+
+        $this->assertDatabaseMissing('registered_courses', [
+            'academic_detail_id' => $this->withdrawnStudent->academicDetail->id,
+            'department_course_id' => $departmentCourse->id,
+            'academic_session' => '2025/2026',
+        ]);
+    }
+
     public function test_payment_service_blocks_fee_invoice_generation_for_withdrawn_student(): void
     {
         $this->expectException(\InvalidArgumentException::class);
@@ -228,6 +263,29 @@ class ActivityEnforcementTest extends TestCase
         ]);
     }
 
+    public function test_payment_service_blocks_before_sending_a_remita_invoice_request(): void
+    {
+        Http::fake();
+
+        try {
+            $this->paymentService->generateInvoice([
+                'user_id' => $this->withdrawnStudent->id,
+                'amount' => 50000,
+                'transactionId' => 'TXN-BLOCKED-001',
+                'payerName' => 'Withdrawn Student',
+                'payerEmail' => 'withdrawn@example.test',
+                'payerPhone' => '08000000000',
+                'description' => 'Undergraduate School Fees',
+                'apiHash' => 'test-hash',
+            ]);
+            $this->fail('Fee invoice generation should be denied before contacting Remita.');
+        } catch (\InvalidArgumentException $exception) {
+            $this->assertStringContainsString('Academic Withdrawal', $exception->getMessage());
+        }
+
+        Http::assertNothingSent();
+    }
+
     public function test_graduation_service_flags_withdrawn_status_deficiency(): void
     {
         $result = $this->graduationService->checkEligibility($this->withdrawnStudent, '2025/2026');
@@ -237,6 +295,64 @@ class ActivityEnforcementTest extends TestCase
         $this->assertTrue(collect($result['deficiencies'])->contains(function ($d) {
             return str_contains($d, 'not academically active') && str_contains($d, 'Academic Withdrawal');
         }));
+    }
+
+    public function test_graduation_clearance_and_staging_recheck_current_student_status(): void
+    {
+        $result = $this->graduationService->checkEligibility($this->withdrawnStudent, '2025/2026');
+        $eligibility = GraduationEligibility::findOrFail($result['eligibility_id']);
+        $eligibility->update(['meets_requirements' => true, 'is_cleared' => true]);
+        $officer = User::factory()->create(['role' => 'exam_officer']);
+
+        try {
+            $this->graduationService->clearStudent($eligibility, $officer);
+            $this->fail('A withdrawn student must not be cleared for graduation.');
+        } catch (\InvalidArgumentException $exception) {
+            $this->assertStringContainsString('Academic Withdrawal', $exception->getMessage());
+        }
+
+        try {
+            $this->graduationService->addToGraduationList($eligibility, '2025/2026');
+            $this->fail('A withdrawn student must not be staged for graduation.');
+        } catch (\InvalidArgumentException $exception) {
+            $this->assertStringContainsString('Academic Withdrawal', $exception->getMessage());
+        }
+
+        $this->assertDatabaseMissing('graduation_lists', ['academic_session' => '2025/2026']);
+    }
+
+    public function test_postgraduate_payment_is_not_blocked_by_ug_status_enforcement(): void
+    {
+        $pgProgramme = Programme::find(ProgrammesEnum::PG->value)
+            ?? Programme::forceCreate(['id' => ProgrammesEnum::PG->value, 'name' => 'MSc Computer Science', 'abv' => 'PG']);
+        $pgStudent = User::factory()->create([
+            'role' => 'student',
+            'programme_id' => $pgProgramme->id,
+        ]);
+        StudentStatusRecord::create([
+            'user_id' => $pgStudent->id,
+            'status' => StudentStatus::ACADEMIC_WITHDRAWAL,
+            'status_type' => StudentStatusType::ACADEMIC,
+            'academic_session' => '2025/2026',
+            'effective_date' => '2026-01-15',
+            'senate_decision' => StudentStatusService::WORKFLOW_SENATE_APPROVED,
+        ]);
+
+        $this->assertTrue($this->statusService->canPerformAcademicActivity($pgStudent, AcademicActivity::SCHOOL_FEES));
+
+        Http::fake();
+        $payment = $this->paymentService->createPayment([
+            'user_id' => $pgStudent->id,
+            'student_level_id' => $this->level100->id,
+            'amount' => 25000,
+            'transactionId' => 'PG-TXN-ALLOW-001',
+            'RRR' => 'PG-RRR-ALLOW-001',
+            'description' => 'Postgraduate Fee',
+        ]);
+
+        $this->assertNotNull($payment);
+        $this->assertSame($pgStudent->id, $payment->user_id);
+        Http::assertNothingSent();
     }
 
     public function test_historical_records_remain_accessible_for_withdrawn_student(): void
@@ -282,6 +398,14 @@ class ActivityEnforcementTest extends TestCase
 
         $payments = $this->paymentService->getStudentPayments($this->withdrawnStudent->id);
         $this->assertCount(1, $payments);
+
+        $this->actingAs($this->withdrawnStudent);
+        Livewire::test(CourseRegistration::class)
+            ->call('deleteCourse', $registered->first()->id)
+            ->assertDispatched('alert', function ($event, $params) {
+                return str_contains($params['message'] ?? '', 'institutional status');
+            });
+        $this->assertDatabaseHas('registered_courses', ['id' => $registered->first()->id]);
     }
 
     public function test_reinstated_student_regains_activity_authorization(): void

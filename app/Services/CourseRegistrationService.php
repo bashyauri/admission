@@ -9,6 +9,9 @@ namespace App\Services;
 use App\Models\DepartmentCourse;
 use App\Models\DepartmentMaxUnit;
 use App\Models\RegisteredCourse;
+use App\Models\AcademicDetail;
+use App\Models\User;
+use App\Enums\AcademicActivity;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
 
@@ -68,6 +71,30 @@ class CourseRegistrationService
         }
 
         return app(StudentStatusService::class)->canPerformAcademicActivity($user, \App\Enums\AcademicActivity::COURSE_REGISTRATION);
+    }
+
+    /** Persist a registration only after rechecking authoritative student status. */
+    public function registerCourse(AcademicDetail $student, DepartmentCourse $course, string $academicSession): RegisteredCourse
+    {
+        $user = $student->user;
+        if (!$user || !app(StudentStatusService::class)->canPerformAcademicActivity($user, AcademicActivity::COURSE_REGISTRATION)) {
+            $status = $user ? app(StudentStatusService::class)->getCurrentStatus($user) : null;
+            $label = $status?->status?->label() ?? 'inactive';
+            throw new \InvalidArgumentException("Course registration is blocked by the student's current institutional status ({$label}).");
+        }
+
+        $studentCourse = $course->studentCourse;
+        if (!$studentCourse) {
+            throw new \InvalidArgumentException('This course is not available for registration. Refresh the page and try again.');
+        }
+
+        return $student->registeredCourses()->create([
+            'department_course_id' => $course->id,
+            'semester' => $studentCourse->semester,
+            'units' => $course->units,
+            'student_level_id' => $studentCourse->student_level_id,
+            'academic_session' => $academicSession,
+        ]);
     }
 
 

@@ -40,6 +40,7 @@ class UgSchoolFeesController extends Controller
 
 
         try {
+            $this->paymentService->ensureStudentCanGenerateSchoolFeeInvoice($data['userId'] ?? null);
             $customFields = $this->paymentService->getSchoolFeesCustomFields($data['userId']);
 
             $response = $this->paymentService->generateInvoice($data, $customFields);
@@ -58,6 +59,9 @@ class UgSchoolFeesController extends Controller
             return to_route('cit.payment', ['studenttransaction' => $studenttransaction->id])->with('success', 'Remita Generated ' . ($response->status ?? ''));
         } catch (\Exception $ex) {
             Log::alert($ex->getMessage());
+            if ($ex instanceof \InvalidArgumentException) {
+                return redirect()->back()->with('error', $ex->getMessage());
+            }
             return redirect()->back()->with('error', 'Something went wrong:');
         }
     }

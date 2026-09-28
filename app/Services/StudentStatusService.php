@@ -27,6 +27,14 @@ class StudentStatusService
     public const WORKFLOW_SENATE_APPROVED = 'SENATE_APPROVED';
     public const WORKFLOW_SENATE_REJECTED = 'SENATE_REJECTED';
 
+    public const REINSTATEMENT_REQUESTED = 'REINSTATEMENT_REQUESTED';
+    public const REINSTATEMENT_DEPARTMENT_APPROVED = 'REINSTATEMENT_DEPARTMENT_APPROVED';
+    public const REINSTATEMENT_FACULTY_APPROVED = 'REINSTATEMENT_FACULTY_APPROVED';
+    public const REINSTATEMENT_DEPARTMENT_REJECTED = 'REINSTATEMENT_DEPARTMENT_REJECTED';
+    public const REINSTATEMENT_FACULTY_REJECTED = 'REINSTATEMENT_FACULTY_REJECTED';
+    public const REINSTATEMENT_APPROVED = 'REINSTATEMENT_APPROVED';
+    public const REINSTATEMENT_REJECTED = 'REINSTATEMENT_REJECTED';
+
     // =========================================================================
     // Assessment Gateway
     // =========================================================================
@@ -620,6 +628,11 @@ class StudentStatusService
             return false;
         }
 
+        // Phase 6.7 status rules are UG-only; leave PG academic workflows untouched.
+        if (!$user->isUndergraduate()) {
+            return true;
+        }
+
         // Active students (or students with no status records) can perform all academic activities
         return $this->isAcademicallyActive($user, $date);
     }
@@ -647,6 +660,190 @@ class StudentStatusService
         }
 
         return (bool) $currentStatus->reinstatement_eligible;
+    }
+
+    /** Start an auditable reinstatement request for an eligible UG student. */
+    public function requestReinstatement(
+        User $user,
+        ?User $requestedBy = null,
+        ?string $notes = null
+    ): StudentStatusRecord {
+        if (!$user->isUndergraduate()) {
+            throw new \InvalidArgumentException('Reinstatement is only applicable to undergraduate students.');
+        }
+
+        if (!$this->isEligibleForReinstatement($user)) {
+            throw new \InvalidArgumentException('The student does not have an eligible active withdrawal to reinstate from.');
+        }
+
+        $withdrawal = $this->getCurrentStatus($user);
+        if (!$withdrawal || !$withdrawal->status->isWithdrawn()) {
+            throw new \InvalidArgumentException('Reinstatement can only be requested from an approved withdrawal status.');
+        }
+
+        return StudentStatusRecord::create([
+            'user_id' => $user->id,
+            'academic_detail_id' => $user->academicDetail?->id,
+            'status' => StudentStatus::REINSTATED,
+            'status_type' => $withdrawal->status_type,
+            'reason_code' => 'REINSTATEMENT_REQUEST',
+            'reason' => 'Reinstatement requested following ' . $withdrawal->status->label() . '.',
+            'academic_session' => $withdrawal->academic_session,
+            'semester' => $withdrawal->semester,
+            'effective_date' => now()->toDateString(),
+            'senate_decision' => self::REINSTATEMENT_REQUESTED,
+            'reinstatement_eligible' => false,
+            'processed_by' => $requestedBy?->id,
+            'notes' => $notes,
+        ]);
+    }
+
+    /** Record sequential Department and Faculty review of a reinstatement request. */
+    public function reviewReinstatement(
+        StudentStatusRecord $request,
+        string $stage,
+        bool $approved,
+        ?User $reviewedBy = null,
+        ?string $notes = null
+    ): StudentStatusRecord {
+        $stage = strtoupper($stage);
+        $expectedDecision = match ($stage) {
+            'DEPARTMENT' => self::REINSTATEMENT_REQUESTED,
+            'FACULTY' => self::REINSTATEMENT_DEPARTMENT_APPROVED,
+            default => throw new \InvalidArgumentException('Review stage must be DEPARTMENT or FACULTY.'),
+        };
+
+        if ($request->reason_code !== 'REINSTATEMENT_REQUEST' || $request->senate_decision !== $expectedDecision) {
+            throw new \InvalidArgumentException("The reinstatement request is not ready for {$stage} review.");
+        }
+
+        $decision = $approved
+            ? ($stage === 'DEPARTMENT' ? self::REINSTATEMENT_DEPARTMENT_APPROVED : self::REINSTATEMENT_FACULTY_APPROVED)
+            : ($stage === 'DEPARTMENT' ? self::REINSTATEMENT_DEPARTMENT_REJECTED : self::REINSTATEMENT_FACULTY_REJECTED);
+
+        $request->update([
+            'senate_decision' => $decision,
+            'senate_decision_date' => now()->toDateString(),
+            'processed_by' => $reviewedBy?->id ?? $request->processed_by,
+            'notes' => $notes ?? $request->notes,
+        ]);
+
+        return $request->fresh();
+    }
+
+    /** Determine return placement from the existing UG progression rules. */
+    public function determineReinstatementLevel(User $user, ?StudentStatusRecord $withdrawal = null): array
+    {
+        if (!$user->isUndergraduate()) {
+            throw new \InvalidArgumentException('Reinstatement placement is only applicable to undergraduate students.');
+        }
+
+        $withdrawal ??= $this->getCurrentStatus($user);
+        if (!$withdrawal
+            || (string) $withdrawal->user_id !== (string) $user->id
+            || !$withdrawal->status->isWithdrawn()
+            || !in_array($withdrawal->senate_decision, [self::WORKFLOW_SENATE_APPROVED, 'APPROVED'], true)) {
+            throw new \InvalidArgumentException('A current approved withdrawal is required to determine reinstatement placement.');
+        }
+
+        $levelId = app(AcademicProgressionService::class)->getNextEligibleLevel($user);
+        $level = \App\Models\StudentLevel::find($levelId);
+        $session = $this->nextAcademicSession($withdrawal->academic_session);
+
+        return [
+            'student_level_id' => $levelId,
+            'level' => $level?->level ?? (string) $levelId,
+            'academic_session' => $session,
+        ];
+    }
+
+    /** Finalize the Senate decision; approval appends a distinct REINSTATED event. */
+    public function processReinstatement(
+        StudentStatusRecord $request,
+        bool $approved,
+        string $senateReference,
+        \DateTimeInterface|string|null $senateDecisionDate = null,
+        ?User $processedBy = null,
+        ?string $decisionNotes = null
+    ): StudentStatusRecord {
+        if ($request->reason_code !== 'REINSTATEMENT_REQUEST'
+            || $request->senate_decision !== self::REINSTATEMENT_FACULTY_APPROVED) {
+            throw new \InvalidArgumentException('Reinstatement must pass Department and Faculty review before Senate processing.');
+        }
+
+        if (!$this->isValidSenateReference($senateReference)) {
+            throw new \InvalidArgumentException("Invalid Senate reference format: {$senateReference}");
+        }
+
+        $student = User::findOrFail($request->user_id);
+        $withdrawal = $this->getCurrentStatus($student);
+        if (!$withdrawal || !$withdrawal->status->isWithdrawn() || !$withdrawal->reinstatement_eligible) {
+            throw new \InvalidArgumentException('The student no longer has an eligible withdrawal to reinstate from.');
+        }
+
+        $decisionDate = $senateDecisionDate ? Carbon::parse($senateDecisionDate) : now();
+        $placement = $approved ? $this->determineReinstatementLevel($student, $withdrawal) : null;
+
+        return DB::transaction(function () use ($request, $student, $withdrawal, $approved, $senateReference, $decisionDate, $processedBy, $decisionNotes, $placement) {
+            $decision = $approved ? self::REINSTATEMENT_APPROVED : self::REINSTATEMENT_REJECTED;
+
+            // Keep the request as its own audit entry and append the final decision event.
+            $request->update([
+                'senate_decision' => $decision,
+                'senate_reference' => $senateReference,
+                'senate_decision_date' => $decisionDate->toDateString(),
+                'processed_by' => $processedBy?->id ?? $request->processed_by,
+                'notes' => $decisionNotes ?? $request->notes,
+            ]);
+
+            $event = StudentStatusRecord::create([
+                'user_id' => $student->id,
+                'academic_detail_id' => $student->academicDetail?->id,
+                'status' => $approved ? StudentStatus::REINSTATED : $withdrawal->status,
+                'status_type' => $withdrawal->status_type,
+                'reason_code' => $approved ? 'SENATE_REINSTATEMENT' : 'REINSTATEMENT_REJECTED',
+                'reason' => $approved ? 'Reinstatement approved by Senate.' : 'Reinstatement request rejected by Senate.',
+                'academic_session' => $placement['academic_session'] ?? $withdrawal->academic_session,
+                'semester' => null,
+                'effective_date' => $decisionDate->toDateString(),
+                'senate_reference' => $senateReference,
+                'senate_decision_date' => $decisionDate->toDateString(),
+                'senate_decision' => $approved ? self::WORKFLOW_SENATE_APPROVED : self::REINSTATEMENT_REJECTED,
+                'reinstatement_eligible' => !$approved && (bool) $withdrawal->reinstatement_eligible,
+                'processed_by' => $processedBy?->id ?? $request->processed_by,
+                'notes' => $approved
+                    ? trim(($decisionNotes ? $decisionNotes . "\n" : '') . 'Placement: ' . $placement['level'] . ' (level id ' . $placement['student_level_id'] . ').')
+                    : $decisionNotes,
+            ]);
+
+            if ($approved) {
+                $student->academicDetail?->update([
+                    'student_level_id' => $placement['student_level_id'],
+                    'acad_session' => $placement['academic_session'],
+                ]);
+            }
+
+            Log::info('Reinstatement Senate decision recorded', [
+                'user_id' => $student->id,
+                'request_record_id' => $request->id,
+                'decision_record_id' => $event->id,
+                'approved' => $approved,
+                'senate_reference' => $senateReference,
+                'processed_by' => $processedBy?->id,
+            ]);
+
+            return $event;
+        });
+    }
+
+    private function nextAcademicSession(string $session): string
+    {
+        if (!$this->isValidAcademicSession($session)) {
+            throw new \InvalidArgumentException("Invalid academic session format: {$session}");
+        }
+
+        [$start] = array_map('intval', explode('/', $session));
+        return ($start + 1) . '/' . ($start + 2);
     }
 
     // =========================================================================

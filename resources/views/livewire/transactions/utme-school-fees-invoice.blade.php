@@ -1,5 +1,14 @@
 <div>
 
+    @if ($activityBlockMessage)
+        <div class="my-6 mx-auto w-full max-w-3xl px-3" role="status" aria-live="polite">
+            <div class="rounded-2xl border border-amber-200 bg-amber-50 p-6 text-amber-900 shadow-soft-xl dark:border-amber-800 dark:bg-gray-900 dark:text-amber-100">
+                <h2 class="text-lg font-semibold">School-fee invoice unavailable</h2>
+                <p class="mt-2">{{ $activityBlockMessage }}</p>
+                <a href="{{ auth()->user()->isCit() ? route('cit.dashboard') : route('student.dashboard') }}" class="mt-4 inline-block rounded-lg bg-gradient-cyan px-5 py-3 text-sm font-bold text-white">Return to dashboard</a>
+            </div>
+        </div>
+    @else
 
     <div class="my-4">
         <div class="flex flex-wrap -mx-3">
@@ -169,6 +178,7 @@
         </div>
 
     </div>
+    @endif
 </div>
 @push('js')
 <script src="{{ asset('assets') }}/js/plugins/datatables.min.js"></script>

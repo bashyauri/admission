@@ -111,6 +111,7 @@ app/
 ├── Services/                      # Business logic & calculations
 │   ├── GradeCalculationService.php
 │   ├── AcademicProgressionService.php
+│   ├── StudentStatusService.php
 │   ├── CarryOverRegistrationService.php
 │   ├── PaymentService.php
 │   ├── CourseRegistrationService.php
@@ -1050,7 +1051,7 @@ Direct deployment to production without version control.
 - O-level result management
 
 ### In Progress
-- None currently
+- Phase 6.7 student status management: Tasks 6.7.1–6.7.5 are implemented. Task 6.7.4 enforces UG status while leaving PG academic and payment workflows unchanged.
 
 ### Planned (Documented)
 - NUC-compliant result processing system

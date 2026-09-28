@@ -123,6 +123,7 @@ class PaymentService
     }
     public function generateInvoice(array $data, $customFields = [])
     {
+        $this->ensureStudentCanGenerateSchoolFeeInvoice($data['user_id'] ?? $data['userId'] ?? auth()->id());
 
         $response = Http::withHeaders([
             'Content-Type' => 'application/json',
@@ -147,13 +148,7 @@ class PaymentService
     {
         // Normalize user_id
         $data['user_id'] = $data['user_id'] ?? $data['userId'] ?? auth()->id();
-
-        if ($data['user_id']) {
-            $user = User::find($data['user_id']);
-            if ($user && !app(StudentStatusService::class)->canPerformAcademicActivity($user, AcademicActivity::SCHOOL_FEES)) {
-                throw new \InvalidArgumentException('Fee invoice generation is blocked due to current student institutional status.');
-            }
-        }
+        $this->ensureStudentCanGenerateSchoolFeeInvoice($data['user_id']);
 
         if (empty($data['RRR'])) {
             $values = $this->generateInvoice($data);
@@ -178,6 +173,22 @@ class PaymentService
         }
 
         return null;
+    }
+
+    public function ensureStudentCanGenerateSchoolFeeInvoice(?string $userId): void
+    {
+        if (!$userId) {
+            return;
+        }
+
+        $user = User::find($userId);
+        if (!$user || app(StudentStatusService::class)->canPerformAcademicActivity($user, AcademicActivity::SCHOOL_FEES)) {
+            return;
+        }
+
+        $status = app(StudentStatusService::class)->getCurrentStatus($user);
+        $label = $status?->status?->label() ?? 'inactive';
+        throw new \InvalidArgumentException("Fee invoice generation is blocked due to current student institutional status. Current status: {$label}.");
     }
 
     public function updateTransactionStatus(string $status, string $rrr)

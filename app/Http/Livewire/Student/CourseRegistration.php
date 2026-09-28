@@ -7,6 +7,7 @@ use Livewire\Component;
 use App\Models\DepartmentCourse;
 use App\Models\RegisteredCourse;
 use App\Services\CourseRegistrationService;
+use App\Services\AcademicSessionService;
 use Livewire\Attributes\Locked;
 use Livewire\Attributes\Computed;
 use Illuminate\Support\Collection;
@@ -50,7 +51,7 @@ class CourseRegistration extends Component
         $service = new CourseRegistrationService();
         $courses = collect($service->getRegisteredCourses(
             $this->student->id,
-            config('remita.settings.academic_session')
+            $this->currentAcademicSession()
         ));
         
         // Filter by search if provided
@@ -72,7 +73,7 @@ class CourseRegistration extends Component
             $this->departmentId,
             $this->studentLevelId,
             $this->student->id,
-            config('remita.settings.academic_session')
+            $this->currentAcademicSession()
         );
         
         // Filter by semester if selected
@@ -145,16 +146,12 @@ class CourseRegistration extends Component
 
         $this->isActive = true;
 
-        $studentCourse = $course->studentCourse;
-
         try {
-            $this->student->registeredCourses()->create([
-                'department_course_id' => $course->id,
-                'semester' => $studentCourse->semester,
-                'units' => $course->units,
-                'student_level_id' => $studentCourse->student_level_id,
-                'academic_session' => config('remita.settings.academic_session')
-            ]);
+            app(CourseRegistrationService::class)->registerCourse(
+                $this->student,
+                $course,
+                $this->currentAcademicSession()
+            );
 
             $this->loadCourses();
             $this->alert('success', 'Course added successfully!', [
@@ -163,7 +160,10 @@ class CourseRegistration extends Component
                 'toast' => true,
             ]);
         } catch (\Exception $e) {
-            $this->alert('error', 'Failed to add course. Please try again.', [
+            $message = str_contains($e->getMessage(), 'institutional status')
+                ? $e->getMessage()
+                : 'Failed to add course. Please refresh and try again.';
+            $this->alert('error', $message, [
                 'position' => 'top-end',
                 'timer' => 3000,
                 'toast' => true,
@@ -177,8 +177,23 @@ class CourseRegistration extends Component
         return ($this->registeredCourses->sum('units') + $courseUnits) <= $this->maxUnits;
     }
 
+    private function currentAcademicSession(): string
+    {
+        return app(AcademicSessionService::class)->getAcademicSession($this->student->user);
+    }
+
     public function deleteCourse(RegisteredCourse $registeredCourse): void
     {
+        if (!$this->isActivityAllowed) {
+            $statusLabel = $this->currentStudentStatus?->status?->label() ?? 'inactive';
+            $this->alert('error', "Course registration changes are blocked by your current institutional status ({$statusLabel}).", [
+                'position' => 'top-end',
+                'timer' => 4000,
+                'toast' => true,
+            ]);
+            return;
+        }
+
         $this->isActive = true;
         
         try {

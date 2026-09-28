@@ -367,6 +367,9 @@ class GraduationService
             ? $eligibility
             : GraduationEligibility::findOrFail($eligibility);
 
+        $student = User::findOrFail($record->user_id);
+        $this->ensureStudentCanGraduate($student);
+
         if (!$record->meets_requirements) {
             throw new InvalidArgumentException('Cannot clear student for graduation: Candidate does not meet all academic requirements.');
         }
@@ -390,6 +393,11 @@ class GraduationService
             ? $eligibility
             : GraduationEligibility::findOrFail($eligibility);
 
+        $student = $record->relationLoaded('student') && $record->student
+            ? $record->student
+            : User::with(['academicDetail.programme', 'academicDetail.department'])->findOrFail($record->user_id);
+        $this->ensureStudentCanGraduate($student);
+
         if (!$record->is_cleared) {
             throw new InvalidArgumentException('Student must be cleared before being staged into the Graduation List.');
         }
@@ -404,10 +412,6 @@ class GraduationService
                     'is_published' => false,
                 ]
             );
-
-        $student = $record->relationLoaded('student') && $record->student
-            ? $record->student
-            : User::with(['academicDetail.programme', 'academicDetail.department'])->find($record->user_id);
 
         $academicDetail = $record->relationLoaded('academicDetail') && $record->academicDetail
             ? $record->academicDetail
@@ -433,5 +437,16 @@ class GraduationService
                 'is_present' => true,
             ]
         );
+    }
+
+    private function ensureStudentCanGraduate(User $student): void
+    {
+        if (app(StudentStatusService::class)->canPerformAcademicActivity($student, AcademicActivity::GRADUATION)) {
+            return;
+        }
+
+        $status = app(StudentStatusService::class)->getCurrentStatus($student);
+        $label = $status?->status?->label() ?? 'inactive';
+        throw new InvalidArgumentException("Graduation processing is blocked by the student's current institutional status ({$label}).");
     }
 }
