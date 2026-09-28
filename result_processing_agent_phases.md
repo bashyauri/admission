@@ -161,7 +161,7 @@ graph TD
 
 ---
 
-## Phase 6: Undergraduate Graduation Processing & Senate Final Degree Approval (IN PROGRESS)
+-+  ## Phase 6: Undergraduate Graduation Processing & Senate Final Degree Approval (IN PROGRESS)
 * **Goal:** Automatically check undergraduate student graduation eligibility, generate the Senate Graduation Broadsheet, produce the Official Graduating/Pass List, and track certificate issuance.
 * **Risk Profile:** Low (primarily reports, eligibility evaluation, and certificate logging).
 * **Status:** **Ready for Execution (Structured into 15 Daily Tasks including Task 6.7 for Student Status Management)**
