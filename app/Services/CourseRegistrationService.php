@@ -21,10 +21,17 @@ class CourseRegistrationService
      * @param int $studentLevelId
      * @param int $studentId
      * @param string $academicSession
-     * @return \Illuminate\Database\Eloquent\Collection
+     * @return \Illuminate\Database\Eloquent\Collection|\Illuminate\Support\Collection
      */
     public function getAvailableCourses($departmentId, $studentLevelId, $studentId, $academicSession)
     {
+        $academicDetail = \App\Models\AcademicDetail::with('user')->find($studentId);
+        $user = $academicDetail?->user ?? \App\Models\User::find($studentId);
+
+        if ($user && !app(StudentStatusService::class)->canPerformAcademicActivity($user, \App\Enums\AcademicActivity::COURSE_REGISTRATION)) {
+            return collect();
+        }
+
         return DepartmentCourse::with('studentCourse') // Eager load the relationship
             ->where('department_courses.department_id', $departmentId)
             // ->whereHas('studentCourse', fn($query) => $query->where('student_level_id', $studentLevelId))
@@ -43,6 +50,24 @@ class CourseRegistrationService
                 'student_courses.student_level_id'
             ])
             ->get();
+    }
+
+    /**
+     * Check if a student can register for courses based on status gate.
+     */
+    public function canStudentRegisterCourses(\App\Models\User|\App\Models\AcademicDetail|string|int $student): bool
+    {
+        $user = $student instanceof \App\Models\User
+            ? $student
+            : ($student instanceof \App\Models\AcademicDetail
+                ? $student->user
+                : (\App\Models\User::find($student) ?? \App\Models\AcademicDetail::find($student)?->user));
+
+        if (!$user) {
+            return false;
+        }
+
+        return app(StudentStatusService::class)->canPerformAcademicActivity($user, \App\Enums\AcademicActivity::COURSE_REGISTRATION);
     }
 
 

@@ -91,8 +91,40 @@ class CourseRegistration extends Component
         return $courses;
     }
 
+    #[Computed]
+    public function isActivityAllowed(): bool
+    {
+        if (!$this->student?->user) {
+            return false;
+        }
+
+        return app(\App\Services\StudentStatusService::class)->canPerformAcademicActivity(
+            $this->student->user,
+            \App\Enums\AcademicActivity::COURSE_REGISTRATION
+        );
+    }
+
+    #[Computed]
+    public function currentStudentStatus(): ?\App\Models\StudentStatusRecord
+    {
+        if (!$this->student?->user) {
+            return null;
+        }
+
+        return app(\App\Services\StudentStatusService::class)->getCurrentStatus($this->student->user);
+    }
+
     public function addCourse(DepartmentCourse $course): void
     {
+        if (!$this->isActivityAllowed) {
+            $this->alert('error', 'Course registration is blocked due to your institutional student status.', [
+                'position' => 'top-end',
+                'timer' => 4000,
+                'toast' => true,
+            ]);
+            return;
+        }
+
         if ($this->registeredCourses->contains('department_course_id', $course->id)) {
             $this->alert('error', 'You have already registered for this course.', [
                 'position' => 'top-end',

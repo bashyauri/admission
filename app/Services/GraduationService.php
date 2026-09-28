@@ -12,6 +12,8 @@ use App\Models\GraduationList;
 use App\Models\GraduationListItem;
 use App\Models\Result;
 use App\Models\User;
+use App\Services\StudentStatusService;
+use App\Enums\AcademicActivity;
 use Illuminate\Support\Collection;
 use InvalidArgumentException;
 
@@ -59,6 +61,11 @@ class GraduationService
             ?? $academicDetail?->acad_session
             ?? now()->format('Y') . '/' . ((int) now()->format('Y') + 1);
 
+        // 0. Institutional Student Status Check
+        $statusService = app(StudentStatusService::class);
+        $isStatusActive = $statusService->canPerformAcademicActivity($user, AcademicActivity::GRADUATION);
+        $currentStatus = $statusService->getCurrentStatus($user);
+
         // 1. CGPA & Academic Standing
         $cgpaData = $this->gradeCalculationService->calculateCGPA($user->id);
         $finalCgpa = (float) ($cgpaData['cgpa'] ?? 0.0);
@@ -94,6 +101,10 @@ class GraduationService
 
         // Compile Deficiencies List
         $deficiencies = [];
+        if (!$isStatusActive) {
+            $statusLabel = $currentStatus?->status?->label() ?? 'Withdrawn/Inactive';
+            $deficiencies[] = "Student is currently not academically active (Status: {$statusLabel}). Withdrawn, suspended, or expelled students are ineligible for graduation.";
+        }
         if (!$meetsCgpa) {
             $deficiencies[] = "Final CGPA ({$finalCgpa}) is below the required minimum of {$minCgpa}.";
         }

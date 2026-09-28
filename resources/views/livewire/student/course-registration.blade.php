@@ -39,6 +39,25 @@
         </div>
     </div>
 
+    @if(!$this->isActivityAllowed && $this->currentStudentStatus)
+        <div class="w-full max-w-full px-3 mb-6">
+            <div class="bg-gradient-to-r from-red-500 to-rose-600 rounded-xl shadow-lg p-6 text-white flex items-center space-x-4">
+                <div class="bg-white/20 rounded-full p-3 flex-shrink-0">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                    </svg>
+                </div>
+                <div>
+                    <h3 class="font-semibold text-lg">Course Registration Restricted</h3>
+                    <p class="text-red-100 text-sm mt-1">
+                        Your current institutional status is <strong>{{ $this->currentStudentStatus->status->label() }}</strong> (Effective: {{ $this->currentStudentStatus->effective_date }}).
+                        New course registrations are disabled. You may still view your registered courses and historical academic records below.
+                    </p>
+                </div>
+            </div>
+        </div>
+    @endif
+
     <div class="flex flex-col lg:flex-row gap-6">
         @if ($student->approval?->isPinUsed())
             <!-- Main Content Area -->

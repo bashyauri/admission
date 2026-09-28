@@ -10,6 +10,7 @@ use App\Models\FeeStructure;
 use App\Models\AcademicDetail;
 use App\Enums\TransactionStatus;
 use App\Models\StudentTransaction;
+use App\Enums\AcademicActivity;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
@@ -80,7 +81,12 @@ class PaymentService
     public function getStudentFee(string $userId): ?FeeStructure
     {
         $student = User::find($userId);
-        $academicDetail = $student->academicDetail;
+
+        if ($student && !app(StudentStatusService::class)->canPerformAcademicActivity($student, AcademicActivity::SCHOOL_FEES)) {
+            return null;
+        }
+
+        $academicDetail = $student?->academicDetail;
 
         // Determine department
         $departmentId = $academicDetail?->department_id ?? $student->proposedCourse?->department_id;
@@ -141,6 +147,13 @@ class PaymentService
     {
         // Normalize user_id
         $data['user_id'] = $data['user_id'] ?? $data['userId'] ?? auth()->id();
+
+        if ($data['user_id']) {
+            $user = User::find($data['user_id']);
+            if ($user && !app(StudentStatusService::class)->canPerformAcademicActivity($user, AcademicActivity::SCHOOL_FEES)) {
+                throw new \InvalidArgumentException('Fee invoice generation is blocked due to current student institutional status.');
+            }
+        }
 
         if (empty($data['RRR'])) {
             $values = $this->generateInvoice($data);

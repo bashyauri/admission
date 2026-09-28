@@ -594,6 +594,37 @@ class StudentStatusService
     }
 
     /**
+     * Check if a student is authorized to perform a specific academic activity based on institutional status.
+     *
+     * @param User|string|int $student User instance, UUID, or ID
+     * @param AcademicActivity|string $activity AcademicActivity enum case or string value
+     * @param \DateTimeInterface|string|null $date Optional date context
+     * @return bool True if authorized, false if blocked by student status
+     */
+    public function canPerformAcademicActivity(
+        User|string|int $student,
+        AcademicActivity|string $activity,
+        \DateTimeInterface|string|null $date = null
+    ): bool {
+        $user = $student instanceof User ? $student : User::find($student);
+
+        if (!$user) {
+            return false;
+        }
+
+        $activityEnum = $activity instanceof AcademicActivity
+            ? $activity
+            : AcademicActivity::tryFrom((string) $activity);
+
+        if (!$activityEnum) {
+            return false;
+        }
+
+        // Active students (or students with no status records) can perform all academic activities
+        return $this->isAcademicallyActive($user, $date);
+    }
+
+    /**
      * Check if a student is eligible for reinstatement.
      *
      * Eligibility is determined by the reinstatement_eligible flag on the

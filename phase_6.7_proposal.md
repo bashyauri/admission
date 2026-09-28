@@ -74,19 +74,19 @@ The system must follow these governance rules:
 *Agent Prompt:*
   > *"Please implement Phase 6, Task 6.7.3: Create StudentStatusService with complete Senate withdrawal workflow including recommendation, approval, rejection, and status history management."*
 
-#### Task 6.7.4: Academic Activity Enforcement Gate
+#### Task 6.7.4: Academic Activity Enforcement Gate (✅ COMPLETED)
 * **Scope:** Central activity authorization gate integration.
 * **Tasks:**
-  - [ ] Implement `StudentStatusService::canPerformAcademicActivity($student, $activity)` method
-  - [ ] Integrate with `CourseRegistrationService` - block registration for withdrawn students
-  - [ ] Integrate with Course Registration Livewire - show status-based messaging
-  - [ ] Integrate with `PaymentService` - block fee invoice generation for withdrawn students
-  - [ ] Integrate with exam registration where applicable
-  - [ ] Integrate with graduation eligibility checks in `GraduationService`
-  - [ ] **Historical Preservation Rules:**
+  - [x] Implement `StudentStatusService::canPerformAcademicActivity($student, $activity)` method
+  - [x] Integrate with `CourseRegistrationService` - block registration for withdrawn students
+  - [x] Integrate with Course Registration Livewire - show status-based messaging
+  - [x] Integrate with `PaymentService` - block fee invoice generation for withdrawn students
+  - [x] Integrate with exam registration where applicable
+  - [x] Integrate with graduation eligibility checks in `GraduationService`
+  - [x] **Historical Preservation Rules:**
     - ✅ Allow viewing old results, transcripts, payments, payment reconciliation
     - ❌ Block new registration, fee invoices, course registration, graduation processing
-  - [ ] Feature test suite: `tests/Feature/ActivityEnforcementTest.php`
+  - [x] Feature test suite: `tests/Feature/ActivityEnforcementTest.php`
 *Agent Prompt:*
   > *"Please implement Phase 6, Task 6.7.4: Create centralized academic activity enforcement gate that integrates with existing services while preserving historical data access for withdrawn students."*
 
