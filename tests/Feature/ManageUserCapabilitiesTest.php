@@ -66,6 +66,106 @@ class ManageUserCapabilitiesTest extends TestCase
             ->assertSee('Head of Dept / Endorse results');
     }
 
+    public function test_modal_displays_granular_student_status_permissions_without_wildcard(): void
+    {
+        Livewire::actingAs($this->admin)
+            ->test(ManageUserCapabilities::class)
+            ->call('openAssignModal')
+            ->assertSee('Student Status Permissions')
+            ->assertSeeHtml('value="student_status.recommend"')
+            ->assertSeeHtml('value="student_status.senate_decide"')
+            ->assertSeeHtml('value="student_status.audit.view"')
+            ->assertDontSeeHtml('value="student_status.*"');
+    }
+
+    public function test_admin_can_grant_department_scoped_student_status_capability(): void
+    {
+        $staff = User::create([
+            'id' => (string) Str::uuid(),
+            'programme_id' => $this->programme->id,
+            'email' => 'status_staff_' . uniqid() . '@example.com',
+            'role' => 'lecturer',
+            'surname' => 'Status',
+            'firstname' => 'Officer',
+            'password' => bcrypt('secret'),
+            'vpassword' => 'secret',
+            'email_verified_at' => now(),
+        ]);
+
+        Livewire::actingAs($this->admin)
+            ->test(ManageUserCapabilities::class)
+            ->set('selectedUserId', $staff->id)
+            ->set('capability', 'student_status.recommend')
+            ->set('departmentId', $this->department->id)
+            ->set('reason', 'Authorized department withdrawal recommendations')
+            ->call('assignCapability')
+            ->assertHasNoErrors();
+
+        $this->assertDatabaseHas('user_capabilities', [
+            'user_id' => $staff->id,
+            'capability' => 'student_status.recommend',
+            'department_id' => $this->department->id,
+            'granted_by' => $this->admin->id,
+            'reason' => 'Authorized department withdrawal recommendations',
+            'is_active' => true,
+        ]);
+    }
+
+    public function test_student_status_audit_capability_cannot_be_department_scoped(): void
+    {
+        $staff = User::create([
+            'id' => (string) Str::uuid(),
+            'programme_id' => $this->programme->id,
+            'email' => 'audit_staff_' . uniqid() . '@example.com',
+            'role' => 'lecturer',
+            'surname' => 'Audit',
+            'firstname' => 'Officer',
+            'password' => bcrypt('secret'),
+            'vpassword' => 'secret',
+            'email_verified_at' => now(),
+        ]);
+
+        Livewire::actingAs($this->admin)
+            ->test(ManageUserCapabilities::class)
+            ->set('selectedUserId', $staff->id)
+            ->set('capability', 'student_status.audit.view')
+            ->set('departmentId', $this->department->id)
+            ->call('assignCapability')
+            ->assertHasErrors(['departmentId']);
+
+        $this->assertDatabaseMissing('user_capabilities', [
+            'user_id' => $staff->id,
+            'capability' => 'student_status.audit.view',
+        ]);
+    }
+
+    public function test_wildcard_student_status_capability_is_rejected(): void
+    {
+        $staff = User::create([
+            'id' => (string) Str::uuid(),
+            'programme_id' => $this->programme->id,
+            'email' => 'wildcard_staff_' . uniqid() . '@example.com',
+            'role' => 'lecturer',
+            'surname' => 'Wildcard',
+            'firstname' => 'Officer',
+            'password' => bcrypt('secret'),
+            'vpassword' => 'secret',
+            'email_verified_at' => now(),
+        ]);
+
+        Livewire::actingAs($this->admin)
+            ->test(ManageUserCapabilities::class)
+            ->set('selectedUserId', $staff->id)
+            ->set('capability', 'student_status.*')
+            ->call('assignCapability')
+            ->assertHasErrors(['capability']);
+
+        $this->assertDatabaseMissing('user_capabilities', [
+            'user_id' => $staff->id,
+            'capability' => 'student_status.*',
+        ]);
+    }
+
     public function test_admin_can_assign_capability_to_user_via_livewire(): void
     {
         $lecturer = User::create([
@@ -202,4 +302,3 @@ class ManageUserCapabilitiesTest extends TestCase
             ->assertSet('selectedUserId', '');
     }
 }
-

@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
 
 class StudentStatusRecord extends Model
@@ -39,6 +40,11 @@ class StudentStatusRecord extends Model
     public function processedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'processed_by');
+    }
+
+    public function auditEntries(): HasMany
+    {
+        return $this->hasMany(StudentStatusAudit::class, 'student_status_record_id');
     }
 
     // Historical status query scopes

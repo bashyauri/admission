@@ -10,10 +10,13 @@ use App\Enums\StudentStatusType;
 use App\Models\AcademicDetail;
 use App\Models\AcademicProgressionRecord;
 use App\Models\StudentStatusRecord;
+use App\Models\StudentStatusAudit;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Log;
 
 class StudentStatusService
@@ -94,6 +97,8 @@ class StudentStatusService
             throw new \InvalidArgumentException('Withdrawal recommendations are only applicable to undergraduate students.');
         }
 
+        $processedBy = $this->authorizeStatusAction('recommend', $processedBy, $user);
+
         // Validate academic session format
         if (!$this->isValidAcademicSession($academicSession)) {
             throw new \InvalidArgumentException("Invalid academic session format: {$academicSession}. Expected format: 'YYYY/YYYY'");
@@ -141,6 +146,11 @@ class StudentStatusService
 
             // Update academic progression record to flag withdrawal recommendation
             $this->updateProgressionRecordWithRecommendation($user, $academicSession, $semester, $progressionInfo);
+            $this->writeStatusAudit($user, $record, 'WITHDRAWAL_RECOMMENDED', $processedBy, [
+                'new_status' => $record->status,
+                'new_decision' => $record->senate_decision,
+                'reason' => $record->reason,
+            ]);
 
             Log::info('Withdrawal recommendation created', [
                 'user_id' => $user->id,
@@ -171,10 +181,19 @@ class StudentStatusService
             throw new \InvalidArgumentException('Only recommendations can be submitted to Senate.');
         }
 
+        $student = User::findOrFail($recommendation->user_id);
+        $submittedBy = $this->authorizeStatusAction('submit-for-senate', $submittedBy, $student);
         return DB::transaction(function () use ($recommendation, $submittedBy) {
             $recommendation->update([
                 'senate_decision' => self::WORKFLOW_PENDING_SENATE,
                 'processed_by' => $submittedBy?->id ?? $recommendation->processed_by,
+            ]);
+            $this->writeStatusAudit($recommendation->user, $recommendation, 'WITHDRAWAL_SUBMITTED_FOR_SENATE', $submittedBy, [
+                'old_status' => $recommendation->status,
+                'new_status' => $recommendation->status,
+                'old_decision' => self::WORKFLOW_RECOMMENDED,
+                'new_decision' => self::WORKFLOW_PENDING_SENATE,
+                'reason' => $recommendation->reason,
             ]);
 
             Log::info('Withdrawal recommendation submitted to Senate', [
@@ -217,6 +236,9 @@ class StudentStatusService
             throw new \InvalidArgumentException('Only pending Senate decisions can be approved.');
         }
 
+        $student = User::findOrFail($recommendation->user_id);
+        $approvedBy = $this->authorizeStatusAction('decide-senate', $approvedBy, $student);
+
         // Validate Senate reference format
         if (!$this->isValidSenateReference($senateReference)) {
             throw new \InvalidArgumentException("Invalid Senate reference format: {$senateReference}");
@@ -238,7 +260,7 @@ class StudentStatusService
             $effDate
         ) {
             // Close any previous active status for this student
-            $this->closePreviousActiveStatus($recommendation->user_id, $effDate);
+            $this->closePreviousActiveStatus($recommendation->user_id, $effDate, $approvedBy, 'ACTIVE_STATUS_CLOSED_FOR_WITHDRAWAL');
 
             // Approve the withdrawal
             $recommendation->update([
@@ -248,6 +270,14 @@ class StudentStatusService
                 'effective_date' => $effDate instanceof Carbon ? $effDate->toDateString() : (string) $effDate,
                 'notes' => $senateDecisionDetails ?? $recommendation->notes,
                 'processed_by' => $approvedBy?->id ?? $recommendation->processed_by,
+            ]);
+            $this->writeStatusAudit($recommendation->user, $recommendation, 'WITHDRAWAL_APPROVED', $approvedBy, [
+                'old_status' => $recommendation->status,
+                'new_status' => $recommendation->status,
+                'old_decision' => self::WORKFLOW_PENDING_SENATE,
+                'new_decision' => self::WORKFLOW_SENATE_APPROVED,
+                'reason' => $senateDecisionDetails ?? $recommendation->reason,
+                'senate_reference' => $senateReference,
             ]);
 
             Log::info('Withdrawal approved by Senate', [
@@ -280,21 +310,37 @@ class StudentStatusService
         StudentStatusRecord $recommendation,
         string $rejectionReason,
         \DateTimeInterface|string|null $senateDecisionDate = null,
-        ?User $rejectedBy = null
+        ?User $rejectedBy = null,
+        ?string $senateReference = null
     ): StudentStatusRecord {
         if ($recommendation->senate_decision !== self::WORKFLOW_PENDING_SENATE) {
             throw new \InvalidArgumentException('Only pending Senate decisions can be rejected.');
         }
 
+        $student = User::findOrFail($recommendation->user_id);
+        $rejectedBy = $this->authorizeStatusAction('decide-senate', $rejectedBy, $student);
+        if ($senateReference !== null && !$this->isValidSenateReference($senateReference)) {
+            throw new \InvalidArgumentException("Invalid Senate reference format: {$senateReference}");
+        }
+
         // Normalize date
         $decisionDate = $senateDecisionDate ? Carbon::parse($senateDecisionDate) : now();
 
-        return DB::transaction(function () use ($recommendation, $rejectionReason, $decisionDate, $rejectedBy) {
+        return DB::transaction(function () use ($recommendation, $rejectionReason, $decisionDate, $rejectedBy, $senateReference) {
             $recommendation->update([
                 'senate_decision' => self::WORKFLOW_SENATE_REJECTED,
                 'senate_decision_date' => $decisionDate->toDateString(),
+                'senate_reference' => $senateReference ?? $recommendation->senate_reference,
                 'notes' => $rejectionReason,
                 'processed_by' => $rejectedBy?->id ?? $recommendation->processed_by,
+            ]);
+            $this->writeStatusAudit($recommendation->user, $recommendation, 'WITHDRAWAL_REJECTED', $rejectedBy, [
+                'old_status' => $recommendation->status,
+                'new_status' => $recommendation->status,
+                'old_decision' => self::WORKFLOW_PENDING_SENATE,
+                'new_decision' => self::WORKFLOW_SENATE_REJECTED,
+                'reason' => $rejectionReason,
+                'senate_reference' => $senateReference,
             ]);
 
             // Clear withdrawal recommendation flag on academic progression record
@@ -348,6 +394,8 @@ class StudentStatusService
             throw new \InvalidArgumentException('Voluntary withdrawal is only applicable to undergraduate students.');
         }
 
+        $processedBy = $this->authorizeStatusAction('process-voluntary', $processedBy, $user);
+
         if (!$this->isValidAcademicSession($academicSession)) {
             throw new \InvalidArgumentException("Invalid academic session format: {$academicSession}");
         }
@@ -376,7 +424,7 @@ class StudentStatusService
 
             if ($isApproved) {
                 // Close previous active status only if official Senate approval is attached
-                $this->closePreviousActiveStatus($user->id, $effDate);
+                $this->closePreviousActiveStatus($user->id, $effDate, $processedBy, 'ACTIVE_STATUS_CLOSED_FOR_VOLUNTARY_WITHDRAWAL');
             }
 
             $record = StudentStatusRecord::create([
@@ -394,6 +442,12 @@ class StudentStatusService
                 'senate_decision_date' => $isApproved ? $effDate->toDateString() : null,
                 'reinstatement_eligible' => true,
                 'processed_by' => $processedBy?->id,
+            ]);
+            $this->writeStatusAudit($user, $record, 'VOLUNTARY_WITHDRAWAL_PROCESSED', $processedBy, [
+                'new_status' => $record->status,
+                'new_decision' => $record->senate_decision,
+                'reason' => $record->reason,
+                'senate_reference' => $senateReference,
             ]);
 
             Log::info('Voluntary withdrawal processed', [
@@ -440,6 +494,8 @@ class StudentStatusService
             throw new \InvalidArgumentException('Medical withdrawal is only applicable to undergraduate students.');
         }
 
+        $processedBy = $this->authorizeStatusAction('process-medical', $processedBy, $user);
+
         if (!$this->isValidAcademicSession($academicSession)) {
             throw new \InvalidArgumentException("Invalid academic session format: {$academicSession}");
         }
@@ -468,7 +524,7 @@ class StudentStatusService
 
             if ($isApproved) {
                 // Close previous active status only if official Senate approval is attached
-                $this->closePreviousActiveStatus($user->id, $effDate);
+                $this->closePreviousActiveStatus($user->id, $effDate, $processedBy, 'ACTIVE_STATUS_CLOSED_FOR_MEDICAL_WITHDRAWAL');
             }
 
             $record = StudentStatusRecord::create([
@@ -486,6 +542,12 @@ class StudentStatusService
                 'senate_decision_date' => $isApproved ? $effDate->toDateString() : null,
                 'reinstatement_eligible' => true,
                 'processed_by' => $processedBy?->id,
+            ]);
+            $this->writeStatusAudit($user, $record, 'MEDICAL_WITHDRAWAL_PROCESSED', $processedBy, [
+                'new_status' => $record->status,
+                'new_decision' => $record->senate_decision,
+                'reason' => $record->reason,
+                'senate_reference' => $senateReference,
             ]);
 
             Log::info('Medical withdrawal processed', [
@@ -691,6 +753,8 @@ class StudentStatusService
             throw new \InvalidArgumentException('Reinstatement is only applicable to undergraduate students.');
         }
 
+        $requestedBy = $this->authorizeStatusAction('request-reinstatement', $requestedBy, $user);
+
         if (!$this->isEligibleForReinstatement($user)) {
             throw new \InvalidArgumentException('The student does not have an eligible active withdrawal to reinstate from.');
         }
@@ -700,21 +764,32 @@ class StudentStatusService
             throw new \InvalidArgumentException('Reinstatement can only be requested from an approved withdrawal status.');
         }
 
-        return StudentStatusRecord::create([
-            'user_id' => $user->id,
-            'academic_detail_id' => $user->academicDetail?->id,
-            'status' => StudentStatus::REINSTATED,
-            'status_type' => $withdrawal->status_type,
-            'reason_code' => 'REINSTATEMENT_REQUEST',
-            'reason' => 'Reinstatement requested following ' . $withdrawal->status->label() . '.',
-            'academic_session' => $withdrawal->academic_session,
-            'semester' => $withdrawal->semester,
-            'effective_date' => now()->toDateString(),
-            'senate_decision' => self::REINSTATEMENT_REQUESTED,
-            'reinstatement_eligible' => false,
-            'processed_by' => $requestedBy?->id,
-            'notes' => $notes,
-        ]);
+        return DB::transaction(function () use ($user, $withdrawal, $requestedBy, $notes) {
+            $request = StudentStatusRecord::create([
+                'user_id' => $user->id,
+                'academic_detail_id' => $user->academicDetail?->id,
+                'status' => StudentStatus::REINSTATED,
+                'status_type' => $withdrawal->status_type,
+                'reason_code' => 'REINSTATEMENT_REQUEST',
+                'reason' => 'Reinstatement requested following ' . $withdrawal->status->label() . '.',
+                'academic_session' => $withdrawal->academic_session,
+                'semester' => $withdrawal->semester,
+                'effective_date' => now()->toDateString(),
+                'senate_decision' => self::REINSTATEMENT_REQUESTED,
+                'reinstatement_eligible' => false,
+                'processed_by' => $requestedBy->id,
+                'notes' => $notes,
+            ]);
+            $this->writeStatusAudit($user, $request, 'REINSTATEMENT_REQUESTED', $requestedBy, [
+                'old_status' => $withdrawal->status,
+                'new_status' => $request->status,
+                'old_decision' => $withdrawal->senate_decision,
+                'new_decision' => $request->senate_decision,
+                'reason' => $request->reason,
+            ]);
+
+            return $request;
+        });
     }
 
     /** Record sequential Department and Faculty review of a reinstatement request. */
@@ -736,18 +811,35 @@ class StudentStatusService
             throw new \InvalidArgumentException("The reinstatement request is not ready for {$stage} review.");
         }
 
+        $student = User::findOrFail($request->user_id);
+        $ability = $stage === 'DEPARTMENT'
+            ? 'review-department-reinstatement'
+            : 'review-faculty-reinstatement';
+        $reviewedBy = $this->authorizeStatusAction($ability, $reviewedBy, $student);
+
         $decision = $approved
             ? ($stage === 'DEPARTMENT' ? self::REINSTATEMENT_DEPARTMENT_APPROVED : self::REINSTATEMENT_FACULTY_APPROVED)
             : ($stage === 'DEPARTMENT' ? self::REINSTATEMENT_DEPARTMENT_REJECTED : self::REINSTATEMENT_FACULTY_REJECTED);
 
-        $request->update([
-            'senate_decision' => $decision,
-            'senate_decision_date' => now()->toDateString(),
-            'processed_by' => $reviewedBy?->id ?? $request->processed_by,
-            'notes' => $notes ?? $request->notes,
-        ]);
+        $oldDecision = $request->senate_decision;
 
-        return $request->fresh();
+        return DB::transaction(function () use ($request, $decision, $reviewedBy, $notes, $student, $stage, $oldDecision) {
+            $request->update([
+                'senate_decision' => $decision,
+                'senate_decision_date' => now()->toDateString(),
+                'processed_by' => $reviewedBy->id,
+                'notes' => $notes ?? $request->notes,
+            ]);
+            $this->writeStatusAudit($student, $request, "REINSTATEMENT_{$stage}_" . ($decision === self::REINSTATEMENT_DEPARTMENT_APPROVED || $decision === self::REINSTATEMENT_FACULTY_APPROVED ? 'APPROVED' : 'REJECTED'), $reviewedBy, [
+                'old_status' => $request->status,
+                'new_status' => $request->status,
+                'old_decision' => $oldDecision,
+                'new_decision' => $decision,
+                'reason' => $notes,
+            ]);
+
+            return $request->fresh();
+        });
     }
 
     /** Determine return placement from the existing UG progression rules. */
@@ -795,6 +887,7 @@ class StudentStatusService
         }
 
         $student = User::findOrFail($request->user_id);
+        $processedBy = $this->authorizeStatusAction('decide-senate', $processedBy, $student);
         $withdrawal = $this->getCurrentStatus($student);
         if (!$withdrawal || !$withdrawal->status->isWithdrawn() || !$withdrawal->reinstatement_eligible) {
             throw new \InvalidArgumentException('The student no longer has an eligible withdrawal to reinstate from.');
@@ -805,6 +898,7 @@ class StudentStatusService
 
         return DB::transaction(function () use ($request, $student, $withdrawal, $approved, $senateReference, $decisionDate, $processedBy, $decisionNotes, $placement) {
             $decision = $approved ? self::REINSTATEMENT_APPROVED : self::REINSTATEMENT_REJECTED;
+            $oldDecision = $request->senate_decision;
 
             // Keep the request as its own audit entry and append the final decision event.
             $request->update([
@@ -833,6 +927,15 @@ class StudentStatusService
                 'notes' => $approved
                     ? trim(($decisionNotes ? $decisionNotes . "\n" : '') . 'Placement: ' . $placement['level'] . ' (level id ' . $placement['student_level_id'] . ').')
                     : $decisionNotes,
+            ]);
+            $this->writeStatusAudit($student, $event, $approved ? 'REINSTATEMENT_APPROVED' : 'REINSTATEMENT_REJECTED', $processedBy, [
+                'old_status' => $withdrawal->status,
+                'new_status' => $event->status,
+                'old_decision' => $oldDecision,
+                'new_decision' => $decision,
+                'reason' => $decisionNotes ?? $event->reason,
+                'senate_reference' => $senateReference,
+                'request_record_id' => $request->id,
             ]);
 
             if ($approved) {
@@ -887,12 +990,69 @@ class StudentStatusService
      */
     public function isValidSenateReference(string $reference): bool
     {
-        return (bool) preg_match('/^SEN[-\/]\d{4}(?:\/\d{4})?[-\/]\d+$/i', $reference);
+        return (bool) preg_match('/^SEN(?:-\d{4}-\d{1,6}|\/\d{4}\/\d{1,6}|-\d{4}\/\d{4}-\d{1,6})$/i', $reference);
     }
 
     // =========================================================================
     // Private Helper Methods
     // =========================================================================
+
+    private function authorizeStatusAction(string $ability, ?User $actor, User $student): User
+    {
+        $authenticatedActor = auth()->user();
+        if ($authenticatedActor instanceof User && $actor instanceof User
+            && (string) $authenticatedActor->id !== (string) $actor->id) {
+            throw new AuthorizationException('Student-status actions must be performed by the authenticated user.');
+        }
+
+        $actor ??= $authenticatedActor;
+        if (!$actor instanceof User) {
+            throw new AuthorizationException('An authenticated authorized officer is required for this student-status action.');
+        }
+
+        Gate::forUser($actor)->authorize('student-status.' . $ability, $student);
+
+        return $actor;
+    }
+
+    /** Persist append-only audit evidence in the same transaction as each status decision. */
+    private function writeStatusAudit(
+        User $student,
+        ?StudentStatusRecord $record,
+        string $action,
+        User $actor,
+        array $changes = []
+    ): StudentStatusAudit {
+        $request = app()->bound('request') ? request() : null;
+        $metadata = $changes;
+        unset($metadata['old_status'], $metadata['new_status'], $metadata['old_decision'], $metadata['new_decision'], $metadata['reason'], $metadata['senate_reference']);
+
+        return StudentStatusAudit::create([
+            'student_id' => $student->id,
+            'actor_id' => $actor->id,
+            'student_status_record_id' => $record?->id,
+            'action' => $action,
+            'old_status' => $this->enumValue($changes['old_status'] ?? null),
+            'new_status' => $this->enumValue($changes['new_status'] ?? $record?->status),
+            'old_decision' => $changes['old_decision'] ?? null,
+            'new_decision' => $changes['new_decision'] ?? $record?->senate_decision,
+            'reason' => $changes['reason'] ?? $record?->reason,
+            'senate_reference' => $changes['senate_reference'] ?? $record?->senate_reference,
+            'ip_address' => $request?->ip(),
+            'user_agent' => $request?->userAgent(),
+            'metadata' => $metadata === [] ? null : $metadata,
+            'occurred_at' => now(),
+        ]);
+    }
+
+    private function enumValue(mixed $value): ?string
+    {
+        if ($value instanceof \BackedEnum) {
+            return (string) $value->value;
+        }
+
+        return $value === null ? null : (string) $value;
+    }
 
     /**
      * Close any previous active status for a student.
@@ -900,16 +1060,34 @@ class StudentStatusService
      * When a new status becomes active, the previous status should have its
      * end_date set to maintain a clean timeline.
      */
-    private function closePreviousActiveStatus(string $userId, \DateTimeInterface|string $effectiveDate): void
+    private function closePreviousActiveStatus(
+        string $userId,
+        \DateTimeInterface|string $effectiveDate,
+        User $actor,
+        string $action
+    ): void
     {
         $dateStr = $effectiveDate instanceof \DateTimeInterface
             ? $effectiveDate->format('Y-m-d')
             : Carbon::parse($effectiveDate)->toDateString();
 
-        StudentStatusRecord::where('user_id', $userId)
+        $records = StudentStatusRecord::where('user_id', $userId)
             ->whereIn('senate_decision', [self::WORKFLOW_SENATE_APPROVED, 'APPROVED'])
             ->whereNull('end_date')
-            ->update(['end_date' => $dateStr]);
+            ->get();
+
+        foreach ($records as $record) {
+            $oldEndDate = $record->end_date?->toDateString();
+            $record->update(['end_date' => $dateStr]);
+            $this->writeStatusAudit($record->user, $record, $action, $actor, [
+                'old_status' => $record->status,
+                'new_status' => $record->status,
+                'old_decision' => $record->senate_decision,
+                'new_decision' => $record->senate_decision,
+                'old_end_date' => $oldEndDate,
+                'new_end_date' => $dateStr,
+            ]);
+        }
     }
 
     /**

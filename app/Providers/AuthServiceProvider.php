@@ -7,6 +7,7 @@ use App\Policies\UserPolicy;
 use App\Models\ProposedCourse;
 use Illuminate\Support\Facades\Gate;
 use App\Policies\ProposedCoursePolicy;
+use App\Policies\StudentStatusPolicy;
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
 
 class AuthServiceProvider extends ServiceProvider
@@ -31,6 +32,21 @@ class AuthServiceProvider extends ServiceProvider
     {
         $this->registerPolicies();
 
-        //
+        $studentStatusPolicy = app(StudentStatusPolicy::class);
+        foreach ([
+            'student-status.view-any' => 'viewAny',
+            'student-status.view' => 'view',
+            'student-status.view-audit' => 'viewAudit',
+            'student-status.recommend' => 'recommend',
+            'student-status.submit-for-senate' => 'submitForSenate',
+            'student-status.decide-senate' => 'decideSenate',
+            'student-status.process-voluntary' => 'processVoluntary',
+            'student-status.process-medical' => 'processMedical',
+            'student-status.request-reinstatement' => 'requestReinstatement',
+            'student-status.review-department-reinstatement' => 'reviewDepartmentReinstatement',
+            'student-status.review-faculty-reinstatement' => 'reviewFacultyReinstatement',
+        ] as $ability => $method) {
+            Gate::define($ability, fn (...$arguments) => $studentStatusPolicy->{$method}(...$arguments));
+        }
     }
 }

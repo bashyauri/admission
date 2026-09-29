@@ -9,6 +9,7 @@ use App\Models\HodUser;
 use App\Models\User;
 use App\Models\UserCapability;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rule;
 use Jantinnerezo\LivewireAlert\LivewireAlert;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -36,12 +37,35 @@ class ManageUserCapabilities extends Component
 
     protected $paginationTheme = 'tailwind';
 
+    private const CAPABILITY_OPTIONS = [
+        'exam_officer' => ['label' => 'Exam Officer', 'description' => 'Vet and approve department results'],
+        'lecturer' => ['label' => 'Lecturer', 'description' => 'Enter results and manage assigned courses'],
+        'hod' => ['label' => 'HOD (Head of Dept)', 'description' => 'Head of Department and endorse results'],
+        'cit' => ['label' => 'CIT Officer', 'description' => 'IT operations and administrative roles'],
+        'coordinator' => ['label' => 'Coordinator', 'description' => 'Review assigned course cohorts'],
+        'idcard_officer' => ['label' => 'ID Card Officer', 'description' => 'Process student ID cards'],
+        'student_status.view' => ['label' => 'View Student Status', 'description' => 'View status for the selected department or institution'],
+        'student_status.audit.view' => ['label' => 'View Student Status Audit', 'description' => 'View the institution-wide immutable status audit trail'],
+        'student_status.recommend' => ['label' => 'Recommend Withdrawal', 'description' => 'Recommend an academic withdrawal'],
+        'student_status.submit_to_senate' => ['label' => 'Submit Withdrawal to Senate', 'description' => 'Submit a withdrawal recommendation for Senate decision'],
+        'student_status.senate_decide' => ['label' => 'Decide Senate Withdrawal', 'description' => 'Approve or reject a Senate withdrawal decision'],
+        'student_status.process_voluntary' => ['label' => 'Process Voluntary Withdrawal', 'description' => 'Process a student-requested voluntary withdrawal'],
+        'student_status.process_medical' => ['label' => 'Process Medical Withdrawal', 'description' => 'Process a medical withdrawal'],
+        'student_status.request_reinstatement' => ['label' => 'Request Reinstatement', 'description' => 'Submit a reinstatement request for a student'],
+        'student_status.reinstatement.department_review' => ['label' => 'Review Reinstatement (Department)', 'description' => 'Complete the department reinstatement review'],
+        'student_status.reinstatement.faculty_review' => ['label' => 'Review Reinstatement (Faculty)', 'description' => 'Complete the faculty reinstatement review'],
+    ];
+
     protected function rules(): array
     {
         return [
             'selectedUserId' => 'required|exists:users,id',
-            'capability'     => 'required|in:exam_officer,lecturer,hod,cit,coordinator,idcard_officer',
-            'departmentId'   => 'nullable|exists:departments,id',
+            'capability'     => ['required', Rule::in(array_keys(self::CAPABILITY_OPTIONS))],
+            'departmentId'   => [
+                'nullable',
+                'exists:departments,id',
+                Rule::prohibitedIf($this->capability === 'student_status.audit.view'),
+            ],
             'reason'         => 'nullable|string|max:500',
         ];
     }
@@ -105,6 +129,13 @@ class ManageUserCapabilities extends Component
         $this->reset(['selectedUserId', 'departmentId', 'reason', 'staffSearch']);
         $this->capability = 'exam_officer';
         $this->showAssignModal = true;
+    }
+
+    public function updatedCapability(string $capability): void
+    {
+        if ($capability === 'student_status.audit.view') {
+            $this->departmentId = null;
+        }
     }
 
     public function closeAssignModal(): void
@@ -320,6 +351,7 @@ class ManageUserCapabilities extends Component
             'activeExamOfficersCount' => $activeExamOfficersCount,
             'activeLecturersCount' => $activeLecturersCount,
             'totalAssignmentsCount' => $totalAssignmentsCount,
+            'capabilityOptions' => self::CAPABILITY_OPTIONS,
         ]);
     }
 }

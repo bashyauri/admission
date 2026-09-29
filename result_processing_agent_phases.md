@@ -386,18 +386,22 @@ The system must follow these governance rules:
   > *"Please implement Phase 6, Task 6.7.7: Integrate withdrawal status into transcripts, remove duplicated CGPA-based withdrawal calculations from ResultReportingService, and ensure historical result preservation."*
 
 #### Task 6.7.8: Security & Audit Infrastructure
-* **Scope:** Authorization policies and immutable audit trail.
+* **Scope:** Authorization policies and immutable audit trail. (WITHDRAWAL/REINSTATEMENT PATHS COMPLETED — September 2026; disciplinary suspension/expulsion integration awaits an approved mutation workflow.)
 * **Tasks:**
-  - [ ] Create authorization policies for status changes:
-    - `StudentStatusPolicy` - control who can recommend/approve/reject withdrawals
-    - Role restrictions: Admin and other explicitly authorized institutional capabilities; do not assume HOD authority unless separately configured
-  - [ ] Implement immutable audit trail around status decisions:
+  - [x] Create `StudentStatusPolicy` and server-side gates for status access and changes
+    - Admins and explicitly granted `student_status.*` capabilities may act
+    - Department-scoped capabilities are limited to students in that department
+    - HOD role alone does not grant status-change authority
+  - [x] Implement immutable audit trail around existing status decisions:
     - Record: student, action, old status, new status, reason, user, timestamp, IP/device, Senate reference
-    - Apply to: Withdrawal, Approval, Rejection, Reinstatement, Suspension, Expulsion
-  - [ ] Senate reference validation and format enforcement
-  - [ ] Prevention of unauthorized status changes
-  - [ ] Integration with existing audit systems if available
-  - [ ] Security test suite: `tests/Feature/StatusSecurityTest.php`
+    - Apply to: Withdrawal recommendation/submission/approval/rejection, voluntary/medical withdrawal, and reinstatement request/review/decision
+    - Audit entries reject model updates/deletes and are written in the same transaction as each decision
+  - [x] Enforce Senate reference formats on status workflows that accept a reference
+  - [x] Prevent unauthorized status changes through service-level Gate authorization
+  - [x] Extend the existing admin capability-management page to grant/revoke individual `student_status.*` capabilities with department scope; audit-trail viewing remains institution-wide and wildcard grants are rejected
+  - [x] Add dedicated status audit storage; no existing audit subsystem was available
+  - [x] Security test suite: `tests/Feature/StatusSecurityTest.php`
+  - [ ] Add audit hooks for suspension/expulsion when an approved disciplinary status mutation workflow exists; no such workflow currently exists in the application
 *Agent Prompt:*
   > *"Please implement Phase 6, Task 6.7.8: Create authorization policies and immutable audit trail for Senate status decisions with proper role restrictions and Senate reference validation."*
 

@@ -150,12 +150,9 @@
                     class="w-full rounded-xl border-slate-200 bg-white text-sm py-2.5 focus:border-slate-400 focus:ring-slate-300"
                 >
                     <option value="">All Capabilities</option>
-                    <option value="hod">HOD (Head of Dept)</option>
-                    <option value="exam_officer">Exam Officer</option>
-                    <option value="lecturer">Lecturer</option>
-                    <option value="coordinator">Coordinator</option>
-                    <option value="cit">CIT Officer</option>
-                    <option value="idcard_officer">ID Card Officer</option>
+                    @foreach($capabilityOptions as $value => $option)
+                        <option value="{{ $value }}">{{ $option['label'] }}</option>
+                    @endforeach
                 </select>
             </div>
 
@@ -298,6 +295,10 @@
                                 @elseif($cap->capability === 'cit')
                                     <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold text-indigo-700 bg-indigo-50 border border-indigo-200 shadow-sm">
                                         CIT Officer
+                                    </span>
+                                @elseif(str_starts_with($cap->capability, 'student_status.'))
+                                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold text-violet-700 bg-violet-50 border border-violet-200 shadow-sm">
+                                        {{ $capabilityOptions[$cap->capability]['label'] ?? str_replace('_', ' ', $cap->capability) }}
                                     </span>
                                 @else
                                     <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold text-slate-700 bg-slate-100 border border-slate-200 shadow-sm capitalize">
@@ -668,6 +669,23 @@
                                     </div>
                                 </label>
 
+                                <div class="sm:col-span-2 border-t border-slate-100 pt-3 mt-1">
+                                    <h4 class="text-xs font-bold uppercase tracking-wider text-slate-700">Student Status Permissions</h4>
+                                    <p class="text-[11px] text-slate-500 mt-1">Grant only the specific status actions this staff member is authorized to perform. No wildcard permission is used.</p>
+                                </div>
+
+                                @foreach($capabilityOptions as $value => $option)
+                                    @if(str_starts_with($value, 'student_status.'))
+                                        <label class="relative flex items-start p-3 rounded-xl border cursor-pointer transition {{ $capability === $value ? 'border-violet-600 bg-violet-50/50 ring-1 ring-violet-600' : 'border-slate-200 hover:bg-slate-50/60' }}">
+                                            <input type="radio" wire:model="capability" value="{{ $value }}" class="mt-0.5 mr-3 text-violet-600 focus:ring-violet-500" />
+                                            <div>
+                                                <span class="block text-xs font-bold text-slate-900">{{ $option['label'] }}</span>
+                                                <span class="block text-[11px] text-slate-500 mt-0.5">{{ $option['description'] }}</span>
+                                            </div>
+                                        </label>
+                                    @endif
+                                @endforeach
+
                             </div>
 
                             @if($capability === 'hod')
@@ -698,6 +716,7 @@
                             </label>
                             <select
                                 wire:model="departmentId"
+                                @disabled($capability === 'student_status.audit.view')
                                 class="w-full rounded-xl border-slate-200 bg-white text-sm py-2.5 focus:border-slate-400 focus:ring-slate-300"
                             >
                                 <option value="">Institution-Wide (All Departments)</option>
@@ -706,7 +725,11 @@
                                 @endforeach
                             </select>
                             <p class="text-[11px] text-slate-400 mt-1">
-                                Leave unselected if capability applies across the entire institution.
+                                @if($capability === 'student_status.audit.view')
+                                    Audit access is institution-wide and cannot be department-scoped.
+                                @else
+                                    Leave unselected for institution-wide access, or choose a department to limit this permission.
+                                @endif
                             </p>
                             @error('departmentId')
                                 <p class="text-xs text-rose-500 font-medium mt-1.5">{{ $message }}</p>

@@ -26,6 +26,7 @@ class StudentStatusServiceTest extends TestCase
     use RefreshDatabase;
 
     private StudentStatusService $service;
+    private User $admin;
     private Department $department;
     private Programme $ugProgramme;
     private Programme $pgProgramme;
@@ -40,6 +41,8 @@ class StudentStatusServiceTest extends TestCase
         parent::setUp();
 
         $this->service = app(StudentStatusService::class);
+        $this->admin = User::factory()->create(['role' => 'admin']);
+        $this->actingAs($this->admin);
 
         $this->department = Department::create(['name' => 'Computer Science']);
 
