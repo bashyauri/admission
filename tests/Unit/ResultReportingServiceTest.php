@@ -33,6 +33,7 @@ class ResultReportingServiceTest extends TestCase
                 'remark' => 'PASS',
                 'standing' => AcademicProgressionService::STANDING_PROMOTED,
                 'class_of_degree' => 'First Class Honours',
+                'uts' => 3,
             ],
             [
                 'matric_no' => 'CSC/20/002',
@@ -40,6 +41,7 @@ class ResultReportingServiceTest extends TestCase
                 'remark' => 'PASS',
                 'standing' => AcademicProgressionService::STANDING_PROMOTED,
                 'class_of_degree' => 'Second Class Upper Division',
+                'uts' => 3,
             ],
             [
                 'matric_no' => 'CSC/20/003',
@@ -47,6 +49,7 @@ class ResultReportingServiceTest extends TestCase
                 'remark' => 'REPEAT: CSC101, CSC102',
                 'standing' => AcademicProgressionService::STANDING_PROMOTED,
                 'class_of_degree' => 'Second Class Lower Division',
+                'uts' => 3,
             ],
             [
                 'matric_no' => 'CSC/20/004',
@@ -54,6 +57,7 @@ class ResultReportingServiceTest extends TestCase
                 'remark' => 'PROBATION',
                 'standing' => AcademicProgressionService::STANDING_PROBATION,
                 'class_of_degree' => 'Pass',
+                'uts' => 3,
             ],
             [
                 'matric_no' => 'CSC/20/005',
@@ -61,6 +65,7 @@ class ResultReportingServiceTest extends TestCase
                 'remark' => 'SPILLOVER',
                 'standing' => AcademicProgressionService::STANDING_SPILLOVER,
                 'class_of_degree' => 'Third Class Honours',
+                'uts' => 3,
             ],
         ]);
 

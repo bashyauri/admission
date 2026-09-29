@@ -27,10 +27,15 @@ use Illuminate\Support\Facades\DB;
 
 class ResultReportingService
 {
+    protected ?StudentStatusService $studentStatusService;
+
     public function __construct(
         protected GradeCalculationService $gradeCalculator,
-        protected AcademicProgressionService $progressionService
-    ) {}
+        protected AcademicProgressionService $progressionService,
+        ?StudentStatusService $studentStatusService = null
+    ) {
+        $this->studentStatusService = $studentStatusService;
+    }
 
     /**
      * Format academic level name into standard format (e.g., '100 Level', '200 Level').
@@ -270,6 +275,8 @@ class ResultReportingService
         })->values();
 
         $studentIds = $students->pluck('id')->all();
+        $statusService = $this->studentStatusService ??= app(StudentStatusService::class);
+        $statusesForSession = $statusService->getStatusesForSession($studentIds, $session);
 
         // 2. Fetch all Results for these students in this session (across both semesters for full session broadsheet)
         $resultsQuery = Result::with(['departmentCourse.studentCourse'])
@@ -449,23 +456,28 @@ class ResultReportingService
             $allUnclearedCourses = array_values(array_unique(array_merge($failedCoursesThisSession, $activeCarryCodes)));
 
             $hasResults = ($uts > 0 || $utd > 0 || !empty($courseBreakdownItems));
+            $statusRecord = $statusesForSession->get($student->id);
+            $isOfficiallyWithdrawn = $statusRecord?->status?->isWithdrawn() === true;
+            $statusText = $isOfficiallyWithdrawn
+                ? 'WITHDRAWN: ' . strtoupper($statusRecord->status->label())
+                : null;
 
             if (!$hasResults) {
                 // Student has no exam records for this cohort/level (e.g. Direct Entry starting at 200L, unexamined, or deferred)
-                $statusText = $student->isDe ? 'DIRECT ENTRY (200L ENTRY)' : 'NO REGISTRATION / NO RESULT';
+                $statusText ??= $student->isDe ? 'DIRECT ENTRY (200L ENTRY)' : 'NO REGISTRATION / NO RESULT';
                 $remark = $student->isDe ? 'D.E. CANDIDATE (STARTS AT 200L)' : 'NO RESULT';
                 $isPass = false;
             } else {
-                $statusText = null;
-                if ($cgpa < 0.50) {
-                    $statusText = 'WITHDRAWN FROM THE UNIVERSITY';
-                } elseif ($cgpa < 0.75) {
-                    $statusText = 'WITHDRAWN FROM PROGRAM';
-                } elseif ($cgpa < 1.00 || $cgpa < 1.50) {
-                    $statusText = 'ON PROBATION';
+                $isPass = $statusRecord?->status?->isWithdrawn() !== true
+                    && empty($allUnclearedCourses)
+                    && $cgpa >= 1.50;
+                if (!$isOfficiallyWithdrawn) {
+                    $statusText = match ($standing) {
+                        AcademicProgressionService::STANDING_PROBATION => 'ON PROBATION',
+                        AcademicProgressionService::STANDING_REPEAT => 'REPEAT LEVEL',
+                        default => null,
+                    };
                 }
-
-                $isPass = empty($allUnclearedCourses) && $cgpa >= 1.50;
                 $remark = !empty($allUnclearedCourses) 
                     ? 'REPEAT: ' . implode(', ', $allUnclearedCourses) 
                     : ($isPass ? 'PASS' : ($statusText ?? 'PASS'));
@@ -563,24 +575,23 @@ class ResultReportingService
                 $isPass = true;
             }
 
-            if ($isPass) {
+            if (!empty($repeatCourses) || str_starts_with($remark, 'REPEAT')) {
+                $repeatCount++;
+            }
+
+            if (str_contains($statusText, 'WITHDRAWN')) {
+                $withdrawnCount++;
+            } elseif ($isPass) {
                 $passCount++;
+            } elseif ($statusText === 'ON PROBATION' || $remark === 'PROBATION' || $standing === AcademicProgressionService::STANDING_PROBATION) {
+                $probationCount++;
+            } elseif (str_contains($statusText, 'SPILLOVER') || $remark === 'SPILLOVER' || $standing === AcademicProgressionService::STANDING_SPILLOVER) {
+                $spilloverCount++;
             } elseif ($uts === 0 && $utd === 0) {
                 // Students with 0 examination units (Direct Entry, unexamined, special cases)
                 $specialCasesCount++;
             } else {
-                if (!empty($repeatCourses) || str_starts_with($remark, 'REPEAT')) {
-                    $repeatCount++;
-                }
-                if ($statusText === 'ON PROBATION' || $remark === 'PROBATION' || $standing === AcademicProgressionService::STANDING_PROBATION) {
-                    $probationCount++;
-                } elseif (str_contains($statusText, 'WITHDRAWN') || str_contains($remark, 'WITHDRAWN')) {
-                    $withdrawnCount++;
-                } elseif (str_contains($statusText, 'SPILLOVER') || $remark === 'SPILLOVER' || $standing === AcademicProgressionService::STANDING_SPILLOVER) {
-                    $spilloverCount++;
-                } else {
-                    $specialCasesCount++;
-                }
+                $specialCasesCount++;
             }
 
             if (isset($classDistribution[$class]) && ($uts > 0 || $utd > 0)) {

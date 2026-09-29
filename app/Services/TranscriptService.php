@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Enums\StudentStatus;
 use App\Models\DepartmentMaxUnit;
 use App\Models\Result;
 use App\Models\ResultGpaRecord;
+use App\Models\StudentStatusRecord;
 use App\Models\Transcript;
 use App\Models\User;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -19,7 +21,8 @@ use Symfony\Component\HttpFoundation\Response;
 class TranscriptService
 {
     public function __construct(
-        protected GradeCalculationService $gradeCalculationService
+        protected GradeCalculationService $gradeCalculationService,
+        protected StudentStatusService $studentStatusService
     ) {}
 
     /**
@@ -88,6 +91,29 @@ class TranscriptService
         $resultsBreakdown = $this->getStudentResultsBreakdown($student->id);
         $gpaRecords       = $this->getGPARecords($student->id);
         $summary          = $this->calculateSummary($student->id);
+        $statusHistory    = $this->studentStatusService->getStatusHistory($student);
+        $currentStatus    = $this->studentStatusService->getCurrentStatus($student);
+        $withdrawalRecord = $statusHistory
+            ->filter(fn (StudentStatusRecord $record) =>
+                $record->status instanceof StudentStatus
+                && $record->status->isWithdrawn()
+                && (!$record->effective_date || $record->effective_date->lte(now()))
+                && in_array($record->senate_decision, [
+                    StudentStatusService::WORKFLOW_SENATE_APPROVED,
+                    'APPROVED',
+                ], true)
+            )
+            ->last();
+        $withdrawalAnnotation = $withdrawalRecord
+            ? [
+                'status' => $withdrawalRecord->status->label(),
+                'is_current' => $currentStatus?->id === $withdrawalRecord->id,
+                'academic_session' => $withdrawalRecord->academic_session,
+                'effective_date' => $withdrawalRecord->effective_date,
+                'senate_reference' => $withdrawalRecord->senate_reference,
+                'cgpa' => $this->cgpaAtWithdrawalPoint($resultsBreakdown, $withdrawalRecord),
+            ]
+            : null;
 
         // Fetch DepartmentMaxUnit for allowed credit registered reference
         $departmentMaxUnit = null;
@@ -121,6 +147,7 @@ class TranscriptService
             'resultsBreakdown'  => $resultsBreakdown,
             'gpaRecords'        => $gpaRecords,
             'summary'           => $summary,
+            'withdrawalAnnotation' => $withdrawalAnnotation,
             'departmentMaxUnit' => $departmentMaxUnit,
             'transcript'        => $transcript,
             'official'          => $official,
@@ -129,6 +156,39 @@ class TranscriptService
             'logoBase64'        => $logoBase64,
             'generated_at'      => now(),
         ];
+    }
+
+    /** Calculate the last available cumulative CGPA on or before an approved withdrawal point. */
+    private function cgpaAtWithdrawalPoint(array $resultsBreakdown, StudentStatusRecord $withdrawal): ?float
+    {
+        $session = (string) $withdrawal->academic_session;
+        if ($session === '') {
+            return null;
+        }
+
+        $semesterLimit = $withdrawal->semester;
+        $eligible = array_filter($resultsBreakdown, function (array $semester) use ($session, $semesterLimit): bool {
+            $resultSession = (string) $semester['academic_session'];
+            if (strcmp($resultSession, $session) < 0) {
+                return true;
+            }
+            if ($resultSession !== $session) {
+                return false;
+            }
+            if ($semesterLimit === null) {
+                return true;
+            }
+
+            $semesterNumber = $semester['semester'] === 'first' ? 1 : 2;
+            return $semesterNumber <= (int) $semesterLimit;
+        });
+
+        if ($eligible === []) {
+            return null;
+        }
+
+        $lastSemester = end($eligible);
+        return isset($lastSemester['cgpa']) ? (float) $lastSemester['cgpa'] : null;
     }
 
     /**

@@ -431,6 +431,23 @@
         </tr>
     </table>
 
+    @if($withdrawalAnnotation)
+        <table style="width: 100%; border-collapse: collapse; margin: 0 0 10px; border: 1px solid #b91c1c; background: #fef2f2;">
+            <tr>
+                <td style="padding: 7px 9px; color: #7f1d1d; font-weight: 700; text-transform: uppercase; width: 25%;">
+                    {{ $withdrawalAnnotation['is_current'] ? 'Official Withdrawal' : 'Withdrawal History' }}
+                </td>
+                <td style="padding: 7px 9px; color: #7f1d1d;">
+                    {{ $withdrawalAnnotation['status'] }}
+                    &bull; Session: {{ $withdrawalAnnotation['academic_session'] ?: 'N/A' }}
+                    &bull; Effective: {{ $withdrawalAnnotation['effective_date']?->format('d F Y') ?? 'N/A' }}
+                    &bull; Senate Ref: {{ $withdrawalAnnotation['senate_reference'] ?: 'N/A' }}
+                    &bull; CGPA at withdrawal: {{ $withdrawalAnnotation['cgpa'] !== null ? number_format($withdrawalAnnotation['cgpa'], 2) : 'N/A' }}
+                </td>
+            </tr>
+        </table>
+    @endif
+
     <!-- Academic Records Per Session / Semester -->
     @forelse($resultsBreakdown as $sem)
         <div class="semester-block">

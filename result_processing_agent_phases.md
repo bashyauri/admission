@@ -254,7 +254,7 @@ graph TD
 #### Task 6.7: Student Academic Status, Withdrawal & Reinstatement Management (⏳ UP NEXT)
 * **Goal:** Implement Senate-compliant student status management with auditable withdrawal/reinstatement workflows, academic progression history tracking, and proper separation of academic performance from institutional decisions.
 * **Risk Profile:** Low (additive tables and service layer with proper governance workflows).
-* **Status:** **In Progress (Tasks 6.7.1–6.7.6 completed)**
+* **Status:** **In Progress (Tasks 6.7.1–6.7.7 completed)**
 
 ### Design Principles
 The system must follow these governance rules:
@@ -367,22 +367,21 @@ The system must follow these governance rules:
 *Agent Prompt:*
   > *"Please implement Phase 6, Task 6.7.6: Create Senate-compliant withdrawal reporting including withdrawal ledger, Senate reports, and statistical analysis with export capabilities."*
 
-#### Task 6.7.7: Transcript & Result Integration
+#### Task 6.7.7: Transcript & Result Integration (✅ COMPLETED — September 2026)
 * **Scope:** Official transcript annotation and result reporting cleanup.
 * **Tasks:**
-  - [ ] Extend `TranscriptService` to display withdrawal annotation:
-    - STATUS: WITHDRAWN FROM PROGRAMME/UNIVERSITY
-    - SESSION: Academic session of withdrawal
+  - [x] Extend `TranscriptService` to display Senate-approved withdrawal annotation:
+    - STATUS: withdrawal status and current/historical indicator
+    - SESSION: Academic session and effective date of withdrawal
     - SENATE REF: Senate reference number
     - CGPA at withdrawal point
-  - [ ] **Remove** duplicated withdrawal calculation from `ResultReportingService`:
-    - Delete CGPA-based withdrawal calculation (lines 457-463)
-    - Replace with authoritative status from `StudentStatusService`
-  - [ ] Update broadsheet generation to use database status instead of CGPA calculation
-  - [ ] **Historical Result Preservation:**
+  - [x] **Remove** duplicated CGPA-based withdrawal calculation from `ResultReportingService`
+    - Use authoritative Senate-approved status from `StudentStatusService`
+  - [x] Update broadsheet generation to use database status instead of CGPA calculation
+  - [x] **Historical Result Preservation:**
     - Ensure withdrawn students' historical results remain visible
     - Ensure transcripts show complete academic history up to withdrawal point
-  - [ ] Feature test: `tests/Feature/TranscriptWithdrawalIntegrationTest.php`
+  - [x] Feature test: `tests/Feature/TranscriptWithdrawalIntegrationTest.php`
 *Agent Prompt:*
   > *"Please implement Phase 6, Task 6.7.7: Integrate withdrawal status into transcripts, remove duplicated CGPA-based withdrawal calculations from ResultReportingService, and ensure historical result preservation."*
 

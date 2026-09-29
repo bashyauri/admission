@@ -557,6 +557,25 @@ class StudentStatusService
     }
 
     /**
+     * Get the latest Senate-approved status for each student in a session.
+     * The keyed result supports report generation without one status query per row.
+     *
+     * @param iterable<string> $userIds
+     * @return Collection<string, StudentStatusRecord>
+     */
+    public function getStatusesForSession(iterable $userIds, string $academicSession): Collection
+    {
+        return StudentStatusRecord::whereIn('user_id', $userIds)
+            ->where('academic_session', $academicSession)
+            ->whereIn('senate_decision', [self::WORKFLOW_SENATE_APPROVED, 'APPROVED'])
+            ->orderByDesc('effective_date')
+            ->orderByDesc('id')
+            ->get()
+            ->unique('user_id')
+            ->keyBy('user_id');
+    }
+
+    /**
      * Get the complete status timeline for a student.
      *
      * Returns all status records in chronological order, providing a complete
