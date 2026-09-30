@@ -153,6 +153,11 @@ class AcademicDetail extends Model
         return $this->hasMany(StudentStatusRecord::class, 'academic_detail_id');
     }
 
+    public function disciplinaryActions(): HasMany
+    {
+        return $this->hasMany(DisciplinaryAction::class, 'academic_detail_id');
+    }
+
     public function latestStudentStatusRecord(): HasOne
     {
         return $this->hasOne(StudentStatusRecord::class, 'academic_detail_id')->latestOfMany();

@@ -574,7 +574,7 @@ Phase 7 is a separate disciplinary case and sanction workflow. It must reuse Pha
   - `remarks` (text nullable)
 * **Relationships:** Wire on `User` (`disciplinaryActions`) and `AcademicDetail`.
 * **Constraints:** Define `is_active` semantics per sanction type; it must not become a competing suspension/expulsion status source. Align Senate-reference validation with institutional policy and the existing `StudentStatusService` validator.
-* **Scope decision:** Record the approved programme scope (UG, PG, or both) before creating enforcement migrations or service behavior. Keep existing PG workflows unchanged unless separately approved.
+* **Scope decision:** Phase 7 is UG-only for its initial implementation, consistent with this roadmap and the project-wide UG/PG isolation rule. Task 7.1 adds a neutral, additive record foundation only; it does not add enforcement behavior or change PG workflows, including PG payments. Any expansion to PG requires separate approval and impact review.
 * **Automated Test:** `tests/Unit/DisciplinaryActionFoundationTest.php`
 
 #### Task 7.2: Core Disciplinary Enforcement Service (`DisciplinaryActionService`)

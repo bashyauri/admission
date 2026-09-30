@@ -390,6 +390,11 @@ public function coordinators()
         return $this->hasMany(StudentStatusRecord::class, 'user_id');
     }
 
+    public function disciplinaryActions(): HasMany
+    {
+        return $this->hasMany(DisciplinaryAction::class, 'user_id');
+    }
+
     public function studentStatusAuditEntries(): HasMany
     {
         return $this->hasMany(StudentStatusAudit::class, 'student_id');
