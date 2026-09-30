@@ -131,6 +131,10 @@ class TranscriptWithdrawalIntegrationTest extends TestCase
         $afterDecision = $reporting->getDepartmentalBroadsheet($filters);
         $afterRow = collect($afterDecision['students'])->firstWhere('user_id', $student->id);
         $this->assertSame('WITHDRAWN: ACADEMIC WITHDRAWAL', $afterRow['status_text']);
+        $this->assertSame('WITHDRAWN FROM PROGRAMME', $afterRow['status_display']);
+        $this->assertSame('2023/2024', $afterRow['status_session']);
+        $this->assertSame('2024-02-01', $afterRow['status_effective_date']);
+        $this->assertSame('SEN-2024-101', $afterRow['status_senate_reference']);
         $this->assertSame(1, $afterDecision['summary']['withdrawn_count']);
 
         $afterTranscript = $transcripts->buildTranscriptData($student);

@@ -90,7 +90,8 @@ class StudentStatusService
         ?int $semester = null,
         ?string $notes = null,
         ?User $processedBy = null,
-        \DateTimeInterface|string|null $effectiveDate = null
+        \DateTimeInterface|string|null $effectiveDate = null,
+        bool $reinstatementEligible = true
     ): StudentStatusRecord {
         // Validate that user is undergraduate
         if (!$user->isUndergraduate()) {
@@ -125,7 +126,8 @@ class StudentStatusService
             $notes,
             $processedBy,
             $progressionInfo,
-            $effDate
+            $effDate,
+            $reinstatementEligible
         ) {
             // Create the recommendation record
             $record = StudentStatusRecord::create([
@@ -139,7 +141,7 @@ class StudentStatusService
                 'semester' => $semester,
                 'effective_date' => $effDate->toDateString(),
                 'senate_decision' => self::WORKFLOW_RECOMMENDED,
-                'reinstatement_eligible' => true, // Default eligibility
+                'reinstatement_eligible' => $reinstatementEligible,
                 'processed_by' => $processedBy?->id,
                 'notes' => $notes,
             ]);
@@ -150,6 +152,7 @@ class StudentStatusService
                 'new_status' => $record->status,
                 'new_decision' => $record->senate_decision,
                 'reason' => $record->reason,
+                'reinstatement_eligible' => $record->reinstatement_eligible,
             ]);
 
             Log::info('Withdrawal recommendation created', [
@@ -388,7 +391,8 @@ class StudentStatusService
         ?int $semester = null,
         \DateTimeInterface|string|null $effectiveDate = null,
         ?string $senateReference = null,
-        ?User $processedBy = null
+        ?User $processedBy = null,
+        bool $reinstatementEligible = true
     ): StudentStatusRecord {
         if (!$user->isUndergraduate()) {
             throw new \InvalidArgumentException('Voluntary withdrawal is only applicable to undergraduate students.');
@@ -418,7 +422,8 @@ class StudentStatusService
             $semester,
             $effDate,
             $senateReference,
-            $processedBy
+            $processedBy,
+            $reinstatementEligible
         ) {
             $isApproved = $senateReference !== null;
 
@@ -440,7 +445,7 @@ class StudentStatusService
                 'senate_decision' => $isApproved ? self::WORKFLOW_SENATE_APPROVED : self::WORKFLOW_RECOMMENDED,
                 'senate_reference' => $senateReference,
                 'senate_decision_date' => $isApproved ? $effDate->toDateString() : null,
-                'reinstatement_eligible' => true,
+                'reinstatement_eligible' => $reinstatementEligible,
                 'processed_by' => $processedBy?->id,
             ]);
             $this->writeStatusAudit($user, $record, 'VOLUNTARY_WITHDRAWAL_PROCESSED', $processedBy, [
@@ -448,6 +453,7 @@ class StudentStatusService
                 'new_decision' => $record->senate_decision,
                 'reason' => $record->reason,
                 'senate_reference' => $senateReference,
+                'reinstatement_eligible' => $record->reinstatement_eligible,
             ]);
 
             Log::info('Voluntary withdrawal processed', [
@@ -488,7 +494,8 @@ class StudentStatusService
         ?int $semester = null,
         \DateTimeInterface|string|null $effectiveDate = null,
         ?string $senateReference = null,
-        ?User $processedBy = null
+        ?User $processedBy = null,
+        bool $reinstatementEligible = true
     ): StudentStatusRecord {
         if (!$user->isUndergraduate()) {
             throw new \InvalidArgumentException('Medical withdrawal is only applicable to undergraduate students.');
@@ -518,7 +525,8 @@ class StudentStatusService
             $semester,
             $effDate,
             $senateReference,
-            $processedBy
+            $processedBy,
+            $reinstatementEligible
         ) {
             $isApproved = $senateReference !== null;
 
@@ -540,7 +548,7 @@ class StudentStatusService
                 'senate_decision' => $isApproved ? self::WORKFLOW_SENATE_APPROVED : self::WORKFLOW_RECOMMENDED,
                 'senate_reference' => $senateReference,
                 'senate_decision_date' => $isApproved ? $effDate->toDateString() : null,
-                'reinstatement_eligible' => true,
+                'reinstatement_eligible' => $reinstatementEligible,
                 'processed_by' => $processedBy?->id,
             ]);
             $this->writeStatusAudit($user, $record, 'MEDICAL_WITHDRAWAL_PROCESSED', $processedBy, [
@@ -548,6 +556,7 @@ class StudentStatusService
                 'new_decision' => $record->senate_decision,
                 'reason' => $record->reason,
                 'senate_reference' => $senateReference,
+                'reinstatement_eligible' => $record->reinstatement_eligible,
             ]);
 
             Log::info('Medical withdrawal processed', [
@@ -593,6 +602,72 @@ class StudentStatusService
             ->orderByDesc('effective_date')
             ->orderByDesc('id')
             ->first();
+    }
+
+    /**
+     * Resolve authoritative current statuses for a group without issuing one
+     * status query per student. The selection rules match getCurrentStatus().
+     *
+     * @param iterable<string> $userIds
+     * @return Collection<string, StudentStatusRecord>
+     */
+    public function getCurrentStatuses(iterable $userIds, \DateTimeInterface|string|null $date = null): Collection
+    {
+        $ids = collect($userIds)->filter()->unique()->values();
+        if ($ids->isEmpty()) {
+            return new Collection();
+        }
+
+        $targetDate = $date ? Carbon::parse($date)->toDateString() : now()->toDateString();
+
+        return StudentStatusRecord::whereIn('user_id', $ids)
+            ->where(function ($query) use ($targetDate) {
+                $query->whereNull('effective_date')->orWhere('effective_date', '<=', $targetDate);
+            })
+            ->where(function ($query) use ($targetDate) {
+                $query->whereNull('end_date')->orWhere('end_date', '>=', $targetDate);
+            })
+            ->whereIn('senate_decision', [self::WORKFLOW_SENATE_APPROVED, 'APPROVED'])
+            ->orderByDesc('effective_date')
+            ->orderByDesc('id')
+            ->get()
+            ->unique('user_id')
+            ->keyBy('user_id');
+    }
+
+    /**
+     * Batch the activity gate for loaded students, for use in result tables
+     * and imports where a per-student lookup would otherwise create N+1 queries.
+     *
+     * @param iterable<User> $students
+     * @return \Illuminate\Support\Collection<string, bool>
+     */
+    public function getActivityEligibilityForStudents(
+        iterable $students,
+        AcademicActivity|string $activity,
+        \DateTimeInterface|string|null $date = null
+    ): \Illuminate\Support\Collection {
+        $activityEnum = $activity instanceof AcademicActivity
+            ? $activity
+            : AcademicActivity::tryFrom((string) $activity);
+        $users = collect($students)->filter(fn ($student) => $student instanceof User)->keyBy('id');
+
+        if ($users->isEmpty()) {
+            return collect();
+        }
+
+        if (!$activityEnum) {
+            return $users->mapWithKeys(fn (User $student) => [$student->id => false]);
+        }
+
+        $statuses = $this->getCurrentStatuses($users->keys(), $date);
+
+        return $users->mapWithKeys(function (User $student) use ($activityEnum, $statuses) {
+            $status = $statuses->get($student->id);
+            $allowed = !$student->isUndergraduate() || !$status || $status->status->isActive();
+
+            return [$student->id => $allowed];
+        });
     }
 
     /**

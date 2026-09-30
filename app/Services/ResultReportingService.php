@@ -502,6 +502,11 @@ class ResultReportingService
                 'is_pass' => $isPass,
                 'repeat_courses' => $allUnclearedCourses,
                 'status_text' => $statusText,
+                'status_is_withdrawn' => $isOfficiallyWithdrawn,
+                'status_display' => $isOfficiallyWithdrawn ? 'WITHDRAWN FROM PROGRAMME' : $statusText,
+                'status_session' => $isOfficiallyWithdrawn ? $statusRecord->academic_session : null,
+                'status_effective_date' => $isOfficiallyWithdrawn ? $statusRecord->effective_date?->toDateString() : null,
+                'status_senate_reference' => $isOfficiallyWithdrawn ? $statusRecord->senate_reference : null,
                 'remark' => $remark,
             ];
 

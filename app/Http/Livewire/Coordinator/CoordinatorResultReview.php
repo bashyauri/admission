@@ -9,8 +9,10 @@ use App\Models\ResultApproval;
 use App\Models\RegisteredCourse;
 use App\Models\User;
 use App\Services\AcademicSessionService;
+use App\Services\StudentStatusService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -928,7 +930,6 @@ class CoordinatorResultReview extends Component
             ];
         }
 
-
         /*
         |--------------------------------------------------------------------------
         | Search
@@ -1047,7 +1048,7 @@ class CoordinatorResultReview extends Component
         $this->totalStudentResults = $results->total();
         $this->currentResultPage = $results->currentPage();
         $this->lastResultPage = $results->lastPage();
-        $this->studentsWithResults = $results->getCollection()
+        $rows = $results->getCollection()
             ->map(function (Result $result) use ($course): array {
                 $user = $result->user;
                 $academicDetail = $result->academicDetail;
@@ -1081,6 +1082,23 @@ class CoordinatorResultReview extends Component
                 ];
             })
             ->all();
+
+        $studentUsers = $results->getCollection()->map(fn (Result $result) => $result->user)->filter()->keyBy('id');
+        $institutionalStatuses = app(StudentStatusService::class)->getCurrentStatuses(
+            $studentUsers->filter(fn (User $student) => $student->isUndergraduate())->keys(),
+        );
+        $statusGate = Gate::forUser(Auth::user());
+        $this->studentsWithResults = collect($rows)->map(function (array $row) use ($studentUsers, $institutionalStatuses, $statusGate) {
+            $student = $studentUsers->get($row['user_id']);
+            $status = $student?->isUndergraduate() ? $institutionalStatuses->get($student->id) : null;
+            $row['institutional_status'] = $status
+                ? ($statusGate->allows('student-status.view', $student)
+                    ? $status->status->label()
+                    : 'Status restricts new result entry')
+                : null;
+
+            return $row;
+        })->all();
     }
 
 

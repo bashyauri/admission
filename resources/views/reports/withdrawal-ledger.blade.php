@@ -14,6 +14,7 @@
         .muted { color: #67748e; }
         .toolbar, .filters, .stats, .summary-grid { display: flex; flex-wrap: wrap; gap: 12px; align-items: end; }
         .toolbar { justify-content: space-between; align-items: center; }
+        .toolbar-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
         .filters label { display: flex; flex-direction: column; gap: 5px; min-width: 145px; font-size: 12px; font-weight: 600; }
         input, select { min-height: 38px; padding: 8px 10px; border: 1px solid #d2d6da; border-radius: 7px; color: #344767; background: white; }
         .button { display: inline-block; border: 0; border-radius: 7px; padding: 10px 14px; color: #fff; background: #cb0c9f; font-weight: 700; text-decoration: none; cursor: pointer; }
@@ -40,7 +41,8 @@
             <h1>{{ $report_title }}</h1>
             <div class="muted">Undergraduate Senate withdrawal and reinstatement records · Generated {{ now()->format('d M Y, H:i') }}</div>
         </div>
-        <nav class="no-print" aria-label="Report actions">
+        <nav class="toolbar-actions no-print" aria-label="Report actions">
+            <a class="button secondary" href="{{ route('student-status.management', ['sidebar' => 'exam-officer']) }}">Back to Student Status</a>
             <a class="button secondary" href="{{ route('exam-officer.withdrawal-ledger.export.csv', request()->query()) }}">Export CSV</a>
             <a class="button secondary" href="{{ route('exam-officer.withdrawal-ledger.export.pdf', request()->query()) }}">Download PDF</a>
             <button class="button" type="button" onclick="window.print()">Print</button>

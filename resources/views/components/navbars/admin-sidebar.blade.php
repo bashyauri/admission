@@ -149,6 +149,16 @@
             </a>
         </li>
 
+        @can('student-status.view-any')
+        <li class="mt-0.5 w-full">
+            <a class="ease-soft-in-out py-2.7 my-0 mx-4 flex items-center whitespace-nowrap rounded-lg px-4 text-size-sm transition-colors {{ Route::currentRouteName() == 'student-status.management' ? 'bg-white font-semibold text-slate-700 shadow-soft-xl' : 'font-medium text-slate-500 hover:bg-slate-100' }}"
+                href="{{ route('student-status.management', ['sidebar' => 'admin']) }}">
+                <span class="mr-2 flex h-8 w-8 items-center justify-center rounded-lg bg-white text-violet-700 shadow-soft-2xl"><i class="fas fa-user-shield text-xs"></i></span>
+                <span class="ml-1">Student Status</span>
+            </a>
+        </li>
+        @endcan
+
         <li class="mt-0.5 w-full">
             <a class="ease-soft-in-out py-2.7 text-size-sm my-0 mx-4 flex items-center whitespace-nowrap px-4 font-medium text-slate-500 shadow-none transition-colors dark:text-white dark:opacity-80 hover:bg-slate-100 rounded-lg {{ Route::currentRouteName() == 'admin.course-allocations' ? 'font-semibold text-slate-700 xl:shadow-soft-xl rounded-lg bg-white' : '' }}"
                 href="{{ route('admin.course-allocations') }}">

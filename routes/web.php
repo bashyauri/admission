@@ -120,6 +120,7 @@ use App\Http\Livewire\Applications\CertificateUpload;
 use App\Http\Livewire\Transactions\AcceptanceInvoice;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Livewire\Transactions\PostutmeScreeningInvoice;
+use App\Http\Livewire\Student\StudentStatusManagement;
 
 /*
 |--------------------------------------------------------------------------
@@ -148,6 +149,10 @@ Route::middleware('guest')->group(function () {
 Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])
     ->name('logout')
     ->middleware('auth');
+
+Route::get('/student-status-management', StudentStatusManagement::class)
+    ->middleware(['auth', 'verified'])
+    ->name('student-status.management');
 
 Route::middleware(['auth', 'verified', 'role:applicant'])->group(function () {
 

@@ -215,6 +215,7 @@ class WithdrawalReportingTest extends TestCase
             ->get(route('exam-officer.withdrawal-ledger'))
             ->assertOk()
             ->assertSee('Student Withdrawal Ledger')
+            ->assertSee('Back to Student Status')
             ->assertSee('UG/2021/001')
             ->assertDontSee('PG/2021/001');
 

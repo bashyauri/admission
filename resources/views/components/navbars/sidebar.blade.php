@@ -8,7 +8,37 @@
     $path = request()->path();
 
     // 1. Determine active sidebar by current route / URL path prefix
-    if ((str_starts_with($currentRoute, 'exam-officer.') || str_starts_with($path, 'exam-officer')) && $user->canActAsExamOfficer()) {
+    // This staff management route starts with "student-" but is not a student portal route.
+    if ($currentRoute === 'student-status.management') {
+        $requestedSidebar = request()->query('sidebar');
+        $sidebarRequestedByLink = match ($requestedSidebar) {
+            'admin' => $user->canActAsAdmin() ? 'admin' : null,
+            'exam-officer' => $user->canActAsExamOfficer() ? 'exam-officer' : null,
+            'coordinator' => $user->canActAsCoordinator() ? 'coordinator' : null,
+            'lecturer' => $user->canActAsLecturer() ? 'lecturer' : null,
+            'hod' => $user->canActAsHod() ? 'hod' : null,
+            'cit' => $user->canActAsCit() ? 'cit' : null,
+            default => null,
+        };
+
+        if ($sidebarRequestedByLink) {
+            $activeSidebar = $sidebarRequestedByLink;
+        } elseif ($user->isAdmin() || $user->canActAsAdmin()) {
+            $activeSidebar = 'admin';
+        } elseif ($user->canActAsExamOfficer()) {
+            $activeSidebar = 'exam-officer';
+        } elseif ($user->canActAsCoordinator()) {
+            $activeSidebar = 'coordinator';
+        } elseif ($user->canActAsLecturer()) {
+            $activeSidebar = 'lecturer';
+        } elseif ($user->canActAsHod()) {
+            $activeSidebar = 'hod';
+        } elseif ($user->canActAsCit()) {
+            $activeSidebar = 'cit';
+        } else {
+            $activeSidebar = 'admin';
+        }
+    } elseif ((str_starts_with($currentRoute, 'exam-officer.') || str_starts_with($path, 'exam-officer')) && $user->canActAsExamOfficer()) {
         $activeSidebar = 'exam-officer';
     } elseif ((str_starts_with($currentRoute, 'coordinator.') || str_starts_with($path, 'coordinator')) && $user->canActAsCoordinator()) {
         $activeSidebar = 'coordinator';

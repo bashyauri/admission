@@ -423,7 +423,11 @@
 
                                     @if(!empty($student['status_text']))
                                         <div class="status-title">STATUS:</div>
-                                        <div class="status-val">{{ $student['status_text'] }}</div>
+                                        <div class="status-val">{{ $student['status_display'] ?? $student['status_text'] }}</div>
+                                        @if(!empty($student['status_is_withdrawn']))
+                                            <div class="status-val">Session: {{ $student['status_session'] ?? '—' }} · Effective: {{ $student['status_effective_date'] ?? '—' }}</div>
+                                            @if(!empty($student['status_senate_reference']))<div class="status-val">Senate Ref: {{ $student['status_senate_reference'] }}</div>@endif
+                                        @endif
                                     @endif
                                 @endif
                             </div>

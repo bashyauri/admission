@@ -14,6 +14,7 @@ use App\Http\Controllers\UgSchoolFeesController;
 use App\Http\Livewire\Student\CourseRegistration;
 use App\Http\Livewire\Student\MyResults;
 use App\Http\Livewire\Student\PrintCourseHistory;
+use App\Http\Livewire\Student\StudentStatusOverview;
 use App\Http\Controllers\PrintStatementOfResult;
 use App\Http\Livewire\Transactions\SchoolFeesInvoice;
 use App\Http\Controllers\SchoolFeesTransactionController;
@@ -28,6 +29,7 @@ Route::get('/exam-card', ExamCard::class)->middleware('paid.student.school.fees'
 Route::get('course-registration', CourseRegistration::class)->middleware('paid.student.school.fees')->name('course-registration');
 Route::get('course-history', PrintCourseHistory::class)->name('course-history');
 Route::get('my-results', MyResults::class)->name('my-results');
+Route::get('status', StudentStatusOverview::class)->name('status-overview');
 Route::get('transcript', [\App\Http\Controllers\Student\TranscriptController::class, 'download'])->name('transcript');
 Route::get('transcript/preview', [\App\Http\Controllers\Student\TranscriptController::class, 'preview'])->name('transcript.preview');
 Route::get('print-statement/{session}/{semester}', PrintStatementOfResult::class)

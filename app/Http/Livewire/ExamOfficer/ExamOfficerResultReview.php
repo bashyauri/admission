@@ -10,10 +10,13 @@ use App\Models\DepartmentCourse;
 use App\Models\RegisteredCourse;
 use App\Models\Result;
 use App\Models\ResultApproval;
+use App\Models\User;
 use App\Services\CarryOverRegistrationService;
 use App\Services\GradeCalculationService;
+use App\Services\StudentStatusService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 use Jantinnerezo\LivewireAlert\LivewireAlert;
 use Livewire\Component;
 
@@ -304,6 +307,22 @@ class ExamOfficerResultReview extends Component
                 'remarks' => $result->remarks,
             ];
         }
+
+        $studentUsers = $registered->map(fn ($registration) => $registration->academicDetail?->user)->filter()->keyBy('id');
+        $institutionalStatuses = app(StudentStatusService::class)->getCurrentStatuses(
+            $studentUsers->filter(fn (User $student) => $student->isUndergraduate())->keys(),
+        );
+        $statusGate = Gate::forUser(Auth::user());
+        foreach ($rows as &$row) {
+            $student = $studentUsers->get($row['user_id']);
+            $status = $student?->isUndergraduate() ? $institutionalStatuses->get($student->id) : null;
+            $row['institutional_status'] = $status
+                ? ($statusGate->allows('student-status.view', $student)
+                    ? $status->status->label()
+                    : 'Status restricts new result entry')
+                : null;
+        }
+        unset($row);
 
         /*
          * Sort students naturally by Matriculation Number in ascending order.
@@ -782,4 +801,3 @@ class ExamOfficerResultReview extends Component
         )->layout('layouts.app');
     }
 }
-

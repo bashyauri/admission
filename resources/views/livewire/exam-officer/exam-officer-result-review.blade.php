@@ -533,6 +533,9 @@
                                                 <h6 class="mb-0 text-sm font-semibold text-slate-800">
                                                     {{ $row['name'] }}
                                                 </h6>
+                                                @if(!empty($row['institutional_status']))
+                                                    <span class="mt-1 inline-flex rounded-md border border-rose-200 bg-rose-50 px-2 py-1 text-[10px] font-bold text-rose-800">{{ $row['institutional_status'] }}</span>
+                                                @endif
 
                                             </td>
 
@@ -789,4 +792,3 @@
     @endif
 
 </div>
-

@@ -15,6 +15,15 @@
     ============================================================= --}}
     @livewire('student.student-profile')
 
+    @if(auth()->user()->isUndergraduate() && $currentStudentStatus && !$currentStudentStatus->status->isActive())
+        <section role="status" class="mx-3 rounded-2xl border border-rose-200 bg-rose-50 p-4 shadow-soft-sm sm:p-5">
+            <p class="text-[11px] font-bold uppercase tracking-wider text-rose-700">Current institutional status</p>
+            <h2 class="mt-1 text-base font-extrabold text-rose-900">{{ strtoupper($currentStudentStatus->status->label()) }}</h2>
+            <p class="mt-1 text-sm text-rose-800">Effective {{ $currentStudentStatus->effective_date?->format('d F Y') ?? 'date not recorded' }} for {{ $currentStudentStatus->academic_session }}. Historical results, transcript, and payment history remain available.</p>
+            <a href="{{ route('student.status-overview') }}" class="mt-3 inline-flex rounded-lg border border-rose-300 bg-white px-3 py-2 text-xs font-bold text-rose-800 hover:bg-rose-100">View status and history</a>
+        </section>
+    @endif
+
 
     {{-- ============================================================
         DASHBOARD ACTION CARDS
@@ -57,7 +66,12 @@
                     {{-- Button --}}
                     <div class="mt-5">
 
-                        @if (auth()->user()->isUndergraduate())
+                        @if (auth()->user()->isUndergraduate() && !$canStartFeePayment)
+                            <button type="button" disabled aria-disabled="true" class="inline-flex w-full cursor-not-allowed items-center justify-center rounded-lg bg-slate-200 px-5 py-3 text-center text-xs font-bold uppercase text-slate-500">
+                                Fee payment unavailable while {{ strtolower($currentStudentStatus?->status?->label() ?? 'inactive') }}
+                            </button>
+                            <a href="{{ route('student.status-overview') }}" class="mt-2 inline-flex w-full justify-center text-xs font-semibold text-violet-700 hover:underline">Review your status</a>
+                        @elseif (auth()->user()->isUndergraduate())
 
                             <a href="{{ route('student.ug-school-fees', ['user' => auth()->user()->id]) }}"
                                 class="inline-flex items-center justify-center w-full px-5 py-3 font-bold text-center text-white uppercase transition-all border-0 rounded-lg cursor-pointer bg-gradient-lime text-size-xs hover:scale-[1.01] hover:shadow-soft-md active:opacity-85">
@@ -128,12 +142,17 @@
                         {{-- Button --}}
                         <div class="mt-5">
 
+                            @if($canStartCourseRegistration)
                             <a href="{{ route('student.course-registration') }}"
                                 class="inline-flex items-center justify-center w-full px-5 py-3 font-bold text-center text-white uppercase transition-all border-0 rounded-lg cursor-pointer bg-gradient-lime text-size-xs hover:scale-[1.01] hover:shadow-soft-md active:opacity-85">
 
                                 Add / Drop Courses
 
                             </a>
+                            @else
+                            <button type="button" disabled aria-disabled="true" class="inline-flex w-full cursor-not-allowed items-center justify-center rounded-lg bg-slate-200 px-5 py-3 text-center text-xs font-bold uppercase text-slate-500">Course registration unavailable</button>
+                            <a href="{{ route('student.status-overview') }}" class="mt-2 inline-flex w-full justify-center text-xs font-semibold text-violet-700 hover:underline">Review your status</a>
+                            @endif
 
                         </div>
 
@@ -180,12 +199,16 @@
                         {{-- Button --}}
                         <div class="mt-5">
 
+                            @if($canUseExamActions)
                             <a href="{{ route('student.exam-card') }}"
                                 class="inline-flex items-center justify-center w-full px-5 py-3 font-bold text-center text-white uppercase transition-all border-0 rounded-lg cursor-pointer bg-gradient-lime text-size-xs hover:scale-[1.01] hover:shadow-soft-md active:opacity-85">
 
                                 Exam Card
 
                             </a>
+                            @else
+                            <button type="button" disabled aria-disabled="true" class="inline-flex w-full cursor-not-allowed items-center justify-center rounded-lg bg-slate-200 px-5 py-3 text-center text-xs font-bold uppercase text-slate-500">Exam card unavailable</button>
+                            @endif
 
                         </div>
 

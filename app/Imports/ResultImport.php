@@ -6,7 +6,9 @@ use App\Models\AcademicDetail;
 use App\Models\CourseAllocation;
 use App\Models\RegisteredCourse;
 use App\Models\Result;
+use App\Enums\AcademicActivity;
 use App\Services\GradeCalculationService;
+use App\Services\StudentStatusService;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Maatwebsite\Excel\Concerns\ToCollection;
@@ -48,6 +50,12 @@ class ResultImport implements ToCollection, WithHeadingRow
         $session = $this->session;
         $semester = $this->semester;
         $gradeService = new GradeCalculationService();
+        $matricNumbers = $rows->map(fn ($row) => trim((string) ($row['matric_no'] ?? '')))->filter()->unique();
+        $academicDetails = AcademicDetail::with('user')->whereIn('matric_no', $matricNumbers)->get()->keyBy('matric_no');
+        $students = $academicDetails->map(fn (AcademicDetail $detail) => $detail->user)->filter();
+        $statusService = app(StudentStatusService::class);
+        $activityEligibility = $statusService->getActivityEligibilityForStudents($students, AcademicActivity::RESULT_PROCESSING);
+        $currentStatuses = $statusService->getCurrentStatuses($students->pluck('id'));
 
         foreach ($rows as $index => $row) {
             $rowNumber = $index + 2;
@@ -71,7 +79,7 @@ class ResultImport implements ToCollection, WithHeadingRow
             }
 
             // Find the student
-            $academicDetail = AcademicDetail::where('matric_no', $matricNo)->first();
+            $academicDetail = $academicDetails->get($matricNo);
             if (!$academicDetail) {
                 $this->addPreviewError($rowNumber, $matricNo, $caScore, $examScore, 'Student is not registered in the system.');
                 continue;
@@ -85,6 +93,18 @@ class ResultImport implements ToCollection, WithHeadingRow
 
             if (!$regCourse) {
                 $this->addPreviewError($rowNumber, $matricNo, $caScore, $examScore, 'Student is not registered for this course.');
+                continue;
+            }
+
+            if (!$activityEligibility->get($academicDetail->user_id, true)) {
+                $statusLabel = $currentStatuses->get($academicDetail->user_id)?->status?->label() ?? 'inactive';
+                $this->addPreviewError(
+                    $rowNumber,
+                    $matricNo,
+                    $caScore,
+                    $examScore,
+                    "Skipped: {$statusLabel} status prevents new result entry. Any previously saved result remains unchanged."
+                );
                 continue;
             }
 

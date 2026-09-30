@@ -10,7 +10,8 @@ class StudentStatusPolicy
 {
     public function viewAny(User $actor): bool
     {
-        return $actor->isAdmin() || $this->hasGlobalCapability($actor, 'student_status.view');
+        return $actor->isAdmin()
+            || $actor->capabilities()->where('capability', 'student_status.view')->exists();
     }
 
     public function view(User $actor, User $student): bool

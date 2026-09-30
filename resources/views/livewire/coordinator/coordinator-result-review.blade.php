@@ -968,6 +968,9 @@
                                     <div class="text-sm font-bold text-slate-900">
                                         {{ $student['name'] }}
                                     </div>
+                                    @if(!empty($student['institutional_status']))
+                                        <span class="mt-1 inline-flex rounded-md border border-rose-200 bg-rose-50 px-2 py-1 text-[10px] font-bold text-rose-800">{{ $student['institutional_status'] }}</span>
+                                    @endif
 
                                 </td>
 
@@ -1127,6 +1130,9 @@
                                 <h3 class="mt-0.5 text-sm font-black text-slate-900">
                                     {{ $student['name'] }}
                                 </h3>
+                                @if(!empty($student['institutional_status']))
+                                    <span class="mt-1 inline-flex rounded-md border border-rose-200 bg-rose-50 px-2 py-1 text-[10px] font-bold text-rose-800">{{ $student['institutional_status'] }}</span>
+                                @endif
 
 
                                 <p class="mt-0.5 text-xs font-semibold text-slate-500">

@@ -7,7 +7,10 @@ use App\Models\CourseAllocation;
 use App\Models\RegisteredCourse;
 use App\Models\Result;
 use App\Services\GradeCalculationService;
+use App\Services\StudentStatusService;
+use App\Enums\AcademicActivity;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Gate;
 use Jantinnerezo\LivewireAlert\LivewireAlert;
 use Livewire\WithFileUploads;
 use App\Exports\ResultTemplateExport;
@@ -120,6 +123,15 @@ class ResultEntry extends Component
 
         $this->students = $registeredCourses;
 
+        $studentIds = $registeredCourses->pluck('academicDetail.user_id')->filter()->unique()->values();
+        $studentStatusService = app(StudentStatusService::class);
+        $currentStatuses = $studentStatusService->getCurrentStatuses($studentIds);
+        $eligibility = $studentStatusService->getActivityEligibilityForStudents(
+            $registeredCourses->map(fn ($registration) => $registration->academicDetail?->user)->filter(),
+            AcademicActivity::RESULT_PROCESSING,
+        );
+        $statusGate = Gate::forUser(Auth::user());
+
         // Load existing results
         $existingResults = Result::where('department_course_id', $this->allocation->department_course_id)
             ->where('academic_session', $session)
@@ -132,12 +144,23 @@ class ResultEntry extends Component
         foreach ($this->students as $regCourse) {
             $userId = $regCourse->academicDetail->user_id ?? null;
             if (!$userId) continue;
+            $studentUser = $regCourse->academicDetail->user;
+            $institutionalStatus = $currentStatuses->get($userId);
+            $entryAllowed = $eligibility->get($userId, true);
+            $statusLabel = $institutionalStatus
+                ? ($statusGate->allows('student-status.view', $studentUser)
+                    ? $institutionalStatus->status->label()
+                    : 'Restricted institutional status')
+                : null;
+
             if (isset($existingResults[$userId])) {
                 $this->results[$userId] = [
                     'ca' => $existingResults[$userId]->ca_score,
                     'exam' => $existingResults[$userId]->exam_score,
                     'status' => $existingResults[$userId]->status,
                     'is_absent' => $existingResults[$userId]->remarks === 'Absent',
+                    'can_enter_new_result' => $entryAllowed,
+                    'institutional_status' => $statusLabel,
                 ];
             } else {
                 $this->results[$userId] = [
@@ -145,6 +168,8 @@ class ResultEntry extends Component
                     'exam' => null,
                     'status' => 'pending',
                     'is_absent' => false,
+                    'can_enter_new_result' => $entryAllowed,
+                    'institutional_status' => $statusLabel,
                 ];
             }
         }
@@ -185,6 +210,15 @@ class ResultEntry extends Component
 
         if (!$student) {
             $this->alert('error', 'Student not found.');
+            return;
+        }
+
+        if (!app(StudentStatusService::class)->canPerformAcademicActivity(
+            $student->academicDetail->user,
+            AcademicActivity::RESULT_PROCESSING,
+        )) {
+            $this->alert('warning', 'New result entry is blocked by the student’s current institutional status. Existing result history has been preserved.');
+            $this->loadStudentsAndResults();
             return;
         }
 

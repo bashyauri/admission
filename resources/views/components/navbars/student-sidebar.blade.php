@@ -142,6 +142,13 @@
                     </a>
                 </li>
                 <li class="mt-0.5 w-full">
+                    <a class="ease-soft-in-out py-2.7 my-0 mx-4 flex items-center whitespace-nowrap px-4 rounded-lg {{ Route::currentRouteName() == 'student.status-overview' ? 'bg-white shadow-soft-xl font-semibold text-slate-700' : 'text-slate-500 font-medium' }}"
+                        href="{{ route('student.status-overview') }}">
+                        <div class="mr-2 flex h-8 w-8 items-center justify-center rounded-lg bg-white p-2.5 text-center text-violet-700 shadow-soft-2xl"><i class="fas fa-user-check text-xs"></i></div>
+                        <span class="ml-1 duration-300 opacity-100 pointer-events-none ease-soft">My Status</span>
+                    </a>
+                </li>
+                <li class="mt-0.5 w-full">
                     <a class="ease-soft-in-out py-2.7 my-0 mx-4 flex items-center whitespace-nowrap px-4 rounded-lg {{ Route::currentRouteName() == 'student.course-registration' ? 'bg-white shadow-soft-xl font-semibold text-slate-700' : 'text-slate-500 font-medium' }}"
                         href="{{ route('student.course-registration') }}">
                         <div class="stroke-none mr-2 flex h-8 w-8 items-center justify-center rounded-lg bg-white bg-center fill-current p-2.5 text-center text-black {{ Route::currentRouteName() == 'student.course-registration' ? 'shadow-soft-sm bg-gradient-fuchsia text-white' : 'shadow-soft-2xl' }}">

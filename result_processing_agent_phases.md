@@ -401,36 +401,36 @@ The system must follow these governance rules:
   - [x] Extend the existing admin capability-management page to grant/revoke individual `student_status.*` capabilities with department scope; audit-trail viewing remains institution-wide and wildcard grants are rejected
   - [x] Add dedicated status audit storage; no existing audit subsystem was available
   - [x] Security test suite: `tests/Feature/StatusSecurityTest.php`
-  - [ ] Add audit hooks for suspension/expulsion when an approved disciplinary status mutation workflow exists; no such workflow currently exists in the application
+  - [ ] Add audit hooks for suspension/expulsion with the approved disciplinary status mutation workflow in Phase 7; Task 7.2 must record these through `StudentStatusService` and its immutable audit trail.
 *Agent Prompt:*
   > *"Please implement Phase 6, Task 6.7.8: Create authorization policies and immutable audit trail for Senate status decisions with proper role restrictions and Senate reference validation."*
 
 #### Task 6.7.9: Full Integration Tests
 * **Scope:** Comprehensive end-to-end testing scenarios.
 * **Tasks:**
-  - [ ] Active student baseline test
-  - [ ] Academic withdrawal recommendation test
-  - [ ] Senate rejection workflow test
-  - [ ] Senate approval workflow test
-  - [ ] Voluntary withdrawal test
-  - [ ] Medical withdrawal test
-  - [ ] Reinstatement workflow test
-  - [ ] Withdrawal after results processing test
-  - [ ] Withdrawal before registration test
-  - [ ] Pending payment after withdrawal test
-  - [ ] Historical transcript after withdrawal test
-  - [ ] Attempted new registration after withdrawal test
-  - [ ] Attempted new invoice after withdrawal test
-  - [ ] PG student isolation test (ensure PG workflows unaffected)
-  - [ ] Senate reference validation test
-  - [ ] Activity enforcement gate test
+  - [x] Active student baseline test (`ActivityEnforcementTest::test_active_student_can_perform_all_academic_activities`)
+  - [x] Academic withdrawal recommendation test (`StatusSecurityTest::test_capabilities_are_action_specific_and_status_decisions_are_audited`)
+  - [x] Senate rejection workflow test (`StatusSecurityTest::test_senate_rejection_is_audited_with_its_reference`)
+  - [x] Senate approval workflow test (`StatusSecurityTest::test_capabilities_are_action_specific_and_status_decisions_are_audited`)
+  - [x] Voluntary withdrawal test (`StudentStatusLifecycleIntegrationTest::test_senate_approved_voluntary_withdrawal_changes_activity_and_writes_audit`)
+  - [x] Medical withdrawal test (`StudentStatusLifecycleIntegrationTest::test_senate_approved_medical_withdrawal_changes_activity_and_writes_audit`)
+  - [x] Reinstatement workflow test (`ReinstatementWorkflowTest`)
+  - [x] Withdrawal after results processing test (`TranscriptWithdrawalIntegrationTest::test_only_senate_approved_withdrawal_is_annotated_and_reported_while_history_remains`)
+  - [x] Withdrawal before registration test (`ActivityEnforcementTest::test_course_registration_service_blocks_a_direct_registration_for_withdrawn_student`)
+  - [x] Pending payment after withdrawal test (`StudentStatusLifecycleIntegrationTest::test_existing_pending_payment_remains_available_in_history_after_withdrawal`)
+  - [x] Historical transcript after withdrawal test (`TranscriptWithdrawalIntegrationTest::test_only_senate_approved_withdrawal_is_annotated_and_reported_while_history_remains`)
+  - [x] Attempted new registration after withdrawal test (`ActivityEnforcementTest::test_course_registration_service_blocks_a_direct_registration_for_withdrawn_student`)
+  - [x] Attempted new invoice after withdrawal test (`ActivityEnforcementTest::test_payment_service_blocks_before_sending_a_remita_invoice_request`)
+  - [x] PG student isolation test (`ActivityEnforcementTest::test_postgraduate_payment_is_not_blocked_by_ug_status_enforcement`)
+  - [x] Senate reference validation test (`StatusSecurityTest::test_senate_reference_validation_rejects_malformed_values`)
+  - [x] Activity enforcement gate test (`ActivityEnforcementTest::test_withdrawn_student_is_blocked_from_all_academic_activities`)
 *Agent Prompt:*
   > *"Please implement Phase 6, Task 6.7.9: Create comprehensive integration test suite covering all withdrawal, reinstatement, and Senate workflow scenarios including edge cases and PG isolation."*
 
 #### Task 6.7.10: Withdrawal, Senate & Status Management UI
 * **Scope:** Web UI/UX integration only. Backend services, policies, and status rules remain authoritative.
 * **Tasks:**
-  - [ ] Create an authorized Admin/Officer Withdrawal Management interface:
+  - [x] Create an authorized Admin/Officer Withdrawal Management interface:
     - Search by matric number/name
     - Display current authoritative status
     - Display relevant academic progression summary
@@ -442,12 +442,12 @@ The system must follow these governance rules:
     - Set reinstatement eligibility
     - Add notes/supporting information
     - Require explicit confirmation before consequential actions
-  - [ ] Create Withdrawal Recommendation / Submission interface:
+  - [x] Create Withdrawal Recommendation / Submission interface:
     - Show recommendation details before submission
     - Show current workflow state
     - Prevent unauthorized users from submitting or approving
     - Display validation and audit information
-  - [ ] Create Senate Withdrawal Decision dashboard:
+  - [x] Create Senate Withdrawal Decision dashboard:
     - List pending Senate decisions
     - Filter by session, department, programme, withdrawal type, and date
     - View complete student/status history before decision
@@ -455,7 +455,7 @@ The system must follow these governance rules:
     - Require Senate reference where institutional policy requires it
     - Record decision date and authorized officer
     - Do not allow UI actions to bypass server-side authorization
-  - [ ] Create Reinstatement Management interface:
+  - [x] Create Reinstatement Management interface:
     - List reinstatement requests
     - Display original withdrawal record and history
     - Show relevant progression/registration history
@@ -463,7 +463,7 @@ The system must follow these governance rules:
     - Submit to Senate
     - Approve/reject with required reference and decision metadata
     - Create a new REINSTATED status event without modifying historical withdrawal records
-  - [ ] Create Student Status Overview / History UI:
+  - [x] Create Student Status Overview / History UI:
     - Current authoritative status
     - Chronological status timeline
     - Academic session/semester
@@ -472,24 +472,24 @@ The system must follow these governance rules:
     - Decision information according to permissions
     - Reinstatement eligibility
     - Audit information according to permissions
-  - [ ] Integrate status indicators into Result Entry and Result Review:
+  - [x] Integrate status indicators into Result Entry and Result Review:
     - Keep historically relevant students visible
     - Clearly mark officially withdrawn students
     - Prevent new result entry when backend rules prohibit it
     - Preserve previously entered/approved results
     - CSV/Excel imports must skip ineligible withdrawn students with an informational warning rather than crash or silently discard the record
-  - [ ] Integrate withdrawal status into Broadsheets and official reports:
+  - [x] Integrate withdrawal status into Broadsheets and official reports:
     - Show `WITHDRAWN FROM PROGRAMME` or `WITHDRAWN FROM UNIVERSITY` where appropriate
     - Show withdrawal session/effective date where appropriate
     - Show Senate reference where appropriate
     - Preserve the student's historical representation for auditability
-  - [ ] Integrate Student Portal status UI:
+  - [x] Integrate Student Portal status UI:
     - Show a clear professional withdrawal/status banner
     - Explain effective session/date
     - Keep historical results, transcript, and payment history accessible
     - Disable unavailable new academic actions
     - Restore appropriate active UI after reinstatement
-  - [ ] Add UI states:
+  - [x] Add UI states:
     - Loading states
     - Empty states
     - Validation messages
@@ -498,23 +498,23 @@ The system must follow these governance rules:
     - Permission-aware action visibility
     - Clear disabled states
     - No raw exception/database messages to end users
-  - [ ] Add UI/feature tests covering authorized and unauthorized actions.
+  - [x] Add UI/feature tests covering authorized and unauthorized actions.
 *Agent Prompt:*
   > *"Please implement Phase 6, Task 6.7.10: Integrate the student status, withdrawal, Senate decision, reinstatement, result-entry, broadsheet, and student-status workflows into the existing web UI using the application's current Livewire/Blade/Filament conventions. Provide authorized withdrawal management, Senate approval/rejection, reinstatement management, status history, result-entry/review indicators, broadsheet status presentation, and student-facing status messaging. All UI restrictions must be backed by server-side authorization and the existing StudentStatusService. Do not change the Lecturer → Coordinator → Exam Officer result approval workflow."*
 
 ### Phase 6.7 UI Acceptance Criteria
-- [ ] Authorized officers can view a student's authoritative current status before taking action.
-- [ ] Withdrawal recommendations and Senate decisions are clearly separated.
-- [ ] Senate approval/rejection requires the appropriate authorization and decision metadata.
-- [ ] Reinstatement creates a new historical event and never erases the original withdrawal.
-- [ ] Result Entry and Result Review clearly distinguish withdrawn students without removing historical records.
-- [ ] CSV/Excel result imports handle withdrawn/ineligible students safely with informational warnings.
-- [ ] Official broadsheets preserve required withdrawn-student information.
-- [ ] Students retain access to historical academic records after withdrawal.
-- [ ] Existing active-student workflows remain stable.
-- [ ] PG workflows remain unaffected.
-- [ ] UI restrictions are backed by server-side authorization and service-level validation.
-- [ ] The existing Lecturer → Coordinator → Exam Officer → Released result workflow remains unchanged.
+- [x] Authorized officers can view a student's authoritative current status before taking action.
+- [x] Withdrawal recommendations and Senate decisions are clearly separated.
+- [x] Senate approval/rejection requires the appropriate authorization and decision metadata.
+- [x] Reinstatement creates a new historical event and never erases the original withdrawal.
+- [x] Result Entry and Result Review clearly distinguish withdrawn students without removing historical records.
+- [x] CSV/Excel result imports handle withdrawn/ineligible students safely with informational warnings.
+- [x] Official broadsheets preserve required withdrawn-student information.
+- [x] Students retain access to historical academic records after withdrawal.
+- [x] Existing active-student workflows remain stable.
+- [x] PG workflows remain unaffected.
+- [x] UI restrictions are backed by server-side authorization and service-level validation.
+- [x] The existing Lecturer → Coordinator → Exam Officer → Released result workflow remains unchanged.
 
 ### Architecture Summary
 The authoritative result-processing approval workflow remains:
@@ -532,14 +532,24 @@ Phase 6.7 establishes the reusable student status infrastructure that Phase 7 (D
 
 ## Phase 7: Examination Malpractice & Senate Disciplinary Enforcement Engine (⏳ SCHEDULED - FUTURE EXTENSION)
 * **Goal:** Provide a centralized, statutory disciplinary ledger for the Exam Officer and Senate Disciplinary Committee (SDC) to enforce penalties (Course Cancellation, Repeat Session, Suspension, Expulsion), automatically lock progression levels, register carry-overs, and enforce graduation blocks.
-* **Risk Profile:** Low (additive table and service hooks).
+* **Risk Profile:** Medium (disciplinary outcomes can affect official results, progression, institutional status, and graduation; changes must be auditable and appealable).
 * **Status:** **Scheduled for Implementation Post-Phase 6**
 
+### Integration Contract with Phase 6.7
+Phase 7 is a separate disciplinary case and sanction workflow. It must reuse Phase 6.7's authoritative status and activity-enforcement infrastructure where the sanction changes institutional student status:
+- `DisciplinaryActionService` owns misconduct case details, sanction lifecycle, appeal decisions, and sanction-specific effects.
+- `StudentStatusService` owns authoritative institutional status events. Approved suspension or expulsion must be recorded through this service as `StudentStatus::SUSPENDED` or `StudentStatus::EXPELLED` with `StudentStatusType::DISCIPLINARY`, including an audit event; do not create a second status field or an independent registration/payment lock for these sanctions.
+- `StudentStatusService::canPerformAcademicActivity()` remains the shared enforcement gate for academic activity. Extend or integrate it deliberately for the applicable effective dates and sanction scope; do not add competing checks to individual controllers or views.
+- Course cancellation and repeat-session sanctions remain disciplinary/progression outcomes. Use the appropriate result and `AcademicProgressionService` responsibilities without turning either service into a general disciplinary ledger.
+- Preserve historical results, transcripts, and payment history. Any sanctioned result outcome must retain the original result and a complete, reversible audit record so an appeal can restore the prior outcome.
+- The Phase 6.7 status workflows are UG-only. Phase 7 must state its approved UG/PG scope before enforcement is implemented and must not change PG rules or payment flows by default.
+- Use server-side authorization, immutable audit records, and institutional Senate-reference validation for every sanction and appeal decision.
+
 ### Sanctions Covered by Architecture:
-1. **Course Paper Nullification:** Affected course score set to `0.00` (`F`), automatically fed into `CarryOverRegistrationService` as a mandatory uncleared carry-over.
-2. **Repeat the Session:** Overrides student academic standing to `STANDING_REPEAT`. `AcademicProgressionService::getNextEligibleLevel()` retains student at current level (e.g., 300L remains 300L for next session). Level fee and course registration locked to repeat curriculum.
-3. **Rustication / Suspension (1-2 Semesters / 1 Session):** Temporarily locks student registration portal and fee invoice generation for the sanction duration.
-4. **Expulsion:** Permanently revokes student privileges, terminates portal access, and places a permanent block on graduation clearance and certificate issuance.
+1. **Course Paper Nullification:** Record the Senate-sanctioned outcome as an auditable adjustment to the affected course result and feed the authoritative outcome into `CarryOverRegistrationService`. Preserve the original result and make the adjustment reversible if an appeal is upheld.
+2. **Repeat the Session:** Apply the sanctioned repeat outcome through `AcademicProgressionService`; retain the student at the current level for the next session and apply the approved repeat curriculum rules.
+3. **Rustication / Suspension (1-2 Semesters / 1 Session):** Create a time-bounded disciplinary status event through `StudentStatusService`. The shared activity gate enforces the approved restrictions for the effective period; historical read access remains available.
+4. **Expulsion:** Create an audited disciplinary status event through `StudentStatusService` and enforce the approved permanent academic and graduation restrictions through shared authorization/enforcement. Preserve access to historical records; do not directly deactivate the account or terminate sessions in a way that erases the audit trail or blocks lawful record access without an approved policy.
 
 ### Tasks Breakdown:
 
@@ -552,7 +562,7 @@ Phase 6.7 establishes the reusable student status infrastructure that Phase 7 (D
   - `course_id` (foreignId nullable, for course cancellations)
   - `academic_session` (e.g., '2024/2025')
   - `semester` (nullable, 'first' or 'second')
-  - `senate_ref_no` (e.g., 'SEN/APP/2026/042')
+  - `senate_ref_no` (use an institutionally approved format accepted by the shared Senate-reference validator, e.g., 'SEN-2026-042')
   - `verdict_date` (date)
   - `effective_session` (string)
   - `resumption_session` (nullable string, for suspensions)
@@ -560,37 +570,43 @@ Phase 6.7 establishes the reusable student status infrastructure that Phase 7 (D
   - `is_appealed` (boolean default false)
   - `appeal_status` (nullable string: 'pending', 'upheld', 'quashed')
   - `sanctioned_by` (foreignUuid nullable -> users)
+  - `student_status_record_id` (nullable foreign key linking suspension/expulsion sanctions to their authoritative Phase 6.7 status event)
   - `remarks` (text nullable)
 * **Relationships:** Wire on `User` (`disciplinaryActions`) and `AcademicDetail`.
+* **Constraints:** Define `is_active` semantics per sanction type; it must not become a competing suspension/expulsion status source. Align Senate-reference validation with institutional policy and the existing `StudentStatusService` validator.
+* **Scope decision:** Record the approved programme scope (UG, PG, or both) before creating enforcement migrations or service behavior. Keep existing PG workflows unchanged unless separately approved.
 * **Automated Test:** `tests/Unit/DisciplinaryActionFoundationTest.php`
 
 #### Task 7.2: Core Disciplinary Enforcement Service (`DisciplinaryActionService`)
 * **Scope:** Backend orchestration service applying Senate sanctions.
 * **Tasks:**
   - `applySanction(array $data)`: Enforces database changes based on `sanction_type`:
-    - If `course_cancellation`: updates `results` record to 0 score / grade `F` with remark `MALPRACTICE (SENATE REF)` and dispatches carry-over entry.
-    - If `repeat_session`: sets `AcademicProgressionService` standing to `STANDING_REPEAT`, flags session results as `is_repeated`, and blocks level progression.
-    - If `suspension`: places temporary lock flag on portal registration.
-    - If `expulsion`: deactivates user status and revokes active sessions.
-  - `liftSanction(int $actionId, string $resolutionRef)`: Reverses locks upon Senate appeal approval.
-  - Hook into `GraduationService`: Blocks eligibility if active disciplinary sanction exists.
+    - If `course_cancellation`: create a traceable, reversible sanctioned result adjustment with remark `MALPRACTICE (SENATE REF)` and dispatch the resulting mandatory carry-over. Never silently replace or delete the original released result.
+    - If `repeat_session`: apply the `STANDING_REPEAT` outcome through `AcademicProgressionService`, mark affected attempts consistently, and enforce the repeat-level progression rules.
+    - If `suspension`: create a time-bounded `DISCIPLINARY` status event through `StudentStatusService` and retain its returned `student_status_record_id`.
+    - If `expulsion`: create the permanent `DISCIPLINARY` status event through `StudentStatusService`; enforce restrictions through shared gates while retaining authorized historical-record access.
+  - `liftSanction(int $actionId, string $resolutionRef)`: Record and audit the Senate appeal outcome, then reverse each sanction's effects. Restore original result/progression values where an appeal quashes the sanction, without deleting the sanction or decision history.
+  - Hook into `GraduationService`: Blocks eligibility based on active, effective disciplinary sanctions and authoritative student status, without duplicating status rules.
+  - Enforce server-side capabilities and immutable audit records for sanction application, appeal, and reversal.
 * **Automated Test:** `tests/Unit/DisciplinaryActionServiceTest.php`
 
 #### Task 7.3: Exam Officer Disciplinary Management UI
 * **Scope:** Livewire component under `app/Http/Livewire/ExamOfficer/ManageDisciplinaryActions.php` and view.
 * **Tasks:**
   - Student search by Matriculation Number or Name.
-  - Modal form to apply Senate Sanction (Type, Course, Session, Senate Reference No, Reason).
-  - Data table showing Active vs Historical/Lifted sanctions with status badges.
-  - Action to record appeals or Senate reversals.
+  - Modal form to apply a Senate-approved sanction (Type, Course, Session, Senate Reference No, Reason, effective/resumption period where applicable).
+  - Data table showing Active vs Historical/Lifted sanctions, linked institutional status, appeal state, and effective period.
+  - Authorized actions to record appeals or Senate reversals with required resolution reference and audit details.
+  - Permission-aware actions backed by server-side authorization; UI visibility alone is not authorization.
   - Route: `/exam-officer/disciplinary-actions` & sidebar menu item.
 * **Automated Test:** `tests/Feature/ExamOfficerDisciplinaryManagementTest.php`
 
 #### Task 7.4: Broadsheet & Official Transcript Integration
 * **Scope:** Display and audit integration.
 * **Tasks:**
-  - `ResultReportingService`: Departmental & Senate broadsheets display remarks `REPEAT SESSION (SDC)` or `WITHHELD (MALPRACTICE)`.
-  - `TranscriptService`: Preserves historical accuracy of repeated attempts with standard NUC `[R]` markers and Senate disciplinary remarks where legally mandated.
+  - `ResultReportingService`: Departmental & Senate broadsheets display remarks `REPEAT SESSION (SDC)` or `WITHHELD (MALPRACTICE)` with the Senate reference where appropriate.
+  - `TranscriptService`: Preserves original attempts and historical accuracy, uses standard NUC `[R]` markers where applicable, and includes Senate disciplinary remarks where legally mandated.
+  - Verify that a quashed sanction removes its active reporting/enforcement effect while preserving the original sanction and appeal history.
 
 ---
 

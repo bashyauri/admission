@@ -182,6 +182,8 @@
                                         });
                                         $status = $results[$userId]['status'] ?? 'pending';
                                         $isPending = $status === 'pending';
+                                        $canEnterNewResult = $results[$userId]['can_enter_new_result'] ?? true;
+                                        $institutionalStatus = $results[$userId]['institutional_status'] ?? null;
                                     @endphp
                                     <tr class="hover:bg-slate-50 transition">
                                         <td class="p-2 align-middle bg-transparent border-b whitespace-nowrap shadow-transparent">
@@ -204,14 +206,14 @@
                                                 wire:model.live.debounce.300ms="results.{{ $userId }}.ca"
                                                 aria-invalid="{{ $hasInvalidCa ? 'true' : 'false' }}"
                                                 class="text-sm px-2 py-1 border rounded w-20 text-center focus:ring-2 {{ $hasInvalidCa ? 'border-red-500 bg-red-50 text-red-700 focus:ring-red-200' : 'focus:ring-fuchsia-400' }} {{ !$isPending ? 'bg-gray-100 cursor-not-allowed' : '' }}"
-                                                {{ !$isPending || $isAbsent ? 'disabled' : '' }}>
+                                                {{ !$isPending || $isAbsent || !$canEnterNewResult ? 'disabled' : '' }}>
                                         </td>
                                         <td class="p-2 text-center align-middle bg-transparent border-b whitespace-nowrap shadow-transparent">
                                             <input type="number" step="0.01" min="0" max="{{ $maxExam }}"
                                                 wire:model.live.debounce.300ms="results.{{ $userId }}.exam"
                                                 aria-invalid="{{ $hasInvalidExam ? 'true' : 'false' }}"
                                                 class="text-sm px-2 py-1 border rounded w-20 text-center focus:ring-2 {{ $hasInvalidExam ? 'border-red-500 bg-red-50 text-red-700 focus:ring-red-200' : 'focus:ring-fuchsia-400' }} {{ !$isPending ? 'bg-gray-100 cursor-not-allowed' : '' }}"
-                                                {{ !$isPending || $isAbsent ? 'disabled' : '' }}>
+                                                {{ !$isPending || $isAbsent || !$canEnterNewResult ? 'disabled' : '' }}>
                                         </td>
                                         <td class="p-2 text-center align-middle bg-transparent border-b whitespace-nowrap shadow-transparent">
                                             <span class="text-sm font-bold {{ $isAbsent ? 'text-red-600' : ($hasInvalidScore ? 'text-red-600' : ($hasCompleteScore ? 'text-slate-800' : 'text-amber-600')) }}">
@@ -230,11 +232,15 @@
                                                 @else bg-green-100 text-green-800 @endif">
                                                 {{ $status }}
                                             </span>
+                                            @if($institutionalStatus)
+                                                <span class="mt-1 block rounded border border-rose-200 bg-rose-50 px-2 py-1 text-[10px] font-bold text-rose-800">{{ $institutionalStatus }}</span>
+                                            @endif
                                         </td>
                                         <td class="p-2 text-center align-middle bg-transparent border-b whitespace-nowrap shadow-transparent">
                                             @if($isPending)
+                                                @if($canEnterNewResult)
                                                 <label class="mb-2 flex items-center justify-center gap-1.5 text-xs font-semibold text-slate-600">
-                                                    <input type="checkbox" wire:model.live="results.{{ $userId }}.is_absent" class="rounded border-slate-300 text-red-600 focus:ring-red-500">
+                                                    <input type="checkbox" wire:model.live="results.{{ $userId }}.is_absent" class="rounded border-slate-300 text-red-600 focus:ring-red-500" {{ !$canEnterNewResult ? 'disabled' : '' }}>
                                                     Absent
                                                 </label>
                                                 <button wire:click="saveScore('{{ $userId }}')"
@@ -244,6 +250,9 @@
                                                     <span wire:loading.remove wire:target="saveScore('{{ $userId }}')">Save score</span>
                                                     <span wire:loading wire:target="saveScore('{{ $userId }}')">Saving...</span>
                                                 </button>
+                                                @else
+                                                    <span class="block max-w-40 text-[10px] font-semibold text-rose-700">New result entry is blocked. Previously saved results remain in the record.</span>
+                                                @endif
                                             @endif
                                         </td>
                                     </tr>
