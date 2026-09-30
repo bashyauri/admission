@@ -1,0 +1,27 @@
+<?php
+
+use App\Models\Result;
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    public function up(): void
+    {
+        Schema::table('disciplinary_actions', function (Blueprint $table) {
+            $table->foreignIdFor(Result::class)
+                ->nullable()
+                ->after('course_id')
+                ->constrained('results')
+                ->nullOnDelete();
+        });
+    }
+
+    public function down(): void
+    {
+        Schema::table('disciplinary_actions', function (Blueprint $table) {
+            $table->dropConstrainedForeignId('result_id');
+        });
+    }
+};

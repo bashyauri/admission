@@ -101,7 +101,6 @@ class DisciplinaryActionFoundationTest extends TestCase
         $this->assertSame('2026-09-20', $action->verdict_date->toDateString());
         $this->assertTrue($action->user->is($student));
         $this->assertTrue($action->academicDetail->is($academicDetail));
-        $this->assertTrue($action->course->is($course));
         $this->assertTrue($action->sanctionedBy->is($officer));
         $this->assertTrue($action->studentStatusRecord->is($statusRecord));
         $this->assertTrue($student->disciplinaryActions->first()->is($action));
@@ -150,9 +149,9 @@ class DisciplinaryActionFoundationTest extends TestCase
         ]);
         $action->refresh();
 
-        $this->assertNull($action->course_id);
+        $this->assertNull($action->result_id);
         $this->assertNull($action->student_status_record_id);
-        $this->assertNull($action->course);
+        $this->assertNull($action->result);
         $this->assertNull($action->studentStatusRecord);
         $this->assertTrue($action->is_active);
         $this->assertFalse($action->is_appealed);

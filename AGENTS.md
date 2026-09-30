@@ -314,6 +314,22 @@ If shared logic is genuinely required:
 
 A feature intended for UG must not accidentally become a PG feature.
 
+### Registered-course snapshot authority
+
+For UG result processing and historical academic records, the snapshots on a student's `registered_courses` row are the authoritative record of the course as registered for that student and session. The live `student_courses` record can change later and must not silently rewrite historical results.
+
+Use this fallback order when entering, calculating, displaying, or reporting a result:
+
+1. Use the result-attempt snapshot (`results.*_snapshot`) when populated.
+2. Otherwise use the linked registration snapshot (`registered_courses.*_snapshot`).
+3. Use current `student_courses` data only when both historical snapshots are unavailable, for legacy records.
+
+When creating or updating a result for a registered course, copy the registration snapshots (course code, title, credit units, semester, and level where supported) onto the result attempt. GPA and quality-point calculations must use the result snapshot, falling back to the linked registration snapshot for older attempts; they must not use mutable current course data while a historical snapshot exists. Reports, transcripts, and student result displays must follow the same order. Do not infer or backfill missing historical snapshots from current course data unless the original value can be verified.
+
+Keep this rule within the applicable UG result workflow. Do not modify PG grading, result, progression, or payment flows as part of implementing it. Add regression coverage for changed live course details and legacy records with missing result snapshots.
+
+For carry-over retakes, preserve the original failed attempt and its registration snapshots. A retake is a new registration with its own snapshots. Match it to a currently offered course using a stable course identity or an approved course mapping; never infer equivalence from title/code text alone. If the match is ambiguous or the course is no longer offered, route it for department review instead of auto-registering a substitute. Do not silently decide how changed credit units affect CGPA; follow the approved institutional retake policy. Automatic retake registration belongs in the next eligible registration period, not at the moment a result is released.
+
 ---
 
 # 6. 🎨 GLOBAL UI/UX ENGINEERING STANDARD

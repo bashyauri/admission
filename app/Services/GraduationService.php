@@ -7,6 +7,7 @@ namespace App\Services;
 use App\Models\AcademicDetail;
 use App\Models\CarryOverCourse;
 use App\Models\DepartmentMaxUnit;
+use App\Models\DisciplinaryAction;
 use App\Models\GraduationEligibility;
 use App\Models\GraduationList;
 use App\Models\GraduationListItem;
@@ -65,6 +66,13 @@ class GraduationService
         $statusService = app(StudentStatusService::class);
         $isStatusActive = $statusService->canPerformAcademicActivity($user, AcademicActivity::GRADUATION);
         $currentStatus = $statusService->getCurrentStatus($user);
+        $hasEffectiveDisciplinarySanction = $user->isUndergraduate()
+            && DisciplinaryAction::query()
+                ->where('user_id', $user->id)
+                ->where('is_active', true)
+                ->whereIn('sanction_type', ['suspension', 'expulsion', 'repeat_session'])
+                ->get(['sanction_type', 'effective_session', 'resumption_session'])
+                ->contains(fn (DisciplinaryAction $action) => $this->sanctionAffectsGraduationSession($action, $session));
 
         // 1. CGPA & Academic Standing
         $cgpaData = $this->gradeCalculationService->calculateCGPA($user->id);
@@ -104,6 +112,9 @@ class GraduationService
         if (!$isStatusActive) {
             $statusLabel = $currentStatus?->status?->label() ?? 'Withdrawn/Inactive';
             $deficiencies[] = "Student is currently not academically active (Status: {$statusLabel}). Withdrawn, suspended, or expelled students are ineligible for graduation.";
+        }
+        if ($hasEffectiveDisciplinarySanction) {
+            $deficiencies[] = 'An active Senate disciplinary sanction applies to the graduation session.';
         }
         if (!$meetsCgpa) {
             $deficiencies[] = "Final CGPA ({$finalCgpa}) is below the required minimum of {$minCgpa}.";
@@ -167,6 +178,23 @@ class GraduationService
             'deficiencies' => $deficiencies,
             'eligibility' => $eligibility,
         ];
+    }
+
+    private function sanctionAffectsGraduationSession(DisciplinaryAction $action, string $graduationSession): bool
+    {
+        $effectiveStart = (int) substr($action->effective_session, 0, 4);
+        $graduationStart = (int) substr($graduationSession, 0, 4);
+
+        return match ($action->sanction_type) {
+            'suspension' => $graduationStart >= $effectiveStart
+                && $action->resumption_session !== null
+                && $graduationStart < (int) substr($action->resumption_session, 0, 4),
+            'expulsion' => $graduationStart >= $effectiveStart,
+            // A repeat sanction affects graduation only in its effective repeat session;
+            // subsequent academic eligibility is evaluated from the resulting records.
+            'repeat_session' => $graduationStart === $effectiveStart,
+            default => false,
+        };
     }
 
     /**

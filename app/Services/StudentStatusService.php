@@ -575,6 +575,152 @@ class StudentStatusService
     // Current Status Query
     // =========================================================================
 
+    /** Create an authoritative, Senate-approved disciplinary status event for a UG student. */
+    public function processDisciplinaryStatus(
+        User $user,
+        StudentStatus $status,
+        string $reason,
+        string $academicSession,
+        ?int $semester,
+        string $effectiveDate,
+        ?string $endDate,
+        string $senateReference,
+        ?User $processedBy = null
+    ): StudentStatusRecord {
+        if (!$user->isUndergraduate()) {
+            throw new \InvalidArgumentException('Disciplinary status processing is only applicable to undergraduate students.');
+        }
+        if (!in_array($status, [StudentStatus::SUSPENDED, StudentStatus::EXPELLED], true)) {
+            throw new \InvalidArgumentException('Disciplinary status must be suspended or expelled.');
+        }
+
+        $processedBy = $this->authorizeStatusAction('process-disciplinary', $processedBy, $user);
+        if (!$this->isValidAcademicSession($academicSession)) {
+            throw new \InvalidArgumentException("Invalid academic session format: {$academicSession}");
+        }
+        if ($semester !== null && !in_array($semester, [1, 2], true)) {
+            throw new \InvalidArgumentException('Semester must be 1 or 2.');
+        }
+        if (!$this->isValidSenateReference($senateReference)) {
+            throw new \InvalidArgumentException("Invalid Senate reference format: {$senateReference}");
+        }
+
+        $effective = Carbon::parse($effectiveDate)->startOfDay();
+        $end = $endDate === null ? null : Carbon::parse($endDate)->startOfDay();
+        if ($status === StudentStatus::SUSPENDED && $end === null) {
+            throw new \InvalidArgumentException('A suspension must have an end date.');
+        }
+        if ($status === StudentStatus::EXPELLED && $end !== null) {
+            throw new \InvalidArgumentException('An expulsion cannot have an end date.');
+        }
+        if ($end !== null && $end->lessThan($effective)) {
+            throw new \InvalidArgumentException('The status end date cannot be before its effective date.');
+        }
+
+        return DB::transaction(function () use ($user, $status, $reason, $academicSession, $semester, $effective, $end, $senateReference, $processedBy) {
+            $this->closePreviousActiveStatus($user->id, $effective, $processedBy, 'STATUS_CLOSED_FOR_DISCIPLINARY_SANCTION');
+
+            $record = StudentStatusRecord::create([
+                'user_id' => $user->id,
+                'academic_detail_id' => $user->academicDetail?->id,
+                'status' => $status,
+                'status_type' => StudentStatusType::DISCIPLINARY,
+                'reason_code' => $status === StudentStatus::SUSPENDED ? 'DISCIPLINARY_SUSPENSION' : 'DISCIPLINARY_EXPULSION',
+                'reason' => $reason,
+                'academic_session' => $academicSession,
+                'semester' => $semester,
+                'effective_date' => $effective->toDateString(),
+                'end_date' => $end?->toDateString(),
+                'senate_decision' => self::WORKFLOW_SENATE_APPROVED,
+                'senate_reference' => $senateReference,
+                'senate_decision_date' => now()->toDateString(),
+                'reinstatement_eligible' => $status === StudentStatus::SUSPENDED,
+                'processed_by' => $processedBy->id,
+            ]);
+
+            $this->writeStatusAudit($user, $record, 'DISCIPLINARY_STATUS_APPLIED', $processedBy, [
+                'new_status' => $record->status,
+                'new_decision' => $record->senate_decision,
+                'reason' => $reason,
+                'senate_reference' => $senateReference,
+                'effective_date' => $effective->toDateString(),
+                'end_date' => $end?->toDateString(),
+            ]);
+
+            return $record;
+        });
+    }
+
+    /** End a disciplinary status event without deleting its history. */
+    public function endDisciplinaryStatus(
+        StudentStatusRecord $record,
+        string $endDate,
+        string $resolutionReference,
+        ?User $processedBy = null
+    ): StudentStatusRecord {
+        $user = $record->user;
+        if (!$user || !$user->isUndergraduate() || $record->status_type !== StudentStatusType::DISCIPLINARY) {
+            throw new \InvalidArgumentException('Only an undergraduate disciplinary status event can be ended here.');
+        }
+        $processedBy = $this->authorizeStatusAction('process-disciplinary', $processedBy, $user);
+        if (!$this->isValidSenateReference($resolutionReference)) {
+            throw new \InvalidArgumentException("Invalid Senate reference format: {$resolutionReference}");
+        }
+
+        $date = Carbon::parse($endDate)->startOfDay();
+        $oldEndDate = $record->end_date?->toDateString();
+        $effectiveEndDate = $oldEndDate !== null && Carbon::parse($oldEndDate)->lessThanOrEqualTo($date)
+            ? $oldEndDate
+            : $date->toDateString();
+
+        return DB::transaction(function () use ($record, $effectiveEndDate, $oldEndDate, $resolutionReference, $processedBy, $user) {
+            if ($effectiveEndDate !== $oldEndDate) {
+                $record->update(['end_date' => $effectiveEndDate]);
+            }
+            $this->writeStatusAudit($user, $record, 'DISCIPLINARY_STATUS_ENDED', $processedBy, [
+                'old_status' => $record->status,
+                'new_status' => $record->status,
+                'old_decision' => $record->senate_decision,
+                'new_decision' => $record->senate_decision,
+                'old_end_date' => $oldEndDate,
+                'new_end_date' => $effectiveEndDate,
+                'senate_reference' => $resolutionReference,
+            ]);
+
+            return $record->refresh();
+        });
+    }
+
+    /** Reopen status events closed solely to begin a disciplinary status event. */
+    public function restorePreDisciplinaryStatusEvents(
+        User $student,
+        array $snapshots,
+        string $sanctionEffectiveDate,
+        string $resolutionReference,
+        ?User $processedBy = null
+    ): void {
+        $processedBy = $this->authorizeStatusAction('process-disciplinary', $processedBy, $student);
+        foreach ($snapshots as $snapshot) {
+            $record = StudentStatusRecord::query()
+                ->where('user_id', $student->id)
+                ->find($snapshot['id'] ?? null);
+            if (!$record || $record->end_date?->toDateString() !== $sanctionEffectiveDate) {
+                continue;
+            }
+
+            $record->update(['end_date' => $snapshot['end_date'] ?? null]);
+            $this->writeStatusAudit($student, $record, 'PRIOR_STATUS_REOPENED_AFTER_DISCIPLINARY_QUASH', $processedBy, [
+                'old_status' => $record->status,
+                'new_status' => $record->status,
+                'old_decision' => $record->senate_decision,
+                'new_decision' => $record->senate_decision,
+                'old_end_date' => $sanctionEffectiveDate,
+                'new_end_date' => $snapshot['end_date'] ?? null,
+                'senate_reference' => $resolutionReference,
+            ]);
+        }
+    }
+
     /**
      * Get the current authoritative status for a student.
      *

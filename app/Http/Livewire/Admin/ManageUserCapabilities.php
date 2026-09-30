@@ -51,6 +51,7 @@ class ManageUserCapabilities extends Component
         'student_status.senate_decide' => ['label' => 'Decide Senate Withdrawal', 'description' => 'Approve or reject a Senate withdrawal decision'],
         'student_status.process_voluntary' => ['label' => 'Process Voluntary Withdrawal', 'description' => 'Process a student-requested voluntary withdrawal'],
         'student_status.process_medical' => ['label' => 'Process Medical Withdrawal', 'description' => 'Process a medical withdrawal'],
+        'disciplinary_actions.manage' => ['label' => 'Manage Disciplinary Actions', 'description' => 'Apply and resolve Senate-approved disciplinary sanctions for undergraduate students'],
         'student_status.request_reinstatement' => ['label' => 'Request Reinstatement', 'description' => 'Submit a reinstatement request for a student'],
         'student_status.reinstatement.department_review' => ['label' => 'Review Reinstatement (Department)', 'description' => 'Complete the department reinstatement review'],
         'student_status.reinstatement.faculty_review' => ['label' => 'Review Reinstatement (Faculty)', 'description' => 'Complete the faculty reinstatement review'],

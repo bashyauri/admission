@@ -74,6 +74,7 @@ class ManageUserCapabilitiesTest extends TestCase
             ->assertSee('Student Status Permissions')
             ->assertSeeHtml('value="student_status.recommend"')
             ->assertSeeHtml('value="student_status.senate_decide"')
+            ->assertSeeHtml('value="disciplinary_actions.manage"')
             ->assertSeeHtml('value="student_status.audit.view"')
             ->assertDontSeeHtml('value="student_status.*"');
     }

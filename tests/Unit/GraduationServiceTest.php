@@ -10,6 +10,7 @@ use App\Models\Course;
 use App\Models\Department;
 use App\Models\DepartmentCourse;
 use App\Models\DepartmentMaxUnit;
+use App\Models\DisciplinaryAction;
 use App\Models\GraduationEligibility;
 use App\Models\GraduationList;
 use App\Models\GraduationListItem;
@@ -197,6 +198,33 @@ class GraduationServiceTest extends TestCase
             'total_units_earned' => 125,
             'total_units_required' => 120,
         ]);
+    }
+
+    public function test_active_effective_repeat_sanction_blocks_graduation(): void
+    {
+        Programme::firstOrCreate(['id' => 7], ['name' => 'Undergraduate', 'abv' => 'UG']);
+        $this->student->update(['programme_id' => 7]);
+        $this->createPassedResult('GST101', 'Communication in English I', 2);
+        $this->createPassedResult('SWE300', 'Students Industrial Work Experience Scheme (SIWES)', 6);
+        $this->createPassedResult('ENT201', 'Entrepreneurship and Innovation', 2);
+        $this->createPassedResult('CSC401', 'Software Engineering II', 30);
+        $this->createPassedResult('CSC402', 'Artificial Intelligence', 30);
+        $this->createPassedResult('CSC403', 'Computer Networks & Security', 30);
+        $this->createPassedResult('CSC499', 'Final Year Research Project', 25);
+        DisciplinaryAction::create([
+            'user_id' => $this->student->id,
+            'academic_detail_id' => $this->academicDetail->id,
+            'sanction_type' => 'repeat_session',
+            'academic_session' => '2024/2025',
+            'senate_ref_no' => 'SEN-2026-045',
+            'verdict_date' => '2026-09-20',
+            'effective_session' => '2024/2025',
+        ]);
+
+        $result = $this->service->checkEligibility($this->student, '2024/2025');
+
+        $this->assertFalse($result['eligible']);
+        $this->assertContains('An active Senate disciplinary sanction applies to the graduation session.', $result['deficiencies']);
     }
 
     public function test_fails_eligibility_when_cgpa_below_threshold(): void

@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class DisciplinaryAction extends Model
 {
@@ -33,11 +34,6 @@ class DisciplinaryAction extends Model
         return $this->belongsTo(AcademicDetail::class);
     }
 
-    public function course(): BelongsTo
-    {
-        return $this->belongsTo(Course::class);
-    }
-
     public function sanctionedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'sanctioned_by');
@@ -46,5 +42,15 @@ class DisciplinaryAction extends Model
     public function studentStatusRecord(): BelongsTo
     {
         return $this->belongsTo(StudentStatusRecord::class);
+    }
+
+    public function result(): BelongsTo
+    {
+        return $this->belongsTo(Result::class);
+    }
+
+    public function auditEntries(): HasMany
+    {
+        return $this->hasMany(DisciplinaryActionAudit::class);
     }
 }

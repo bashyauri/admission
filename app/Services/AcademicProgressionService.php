@@ -7,8 +7,10 @@ namespace App\Services;
 use App\Models\AcademicDetail;
 use App\Models\AcademicProgressionRecord;
 use App\Models\CarryOverCourse;
+use App\Models\DisciplinaryAction;
 use App\Models\Programme;
 use App\Models\ResultGpaRecord;
+use App\Models\Result;
 use App\Models\User;
 use Illuminate\Support\Collection;
 
@@ -52,19 +54,37 @@ class AcademicProgressionService
         $hasUnclearedCarryOvers = CarryOverCourse::where('user_id', $user->id)
             ->active()
             ->exists();
+        $currentSession = app(AcademicSessionService::class)->getAcademicSession($user);
+        $hasSanctionedRepeat = DisciplinaryAction::query()
+            ->where('user_id', $user->id)
+            ->where('sanction_type', 'repeat_session')
+            ->where('is_active', true)
+            ->where('effective_session', $currentSession)
+            ->exists();
 
         if (!$latestGpaRecord) {
             return [
-                'standing' => self::STANDING_PROMOTED,
+                'standing' => $hasSanctionedRepeat ? self::STANDING_REPEAT : self::STANDING_PROMOTED,
                 'cgpa' => 0.0,
                 'has_uncleared_carryovers' => $hasUnclearedCarryOvers,
-                'reason' => 'No session GPA records found; default progression',
+                'reason' => $hasSanctionedRepeat
+                    ? "Senate disciplinary decision requires the student to repeat the effective session ({$currentSession})."
+                    : 'No session GPA records found; default progression',
             ];
         }
 
         $cgpa = (float) $latestGpaRecord->cumulative_gpa;
         $currentLevel = (int) ($academicDetail->student_level_id ?? 1);
         $maxLevel = $this->getMaxProgramLevel($user);
+
+        if ($hasSanctionedRepeat) {
+            return [
+                'standing' => self::STANDING_REPEAT,
+                'cgpa' => $cgpa,
+                'has_uncleared_carryovers' => $hasUnclearedCarryOvers,
+                'reason' => "Senate disciplinary decision requires the student to repeat the effective session ({$currentSession}).",
+            ];
+        }
 
         // Check if student is in their final year with uncleared carry overs
         if ($currentLevel >= $maxLevel && $hasUnclearedCarryOvers) {
@@ -154,6 +174,105 @@ class AcademicProgressionService
         }
 
         return 4;
+    }
+
+    /**
+     * Apply a Senate-mandated repeat outcome while retaining the previous progression
+     * values for an auditable reversal if the sanction is quashed.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    public function applySanctionedRepeat(
+        User $student,
+        AcademicDetail $academicDetail,
+        string $session,
+        ?int $semester,
+        string $senateReference
+    ): array
+    {
+        $semesters = $semester === null ? [1, 2] : [$semester];
+        $latestGpa = ResultGpaRecord::where('user_id', $student->id)->latest('id')->value('cumulative_gpa');
+        $level = $academicDetail->studentLevel?->level ?? (string) $academicDetail->student_level_id;
+        $snapshots = [];
+
+        foreach ($semesters as $semesterNumber) {
+            $record = AcademicProgressionRecord::where('user_id', $student->id)
+                ->where('academic_session', $session)
+                ->where('semester', $semesterNumber)
+                ->latest('id')
+                ->first();
+
+            if ($record) {
+                $snapshots[] = ['created' => false, 'id' => $record->id, 'values' => $record->only([
+                    'academic_session', 'semester', 'level', 'cgpa', 'standing', 'withdrawal_recommended',
+                ])];
+                $record->update(['standing' => self::STANDING_REPEAT, 'withdrawal_recommended' => false]);
+                continue;
+            }
+
+            $record = AcademicProgressionRecord::create([
+                'user_id' => $student->id,
+                'academic_detail_id' => $academicDetail->id,
+                'academic_session' => $session,
+                'semester' => $semesterNumber,
+                'level' => (string) $level,
+                'cgpa' => $latestGpa ?? 0.00,
+                'standing' => self::STANDING_REPEAT,
+                'withdrawal_recommended' => false,
+            ]);
+            $snapshots[] = ['created' => true, 'id' => $record->id];
+        }
+
+        $resultQuery = Result::query()
+            ->where('user_id', $student->id)
+            ->where('academic_session', $session)
+            ->whereIn('status', ['exam_officer_approved', 'released']);
+        if ($semester !== null) {
+            $resultQuery->where('semester', $semester === 1 ? 'first' : 'second');
+        }
+
+        $attemptSnapshots = [];
+        foreach ($resultQuery->lockForUpdate()->get() as $result) {
+            $note = 'REPEAT SESSION (SDC: ' . $senateReference . ')';
+            $appliedRemarks = trim(implode(' | ', array_filter([$result->remarks, $note])));
+            $attemptSnapshots[] = [
+                'id' => $result->id,
+                'remarks_before' => $result->remarks,
+                'remarks_after' => $appliedRemarks,
+            ];
+            $result->update(['remarks' => $appliedRemarks]);
+        }
+
+        return ['progression_records' => $snapshots, 'result_attempts' => $attemptSnapshots];
+    }
+
+    /** Restore sanctioned repeat progression changes recorded by applySanctionedRepeat. */
+    public function restoreSanctionedRepeat(array $snapshots): void
+    {
+        foreach ($snapshots['progression_records'] ?? [] as $snapshot) {
+            $record = AcademicProgressionRecord::find($snapshot['id'] ?? null);
+            if (!$record) {
+                continue;
+            }
+
+            if ($snapshot['created'] ?? false) {
+                $record->delete();
+                continue;
+            }
+
+            $record->update($snapshot['values'] ?? []);
+        }
+
+        foreach ($snapshots['result_attempts'] ?? [] as $snapshot) {
+            $result = Result::find($snapshot['id'] ?? null);
+            if (!$result) {
+                continue;
+            }
+            if ($result->remarks !== ($snapshot['remarks_after'] ?? null)) {
+                throw new \LogicException('A repeat-sanctioned result was changed later; manual review is required before reversal.');
+            }
+            $result->update(['remarks' => $snapshot['remarks_before'] ?? null]);
+        }
     }
 
     // =========================================================================

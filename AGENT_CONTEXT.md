@@ -32,9 +32,9 @@ A Laravel-based Admission Management and Student Management Information System (
 3. Application review and approval
 4. Fee payment processing
 5. Course registration
-6. Result processing (Phases 1-5 COMPLETED — see [`result_processing_agent_phases.md`](file:///c:/laragon/www/admission/result_processing_agent_phases.md) as single source of truth)
+6. Result processing (Phases 1-5 implemented; follow-up Tasks 5.5 snapshot integrity and 5.6 carry-over retake registration are pending — see [`result_processing_agent_phases.md`](file:///c:/laragon/www/admission/result_processing_agent_phases.md) as single source of truth)
 7. Graduation processing (Phase 6 IN PROGRESS, Task 6.1 Completed — see [`result_processing_agent_phases.md`](file:///c:/laragon/www/admission/result_processing_agent_phases.md))
-8. Examination Malpractice & Senate Disciplinary Enforcement Engine (Phase 7 SCHEDULED — see [`result_processing_agent_phases.md`](file:///c:/laragon/www/admission/result_processing_agent_phases.md))
+8. Examination Malpractice & Senate Disciplinary Enforcement Engine (Phase 7 IN PROGRESS; Tasks 7.1–7.2 implemented and Task 7.3 UI next — see [`result_processing_agent_phases.md`](file:///c:/laragon/www/admission/result_processing_agent_phases.md))
 
 ### What Makes This Different
 - NUC-compliant grading system for Nigerian universities
@@ -805,7 +805,7 @@ Generate Receipt
 ### Planned Scheduled Tasks
 - Daily backup at 2 AM (when backup package installed)
 - Backup cleanup at 4 AM
-- Automatic carry-over registration (session start)
+- Automatic carry-over retake registration during the next eligible registration period (Task 5.6 pending; not currently implemented)
 - Result GPA calculation (after result release)
 - Graduation eligibility check (end of session)
 
@@ -1051,12 +1051,14 @@ Direct deployment to production without version control.
 - O-level result management
 
 ### In Progress
-- Phase 6.7 student status management: Tasks 6.7.1–6.7.6 are implemented. Task 6.7.4 enforces UG status while leaving PG academic and payment workflows unchanged.
+- Phase 6.7 student status management: Tasks 6.7.1–6.7.10 are implemented. Enforcement remains UG-only while PG academic and payment workflows are unchanged.
+- Result history integrity: Phase 5 follow-up Task 5.5 is pending. For UG, use result-attempt snapshots first, linked `registered_courses` snapshots second, and current `student_courses` data only when both snapshots are missing. Preserve PG and payment workflows.
+- Carry-over retake registration: Phase 5 follow-up Task 5.6 is pending. Carry-overs are currently recorded but not automatically registered. Preserve failed-attempt snapshots; require stable identity or approved course mapping for changed offerings, route ambiguous matches to department review, create a new retake snapshot, and follow approved unit-load and GPA/CGPA policies. Keep PG and payment flows unchanged.
 
 ### Planned (Documented)
 - NUC-compliant result processing system
 - Course versioning for historical data integrity
-- Automatic carry-over course registration
+- Automatic carry-over course registration (deferred to Phase 5 follow-up Task 5.6; next eligible registration period only)
 - Department-level unit validation
 - Transcript generation
 - Graduation eligibility checking

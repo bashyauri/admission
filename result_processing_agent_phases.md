@@ -159,6 +159,56 @@ graph TD
   - Created public verification views: `resources/views/transcripts/verify.blade.php` and `verify-not-found.blade.php`.
   - Automated test suites: `tests/Unit/TranscriptServiceTest.php` (4 tests, 28 assertions) and `tests/Feature/TranscriptTest.php` (6 tests, 20 assertions).
 
+### Phase 5 Follow-up: Task 5.5 — Registered-Course Snapshot Integrity for Results (PENDING)
+
+* **Goal:** Ensure UG result entry, GPA/quality-point calculation, student result displays, reports, and transcripts preserve the course details that applied when each student registered.
+* **Source of truth and fallback order:**
+  1. Use the result-attempt snapshot (`results.*_snapshot`) when populated.
+  2. Otherwise use the linked student's registration snapshot (`registered_courses.*_snapshot`).
+  3. Use the current `student_courses` values only when both historical snapshots are unavailable, to support legacy records.
+* **Tasks:**
+  - [ ] At result creation/update, copy course code, title, credit units, semester, and level snapshots from the linked `RegisteredCourse` onto the result attempt where the schema supports them.
+  - [ ] Update GPA and quality-point calculation paths to use result snapshot units first, linked registration snapshot units second, and current course data only as the final legacy fallback.
+  - [ ] Align student result displays, statements, broadsheets/reports, graduation calculations, and transcripts with the same historical fallback order; avoid direct live-course lookups when either snapshot exists.
+  - [ ] Add regression tests proving later edits to `student_courses` do not change a student's registered course identity/units in result calculations or historical output.
+  - [ ] Add legacy-record tests where result snapshots are absent and registration snapshots are used; verify the live course is only used when both snapshots are missing.
+  - [ ] Review all affected behavior as UG-only. Do not change PG grading, result, progression, or payment workflows.
+  - [ ] Do not bulk-fill historical snapshots from current course records unless original values are independently verified.
+* **Agent prompt:**
+  > *"Implement Phase 5 follow-up Task 5.5 from `result_processing_agent_phases.md`. Enforce the registered-course snapshot authority rule in `AGENTS.md`: result-attempt snapshots first, linked registered-course snapshots second, and current `student_courses` data only for legacy records missing both. Cover result entry, GPA/quality-point calculations, student result displays, statements, reports, graduation calculations, and transcripts. Add regression tests for changed live course data and legacy fallback. Preserve UG/PG isolation and do not alter PG or any payment flow. Do not infer or backfill unverified historical snapshot values."*
+
+### Phase 5 Follow-up: Task 5.6 — Carry-Over Retake Registration (PENDING)
+
+* **Goal:** Make outstanding UG carry-overs visible and register eligible retakes during the next applicable course-registration period, without silently enrolling students into a changed or unrelated course.
+* **Current behavior:** Releasing a failed result records an uncleared `carry_over_courses` row. It does not create a retake `registered_courses` row or automatically enroll the student. Do not describe the current behavior as automatic registration.
+* **Registration timing:**
+  - Record the carry-over when the result is officially released.
+  - Register the retake at the next eligible registration period when the course is offered and registration is open; do not register it immediately on result release.
+  - Make registration idempotent so retries cannot create duplicate retake registrations.
+* **Course identity and changed course details:**
+  - Preserve the original failed result and original `RegisteredCourse` snapshots unchanged.
+  - Resolve the retake against a currently offered course using stable course identity, version/mapping history, or an explicitly approved departmental equivalency.
+  - Never infer equivalence from a matching title or code alone. If there is no unique approved match, or the course is no longer offered, flag it for department review and do not auto-register a substitute.
+  - Create a new registration and new result attempt for the retake. Snapshot the approved retake offering's code, title, units, semester, and level onto that new registration/result where supported. Historical output must show the original failed attempt and the new retake according to their own snapshots.
+  - If the approved successor course has a different title or unit value, retain the old values on the failed attempt and use the new offering's values on the retake. Do not rewrite history.
+* **Load rules and student experience:**
+  - Show outstanding carry-overs clearly in the student registration portal as required retakes, distinguish them from ordinary elective choices, and include their units in the applicable semester load.
+  - Enforce configured unit limits. If mandatory retakes exceed the allowed load, show the affected courses and route the case through the institution's approved overload/department-review process; do not silently omit a carry-over or bypass the limit.
+  - Clearly show when a carry-over is pending department review because its successor offering cannot be safely identified.
+* **Policy and safety requirements:**
+  - Confirm and implement the institution's approved retake GPA/CGPA treatment when retake units differ from the original attempt. Do not invent a replacement, exclusion, or weighting rule in code.
+  - Keep carry-over clearance tied to the approved passing retake result and preserve the original failure and all registration/result history.
+  - Keep this feature UG-only. Do not change PG registration, grading, progression, or payment behavior.
+* **Tests:**
+  - [ ] Failed result release records an outstanding carry-over but does not register a retake immediately.
+  - [ ] At the next eligible registration period, an approved exact/mapped successor is registered once, with new offering snapshots; repeated processing creates no duplicate.
+  - [ ] Changed title/units preserve both the original failed snapshots and the new retake snapshots; GPA/CGPA follows the approved policy.
+  - [ ] Ambiguous, missing, or unapproved equivalency routes to department review and creates no substitute registration.
+  - [ ] Required carry-over appears in the portal, contributes to load validation, and overload handling follows approved rules.
+  - [ ] A passing approved retake clears the carry-over without deleting history; PG and payment behavior remain unchanged.
+* **Agent prompt:**
+  > *"Implement Phase 5 follow-up Task 5.6 in `result_processing_agent_phases.md`. Add UG carry-over retake registration for the next eligible course-registration period. Preserve the failed attempt; match changed courses through stable identity or approved mapping, never title/code alone; route ambiguous matches to department review. Snapshot the approved new offering on the retake registration/result, account for load limits, make processing idempotent, and follow the institution's approved changed-unit GPA/CGPA policy. Add the listed tests. Do not change PG or payment flows, and do not enroll immediately at result release."*
+
 ---
 
 -+  ## Phase 6: Undergraduate Graduation Processing & Senate Final Degree Approval (IN PROGRESS)
@@ -530,10 +580,10 @@ Phase 6.7 establishes the reusable student status infrastructure that Phase 7 (D
 
 ---
 
-## Phase 7: Examination Malpractice & Senate Disciplinary Enforcement Engine (⏳ SCHEDULED - FUTURE EXTENSION)
+## Phase 7: Examination Malpractice & Senate Disciplinary Enforcement Engine (IN PROGRESS - Tasks 7.1–7.2 Implemented; Task 7.3 Next)
 * **Goal:** Provide a centralized, statutory disciplinary ledger for the Exam Officer and Senate Disciplinary Committee (SDC) to enforce penalties (Course Cancellation, Repeat Session, Suspension, Expulsion), automatically lock progression levels, register carry-overs, and enforce graduation blocks.
 * **Risk Profile:** Medium (disciplinary outcomes can affect official results, progression, institutional status, and graduation; changes must be auditable and appealable).
-* **Status:** **Scheduled for Implementation Post-Phase 6**
+* **Status:** **In Progress — UG-only implementation**
 
 ### Integration Contract with Phase 6.7
 Phase 7 is a separate disciplinary case and sanction workflow. It must reuse Phase 6.7's authoritative status and activity-enforcement infrastructure where the sanction changes institutional student status:
@@ -542,7 +592,7 @@ Phase 7 is a separate disciplinary case and sanction workflow. It must reuse Pha
 - `StudentStatusService::canPerformAcademicActivity()` remains the shared enforcement gate for academic activity. Extend or integrate it deliberately for the applicable effective dates and sanction scope; do not add competing checks to individual controllers or views.
 - Course cancellation and repeat-session sanctions remain disciplinary/progression outcomes. Use the appropriate result and `AcademicProgressionService` responsibilities without turning either service into a general disciplinary ledger.
 - Preserve historical results, transcripts, and payment history. Any sanctioned result outcome must retain the original result and a complete, reversible audit record so an appeal can restore the prior outcome.
-- The Phase 6.7 status workflows are UG-only. Phase 7 must state its approved UG/PG scope before enforcement is implemented and must not change PG rules or payment flows by default.
+- Phase 7 is approved as UG-only for the initial implementation. PG rules and payment flows remain unchanged; any scope expansion requires separate approval and impact review.
 - Use server-side authorization, immutable audit records, and institutional Senate-reference validation for every sanction and appeal decision.
 
 ### Sanctions Covered by Architecture:
@@ -559,7 +609,7 @@ Phase 7 is a separate disciplinary case and sanction workflow. It must reuse Pha
   - `user_id` (foreignUuid cascade)
   - `academic_detail_id` (foreignId cascade)
   - `sanction_type` enum (`course_cancellation`, `repeat_session`, `suspension`, `expulsion`)
-  - `course_id` (foreignId nullable, for course cancellations)
+  - `course_id` (nullable context reference from the initial foundation; Task 7.2 targets an exact result attempt through `result_id` instead)
   - `academic_session` (e.g., '2024/2025')
   - `semester` (nullable, 'first' or 'second')
   - `senate_ref_no` (use an institutionally approved format accepted by the shared Senate-reference validator, e.g., 'SEN-2026-042')
@@ -576,19 +626,22 @@ Phase 7 is a separate disciplinary case and sanction workflow. It must reuse Pha
 * **Constraints:** Define `is_active` semantics per sanction type; it must not become a competing suspension/expulsion status source. Align Senate-reference validation with institutional policy and the existing `StudentStatusService` validator.
 * **Scope decision:** Phase 7 is UG-only for its initial implementation, consistent with this roadmap and the project-wide UG/PG isolation rule. Task 7.1 adds a neutral, additive record foundation only; it does not add enforcement behavior or change PG workflows, including PG payments. Any expansion to PG requires separate approval and impact review.
 * **Automated Test:** `tests/Unit/DisciplinaryActionFoundationTest.php`
+* **Status:** Implemented; migration, model relationships, and foundation tests are in place.
 
 #### Task 7.2: Core Disciplinary Enforcement Service (`DisciplinaryActionService`)
 * **Scope:** Backend orchestration service applying Senate sanctions.
 * **Tasks:**
   - `applySanction(array $data)`: Enforces database changes based on `sanction_type`:
-    - If `course_cancellation`: create a traceable, reversible sanctioned result adjustment with remark `MALPRACTICE (SENATE REF)` and dispatch the resulting mandatory carry-over. Never silently replace or delete the original released result.
-    - If `repeat_session`: apply the `STANDING_REPEAT` outcome through `AcademicProgressionService`, mark affected attempts consistently, and enforce the repeat-level progression rules.
-    - If `suspension`: create a time-bounded `DISCIPLINARY` status event through `StudentStatusService` and retain its returned `student_status_record_id`.
+    - Add a nullable `result_id` reference for course cancellations; target one released attempt and use its registered-course/result snapshots as the historical course reference.
+    - If `course_cancellation`: record the original values in immutable audit metadata, set the sanctioned grade outcome with remark `MALPRACTICE (SENATE REF)`, recalculate existing GPA records, and dispatch the resulting mandatory carry-over. Never delete the original attempt.
+    - If `repeat_session`: apply the `STANDING_REPEAT` outcome through `AcademicProgressionService`, annotate affected approved attempts with `REPEAT SESSION (SDC: SENATE REF)`, and retain enough before-state to reverse the progression and remarks if quashed.
+    - If `suspension`: require effective and end calendar dates in addition to sessions, create a time-bounded `DISCIPLINARY` status event through `StudentStatusService`, and retain its returned `student_status_record_id`.
     - If `expulsion`: create the permanent `DISCIPLINARY` status event through `StudentStatusService`; enforce restrictions through shared gates while retaining authorized historical-record access.
   - `liftSanction(int $actionId, string $resolutionRef)`: Record and audit the Senate appeal outcome, then reverse each sanction's effects. Restore original result/progression values where an appeal quashes the sanction, without deleting the sanction or decision history.
   - Hook into `GraduationService`: Blocks eligibility based on active, effective disciplinary sanctions and authoritative student status, without duplicating status rules.
-  - Enforce server-side capabilities and immutable audit records for sanction application, appeal, and reversal.
+  - Enforce the department-scoped `disciplinary_actions.manage` capability (with administrator override) and immutable audit records for sanction application, appeal, and reversal.
 * **Automated Test:** `tests/Unit/DisciplinaryActionServiceTest.php`
+* **Status:** Implemented; reversible service effects, UG-only capability enforcement, immutable audit entries, and graduation integration are in place.
 
 #### Task 7.3: Exam Officer Disciplinary Management UI
 * **Scope:** Livewire component under `app/Http/Livewire/ExamOfficer/ManageDisciplinaryActions.php` and view.

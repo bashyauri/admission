@@ -51,6 +51,12 @@ class StudentStatusPolicy
         return $this->canManageUndergraduateStatus($actor, $student, 'student_status.process_medical');
     }
 
+    public function processDisciplinary(User $actor, User $student): bool
+    {
+        return $student->isUndergraduate()
+            && ($actor->isAdmin() || $actor->can('disciplinary-actions.manage', $student));
+    }
+
     public function requestReinstatement(User $actor, User $student): bool
     {
         return $student->isUndergraduate()

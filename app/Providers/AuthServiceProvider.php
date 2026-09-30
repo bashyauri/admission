@@ -8,6 +8,7 @@ use App\Models\ProposedCourse;
 use Illuminate\Support\Facades\Gate;
 use App\Policies\ProposedCoursePolicy;
 use App\Policies\StudentStatusPolicy;
+use App\Policies\DisciplinaryActionPolicy;
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
 
 class AuthServiceProvider extends ServiceProvider
@@ -33,6 +34,8 @@ class AuthServiceProvider extends ServiceProvider
         $this->registerPolicies();
 
         $studentStatusPolicy = app(StudentStatusPolicy::class);
+        $disciplinaryActionPolicy = app(DisciplinaryActionPolicy::class);
+        Gate::define('disciplinary-actions.manage', fn (User $actor, User $student) => $disciplinaryActionPolicy->manage($actor, $student));
         foreach ([
             'student-status.view-any' => 'viewAny',
             'student-status.view' => 'view',
@@ -42,6 +45,7 @@ class AuthServiceProvider extends ServiceProvider
             'student-status.decide-senate' => 'decideSenate',
             'student-status.process-voluntary' => 'processVoluntary',
             'student-status.process-medical' => 'processMedical',
+            'student-status.process-disciplinary' => 'processDisciplinary',
             'student-status.request-reinstatement' => 'requestReinstatement',
             'student-status.review-department-reinstatement' => 'reviewDepartmentReinstatement',
             'student-status.review-faculty-reinstatement' => 'reviewFacultyReinstatement',
