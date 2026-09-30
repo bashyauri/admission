@@ -283,16 +283,46 @@ class ResultReportingService
         $statusService = $this->studentStatusService ??= app(StudentStatusService::class);
         $statusesForSession = $statusService->getStatusesForSession($studentIds, $session);
 
+        $releasedOnly = !empty($filters['released_only']) || !empty($filters['final']);
+
         // 2. Fetch all Results for these students in this session (across both semesters for full session broadsheet)
         $resultsQuery = Result::with(['departmentCourse.studentCourse', 'registeredCourse'])
             ->whereIn('user_id', $studentIds)
             ->where('academic_session', $session);
+
+        if ($releasedOnly) {
+            $resultsQuery->where('status', 'released');
+        }
 
         if (!empty($filters['single_semester_only']) && !empty($semester) && $semester !== 'second') {
             $resultsQuery->where('semester', $semester);
         }
 
         $results = $resultsQuery->get();
+
+        $stageSummary = [
+            'pending' => 0,
+            'submitted' => 0,
+            'exam_officer_approved' => 0,
+            'released' => 0,
+        ];
+        foreach ($results as $res) {
+            $st = (string) $res->status;
+            $stageSummary[$st] = ($stageSummary[$st] ?? 0) + 1;
+        }
+
+        $unreleasedCount = $stageSummary['pending'] + $stageSummary['submitted'] + $stageSummary['exam_officer_approved'];
+        $isProvisional = !$releasedOnly && ($unreleasedCount > 0 || $results->isEmpty());
+
+        $includedStages = [];
+        if ($stageSummary['pending'] > 0) { $includedStages[] = 'Lecturer Draft'; }
+        if ($stageSummary['submitted'] > 0) { $includedStages[] = 'Coordinator Review'; }
+        if ($stageSummary['exam_officer_approved'] > 0) { $includedStages[] = 'Exam Officer Review'; }
+        if ($stageSummary['released'] > 0) { $includedStages[] = 'Released'; }
+
+        $workflowStagesIncluded = $isProvisional
+            ? ($includedStages !== [] ? 'Provisional Review (' . implode(', ', $includedStages) . ')' : 'Provisional Staff Review')
+            : 'Official Senate Final (Released Results Only)';
 
         // 3. Fetch cumulative ResultGpaRecords for these students for this session
         $gpaRecords = ResultGpaRecord::whereIn('user_id', $studentIds)
@@ -422,9 +452,9 @@ class ResultReportingService
                 $cgpa = (float) $gpaRecord->cumulative_gpa;
                 $classOfDegree = $gpaRecord->class_of_degree ?? $this->gradeCalculator->getClassOfDegree($cgpa);
             } else {
-                // Fallback: Compute on the fly from all historical approved results
+                // Fallback: Compute on the fly from all historical released results
                 $allUserResults = Result::where('user_id', $student->id)
-                    ->whereIn('status', ['hod_approved', 'exam_officer_approved', 'released'])
+                    ->where('status', 'released')
                     ->get();
 
                 $cumCalc = $this->gradeCalculator->calculateSemesterGpa($allUserResults);
@@ -546,6 +576,9 @@ class ResultReportingService
             'headers' => $headers,
             'students' => $broadsheetRows,
             'summary' => $summaryStats,
+            'is_provisional' => $isProvisional,
+            'workflow_stages_included' => $workflowStagesIncluded,
+            'stage_summary' => $stageSummary,
         ];
     }
 
@@ -928,14 +961,46 @@ public function getCohortProgressionBroadsheet(array $filters): array
 
     $studentIds = $students->pluck('id')->all();
 
+    $releasedOnly = !empty($filters['released_only']) || !empty($filters['final']);
+
     // 2. Fetch all historical results for these students ordered chronologically
-    $rawResults = Result::with(['departmentCourse.studentCourse', 'registeredCourse', 'courseVersion'])
-        ->whereIn('user_id', $studentIds)
-        ->whereIn('status', ['pending', 'submitted', 'hod_approved', 'exam_officer_approved', 'released'])
-        ->orderBy('academic_session', 'asc')
+    $rawResultsQuery = Result::with(['departmentCourse.studentCourse', 'registeredCourse', 'courseVersion'])
+        ->whereIn('user_id', $studentIds);
+
+    if ($releasedOnly) {
+        $rawResultsQuery->where('status', 'released');
+    } else {
+        $rawResultsQuery->whereIn('status', ['pending', 'submitted', 'hod_approved', 'exam_officer_approved', 'released']);
+    }
+
+    $rawResults = $rawResultsQuery->orderBy('academic_session', 'asc')
         ->orderByRaw("CASE WHEN LOWER(semester) = 'first' THEN 1 ELSE 2 END")
         ->orderBy('created_at', 'asc')
         ->get();
+
+    $stageSummary = [
+        'pending' => 0,
+        'submitted' => 0,
+        'exam_officer_approved' => 0,
+        'released' => 0,
+    ];
+    foreach ($rawResults as $res) {
+        $st = (string) $res->status;
+        $stageSummary[$st] = ($stageSummary[$st] ?? 0) + 1;
+    }
+
+    $unreleasedCount = $stageSummary['pending'] + $stageSummary['submitted'] + $stageSummary['exam_officer_approved'];
+    $isProvisional = !$releasedOnly && ($unreleasedCount > 0 || $rawResults->isEmpty());
+
+    $includedStages = [];
+    if ($stageSummary['pending'] > 0) { $includedStages[] = 'Lecturer Draft'; }
+    if ($stageSummary['submitted'] > 0) { $includedStages[] = 'Coordinator Review'; }
+    if ($stageSummary['exam_officer_approved'] > 0) { $includedStages[] = 'Exam Officer Review'; }
+    if ($stageSummary['released'] > 0) { $includedStages[] = 'Released'; }
+
+    $workflowStagesIncluded = $isProvisional
+        ? ($includedStages !== [] ? 'Provisional Review (' . implode(', ', $includedStages) . ')' : 'Provisional Staff Review')
+        : 'Official Senate Final (Released Results Only)';
 
     $resultsGroupedByStudent = $rawResults->groupBy('user_id');
 
@@ -1299,6 +1364,9 @@ public function getCohortProgressionBroadsheet(array $filters): array
             'total_carryovers_cleared'      => $totalResolvedCarryOvers,
             'total_carryovers_outstanding'  => $totalOutstandingCarryOvers,
         ],
+        'is_provisional'           => $isProvisional,
+        'workflow_stages_included' => $workflowStagesIncluded,
+        'stage_summary'            => $stageSummary,
     ];
 }
 

@@ -279,6 +279,46 @@
         }
 
         /* Print Media Styles */
+        /* Provisional Warning Banner */
+        .provisional-banner {
+            background-color: #fef3c7;
+            border: 2px solid #f59e0b;
+            border-radius: 4px;
+            padding: 10px 16px;
+            margin-bottom: 18px;
+            font-size: 10.5px;
+            font-weight: 800;
+            text-transform: uppercase;
+            color: #92400e;
+            letter-spacing: 0.4px;
+        }
+
+        .provisional-banner .banner-title {
+            font-size: 12px;
+            margin-bottom: 4px;
+        }
+
+        .provisional-banner .stage-detail {
+            font-weight: 700;
+            font-size: 9.5px;
+            margin-top: 3px;
+            text-transform: none;
+            color: #78350f;
+        }
+
+        .final-banner {
+            background-color: #d1fae5;
+            border: 2px solid #059669;
+            border-radius: 4px;
+            padding: 8px 16px;
+            margin-bottom: 18px;
+            font-size: 10.5px;
+            font-weight: 800;
+            text-transform: uppercase;
+            color: #065f46;
+            letter-spacing: 0.4px;
+        }
+
         @media print {
             body {
                 background: #ffffff;
@@ -321,6 +361,27 @@
                 🖨️ Print Grade Report for Senate
             </button>
         </div>
+
+        {{-- Provisional / Official Banner --}}
+        @if(!empty($is_provisional))
+            <div class="provisional-banner">
+                <div class="banner-title">⚠ PROVISIONAL — STAFF REVIEW COPY ONLY</div>
+                <div>This broadsheet includes results at intermediate workflow stages and has not been officially released to students.</div>
+                <div class="stage-detail">Stages included: {{ $workflow_stages_included ?? 'Multiple stages' }}</div>
+                @if(!empty($stage_summary))
+                    <div class="stage-detail">
+                        Counts — Pending: {{ $stage_summary['pending'] ?? 0 }} &nbsp;|
+                        Coordinator Review: {{ $stage_summary['submitted'] ?? 0 }} &nbsp;|
+                        Exam Officer Review: {{ $stage_summary['exam_officer_approved'] ?? 0 }} &nbsp;|
+                        Released: {{ $stage_summary['released'] ?? 0 }}
+                    </div>
+                @endif
+            </div>
+        @else
+            <div class="final-banner">
+                ✓ OFFICIAL FINAL SENATE BROADSHEET — RELEASED RESULTS ONLY
+            </div>
+        @endif
 
         {{-- Top Institutional Heading --}}
         <div class="header-title-block">

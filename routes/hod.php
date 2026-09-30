@@ -7,10 +7,12 @@ use App\Http\Livewire\Hod\Applicants\NotRecommended;
 use App\Http\Livewire\Hod\Applicants\ShortlistedApplicants;
 use App\Http\Livewire\Hod\HodProfile;
 use App\Http\Livewire\Hod\HodResultReview;
+use App\Http\Livewire\Hod\CarryOverReview;
 use Illuminate\Support\Facades\Route;
 
 Route::get('dashboard', HodIndex::class)->name('dashboard');
 Route::get('results-review', HodResultReview::class)->name('results-review');
+Route::get('carry-over-review', CarryOverReview::class)->name('carry-over-review');
 Route::get('all-applicants', AllApplicants::class)->name('all-applicants');
 Route::get('not-recommended-applicants', NotRecommended::class)->name('not-recommended-applicants');
 Route::get('shortlisted-applicants', ShortlistedApplicants::class)->name('shortlisted-applicants');

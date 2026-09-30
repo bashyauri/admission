@@ -178,10 +178,12 @@ graph TD
 * **Agent prompt:**
   > *"Implement Phase 5 follow-up Task 5.5 from `result_processing_agent_phases.md`. Enforce the registered-course snapshot authority rule in `AGENTS.md`: result-attempt snapshots first, linked registered-course snapshots second, and current `student_courses` data only for legacy records missing both. Cover result entry, GPA/quality-point calculations, student result displays, statements, reports, graduation calculations, and transcripts. Add regression tests for changed live course data and legacy fallback. Preserve UG/PG isolation and do not alter PG or any payment flow. Do not infer or backfill unverified historical snapshot values."*
 
-### Phase 5 Follow-up: Task 5.6 — Carry-Over Retake Registration (PENDING)
+### Phase 5 Follow-up: Task 5.6 — Carry-Over Retake Registration (IN PROGRESS; RETAKE GPA POLICY PENDING)
 
 * **Goal:** Make outstanding UG carry-overs visible and register eligible retakes during the next applicable course-registration period, without silently enrolling students into a changed or unrelated course.
 * **Current behavior:** Releasing a failed result records an uncleared `carry_over_courses` row. It does not create a retake `registered_courses` row or automatically enroll the student. Do not describe the current behavior as automatic registration.
+* **Implementation note:** The UG registration screen now processes outstanding retakes only after `AcademicSessionService` reports a later academic session than the failed session. Exact `DepartmentCourse` identity is used automatically; a HOD-approved successor is required when the original offering cannot be safely used. Do not mark this task complete until the institution confirms retake GPA/CGPA treatment, the migration and regression suites are run, and the department review workflow is verified.
+* **Academic-session gate:** The admin's change to the active session in `AcademicSessionService` is the registration-period signal. The processor reads the service directly and will not retake a course in the failed session.
 * **Registration timing:**
   - Record the carry-over when the result is officially released.
   - Register the retake at the next eligible registration period when the course is offered and registration is open; do not register it immediately on result release.
@@ -194,19 +196,26 @@ graph TD
   - If the approved successor course has a different title or unit value, retain the old values on the failed attempt and use the new offering's values on the retake. Do not rewrite history.
 * **Load rules and student experience:**
   - Show outstanding carry-overs clearly in the student registration portal as required retakes, distinguish them from ordinary elective choices, and include their units in the applicable semester load.
-  - Enforce configured unit limits. If mandatory retakes exceed the allowed load, show the affected courses and route the case through the institution's approved overload/department-review process; do not silently omit a carry-over or bypass the limit.
+    - Enforce configured unit limits as a hard cap. If a mandatory retake does not fit, show the affected course and available resolution (remove/adjust other eligible courses, then retry); do not silently omit a carry-over or bypass the limit. HOD course-mapping approval must never override the unit cap.
   - Clearly show when a carry-over is pending department review because its successor offering cannot be safely identified.
 * **Policy and safety requirements:**
   - Confirm and implement the institution's approved retake GPA/CGPA treatment when retake units differ from the original attempt. Do not invent a replacement, exclusion, or weighting rule in code.
   - Keep carry-over clearance tied to the approved passing retake result and preserve the original failure and all registration/result history.
   - Keep this feature UG-only. Do not change PG registration, grading, progression, or payment behavior.
-* **Tests:**
-  - [ ] Failed result release records an outstanding carry-over but does not register a retake immediately.
-  - [ ] At the next eligible registration period, an approved exact/mapped successor is registered once, with new offering snapshots; repeated processing creates no duplicate.
-  - [ ] Changed title/units preserve both the original failed snapshots and the new retake snapshots; GPA/CGPA follows the approved policy.
-  - [ ] Ambiguous, missing, or unapproved equivalency routes to department review and creates no substitute registration.
-  - [ ] Required carry-over appears in the portal, contributes to load validation, and overload handling follows approved rules.
-  - [ ] A passing approved retake clears the carry-over without deleting history; PG and payment behavior remain unchanged.
+* **Implementation and verification checklist:**
+  - [x] Failed result release records an outstanding carry-over without immediately registering a retake.
+  - [x] A later academic session permits idempotent registration against the same stable offering, with current offering snapshots.
+  - [x] Changed title/units retain the original failed registration snapshots and capture new values on the retake registration.
+  - [x] Missing/unsafe offerings are flagged for department review; HOD review can approve an explicitly selected department offering with a required audit note.
+  - [x] Required carry-overs are shown in the student portal, counted in the load limit, and cannot be removed through the portal while outstanding.
+  - [x] Over-limit retakes remain unregistered until there is room under the configured limit; deleting another eligible course retries retake registration. HOD review covers course mapping only and cannot authorize an overload.
+  - [x] A released passing retake clears the outstanding carry-over while preserving result and registration rows; PG/payment code paths were not changed.
+  - [ ] Confirm the institution's official retake GPA/CGPA treatment, particularly where retake units differ. Existing GPA calculation remains unchanged pending this policy.
+  - [x] Run the carry-over, course-registration, HOD authorization, result-entry, and UG/PG isolation regression suites.
+  - [x] Apply and verify the new migration in the target database before release.
+  - [x] Enforce unit limit as a hard cap in `CourseRegistrationService::registerCourse()` with regression test (`CourseRegistrationUnitLimitTest`).
+  - [x] Ensure student transcripts and GPA/CGPA are strictly limited to released results (verified in `TranscriptService`, `GradeCalculationService`).
+  - [x] Staff broadsheets are explicitly marked **PROVISIONAL** with workflow stage breakdown when they include unreleased results; a separate `senate-broadsheet.final` route forces released-only for the official Senate broadsheet.
 * **Agent prompt:**
   > *"Implement Phase 5 follow-up Task 5.6 in `result_processing_agent_phases.md`. Add UG carry-over retake registration for the next eligible course-registration period. Preserve the failed attempt; match changed courses through stable identity or approved mapping, never title/code alone; route ambiguous matches to department review. Snapshot the approved new offering on the retake registration/result, account for load limits, make processing idempotent, and follow the institution's approved changed-unit GPA/CGPA policy. Add the listed tests. Do not change PG or payment flows, and do not enroll immediately at result release."*
 

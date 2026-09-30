@@ -58,6 +58,48 @@
         </div>
     @endif
 
+    @if($carryOverCourses->isNotEmpty())
+        <div class="w-full max-w-full px-3 mb-6">
+            <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-amber-200 dark:border-amber-800 overflow-hidden">
+                <div class="p-5 border-b border-amber-100 dark:border-amber-900">
+                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Outstanding Carry-over Courses</h3>
+                    <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">Required retakes count toward your registered units. The approved unit limit is enforced; remove other eligible courses to make room for a retake.</p>
+                </div>
+                <div class="divide-y divide-gray-100 dark:divide-gray-700">
+                    @foreach($carryOverCourses as $carryOver)
+                        @php
+                            $displayRegistration = $carryOver->retakeRegisteredCourse ?? $carryOver->registeredCourse;
+                            $displayTitle = $displayRegistration?->course_title_snapshot
+                                ?? $carryOver->departmentCourse?->studentCourse?->title
+                                ?? 'Course details unavailable';
+                        @endphp
+                        <div class="flex flex-col gap-2 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+                            <div>
+                                <p class="font-medium text-gray-900 dark:text-white">
+                                    {{ $displayRegistration?->course_code_snapshot ?? $carryOver->departmentCourse?->studentCourse?->code ?? 'Course' }}
+                                    <span class="font-normal text-gray-600 dark:text-gray-300">{{ $displayTitle }}</span>
+                                </p>
+                                <p class="text-xs text-gray-500 dark:text-gray-400">Failed {{ $carryOver->failed_session }} · {{ ucfirst($carryOver->failed_semester) }}</p>
+                                @if($carryOver->review_reason)
+                                    <p class="mt-1 text-sm text-amber-700 dark:text-amber-300">{{ $carryOver->review_reason }}</p>
+                                @endif
+                            </div>
+                            @if($carryOver->registration_status === 'registered')
+                                <span class="inline-flex w-fit items-center rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-800 dark:bg-green-900/40 dark:text-green-200">Required retake registered</span>
+                            @elseif($carryOver->registration_status === 'review_required')
+                                <span class="inline-flex w-fit items-center rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-800 dark:bg-amber-900/40 dark:text-amber-200">Department review required</span>
+                            @elseif($carryOver->registration_status === 'limit_blocked')
+                                <span class="inline-flex w-fit items-center rounded-full bg-red-100 px-3 py-1 text-xs font-semibold text-red-800 dark:bg-red-900/40 dark:text-red-200">Waiting for room under unit limit</span>
+                            @else
+                                <span class="inline-flex w-fit items-center rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-800 dark:bg-blue-900/40 dark:text-blue-200">Pending next academic session</span>
+                            @endif
+                        </div>
+                    @endforeach
+                </div>
+            </div>
+        </div>
+    @endif
+
     <div class="flex flex-col lg:flex-row gap-6">
         @if ($student->approval?->isPinUsed())
             <!-- Main Content Area -->
@@ -348,13 +390,16 @@
                                                         <span class="bg-green-100 text-green-800 text-xs font-semibold px-2 py-1 rounded">{{ $pickedCourse->course_code_snapshot ?? $pickedCourse->departmentCourse->studentCourse->code }}</span>
                                                         <span class="bg-green-100 text-green-700 text-xs px-2 py-1 rounded">✓ Registered</span>
                                                     </div>
+                                                    @if($carryOverCourses->contains('retake_registered_course_id', $pickedCourse->id))
+                                                        <span class="mb-1 inline-flex rounded bg-amber-100 px-2 py-1 text-xs text-amber-800">Required retake</span>
+                                                    @endif
                                                     <h4 class="font-semibold text-gray-900 dark:text-white text-base">{{ $pickedCourse->course_title_snapshot ?? $pickedCourse->departmentCourse->studentCourse->title }}</h4>
                                                 </div>
                                                 <div class="flex items-center space-x-3">
                                                     <span class="bg-green-200 text-green-800 text-sm font-bold px-3 py-1 rounded-full">
                                                         {{ $pickedCourse->credit_units_snapshot ?? $pickedCourse->units }} Units
                                                     </span>
-                                                    @if ($this->isActivityAllowed)
+                                                    @if ($this->isActivityAllowed && !$carryOverCourses->contains('retake_registered_course_id', $pickedCourse->id))
                                                         <button wire:click="deleteCourse({{ $pickedCourse->id }})"
                                                             wire:confirm="Remove {{ $pickedCourse->course_code_snapshot ?? $pickedCourse->departmentCourse->studentCourse->code }}?"
                                                             wire:loading.attr="disabled"
@@ -379,7 +424,7 @@
                                                     <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
                                                     </svg>
-                                                    Semester {{ $pickedCourse->departmentCourse->studentCourse->semester }}
+                                                    Semester {{ $pickedCourse->semester_snapshot ?? $pickedCourse->departmentCourse?->studentCourse?->semester ?? '' }}
                                                 </span>
                                             </div>
                                         </div>

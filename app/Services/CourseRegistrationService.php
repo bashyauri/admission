@@ -73,7 +73,7 @@ class CourseRegistrationService
         return app(StudentStatusService::class)->canPerformAcademicActivity($user, \App\Enums\AcademicActivity::COURSE_REGISTRATION);
     }
 
-    /** Persist a registration only after rechecking authoritative student status. */
+    /** Persist a registration only after rechecking authoritative student status and unit limit. */
     public function registerCourse(AcademicDetail $student, DepartmentCourse $course, string $academicSession): RegisteredCourse
     {
         $user = $student->user;
@@ -86,6 +86,22 @@ class CourseRegistrationService
         $studentCourse = $course->studentCourse;
         if (!$studentCourse) {
             throw new \InvalidArgumentException('This course is not available for registration. Refresh the page and try again.');
+        }
+
+        // Enforce the configured unit limit as a hard cap (Task 5.6).
+        // This is the authoritative check — the Livewire canAddCourse() is UI-only.
+        if ($user->isUndergraduate()) {
+            $maxUnits = $this->getMaxUnits((int) $student->department_id, (int) $student->student_level_id);
+            if ($maxUnits > 0) {
+                $currentTotal = $this->getTotalUnitsOfRegisteredCourses($student->id, $academicSession);
+                $courseUnits = (int) $course->units;
+                if (($currentTotal + $courseUnits) > $maxUnits) {
+                    throw new \InvalidArgumentException(
+                        "Adding this course ({$courseUnits} units) would exceed the maximum allowed load of {$maxUnits} units for your level. "
+                        . "You currently have {$currentTotal} units registered."
+                    );
+                }
+            }
         }
 
         $registrationAttributes = [

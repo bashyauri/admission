@@ -1,6 +1,20 @@
 @use('App\Services\AcademicSessionService')
 @use('Illuminate\Support\Facades\Auth')
 <div>
+    <div class="mb-5 rounded-xl border border-amber-200 bg-amber-50 p-4 dark:border-amber-800 dark:bg-amber-900/20">
+        <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+                <h2 class="font-semibold text-amber-900 dark:text-amber-100">Undergraduate carry-over course mapping</h2>
+                <p class="mt-1 text-sm text-amber-800 dark:text-amber-200">Review carry-overs whose original course offering cannot be safely matched. Unit limits remain enforced.</p>
+            </div>
+            <a href="{{ route('hod.carry-over-review') }}" class="inline-flex w-fit items-center gap-2 rounded-lg bg-amber-700 px-4 py-2 text-sm font-semibold text-white transition hover:bg-amber-800">
+                Review carry-overs
+                @if($pendingCarryOverReviews > 0)
+                    <span class="rounded-full bg-white/20 px-2 py-0.5 text-xs">{{ $pendingCarryOverReviews }}</span>
+                @endif
+            </a>
+        </div>
+    </div>
     <div class="flex flex-wrap -mx-3">
         <div class="w-full max-w-full px-3 shrink-0 sm:flex-0 sm:w-4/12">
             <div

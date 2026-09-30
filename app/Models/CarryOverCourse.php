@@ -13,6 +13,7 @@ class CarryOverCourse extends Model
     protected $fillable = [
         'user_id',
         'registered_course_id',
+        'retake_registered_course_id',
         'department_course_id',
         'failed_session',
         'failed_semester',
@@ -25,6 +26,12 @@ class CarryOverCourse extends Model
         'cleared_result_id',
         'auto_registered',
         'auto_registered_at',
+        'registration_status',
+        'review_reason',
+        'approved_department_course_id',
+        'reviewed_by',
+        'reviewed_at',
+        'review_note',
     ];
 
     protected $casts = [
@@ -33,6 +40,7 @@ class CarryOverCourse extends Model
         'cleared_at' => 'datetime',
         'auto_registered' => 'boolean',
         'auto_registered_at' => 'datetime',
+        'reviewed_at' => 'datetime',
     ];
 
     public function user(): BelongsTo
@@ -48,6 +56,21 @@ class CarryOverCourse extends Model
     public function registeredCourse(): BelongsTo
     {
         return $this->belongsTo(RegisteredCourse::class);
+    }
+
+    public function retakeRegisteredCourse(): BelongsTo
+    {
+        return $this->belongsTo(RegisteredCourse::class, 'retake_registered_course_id');
+    }
+
+    public function approvedDepartmentCourse(): BelongsTo
+    {
+        return $this->belongsTo(DepartmentCourse::class, 'approved_department_course_id');
+    }
+
+    public function reviewer(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'reviewed_by');
     }
 
     public function departmentCourse(): BelongsTo

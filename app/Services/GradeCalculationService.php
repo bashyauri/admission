@@ -141,15 +141,15 @@ class GradeCalculationService
             ->where('user_id', $student->id)
             ->where('academic_session', $session)
             ->where('semester', $semester)
-            ->whereIn('status', ['hod_approved', 'exam_officer_approved', 'released'])
+            ->where('status', 'released')
             ->get();
 
         $semesterCalc = $this->calculateSemesterGpa($semesterResults);
 
-        // Fetch all approved historical results for the student up to and including this session/semester
+        // Fetch all released historical results for the student up to and including this session/semester
         $allResults = Result::with(['registeredCourse', 'departmentCourse.studentCourse'])
             ->where('user_id', $student->id)
-            ->whereIn('status', ['hod_approved', 'exam_officer_approved', 'released'])
+            ->where('status', 'released')
             ->get();
 
         $cumulativeCalc = $this->calculateSemesterGpa($allResults);

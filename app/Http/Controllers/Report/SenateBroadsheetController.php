@@ -17,14 +17,9 @@ class SenateBroadsheetController extends Controller
     ) {}
 
     /**
-     * Display and print official Departmental / Senate Broadsheet matrix.
-     *
-     * @param Request $request
-     * @param Department|int $department
-     * @param string $session
-     * @param string $semester
-     * @param int|null $level
-     * @return View
+     * Display the provisional staff broadsheet including all workflow stages.
+     * Used during the approval workflow (Lecturer → Coordinator → Exam Officer).
+     * Clearly marked PROVISIONAL in the view.
      */
     public function print(
         Request $request,
@@ -33,21 +28,48 @@ class SenateBroadsheetController extends Controller
         string $semester,
         ?int $level = null
     ): View {
-        $departmentId = $department instanceof Department 
-            ? $department->id 
+        return $this->buildBroadsheet($request, $department, $session, $semester, $level, releasedOnly: false);
+    }
+
+    /**
+     * Display the official final Senate broadsheet using RELEASED results only.
+     * This is the authoritative document for Academic Board / Senate approval.
+     */
+    public function printFinal(
+        Request $request,
+        Department|int $department,
+        string $session,
+        string $semester,
+        ?int $level = null
+    ): View {
+        return $this->buildBroadsheet($request, $department, $session, $semester, $level, releasedOnly: true);
+    }
+
+    private function buildBroadsheet(
+        Request $request,
+        Department|int $department,
+        string $session,
+        string $semester,
+        ?int $level,
+        bool $releasedOnly
+    ): View {
+        $departmentId = $department instanceof Department
+            ? $department->id
             : (int) $department;
 
         $normalizedSession = str_replace('-', '/', $session);
 
         $filters = [
-            'department_id' => $departmentId,
+            'department_id'    => $departmentId,
             'academic_session' => $normalizedSession,
-            'semester' => $semester,
+            'semester'         => $semester,
             'student_level_id' => $level,
-            'course_id' => $request->query('course_id') ? (int) $request->query('course_id') : null,
-            'admission_session' => $request->query('admission_session') 
-                ? str_replace('-', '/', (string) $request->query('admission_session')) 
+            'course_id'        => $request->query('course_id') ? (int) $request->query('course_id') : null,
+            'admission_session' => $request->query('admission_session')
+                ? str_replace('-', '/', (string) $request->query('admission_session'))
                 : null,
+            'released_only'    => $releasedOnly,
+            'final'            => $releasedOnly,
         ];
 
         $data = $this->reportingService->getDepartmentalBroadsheet($filters);
