@@ -13,6 +13,7 @@ use App\Models\StudentCourse;
 use App\Models\StudentLevel;
 use App\Models\User;
 use App\Services\GradeCalculationService;
+use App\Services\ResultCourseSnapshotService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -172,9 +173,23 @@ class GradeCalculationTest extends TestCase
             'student_level_id' => $level->id,
             'units' => '3',
             'academic_session' => '2024-2025',
+            'course_code_snapshot' => 'CSC101',
+            'course_title_snapshot' => 'Original Course Title',
+            'credit_units_snapshot' => 4,
+            'semester_snapshot' => 'first',
+            'level_snapshot' => $level->id,
         ]);
 
-        Result::create([
+        // The current course can change after registration; historical calculation
+        // must still use the registration snapshot when this legacy result lacks one.
+        $studentCourse->update([
+            'code' => 'CSC201',
+            'title' => 'Revised Course Title',
+            'units' => 6,
+            'semester' => 2,
+        ]);
+
+        $result = Result::create([
             'user_id' => $student->id,
             'registered_course_id' => $reg->id,
             'department_course_id' => $deptCourse->id,
@@ -191,11 +206,24 @@ class GradeCalculationTest extends TestCase
             'status' => 'released',
         ]);
 
+        $snapshot = app(ResultCourseSnapshotService::class)->resolve($result);
+        $this->assertSame('CSC101', $snapshot['code']);
+        $this->assertSame('Original Course Title', $snapshot['title']);
+        $this->assertSame(4, $snapshot['units']);
+
+        $legacyResult = new Result(['credit_units' => null]);
+        $legacyResult->setRelation('registeredCourse', null);
+        $legacyResult->setRelation('departmentCourse', $deptCourse->load('studentCourse'));
+        $legacySnapshot = app(ResultCourseSnapshotService::class)->resolve($legacyResult);
+        $this->assertSame('CSC201', $legacySnapshot['code']);
+        $this->assertSame('Revised Course Title', $legacySnapshot['title']);
+
         $gpaRecord = $this->service->processAndSaveGpaRecord($student, '2024-2025', 'first');
 
         $this->assertNotNull($gpaRecord->id);
         $this->assertEquals(5.00, (float) $gpaRecord->semester_gpa);
-        $this->assertEquals(3, $gpaRecord->total_credit_units);
+        $this->assertEquals(4, $gpaRecord->total_credit_units);
+        $this->assertEquals(20, $gpaRecord->total_grade_points);
         $this->assertEquals('First Class Honours', $gpaRecord->class_of_degree);
     }
 }

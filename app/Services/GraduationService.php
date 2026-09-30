@@ -83,13 +83,15 @@ class GraduationService
         $meetsCgpa = $finalCgpa >= $minCgpa;
 
         // 2. Credit Units Earned & Requirements
-        $passedResults = Result::where('user_id', $user->id)
+        $passedResults = Result::with(['registeredCourse', 'departmentCourse.studentCourse'])
+            ->where('user_id', $user->id)
             ->whereIn('status', ['released', 'exam_officer_approved'])
             ->where('grade', '!=', 'F')
             ->get();
 
-        $totalUnitsEarned = (int) $passedResults->sum(function ($r) {
-            return $r->credit_units_snapshot ?? $r->credit_units ?? 0;
+        $courseSnapshotService = app(ResultCourseSnapshotService::class);
+        $totalUnitsEarned = (int) $passedResults->sum(function ($r) use ($courseSnapshotService) {
+            return $courseSnapshotService->units($r);
         });
 
         $totalUnitsRequired = $this->getRequiredUnits($user, $academicDetail, $options);
@@ -257,20 +259,7 @@ class GraduationService
      */
     public function checkGeneralStudies(User $student): bool
     {
-        return Result::where('user_id', $student->id)
-            ->whereIn('status', ['released', 'exam_officer_approved'])
-            ->where('grade', '!=', 'F')
-            ->where(function ($q) {
-                $q->where('course_code_snapshot', 'like', 'GST%')
-                    ->orWhere('course_code_snapshot', 'like', 'GNS%')
-                    ->orWhere('course_title_snapshot', 'like', '%General Studies%')
-                    ->orWhereHas('departmentCourse.studentCourse', function ($sc) {
-                        $sc->where('code', 'like', 'GST%')
-                            ->orWhere('code', 'like', 'GNS%')
-                            ->orWhere('title', 'like', '%General Studies%');
-                    });
-            })
-            ->exists();
+        return $this->hasPassedCourseMatching($student, ['GST%', 'GNS%'], ['%General Studies%']);
     }
 
     /**
@@ -278,22 +267,11 @@ class GraduationService
      */
     public function checkSiwes(User $student): bool
     {
-        return Result::where('user_id', $student->id)
-            ->whereIn('status', ['released', 'exam_officer_approved'])
-            ->where('grade', '!=', 'F')
-            ->where(function ($q) {
-                $q->where('course_code_snapshot', 'like', '%SWE%')
-                    ->orWhere('course_code_snapshot', 'like', '%SIWES%')
-                    ->orWhere('course_title_snapshot', 'like', '%SIWES%')
-                    ->orWhere('course_title_snapshot', 'like', '%Industrial Training%')
-                    ->orWhereHas('departmentCourse.studentCourse', function ($sc) {
-                        $sc->where('code', 'like', '%SWE%')
-                            ->orWhere('code', 'like', '%SIWES%')
-                            ->orWhere('title', 'like', '%SIWES%')
-                            ->orWhere('title', 'like', '%Industrial Training%');
-                    });
-            })
-            ->exists();
+        return $this->hasPassedCourseMatching(
+            $student,
+            ['%SWE%', '%SIWES%'],
+            ['%SIWES%', '%Industrial Training%'],
+        );
     }
 
     /**
@@ -301,20 +279,61 @@ class GraduationService
      */
     public function checkEntrepreneurship(User $student): bool
     {
-        return Result::where('user_id', $student->id)
+        return $this->hasPassedCourseMatching(
+            $student,
+            ['ENT%', 'ESP%', 'EPS%'],
+            ['%Entrepreneur%'],
+        );
+    }
+
+    /**
+     * Match compulsory courses against each historical field in precedence order.
+     * A live course field is considered only when both result and registration
+     * snapshots for that field are absent.
+     *
+     * @param array<int, string> $codePatterns
+     * @param array<int, string> $titlePatterns
+     */
+    private function hasPassedCourseMatching(User $student, array $codePatterns, array $titlePatterns): bool
+    {
+        return Result::query()
+            ->where('user_id', $student->id)
             ->whereIn('status', ['released', 'exam_officer_approved'])
             ->where('grade', '!=', 'F')
-            ->where(function ($q) {
-                $q->where('course_code_snapshot', 'like', 'ENT%')
-                    ->orWhere('course_code_snapshot', 'like', 'ESP%')
-                    ->orWhere('course_code_snapshot', 'like', 'EPS%')
-                    ->orWhere('course_title_snapshot', 'like', '%Entrepreneur%')
-                    ->orWhereHas('departmentCourse.studentCourse', function ($sc) {
-                        $sc->where('code', 'like', 'ENT%')
-                            ->orWhere('code', 'like', 'ESP%')
-                            ->orWhere('code', 'like', 'EPS%')
-                            ->orWhere('title', 'like', '%Entrepreneur%');
-                    });
+            ->where(function ($identity) use ($codePatterns, $titlePatterns): void {
+                foreach ($codePatterns as $pattern) {
+                    $identity->orWhere('course_code_snapshot', 'like', $pattern)
+                        ->orWhere(function ($registrationFallback) use ($pattern): void {
+                            $registrationFallback->whereNull('course_code_snapshot')
+                                ->where(function ($fallback) use ($pattern): void {
+                                    $fallback->whereHas('registeredCourse', fn ($registration) => $registration
+                                        ->where('course_code_snapshot', 'like', $pattern))
+                                        ->orWhere(function ($legacy) use ($pattern): void {
+                                            $legacy->whereDoesntHave('registeredCourse', fn ($registration) => $registration
+                                                ->whereNotNull('course_code_snapshot'))
+                                                ->whereHas('departmentCourse.studentCourse', fn ($course) => $course
+                                                    ->where('code', 'like', $pattern));
+                                        });
+                                });
+                        });
+                }
+
+                foreach ($titlePatterns as $pattern) {
+                    $identity->orWhere('course_title_snapshot', 'like', $pattern)
+                        ->orWhere(function ($registrationFallback) use ($pattern): void {
+                            $registrationFallback->whereNull('course_title_snapshot')
+                                ->where(function ($fallback) use ($pattern): void {
+                                    $fallback->whereHas('registeredCourse', fn ($registration) => $registration
+                                        ->where('course_title_snapshot', 'like', $pattern))
+                                        ->orWhere(function ($legacy) use ($pattern): void {
+                                            $legacy->whereDoesntHave('registeredCourse', fn ($registration) => $registration
+                                                ->whereNotNull('course_title_snapshot'))
+                                                ->whereHas('departmentCourse.studentCourse', fn ($course) => $course
+                                                    ->where('title', 'like', $pattern));
+                                        });
+                                });
+                        });
+                }
             })
             ->exists();
     }

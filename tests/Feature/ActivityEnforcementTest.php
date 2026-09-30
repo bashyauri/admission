@@ -250,6 +250,42 @@ class ActivityEnforcementTest extends TestCase
         ]);
     }
 
+    public function test_undergraduate_registration_captures_immutable_course_snapshots(): void
+    {
+        $studentCourse = StudentCourse::create([
+            'code' => 'CSC104',
+            'title' => 'Database Systems',
+            'units' => 3,
+            'semester' => 1,
+            'student_level_id' => $this->level100->id,
+        ]);
+        $departmentCourse = DepartmentCourse::create([
+            'department_id' => $this->department->id,
+            'student_course_id' => $studentCourse->id,
+            'units' => 4,
+        ]);
+
+        $registration = $this->courseService->registerCourse(
+            $this->activeStudent->academicDetail,
+            $departmentCourse,
+            '2025/2026'
+        );
+
+        $studentCourse->update([
+            'code' => 'CSC204',
+            'title' => 'Advanced Database Systems',
+            'units' => 5,
+            'semester' => 2,
+        ]);
+
+        $registration->refresh();
+        $this->assertSame('CSC104', $registration->course_code_snapshot);
+        $this->assertSame('Database Systems', $registration->course_title_snapshot);
+        $this->assertSame(4, (int) $registration->credit_units_snapshot);
+        $this->assertSame('1', (string) $registration->semester_snapshot);
+        $this->assertSame($this->level100->id, $registration->level_snapshot);
+    }
+
     public function test_payment_service_blocks_fee_invoice_generation_for_withdrawn_student(): void
     {
         $this->expectException(\InvalidArgumentException::class);

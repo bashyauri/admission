@@ -113,9 +113,10 @@ class GradeCalculationService
     {
         $totalUnits = 0;
         $totalPoints = 0;
+        $courseSnapshots = app(ResultCourseSnapshotService::class);
 
         foreach ($results as $result) {
-            $units = (int) ($result->credit_units_snapshot ?? $result->credit_units ?? 0);
+            $units = $courseSnapshots->units($result);
             $gradePoint = (int) ($result->grade_point ?? 0);
 
             $totalUnits += $units;
@@ -136,7 +137,8 @@ class GradeCalculationService
      */
     public function processAndSaveGpaRecord(User $student, string $session, string $semester): ResultGpaRecord
     {
-        $semesterResults = Result::where('user_id', $student->id)
+        $semesterResults = Result::with(['registeredCourse', 'departmentCourse.studentCourse'])
+            ->where('user_id', $student->id)
             ->where('academic_session', $session)
             ->where('semester', $semester)
             ->whereIn('status', ['hod_approved', 'exam_officer_approved', 'released'])
@@ -145,7 +147,8 @@ class GradeCalculationService
         $semesterCalc = $this->calculateSemesterGpa($semesterResults);
 
         // Fetch all approved historical results for the student up to and including this session/semester
-        $allResults = Result::where('user_id', $student->id)
+        $allResults = Result::with(['registeredCourse', 'departmentCourse.studentCourse'])
+            ->where('user_id', $student->id)
             ->whereIn('status', ['hod_approved', 'exam_officer_approved', 'released'])
             ->get();
 
@@ -180,7 +183,8 @@ class GradeCalculationService
      */
     public function calculateCGPA(string|int $userId): array
     {
-        $allResults = Result::where('user_id', $userId)
+        $allResults = Result::with(['registeredCourse', 'departmentCourse.studentCourse'])
+            ->where('user_id', $userId)
             ->where('status', 'released')
             ->get();
 

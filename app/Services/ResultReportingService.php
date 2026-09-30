@@ -80,6 +80,7 @@ class ResultReportingService
         string $semester,
         ?int $levelId = null
     ): array {
+        $courseSnapshotService = app(ResultCourseSnapshotService::class);
         $departmentCourse = DepartmentCourse::with(['department', 'studentCourse'])
             ->findOrFail($departmentCourseId);
 
@@ -91,7 +92,7 @@ class ResultReportingService
             ->first();
 
         // Build results query
-        $resultsQuery = Result::with(['student.academicDetail.studentLevel', 'academicDetail.studentLevel', 'courseVersion'])
+        $resultsQuery = Result::with(['student.academicDetail.studentLevel', 'academicDetail.studentLevel', 'courseVersion', 'registeredCourse'])
             ->where('department_course_id', $departmentCourseId)
             ->where('academic_session', $session)
             ->where('semester', $semester);
@@ -138,7 +139,7 @@ class ResultReportingService
 
             $grade = $result->grade ?? ($total !== null ? $this->gradeCalculator->calculateGrade($total) : 'F');
             $gradePoint = $result->grade_point ?? ($total !== null ? $this->gradeCalculator->calculateGradePoint($total) : 0);
-            $units = (int) ($result->credit_units_snapshot ?? $result->credit_units ?? $departmentCourse->units ?? 0);
+            $units = $courseSnapshotService->units($result);
             $qualityPoints = $gradePoint * $units;
 
             if ($total !== null) {
@@ -179,14 +180,17 @@ class ResultReportingService
         $lowestScore = !empty($totalScoresList) ? min($totalScoresList) : 0.0;
         $averageScore = !empty($totalScoresList) ? round(array_sum($totalScoresList) / count($totalScoresList), 2) : 0.0;
 
-        $courseCode = $results->first()?->course_code_snapshot 
+        $firstCourseSnapshot = $results->first()
+            ? $courseSnapshotService->resolve($results->first())
+            : [];
+        $courseCode = $firstCourseSnapshot['code']
             ?? $departmentCourse->studentCourse?->code 
             ?? 'N/A';
         // StudentCourse uses 'title' column (not 'name')
-        $courseTitle = $results->first()?->course_title_snapshot 
+        $courseTitle = $firstCourseSnapshot['title']
             ?? $departmentCourse->studentCourse?->title 
             ?? 'N/A';
-        $creditUnits = (int) ($results->first()?->credit_units_snapshot 
+        $creditUnits = (int) (($firstCourseSnapshot['units'] ?? null)
             ?? $departmentCourse->units 
             ?? 0);
 
@@ -240,6 +244,7 @@ class ResultReportingService
      */
     public function getDepartmentalBroadsheet(array $filters): array
     {
+        $courseSnapshotService = app(ResultCourseSnapshotService::class);
         $departmentId = (int) $filters['department_id'];
         $courseId = !empty($filters['course_id']) ? (int) $filters['course_id'] : null;
         $levelId = !empty($filters['student_level_id']) ? (int) $filters['student_level_id'] : null;
@@ -279,7 +284,7 @@ class ResultReportingService
         $statusesForSession = $statusService->getStatusesForSession($studentIds, $session);
 
         // 2. Fetch all Results for these students in this session (across both semesters for full session broadsheet)
-        $resultsQuery = Result::with(['departmentCourse.studentCourse'])
+        $resultsQuery = Result::with(['departmentCourse.studentCourse', 'registeredCourse'])
             ->whereIn('user_id', $studentIds)
             ->where('academic_session', $session);
 
@@ -315,20 +320,21 @@ class ResultReportingService
         // 4. Fetch all active carry-overs for remark calculation
         $carryOvers = CarryOverCourse::whereIn('user_id', $studentIds)
             ->active()
-            ->with(['departmentCourse.studentCourse'])
+            ->with(['departmentCourse.studentCourse', 'registeredCourse'])
             ->get()
             ->groupBy('user_id');
 
         // 5. Extract unique courses across all results to form columns
         $courseColumns = [];
         foreach ($results as $res) {
-            $code = $res->course_code_snapshot 
+            $courseSnapshot = $courseSnapshotService->resolve($res);
+            $code = $courseSnapshot['code']
                 ?? $res->departmentCourse?->studentCourse?->code 
                 ?? "CRS-{$res->department_course_id}";
-            $title = $res->course_title_snapshot 
-                ?? $res->departmentCourse?->studentCourse?->name 
+            $title = $courseSnapshot['title']
+                ?? $res->departmentCourse?->studentCourse?->title
                 ?? 'Course';
-            $units = (int) ($res->credit_units_snapshot ?? $res->credit_units ?? $res->departmentCourse?->units ?? 0);
+            $units = $courseSnapshot['units'];
 
             if (!isset($courseColumns[$code])) {
                 $courseColumns[$code] = [
@@ -358,8 +364,8 @@ class ResultReportingService
 
             /** @var Collection<int, Result> $userResults */
             $userResults = $studentResultsGrouped->get($student->id, collect());
-            $resultsByCode = $userResults->keyBy(function (Result $r) {
-                return $r->course_code_snapshot 
+            $resultsByCode = $userResults->keyBy(function (Result $r) use ($courseSnapshotService) {
+                return $courseSnapshotService->resolve($r)['code']
                     ?? $r->departmentCourse?->studentCourse?->code 
                     ?? "CRS-{$r->department_course_id}";
             });
@@ -376,7 +382,7 @@ class ResultReportingService
                 $res = $resultsByCode->get($code);
 
                 if ($res) {
-                    $units = (int) ($res->credit_units_snapshot ?? $res->credit_units ?? $hdr['units']);
+                    $units = $courseSnapshotService->units($res) ?: (int) $hdr['units'];
                     $total = $res->total_score !== null ? (float) $res->total_score : null;
                     $grade = $res->grade ?? ($total !== null ? $this->gradeCalculator->calculateGrade($total) : 'F');
                     $gradePoint = $res->grade_point ?? ($total !== null ? $this->gradeCalculator->calculateGradePoint($total) : 0);
@@ -442,7 +448,7 @@ class ResultReportingService
             // Build course breakdown items for Nigerian Senate report
             $courseBreakdownItems = [];
             foreach ($resultsByCode as $code => $res) {
-                $units = (int) ($res->credit_units_snapshot ?? $res->credit_units ?? 0);
+                $units = $courseSnapshotService->units($res);
                 $grade = $res->grade ?? ($res->total_score !== null ? $this->gradeCalculator->calculateGrade((float) $res->total_score) : 'F');
                 $courseBreakdownItems[] = "{$code} - {$units} - {$grade}";
             }
@@ -450,7 +456,9 @@ class ResultReportingService
             // Determine Academic Standing & Status matching Affiliation Broadsheet standards
             $studentCarryOvers = $carryOvers->get($student->id, collect());
             $activeCarryCodes = $studentCarryOvers->map(function (CarryOverCourse $co) {
-                return $co->departmentCourse?->studentCourse?->code ?? 'N/A';
+                return $co->registeredCourse?->course_code_snapshot
+                    ?? $co->departmentCourse?->studentCourse?->code
+                    ?? 'N/A';
             })->filter()->all();
 
             $allUnclearedCourses = array_values(array_unique(array_merge($failedCoursesThisSession, $activeCarryCodes)));
@@ -875,6 +883,7 @@ class ResultReportingService
  */
 public function getCohortProgressionBroadsheet(array $filters): array
 {
+    $courseSnapshotService = app(ResultCourseSnapshotService::class);
     $departmentId     = !empty($filters['department_id']) ? (int) $filters['department_id'] : null;
     $admissionSession = !empty($filters['admission_session']) ? (string) $filters['admission_session'] : 'all';
     $levelId          = !empty($filters['student_level_id']) ? (int) $filters['student_level_id'] : null;
@@ -920,7 +929,7 @@ public function getCohortProgressionBroadsheet(array $filters): array
     $studentIds = $students->pluck('id')->all();
 
     // 2. Fetch all historical results for these students ordered chronologically
-    $rawResults = Result::with(['departmentCourse.studentCourse', 'courseVersion'])
+    $rawResults = Result::with(['departmentCourse.studentCourse', 'registeredCourse', 'courseVersion'])
         ->whereIn('user_id', $studentIds)
         ->whereIn('status', ['pending', 'submitted', 'hod_approved', 'exam_officer_approved', 'released'])
         ->orderBy('academic_session', 'asc')
@@ -989,10 +998,11 @@ public function getCohortProgressionBroadsheet(array $filters): array
         $passedAttempts = [];
 
         foreach ($userResults as $r) {
-            $code  = $r->course_code_snapshot
+            $courseSnapshot = $courseSnapshotService->resolve($r);
+            $code  = $courseSnapshot['code']
                 ?? $r->departmentCourse?->studentCourse?->code
                 ?? "CRS-{$r->department_course_id}";
-            $units = (int) ($r->credit_units_snapshot ?? $r->credit_units ?? $r->departmentCourse?->units ?? 0);
+            $units = $courseSnapshot['units'];
             $total = $r->total_score !== null ? (float) $r->total_score : null;
             $grade = strtoupper(trim((string) ($r->grade ?? ($total !== null ? $this->gradeCalculator->calculateGrade($total) : 'F'))));
 
@@ -1001,7 +1011,9 @@ public function getCohortProgressionBroadsheet(array $filters): array
                 $failedAttempts[] = [
                     'result_id'            => $r->id,
                     'course_code'          => $code,
-                    'course_title'         => $r->course_title_snapshot ?? $r->departmentCourse?->studentCourse?->name ?? 'Course',
+                    'course_title'         => $courseSnapshot['title']
+                        ?? $r->departmentCourse?->studentCourse?->title
+                        ?? 'Course',
                     'units'                => $units,
                     'session'              => $r->academic_session,
                     'semester'             => ucfirst((string) $r->semester),
@@ -1043,13 +1055,14 @@ public function getCohortProgressionBroadsheet(array $filters): array
                 $semTqp      = 0;
 
                 foreach ($semResults as $res) {
-                    $code       = $res->course_code_snapshot
+                    $courseSnapshot = $courseSnapshotService->resolve($res);
+                    $code       = $courseSnapshot['code']
                         ?? $res->departmentCourse?->studentCourse?->code
                         ?? "CRS-{$res->department_course_id}";
-                    $title      = $res->course_title_snapshot
-                        ?? $res->departmentCourse?->studentCourse?->name
+                    $title      = $courseSnapshot['title']
+                        ?? $res->departmentCourse?->studentCourse?->title
                         ?? 'Course';
-                    $units      = (int) ($res->credit_units_snapshot ?? $res->credit_units ?? $res->departmentCourse?->units ?? 0);
+                    $units      = $courseSnapshot['units'];
                     $total      = $res->total_score !== null ? (float) $res->total_score : null;
                     $grade      = $res->grade ?? ($total !== null ? $this->gradeCalculator->calculateGrade($total) : 'F');
                     $gradePoint = (int) ($res->grade_point ?? ($total !== null ? $this->gradeCalculator->calculateGradePoint($total) : 0));
@@ -1122,11 +1135,17 @@ public function getCohortProgressionBroadsheet(array $filters): array
 
         // A. Incorporate records from carry_over_courses table
         foreach ($studentCarryOvers as $co) {
-            $code  = $co->departmentCourse?->studentCourse?->code ?? "CRS-{$co->department_course_id}";
-            $title = $co->departmentCourse?->studentCourse?->name
+            $code  = $co->registeredCourse?->course_code_snapshot
+                ?? $co->departmentCourse?->studentCourse?->code
+                ?? "CRS-{$co->department_course_id}";
+            $title = $co->registeredCourse?->course_title_snapshot
+                ?? $co->departmentCourse?->studentCourse?->title
                 ?? $co->departmentCourse?->studentCourse?->title
                 ?? 'Course';
-            $units = (int) ($co->departmentCourse?->units ?? 0);
+            $units = (int) ($co->registeredCourse?->credit_units_snapshot
+                ?? $co->registeredCourse?->units
+                ?? $co->departmentCourse?->units
+                ?? 0);
 
             $isCleared    = (bool) $co->is_cleared;
             $clearedScore = $co->clearedResult?->total_score !== null ? (float) $co->clearedResult->total_score : null;

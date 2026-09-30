@@ -229,15 +229,46 @@ class ResultEntry extends Component
         }
         $grade = $isAbsent ? 'F' : ($total !== null ? $gradeService->calculateGrade($total) : null);
         $gradePoint = $isAbsent ? 0 : ($grade ? $gradeService->calculateGradePoint($grade) : null);
-        $creditUnits = $student->units;
+        $studentCourse = $student->departmentCourse?->studentCourse;
+        $resultKey = [
+            'user_id' => $userId,
+            'registered_course_id' => $student->id,
+            'academic_session' => $this->selectedSession,
+            'semester' => $this->selectedSemester,
+        ];
+        $existingResult = Result::query()->where($resultKey)->first();
+        $isUndergraduate = $student->academicDetail?->user?->isUndergraduate() ?? false;
+        $creditUnits = $isUndergraduate
+            ? (int) ($existingResult?->credit_units_snapshot
+                ?? $student->credit_units_snapshot
+                ?? $student->units
+                ?? $this->allocation->departmentCourse?->units
+                ?? 0)
+            : (int) $student->units;
+        $attemptSnapshots = [];
+
+        if ($isUndergraduate) {
+            $attemptSnapshots = [
+                'course_code_snapshot' => $existingResult?->course_code_snapshot
+                    ?? $student->course_code_snapshot
+                    ?? $studentCourse?->code,
+                'course_title_snapshot' => $existingResult?->course_title_snapshot
+                    ?? $student->course_title_snapshot
+                    ?? $studentCourse?->title,
+                'credit_units_snapshot' => $creditUnits,
+                'semester_snapshot' => $existingResult?->semester_snapshot
+                    ?? $student->semester_snapshot
+                    ?? $student->semester
+                    ?? ($studentCourse?->semester !== null ? (string) $studentCourse->semester : null),
+                'level_snapshot' => $existingResult?->level_snapshot
+                    ?? $student->level_snapshot
+                    ?? $student->student_level_id
+                    ?? $studentCourse?->student_level_id,
+            ];
+        }
 
         Result::updateOrCreate(
-            [
-                'user_id' => $userId,
-                'registered_course_id' => $student->id,
-                'academic_session' => $this->selectedSession,
-                'semester' => $this->selectedSemester,
-            ],
+            $resultKey,
             [
                 'department_course_id' => $this->allocation->department_course_id,
                 'academic_detail_id' => $student->academic_detail_id,
@@ -251,6 +282,7 @@ class ResultEntry extends Component
                 'status' => 'pending',
                 'lecturer_id' => Auth::id(),
                 'remarks' => $isAbsent ? 'Absent' : null,
+                ...$attemptSnapshots,
             ]
         );
 

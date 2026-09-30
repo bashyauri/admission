@@ -194,7 +194,7 @@ class FubkStudentReportService
             ->orderByRaw('COALESCE(admitted_departments.name, proposed_departments.name) ASC')
             ->orderBy('programmes.name')
             ->orderByRaw('MIN(CAST(student_levels.level AS UNSIGNED)) ASC')
-            ->orderByRaw('MIN(student_courses.code) ASC')
+            ->orderByRaw('MIN(COALESCE(registered_courses.course_code_snapshot, student_courses.code)) ASC')
             ->orderBy('users.surname')
             ->orderBy('users.firstname')
             ->select([
@@ -214,8 +214,8 @@ class FubkStudentReportService
                 DB::raw('COALESCE(admitted_departments.name, proposed_departments.name) as department_name'),
                 'programmes.name as programme_name',
                 DB::raw('MIN(CAST(student_levels.level AS UNSIGNED)) as level_sort'),
-                DB::raw('MIN(student_courses.code) as first_course_code'),
-                DB::raw("GROUP_CONCAT(DISTINCT CONCAT(student_courses.code, ' - ', student_courses.title) ORDER BY student_courses.code SEPARATOR ' | ') as registered_courses"),
+                DB::raw('MIN(COALESCE(registered_courses.course_code_snapshot, student_courses.code)) as first_course_code'),
+                DB::raw("GROUP_CONCAT(DISTINCT CONCAT(COALESCE(registered_courses.course_code_snapshot, student_courses.code), ' - ', COALESCE(registered_courses.course_title_snapshot, student_courses.title)) ORDER BY COALESCE(registered_courses.course_code_snapshot, student_courses.code) SEPARATOR ' | ') as registered_courses"),
             ]);
     }
 
@@ -297,8 +297,8 @@ class FubkStudentReportService
             ->orderBy('users.m_name')
             ->orderBy('academic_details.matric_no')
             ->orderByRaw('CAST(student_levels.level AS UNSIGNED) ASC')
-            ->orderBy('student_courses.semester')
-            ->orderBy('student_courses.code')
+            ->orderByRaw('COALESCE(registered_courses.semester_snapshot, student_courses.semester)')
+            ->orderByRaw('COALESCE(registered_courses.course_code_snapshot, student_courses.code)')
             ->select([
                 'users.id',
                 'users.surname',
@@ -309,10 +309,10 @@ class FubkStudentReportService
                 DB::raw('COALESCE(admitted_departments.name, proposed_departments.name) as department_name'),
                 'programmes.name as programme_name',
                 'student_levels.level as level_name',
-                'student_courses.semester',
-                'student_courses.code as course_code',
-                'student_courses.title as course_title',
-                'registered_courses.units as credit_units',
+                DB::raw('COALESCE(registered_courses.semester_snapshot, student_courses.semester) as semester'),
+                DB::raw('COALESCE(registered_courses.course_code_snapshot, student_courses.code) as course_code'),
+                DB::raw('COALESCE(registered_courses.course_title_snapshot, student_courses.title) as course_title'),
+                DB::raw('COALESCE(registered_courses.credit_units_snapshot, registered_courses.units) as credit_units'),
             ]);
     }
 

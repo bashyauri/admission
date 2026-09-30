@@ -131,7 +131,8 @@ class ResultImport implements ToCollection, WithHeadingRow
             $total = $isAbsent ? 0.0 : floatval($ca) + floatval($exam);
             $grade = $isAbsent ? 'F' : $gradeService->calculateGrade($total);
             $gradePoint = $gradeService->calculateGradePoint($grade);
-            $creditUnits = $regCourse->units;
+            $student = $academicDetail->user;
+            $isUndergraduate = $student?->isUndergraduate() ?? false;
 
             // Check existing result status
             $existing = Result::where('user_id', $academicDetail->user_id)
@@ -143,6 +144,33 @@ class ResultImport implements ToCollection, WithHeadingRow
             if ($existing && $existing->status !== 'pending') {
                 $this->addPreviewError($rowNumber, $matricNo, $caScore, $examScore, 'Result is already submitted and cannot be updated.');
                 continue;
+            }
+
+            $creditUnits = $isUndergraduate
+                ? (int) ($existing?->credit_units_snapshot ?? $regCourse->credit_units_snapshot ?? $regCourse->units)
+                : (int) $regCourse->units;
+
+            $snapshotAttributes = [];
+            if ($isUndergraduate) {
+                $studentCourse = $this->allocation->departmentCourse?->studentCourse;
+                $snapshotAttributes = [
+                    'course_code_snapshot' => $existing?->course_code_snapshot
+                        ?? $regCourse->course_code_snapshot
+                        ?? $studentCourse?->code,
+                    'course_title_snapshot' => $existing?->course_title_snapshot
+                        ?? $regCourse->course_title_snapshot
+                        ?? $studentCourse?->title,
+                    'credit_units_snapshot' => $existing?->credit_units_snapshot
+                        ?? $regCourse->credit_units_snapshot
+                        ?? $creditUnits,
+                    'semester_snapshot' => $existing?->semester_snapshot
+                        ?? $regCourse->semester_snapshot
+                        ?? ($regCourse->semester ?? $studentCourse?->semester),
+                    'level_snapshot' => $existing?->level_snapshot
+                        ?? $regCourse->level_snapshot
+                        ?? $regCourse->student_level_id
+                        ?? $studentCourse?->student_level_id,
+                ];
             }
 
             $this->previewRows[] = [
@@ -182,6 +210,7 @@ class ResultImport implements ToCollection, WithHeadingRow
                     'status' => 'pending',
                     'lecturer_id' => Auth::id(),
                     'remarks' => $isAbsent ? 'Absent' : null,
+                    ...$snapshotAttributes,
                 ]
             );
 

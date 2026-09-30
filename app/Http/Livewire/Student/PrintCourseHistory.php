@@ -6,6 +6,7 @@ use Livewire\Component;
 use Illuminate\Support\Facades\Auth;
 use App\Models\RegisteredCourse;
 use App\Services\CourseRegistrationService;
+use App\Services\ResultCourseSnapshotService;
 use Illuminate\Support\Collection;
 
 class PrintCourseHistory extends Component
@@ -44,12 +45,19 @@ class PrintCourseHistory extends Component
             $service = new CourseRegistrationService();
             $courses = $service->getRegisteredCourses($academicDetailId, $this->selectedSession, 'semester');
             $totalUnits = $service->getTotalUnitsOfRegisteredCourses($academicDetailId, $this->selectedSession);
+            if ($user->isUndergraduate()) {
+                $snapshotService = app(ResultCourseSnapshotService::class);
+                foreach ($courses as $course) {
+                    $course->setAttribute('resolved_course_snapshot', $snapshotService->resolveRegistration($course));
+                }
+            }
         }
 
         return view('livewire.student.print-course-history', [
             'courses' => $courses,
             'totalUnits' => $totalUnits,
             'sessions' => $this->availableSessions(),
+            'isUndergraduate' => $user->isUndergraduate(),
         ]);
     }
 }

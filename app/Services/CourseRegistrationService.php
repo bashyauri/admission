@@ -88,13 +88,25 @@ class CourseRegistrationService
             throw new \InvalidArgumentException('This course is not available for registration. Refresh the page and try again.');
         }
 
-        return $student->registeredCourses()->create([
+        $registrationAttributes = [
             'department_course_id' => $course->id,
             'semester' => $studentCourse->semester,
             'units' => $course->units,
             'student_level_id' => $studentCourse->student_level_id,
             'academic_session' => $academicSession,
-        ]);
+        ];
+
+        if ($user->isUndergraduate()) {
+            $registrationAttributes += [
+                'course_code_snapshot' => $studentCourse->code,
+                'course_title_snapshot' => $studentCourse->title,
+                'credit_units_snapshot' => $course->units,
+                'semester_snapshot' => (string) $studentCourse->semester,
+                'level_snapshot' => $studentCourse->student_level_id,
+            ];
+        }
+
+        return $student->registeredCourses()->create($registrationAttributes);
     }
 
 
@@ -124,17 +136,17 @@ class CourseRegistrationService
             if ($order === 'semester') {
                 $query->join('department_courses', 'registered_courses.department_course_id', '=', 'department_courses.id')
                     ->join('student_courses', 'department_courses.student_course_id', '=', 'student_courses.id')
-                    ->orderBy('student_courses.semester');
+                    ->orderByRaw('COALESCE(registered_courses.semester_snapshot, student_courses.semester)');
             } elseif ($order === 'title') {
                 $query->join('department_courses', 'registered_courses.department_course_id', '=', 'department_courses.id')
                     ->join('student_courses', 'department_courses.student_course_id', '=', 'student_courses.id')
-                    ->orderBy('student_courses.title');
+                    ->orderByRaw('COALESCE(registered_courses.course_title_snapshot, student_courses.title)');
             } else {
                 $query->orderBy($order); // Order by the provided column if valid.  Be cautious about allowing arbitrary column names to prevent SQL injection vulnerabilities.
             }
         }
 
-        return $query->get();
+        return $query->select('registered_courses.*')->get();
     }
 
 
@@ -146,7 +158,7 @@ class CourseRegistrationService
             'academic_session' => $academicSession,
             'academic_detail_id' => $studentId
         ])
-            ->sum('units');
+            ->sum(DB::raw('COALESCE(credit_units_snapshot, units)'));
     }
 
 
@@ -172,12 +184,12 @@ class CourseRegistrationService
             ->where('registered_courses.academic_detail_id', $studentId)
             ->select(
                 'registered_courses.academic_session',
-                'student_courses.semester',
-                DB::raw('MAX(student_courses.student_level_id) as student_level_id') // aggregate function
+                DB::raw('COALESCE(registered_courses.semester_snapshot, student_courses.semester) as semester'),
+                DB::raw('MAX(COALESCE(registered_courses.level_snapshot, registered_courses.student_level_id, student_courses.student_level_id)) as student_level_id')
             )
             ->groupBy(
                 'registered_courses.academic_session',
-                'student_courses.semester'
+                DB::raw('COALESCE(registered_courses.semester_snapshot, student_courses.semester)')
             )
             ->orderBy('registered_courses.academic_session')
             ->get();
@@ -190,13 +202,13 @@ class CourseRegistrationService
             ->where([
                 'registered_courses.academic_detail_id' => $studentId,
                 'registered_courses.academic_session' => $academicSession,
-                'student_courses.semester' => $semester
             ])
+            ->whereRaw('COALESCE(registered_courses.semester_snapshot, student_courses.semester) = ?', [(string) $semester])
             ->select(
                 'registered_courses.*',
-                'student_courses.code',
-                'student_courses.title',
-                'department_courses.units'
+                DB::raw('COALESCE(registered_courses.course_code_snapshot, student_courses.code) as code'),
+                DB::raw('COALESCE(registered_courses.course_title_snapshot, student_courses.title) as title'),
+                DB::raw('COALESCE(registered_courses.credit_units_snapshot, registered_courses.units, department_courses.units) as units')
             )
             ->get();
     }

@@ -490,17 +490,10 @@
         <tbody>
             @foreach($results as $index => $res)
                 @php
-                    $code  = $res->course_code_snapshot
-                        ?? $res->departmentCourse?->studentCourse?->code
-                        ?? $res->registeredCourse?->departmentCourse?->studentCourse?->code
-                        ?? 'N/A';
-
-                    $title = $res->course_title_snapshot
-                        ?? $res->departmentCourse?->studentCourse?->title
-                        ?? $res->registeredCourse?->departmentCourse?->studentCourse?->title
-                        ?? 'N/A';
-
-                    $units = (int) ($res->credit_units_snapshot ?? $res->credit_units ?? $res->departmentCourse?->units ?? 0);
+                    $snapshot = $res->resolved_course_snapshot;
+                    $code = $snapshot['code'] ?? 'N/A';
+                    $title = $snapshot['title'] ?? 'N/A';
+                    $units = $snapshot['units'];
                     $ca    = $res->ca_score   !== null ? number_format((float)$res->ca_score,   1) : '-';
                     $exam  = $res->exam_score  !== null ? number_format((float)$res->exam_score,  1) : '-';
                     $total = $res->total_score !== null ? number_format((float)$res->total_score, 1) : '-';

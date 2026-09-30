@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use App\Services\CourseRegistrationService;
 use App\Services\AcademicSessionService;
+use App\Services\ResultCourseSnapshotService;
 
 class PrintCourseForm extends Controller
 {
@@ -43,12 +44,13 @@ class PrintCourseForm extends Controller
                 $user->academicDetail->id,
                 $academicSession,
             );
+            $this->attachUndergraduateSnapshots($registeredCourses, $user);
         } catch (Exception $e) {
             Log::info("Something went wrong: " . $e->getMessage());
             return redirect()->back()->with(['error_message' => 'Something went wrong. Please contact CIT.']);
         }
 
-        return view('student.print-course-form', ['courses' => $registeredCourses, 'user' => $user, 'totalUnits' => $totalUnits, 'academicSession' => $academicSession]);
+        return view('student.print-course-form', ['courses' => $registeredCourses, 'user' => $user, 'totalUnits' => $totalUnits, 'academicSession' => $academicSession, 'isUndergraduate' => $user->isUndergraduate()]);
     }
 
     public function printSession(User $user, string $session)
@@ -69,11 +71,24 @@ class PrintCourseForm extends Controller
                 $user->academicDetail->id,
                 $academicSession,
             );
+            $this->attachUndergraduateSnapshots($registeredCourses, $user);
         } catch (Exception $e) {
             Log::info("Something went wrong: " . $e->getMessage());
             return redirect()->back()->with(['error_message' => 'Something went wrong. Please contact CIT.']);
         }
 
-        return view('student.print-course-form', ['courses' => $registeredCourses, 'user' => $user, 'totalUnits' => $totalUnits, 'academicSession' => $academicSession]);
+        return view('student.print-course-form', ['courses' => $registeredCourses, 'user' => $user, 'totalUnits' => $totalUnits, 'academicSession' => $academicSession, 'isUndergraduate' => $user->isUndergraduate()]);
+    }
+
+    private function attachUndergraduateSnapshots($courses, User $user): void
+    {
+        if (!$user->isUndergraduate()) {
+            return;
+        }
+
+        $snapshotService = app(ResultCourseSnapshotService::class);
+        foreach ($courses as $course) {
+            $course->setAttribute('resolved_course_snapshot', $snapshotService->resolveRegistration($course));
+        }
     }
 }

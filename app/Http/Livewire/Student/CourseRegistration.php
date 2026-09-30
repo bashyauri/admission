@@ -57,8 +57,11 @@ class CourseRegistration extends Component
         // Filter by search if provided
         if ($this->searchRegistered) {
             $courses = $courses->filter(function ($course) {
-                return str_contains(strtolower($course->departmentCourse->studentCourse->code), strtolower($this->searchRegistered)) ||
-                       str_contains(strtolower($course->departmentCourse->studentCourse->title), strtolower($this->searchRegistered));
+                $code = $course->course_code_snapshot ?? $course->departmentCourse->studentCourse->code;
+                $title = $course->course_title_snapshot ?? $course->departmentCourse->studentCourse->title;
+
+                return str_contains(strtolower($code), strtolower($this->searchRegistered)) ||
+                       str_contains(strtolower($title), strtolower($this->searchRegistered));
             });
         }
         
@@ -174,7 +177,11 @@ class CourseRegistration extends Component
     }
     private function canAddCourse(int $courseUnits): bool
     {
-        return ($this->registeredCourses->sum('units') + $courseUnits) <= $this->maxUnits;
+        $registeredUnits = $this->registeredCourses->sum(
+            fn (RegisteredCourse $registeredCourse): int => (int) ($registeredCourse->credit_units_snapshot ?? $registeredCourse->units)
+        );
+
+        return ($registeredUnits + $courseUnits) <= $this->maxUnits;
     }
 
     private function currentAcademicSession(): string

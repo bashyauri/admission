@@ -57,6 +57,10 @@ class PrintStatementOfResult extends Controller
         abort_if($results->isEmpty(), 404, 'No released results found for this semester.');
 
         $gradeService = app(GradeCalculationService::class);
+        $courseSnapshotService = app(\App\Services\ResultCourseSnapshotService::class);
+        foreach ($results as $result) {
+            $result->setAttribute('resolved_course_snapshot', $courseSnapshotService->resolve($result));
+        }
 
         // Compute semester totals
         $tcr = 0; // Total Credit Registered
@@ -64,7 +68,7 @@ class PrintStatementOfResult extends Controller
         $tqp = 0; // Total Quality Points
 
         foreach ($results as $res) {
-            $units = (int) ($res->credit_units_snapshot ?? $res->credit_units ?? $res->departmentCourse?->units ?? 0);
+            $units = $courseSnapshotService->units($res);
             $gp    = (int) ($res->grade_point ?? $gradeService->calculateGradePoint($res->grade ?? 'F'));
             $tcr  += $units;
             $tqp  += ($gp * $units);

@@ -211,6 +211,7 @@ class TranscriptService
 
         // Track course attempts chronologically across all semesters
         $courseAttemptCounts = [];
+        $courseSnapshotService = app(ResultCourseSnapshotService::class);
         $sessions = $rawResults->pluck('academic_session')->unique()->values();
 
         $semestersData = [];
@@ -236,22 +237,10 @@ class TranscriptService
                 $semTqp = 0; // Total Quality Points
 
                 foreach ($coursesInSemester as $res) {
-                    $code = $res->course_code_snapshot
-                        ?? $res->registeredCourse?->course_code_snapshot
-                        ?? $res->departmentCourse?->studentCourse?->code
-                        ?? 'N/A';
-
-                    $title = $res->course_title_snapshot
-                        ?? $res->registeredCourse?->course_title_snapshot
-                        ?? $res->departmentCourse?->studentCourse?->title
-                        ?? 'N/A';
-
-                    $units = (int) ($res->credit_units_snapshot
-                        ?? $res->credit_units
-                        ?? $res->registeredCourse?->credit_units_snapshot
-                        ?? $res->departmentCourse?->units
-                        ?? $res->departmentCourse?->studentCourse?->units
-                        ?? 0);
+                    $courseSnapshot = $courseSnapshotService->resolve($res);
+                    $code = $courseSnapshot['code'] ?? 'N/A';
+                    $title = $courseSnapshot['title'] ?? 'N/A';
+                    $units = $courseSnapshot['units'];
 
                     $grade = strtoupper(trim((string) ($res->grade ?? 'F')));
                     $gradePoint = (int) ($res->grade_point ?? $this->gradeCalculationService->calculateGradePoint($grade));
@@ -348,12 +337,14 @@ class TranscriptService
     {
         $cgpaData = $this->gradeCalculationService->calculateCGPA($userId);
 
-        $passedUnits = Result::where('user_id', $userId)
+        $courseSnapshotService = app(ResultCourseSnapshotService::class);
+        $passedUnits = Result::with(['registeredCourse', 'departmentCourse.studentCourse'])
+            ->where('user_id', $userId)
             ->where('status', 'released')
             ->where('grade', '!=', 'F')
             ->get()
-            ->sum(function ($r) {
-                return (int) ($r->credit_units_snapshot ?? $r->credit_units ?? 0);
+            ->sum(function ($r) use ($courseSnapshotService) {
+                return $courseSnapshotService->units($r);
             });
 
         return [

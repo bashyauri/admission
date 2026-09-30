@@ -159,7 +159,7 @@ graph TD
   - Created public verification views: `resources/views/transcripts/verify.blade.php` and `verify-not-found.blade.php`.
   - Automated test suites: `tests/Unit/TranscriptServiceTest.php` (4 tests, 28 assertions) and `tests/Feature/TranscriptTest.php` (6 tests, 20 assertions).
 
-### Phase 5 Follow-up: Task 5.5 — Registered-Course Snapshot Integrity for Results (PENDING)
+### Phase 5 Follow-up: Task 5.5 — Registered-Course Snapshot Integrity for Results (IMPLEMENTED; TEST EXECUTION PENDING)
 
 * **Goal:** Ensure UG result entry, GPA/quality-point calculation, student result displays, reports, and transcripts preserve the course details that applied when each student registered.
 * **Source of truth and fallback order:**
@@ -167,13 +167,14 @@ graph TD
   2. Otherwise use the linked student's registration snapshot (`registered_courses.*_snapshot`).
   3. Use the current `student_courses` values only when both historical snapshots are unavailable, to support legacy records.
 * **Tasks:**
-  - [ ] At result creation/update, copy course code, title, credit units, semester, and level snapshots from the linked `RegisteredCourse` onto the result attempt where the schema supports them.
-  - [ ] Update GPA and quality-point calculation paths to use result snapshot units first, linked registration snapshot units second, and current course data only as the final legacy fallback.
-  - [ ] Align student result displays, statements, broadsheets/reports, graduation calculations, and transcripts with the same historical fallback order; avoid direct live-course lookups when either snapshot exists.
-  - [ ] Add regression tests proving later edits to `student_courses` do not change a student's registered course identity/units in result calculations or historical output.
-  - [ ] Add legacy-record tests where result snapshots are absent and registration snapshots are used; verify the live course is only used when both snapshots are missing.
-  - [ ] Review all affected behavior as UG-only. Do not change PG grading, result, progression, or payment workflows.
-  - [ ] Do not bulk-fill historical snapshots from current course records unless original values are independently verified.
+  - [x] Capture course code, title, units, semester, and level snapshots when UG course registrations are created.
+  - [x] Copy registered-course snapshots to new/updated UG result attempts through manual and CSV result entry, preserving existing attempt snapshots.
+  - [x] Update GPA, quality-point, student result, statement, course-history, course-form, broadsheet/report, graduation, and transcript paths to prioritize result then registration snapshots, with legacy fallbacks.
+  - [x] Add regression coverage showing registered snapshots survive live course edits and are used by GPA calculation; verify new UG registrations capture snapshots.
+  - [x] Keep snapshot writes in result entry UG-only; PG and payment workflows were not changed.
+  - [x] Do not bulk-fill historical snapshots from current course records.
+  - [ ] Run the focused regression test suites and broader affected UG suites.
+* **Status:** Implementation and regression tests are in place. Test execution remains pending.
 * **Agent prompt:**
   > *"Implement Phase 5 follow-up Task 5.5 from `result_processing_agent_phases.md`. Enforce the registered-course snapshot authority rule in `AGENTS.md`: result-attempt snapshots first, linked registered-course snapshots second, and current `student_courses` data only for legacy records missing both. Cover result entry, GPA/quality-point calculations, student result displays, statements, reports, graduation calculations, and transcripts. Add regression tests for changed live course data and legacy fallback. Preserve UG/PG isolation and do not alter PG or any payment flow. Do not infer or backfill unverified historical snapshot values."*
 
@@ -211,7 +212,7 @@ graph TD
 
 ---
 
--+  ## Phase 6: Undergraduate Graduation Processing & Senate Final Degree Approval (IN PROGRESS)
+## Phase 6: Undergraduate Graduation Processing & Senate Final Degree Approval (IN PROGRESS)
 * **Goal:** Automatically check undergraduate student graduation eligibility, generate the Senate Graduation Broadsheet, produce the Official Graduating/Pass List, and track certificate issuance.
 * **Risk Profile:** Low (primarily reports, eligibility evaluation, and certificate logging).
 * **Status:** **Ready for Execution (Structured into 15 Daily Tasks including Task 6.7 for Student Status Management)**

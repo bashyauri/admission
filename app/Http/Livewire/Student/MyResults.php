@@ -80,7 +80,20 @@ class MyResults extends Component
         $sessions = $rawResults->pluck('academic_session')->unique()->values();
 
         $gradeService = app(GradeCalculationService::class);
+        $courseSnapshotService = app(\App\Services\ResultCourseSnapshotService::class);
         $progressionService = app(AcademicProgressionService::class);
+        $isUndergraduate = $user->isUndergraduate();
+        if ($isUndergraduate) {
+            foreach ($rawResults as $result) {
+                $result->setAttribute('resolved_course_snapshot', $courseSnapshotService->resolve($result));
+            }
+        }
+        $unitsForResult = static fn (Result $result): int => $isUndergraduate
+            ? $courseSnapshotService->units($result)
+            : (int) ($result->credit_units_snapshot
+                ?? $result->credit_units
+                ?? $result->departmentCourse?->units
+                ?? 0);
 
         // Fetch GPA records for fast lookup
         $gpaRecords = ResultGpaRecord::query()
@@ -109,7 +122,7 @@ class MyResults extends Component
                     $tqp = 0; // Total Quality Points
 
                     foreach ($semesterCourses as $res) {
-                        $units = (int) ($res->credit_units_snapshot ?? $res->credit_units ?? $res->departmentCourse?->units ?? $res->departmentCourse?->studentCourse?->units ?? 0);
+                        $units = $unitsForResult($res);
                         $gp = (int) ($res->grade_point ?? $gradeService->calculateGradePoint($res->grade ?? 'F'));
                         $tcr += $units;
                         $tqp += ($gp * $units);
@@ -136,6 +149,7 @@ class MyResults extends Component
 
         // Overall cumulative calculation
         $allReleasedResults = Result::query()
+            ->with(['registeredCourse', 'departmentCourse.studentCourse'])
             ->where('user_id', $user->id)
             ->where('status', 'released')
             ->get();
@@ -145,7 +159,7 @@ class MyResults extends Component
         $totalTqp = 0;
 
         foreach ($allReleasedResults as $res) {
-            $units = (int) ($res->credit_units_snapshot ?? $res->credit_units ?? $res->departmentCourse?->units ?? 0);
+            $units = $unitsForResult($res);
             $gp = (int) ($res->grade_point ?? $gradeService->calculateGradePoint($res->grade ?? 'F'));
             $totalTcr += $units;
             $totalTqp += ($gp * $units);
@@ -170,7 +184,7 @@ class MyResults extends Component
             'overallCgpa' => $overallCgpa,
             'classOfDegree' => $classOfDegree,
             'academicStanding' => $academicStanding,
-            'isUndergraduate' => $user->isUndergraduate(),
+            'isUndergraduate' => $isUndergraduate,
             'graduationEligibility' => $graduationEligibility,
             'degreeCertificate' => $degreeCertificate,
         ])->layout('layouts.app');

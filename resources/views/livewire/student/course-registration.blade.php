@@ -241,7 +241,7 @@
                                         <span class="text-gray-500">Registered</span>
                                     </div>
                                     <div class="text-center">
-                                        <span class="block font-bold text-fuchsia-600">{{ $registeredCourses->sum('units') }}</span>
+                                        <span class="block font-bold text-fuchsia-600">{{ $registeredCourses->sum(fn ($course) => $course->credit_units_snapshot ?? $course->units) }}</span>
                                         <span class="text-gray-500">Units</span>
                                     </div>
                                 </div>
@@ -251,13 +251,13 @@
                             <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
                                 <div class="flex justify-between items-center mb-2">
                                     <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Unit Usage</span>
-                                    <span class="text-sm font-bold {{ $registeredCourses->sum('units') > $maxUnits ? 'text-red-600 dark:text-red-400' : 'text-gray-700 dark:text-gray-300' }}">
-                                        {{ $registeredCourses->sum('units') }} / {{ $maxUnits }} units
+                                    <span class="text-sm font-bold {{ $registeredCourses->sum(fn ($course) => $course->credit_units_snapshot ?? $course->units) > $maxUnits ? 'text-red-600 dark:text-red-400' : 'text-gray-700 dark:text-gray-300' }}">
+                                        {{ $registeredCourses->sum(fn ($course) => $course->credit_units_snapshot ?? $course->units) }} / {{ $maxUnits }} units
                                     </span>
                                 </div>
                                 <div class="w-full bg-gray-200 dark:bg-gray-600 rounded-full h-3">
                                     @php
-                                        $percentage = min(($registeredCourses->sum('units') / $maxUnits) * 100, 100);
+                                        $percentage = min(($registeredCourses->sum(fn ($course) => $course->credit_units_snapshot ?? $course->units) / $maxUnits) * 100, 100);
                                         $progressColor = $percentage >= 90 ? 'bg-red-500' : ($percentage >= 75 ? 'bg-amber-500' : 'bg-green-500');
                                     @endphp
                                     <div class="h-3 rounded-full transition-all duration-500 ease-out {{ $progressColor }}" style="width: {{ $percentage }}%"></div>
@@ -345,18 +345,18 @@
                                             <div class="flex items-start justify-between mb-3">
                                                 <div class="flex-1">
                                                     <div class="flex items-center space-x-2 mb-1">
-                                                        <span class="bg-green-100 text-green-800 text-xs font-semibold px-2 py-1 rounded">{{ $pickedCourse->departmentCourse->studentCourse->code }}</span>
+                                                        <span class="bg-green-100 text-green-800 text-xs font-semibold px-2 py-1 rounded">{{ $pickedCourse->course_code_snapshot ?? $pickedCourse->departmentCourse->studentCourse->code }}</span>
                                                         <span class="bg-green-100 text-green-700 text-xs px-2 py-1 rounded">✓ Registered</span>
                                                     </div>
-                                                    <h4 class="font-semibold text-gray-900 dark:text-white text-base">{{ $pickedCourse->departmentCourse->studentCourse->title }}</h4>
+                                                    <h4 class="font-semibold text-gray-900 dark:text-white text-base">{{ $pickedCourse->course_title_snapshot ?? $pickedCourse->departmentCourse->studentCourse->title }}</h4>
                                                 </div>
                                                 <div class="flex items-center space-x-3">
                                                     <span class="bg-green-200 text-green-800 text-sm font-bold px-3 py-1 rounded-full">
-                                                        {{ $pickedCourse->units }} Units
+                                                        {{ $pickedCourse->credit_units_snapshot ?? $pickedCourse->units }} Units
                                                     </span>
                                                     @if ($this->isActivityAllowed)
                                                         <button wire:click="deleteCourse({{ $pickedCourse->id }})"
-                                                            wire:confirm="Remove {{ $pickedCourse->departmentCourse->studentCourse->code }}?"
+                                                            wire:confirm="Remove {{ $pickedCourse->course_code_snapshot ?? $pickedCourse->departmentCourse->studentCourse->code }}?"
                                                             wire:loading.attr="disabled"
                                                             class="text-red-500 hover:text-red-700 hover:bg-red-50 p-2 rounded-lg transition-colors"
                                                             title="Remove course">

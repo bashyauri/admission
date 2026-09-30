@@ -65,17 +65,17 @@
                                     <tr wire:key="course-{{ $course->id }}" class="border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-750 transition-colors">
                                         <td class="px-4 py-3 text-gray-500 dark:text-gray-400">{{ $index + 1 }}</td>
                                         <td class="px-4 py-3 font-mono text-gray-800 dark:text-gray-200">
-                                            {{ $course->departmentCourse->studentCourse->code }}
+                                            {{ $isUndergraduate ? ($course->resolved_course_snapshot['code'] ?? 'N/A') : ($course->course_code_snapshot ?? $course->departmentCourse->studentCourse->code) }}
                                         </td>
                                         <td class="px-4 py-3 text-gray-800 dark:text-gray-200">
-                                            {{ $course->departmentCourse->studentCourse->title }}
+                                            {{ $isUndergraduate ? ($course->resolved_course_snapshot['title'] ?? 'N/A') : ($course->course_title_snapshot ?? $course->departmentCourse->studentCourse->title) }}
                                         </td>
                                         <td class="px-4 py-3 text-gray-600 dark:text-gray-400">
-                                            {{ $course->departmentCourse->studentCourse->semester == 1 ? 'First' : 'Second' }}
+                                            {{ ($isUndergraduate ? ($course->resolved_course_snapshot['semester'] ?? null) : ($course->semester_snapshot ?? $course->departmentCourse->studentCourse->semester)) == 1 ? 'First' : 'Second' }}
                                         </td>
                                         <td class="px-4 py-3 text-center">
                                             <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
-                                                {{ $course->units }}
+                                                {{ $isUndergraduate ? ($course->resolved_course_snapshot['units'] ?? 0) : ($course->credit_units_snapshot ?? $course->units) }}
                                             </span>
                                         </td>
                                     </tr>

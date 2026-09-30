@@ -301,10 +301,10 @@
                     @foreach ($courses as $course)
 
                         <tr>
-                            <td>{{ $course->departmentCourse->studentCourse->code }}</td>
-                            <td>{{ $course->departmentCourse->studentCourse->title }}</td>
-                            <td>{{ $course->units }}</td>
-                            <td>{{ $course->departmentCourse->studentCourse->semester == 1 ? 'FIRST' : 'SECOND' }}</td>
+                            <td>{{ $isUndergraduate ? ($course->resolved_course_snapshot['code'] ?? 'N/A') : ($course->course_code_snapshot ?? $course->departmentCourse->studentCourse->code) }}</td>
+                            <td>{{ $isUndergraduate ? ($course->resolved_course_snapshot['title'] ?? 'N/A') : ($course->course_title_snapshot ?? $course->departmentCourse->studentCourse->title) }}</td>
+                            <td>{{ $isUndergraduate ? ($course->resolved_course_snapshot['units'] ?? 0) : ($course->credit_units_snapshot ?? $course->units) }}</td>
+                            <td>{{ ($isUndergraduate ? ($course->resolved_course_snapshot['semester'] ?? null) : ($course->semester_snapshot ?? $course->departmentCourse->studentCourse->semester)) == 1 ? 'FIRST' : 'SECOND' }}</td>
                         </tr>
                     @endforeach
                 </tbody>
