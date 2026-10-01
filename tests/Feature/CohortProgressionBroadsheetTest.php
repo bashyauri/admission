@@ -5,16 +5,20 @@ declare(strict_types=1);
 namespace Tests\Feature;
 
 use App\Enums\ProgrammesEnum;
+use App\Enums\StudentStatus;
+use App\Enums\StudentStatusType;
 use App\Models\AcademicDetail;
 use App\Models\CarryOverCourse;
 use App\Models\Course;
 use App\Models\Department;
 use App\Models\DepartmentCourse;
+use App\Models\DisciplinaryAction;
 use App\Models\Programme;
 use App\Models\RegisteredCourse;
 use App\Models\Result;
 use App\Models\StudentCourse;
 use App\Models\StudentLevel;
+use App\Models\StudentStatusRecord;
 use App\Models\User;
 use App\Services\ResultReportingService;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
@@ -297,6 +301,50 @@ class CohortProgressionBroadsheetTest extends TestCase
         $this->assertEquals(1, $stats['deficient_count']);
         $this->assertEquals(1, $stats['total_carryovers_cleared']);
         $this->assertEquals(1, $stats['total_carryovers_outstanding']);
+    }
+
+    public function test_cohort_progression_broadsheet_includes_disciplinary_and_withdrawal_issues(): void
+    {
+        StudentStatusRecord::create([
+            'user_id' => $this->student2->id,
+            'academic_detail_id' => $this->student2->academicDetail?->id,
+            'status' => StudentStatus::MEDICAL_WITHDRAWAL,
+            'status_type' => StudentStatusType::ACADEMIC,
+            'reason_code' => 'MEDICAL',
+            'academic_session' => '2021/2022',
+            'effective_date' => '2022-03-01',
+            'senate_decision' => 'SENATE_APPROVED',
+            'senate_reference' => 'SEN-2022-009',
+        ]);
+
+        DisciplinaryAction::create([
+            'user_id' => $this->student1->id,
+            'academic_detail_id' => $this->student1->academicDetail?->id,
+            'sanction_type' => 'repeat_session',
+            'academic_session' => '2021/2022',
+            'semester' => 'first',
+            'senate_ref_no' => 'SEN-2022-031',
+            'verdict_date' => now()->toDateString(),
+            'effective_session' => '2021/2022',
+            'is_active' => true,
+            'is_appealed' => false,
+            'sanctioned_by' => $this->examOfficer->id,
+            'remarks' => 'Repeat session sanction.',
+        ]);
+
+        $data = app(ResultReportingService::class)->getCohortProgressionBroadsheet([
+            'department_id' => $this->department->id,
+            'admission_session' => $this->admissionSession,
+        ]);
+
+        $student1Data = collect($data['students'])->firstWhere('user_id', $this->student1->id);
+        $student2Data = collect($data['students'])->firstWhere('user_id', $this->student2->id);
+
+        $this->assertNotNull($student1Data);
+        $this->assertStringContainsString('DISCIPLINARY', $student1Data['disciplinary_remarks'] ?? '');
+        $this->assertNotNull($student2Data);
+        $this->assertStringContainsString('WITHDRAWN', $student2Data['official_status_remark'] ?? '');
+        $this->assertStringContainsString('SEN-2022-009', (string) ($student2Data['withdrawal_reference'] ?? ''));
     }
 
     public function test_cohort_progression_broadsheet_print_view_renders_successfully(): void

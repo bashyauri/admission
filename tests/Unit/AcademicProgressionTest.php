@@ -116,7 +116,7 @@ class AcademicProgressionTest extends TestCase
         $this->assertEquals(2, $nextLevel); // Promoted to 200L
     }
 
-    public function test_student_with_poor_standing_repeats_level(): void
+    public function test_student_with_poor_standing_is_on_probation_under_nigerian_system(): void
     {
         $user = new User();
         $user->id = (string) \Illuminate\Support\Str::uuid();
@@ -149,7 +149,7 @@ class AcademicProgressionTest extends TestCase
             'academic_session' => '2023-2024',
             'semester' => 'second',
             'semester_gpa' => 0.85,
-            'cumulative_gpa' => 0.85, // Poor standing (< 1.00)
+            'cumulative_gpa' => 0.85, // Poor standing but managed as probation under the Nigerian-style rule
             'total_credit_units' => 20,
             'total_grade_points' => 17,
             'cumulative_credit_units' => 40,
@@ -158,10 +158,10 @@ class AcademicProgressionTest extends TestCase
         ]);
 
         $standing = $this->progressionService->determineAcademicStanding($user);
-        $this->assertEquals(AcademicProgressionService::STANDING_REPEAT, $standing['standing']);
+        $this->assertEquals(AcademicProgressionService::STANDING_PROBATION, $standing['standing']);
 
         $nextLevel = $this->progressionService->getNextEligibleLevel($user);
-        $this->assertEquals(1, $nextLevel); // Stays at 100L to repeat
+        $this->assertEquals(2, $nextLevel); // Probation does not force a whole-level repeat
     }
 
     public function test_final_year_spillover_student_capped_at_max_level(): void

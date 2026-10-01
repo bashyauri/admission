@@ -604,14 +604,29 @@
                         @endif
                     </td>
                     <td>
-                        @if(!$student['has_outstanding_carryovers'])
-                            <div style="font-weight: 800; color: #166534; font-size: 8.5px;">
-                                {{ $student['standing_remark'] }}
-                            </div>
+                        @if(!empty($student['disciplinary_remarks']))
+                            <div style="color: #b91c1c; font-weight: 800; margin-bottom: 4px;">DISCIPLINARY:</div>
+                            <div style="color: #b91c1c; font-weight: 700; margin-bottom: 4px;">{{ $student['disciplinary_remarks'] }}</div>
+                        @endif
+
+                        @if(!empty($student['official_status_remark']))
+                            <div style="color: #b91c1c; font-weight: 800; margin-bottom: 4px;">{{ $student['official_status_remark'] }}</div>
+                            @if(!empty($student['withdrawal_session']))
+                                <div style="font-size: 8px; color: #334155;">Session: {{ $student['withdrawal_session'] }}</div>
+                            @endif
+                            @if(!empty($student['withdrawal_reference']))
+                                <div style="font-size: 8px; color: #334155;">Senate Ref: {{ $student['withdrawal_reference'] }}</div>
+                            @endif
                         @else
-                            <div style="font-weight: 800; color: #dc2626; font-size: 8px;">
-                                {{ $student['standing_remark'] }}
-                            </div>
+                            @if(!$student['has_outstanding_carryovers'])
+                                <div style="font-weight: 800; color: #166534; font-size: 8.5px;">
+                                    {{ $student['standing_remark'] }}
+                                </div>
+                            @else
+                                <div style="font-weight: 800; color: #dc2626; font-size: 8px;">
+                                    {{ $student['standing_remark'] }}
+                                </div>
+                            @endif
                         @endif
                     </td>
                 </tr>

@@ -34,11 +34,14 @@ class StudentStatusManagement extends Component
     public string $effectiveDate = '';
     public bool $reinstatementEligible = true;
     public string $notes = '';
-    public string $queueSession = '';
-    public string $queueDepartment = '';
-    public string $queueType = '';
-    public string $queueDateFrom = '';
-    public string $queueDateTo = '';
+    public string $dueReviewSession = '';
+    public string $dueReviewDepartment = '';
+    public string $senateQueueSession = '';
+    public string $senateQueueDepartment = '';
+    public string $senateQueueType = '';
+    public string $senateQueueDateFrom = '';
+    public string $senateQueueDateTo = '';
+    public array $reviewNotesByRequest = [];
     public ?int $selectedDecisionRecordId = null;
     public bool $showDecisionModal = false;
     public bool $approveDecision = true;
@@ -46,7 +49,6 @@ class StudentStatusManagement extends Component
     public string $senateReference = '';
     public string $senateDecisionDate = '';
     public string $decisionNotes = '';
-    public string $reviewNotes = '';
     public bool $showStatusConfirmation = false;
 
     protected $paginationTheme = 'tailwind';
@@ -238,14 +240,15 @@ class StudentStatusManagement extends Component
         Gate::authorize($ability, $record->user);
 
         try {
+            $notes = trim((string) ($this->reviewNotesByRequest[$recordId] ?? '')) ?: null;
             app(StudentStatusService::class)->reviewReinstatement(
                 request: $record,
                 stage: $stage,
                 approved: $approved,
                 reviewedBy: Auth::user(),
-                notes: $this->reviewNotes ?: null,
+                notes: $notes,
             );
-            $this->reviewNotes = '';
+            unset($this->reviewNotesByRequest[$recordId]);
             $this->alert('success', strtoupper($stage) . ' reinstatement review recorded.');
         } catch (\InvalidArgumentException $exception) {
             $this->alert('error', $exception->getMessage());
@@ -356,6 +359,70 @@ class StudentStatusManagement extends Component
         return $record;
     }
 
+    private function dueForWithdrawalReviewList(): \Illuminate\Support\Collection
+    {
+        $actor = Auth::user();
+
+        $query = User::query()
+            ->where('role', 'student')
+            ->where('programme_id', ProgrammesEnum::Undergraduate->value)
+            ->with(['academicDetail.department', 'academicDetail.course', 'academicDetail.studentLevel'])
+            ->select(['id', 'firstname', 'surname', 'm_name', 'role', 'programme_id']);
+
+        if ($this->dueReviewSession !== '') {
+            $query->whereHas('academicDetail', fn (Builder $academic) => $academic->where('acad_session', $this->dueReviewSession));
+        }
+
+        if ($this->dueReviewDepartment !== '') {
+            $query->whereHas('academicDetail', fn (Builder $academic) => $academic->where('department_id', $this->dueReviewDepartment));
+        }
+
+        $students = $query->get();
+
+        return $students->filter(function (User $student) use ($actor) {
+            if (!$actor->isAdmin() && !Gate::allows('student-status.view', $student)) {
+                return false;
+            }
+
+            if (!$student->academicDetail) {
+                return false;
+            }
+
+            $statusService = app(StudentStatusService::class);
+            $currentStatus = $statusService->getCurrentStatus($student);
+            if ($currentStatus && !$currentStatus->status->isActive()) {
+                return false;
+            }
+
+            $existingRecommendation = StudentStatusRecord::query()
+                ->where('user_id', $student->id)
+                ->whereIn('senate_decision', [
+                    StudentStatusService::WORKFLOW_RECOMMENDED,
+                    StudentStatusService::WORKFLOW_PENDING_SENATE,
+                ])
+                ->exists();
+
+            if ($existingRecommendation) {
+                return false;
+            }
+
+            $eligibility = app(AcademicProgressionService::class)->evaluateWithdrawalEligibility($student);
+            if (($eligibility['eligible'] ?? false) !== true) {
+                return false;
+            }
+
+            if ($this->dueReviewSession !== '' && ($student->academicDetail?->acad_session ?? '') !== $this->dueReviewSession) {
+                return false;
+            }
+
+            if ($this->dueReviewDepartment !== '' && (string) ($student->academicDetail?->department_id ?? '') !== (string) $this->dueReviewDepartment) {
+                return false;
+            }
+
+            return true;
+        })->values();
+    }
+
     private function scopedWorkflowRecords(array $decisions, array $statuses): Builder
     {
         $query = StudentStatusRecord::query()
@@ -373,25 +440,25 @@ class StudentStatusManagement extends Component
             }
         }
 
-        if ($this->queueSession !== '') {
-            $query->where('academic_session', $this->queueSession);
+        if ($this->senateQueueSession !== '') {
+            $query->where('academic_session', $this->senateQueueSession);
         }
-        if ($this->queueDepartment !== '') {
-            $query->whereHas('user.academicDetail', fn (Builder $academic) => $academic->where('department_id', $this->queueDepartment));
+        if ($this->senateQueueDepartment !== '') {
+            $query->whereHas('user.academicDetail', fn (Builder $academic) => $academic->where('department_id', $this->senateQueueDepartment));
         }
         $withdrawalStatuses = [
             StudentStatus::ACADEMIC_WITHDRAWAL->value,
             StudentStatus::VOLUNTARY_WITHDRAWAL->value,
             StudentStatus::MEDICAL_WITHDRAWAL->value,
         ];
-        if (count(array_intersect($statuses, $withdrawalStatuses)) > 0 && $this->queueType !== '') {
-            $query->where('status_type', $this->queueType);
+        if (count(array_intersect($statuses, $withdrawalStatuses)) > 0 && $this->senateQueueType !== '') {
+            $query->where('status_type', $this->senateQueueType);
         }
-        if ($this->queueDateFrom !== '') {
-            $query->whereDate('effective_date', '>=', $this->queueDateFrom);
+        if ($this->senateQueueDateFrom !== '') {
+            $query->whereDate('effective_date', '>=', $this->senateQueueDateFrom);
         }
-        if ($this->queueDateTo !== '') {
-            $query->whereDate('effective_date', '<=', $this->queueDateTo);
+        if ($this->senateQueueDateTo !== '') {
+            $query->whereDate('effective_date', '<=', $this->senateQueueDateTo);
         }
 
         return $query->latest('updated_at');
@@ -430,6 +497,8 @@ class StudentStatusManagement extends Component
             }
         }
 
+        $dueForWithdrawalReview = $this->dueForWithdrawalReviewList();
+
         $pendingDecisions = $this->scopedWorkflowRecords(
             [StudentStatusService::WORKFLOW_PENDING_SENATE],
             [StudentStatus::ACADEMIC_WITHDRAWAL->value, StudentStatus::VOLUNTARY_WITHDRAWAL->value, StudentStatus::MEDICAL_WITHDRAWAL->value],
@@ -453,7 +522,7 @@ class StudentStatusManagement extends Component
 
         return view('livewire.student.student-status-management', compact(
             'students', 'selectedStudent', 'currentStatus', 'history', 'auditEntries', 'registrationHistory',
-            'progression', 'pendingDecisions', 'reinstatementRequests', 'sessions', 'departments',
+            'progression', 'dueForWithdrawalReview', 'pendingDecisions', 'reinstatementRequests', 'sessions', 'departments',
         ))->layout('layouts.app');
     }
 }

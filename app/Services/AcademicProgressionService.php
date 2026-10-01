@@ -96,7 +96,9 @@ class AcademicProgressionService
             ];
         }
 
-        // Standard NUC Progression Thresholds
+        // Nigerian university pattern: low CGPA is treated as probation unless there is
+        // an explicit Senate-level repeat sanction. Whole-level repeat is reserved for the
+        // formal repeat decision, not for every low academic score.
         if ($cgpa >= 1.50) {
             return [
                 'standing' => self::STANDING_PROMOTED,
@@ -106,20 +108,13 @@ class AcademicProgressionService
             ];
         }
 
-        if ($cgpa >= 1.00) {
-            return [
-                'standing' => self::STANDING_PROBATION,
-                'cgpa' => $cgpa,
-                'has_uncleared_carryovers' => $hasUnclearedCarryOvers,
-                'reason' => 'Probation (1.00 <= CGPA < 1.50)',
-            ];
-        }
-
         return [
-            'standing' => self::STANDING_REPEAT,
+            'standing' => self::STANDING_PROBATION,
             'cgpa' => $cgpa,
             'has_uncleared_carryovers' => $hasUnclearedCarryOvers,
-            'reason' => 'Repeat Level / Poor Academic Standing (CGPA < 1.00)',
+            'reason' => $cgpa >= 1.00
+                ? 'Probation (1.00 <= CGPA < 1.50)'
+                : 'Probation / low academic standing (CGPA < 1.00; Senate repeat decision required for full-level repeat)',
         ];
     }
 

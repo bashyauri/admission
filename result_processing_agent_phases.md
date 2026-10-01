@@ -739,6 +739,18 @@ Phase 7 is a separate disciplinary case and sanction workflow. It must reuse Pha
   - [x] Run `tests/Feature/ResultApprovalWorkflowTest.php` to confirm no regression
 * **Verification:** `php artisan test --filter=ResultApprovalWorkflowTest --compact` (passed with all workflow scenarios green)
 
+#### Additional Governance Queue Task: Due-for-Withdrawal Review Filter (✅ COMPLETED)
+* **File:** `app/Http/Livewire/Student/StudentStatusManagement.php`
+* **Problem:** The student-status dashboard had no way to surface students who match the configured withdrawal-eligibility rules before a formal Senate recommendation is approved.
+* **Fix:** Added a `Due for withdrawal review` queue that evaluates only undergraduate students, filters by department/session, excludes students already pending or inactive, and shows the configured rule code and reason for review.
+* **Tasks:**
+  - [x] Add a `dueForWithdrawalReviewList()` method to calculate only eligible UG students using the existing withdrawal eligibility engine
+  - [x] Exclude students with active formal withdrawal/inactive status and those already awaiting Senate review
+  - [x] Render a queue in the management view with session and department filters and a direct student-open action
+  - [x] Keep the recommendation-to-Senate approval workflow intact so official withdrawal only occurs after Senate approval
+  - [x] Add feature coverage for the queue in `tests/Feature/StudentStatusManagementUiTest.php`
+* **Verification:** `php artisan test tests/Feature/StudentStatusManagementUiTest.php --compact` (8 tests passed, 30 assertions).
+
 #### Task 8.4: Fix `ResultEntry::loadStudentsAndResults()` — PHP-side Sort (🟠 MEDIUM)
 * **File:** `app/Http/Livewire/Lecturer/ResultEntry.php`
 * **Problem:** `RegisteredCourse::with(['academicDetail.user'])->get()->sortBy(...)` pulls all students into PHP memory and sorts there instead of at the DB level.

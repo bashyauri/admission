@@ -474,30 +474,26 @@
                         </td>
                         <td class="col-remarks">
                             <div class="remark-block">
+                                @if(!empty($student['disciplinary_remarks']))
+                                    <div class="remark-title" style="color: #b91c1c; font-weight: 800;">DISCIPLINARY:</div>
+                                    <div style="color: #b91c1c; font-weight: 700;">{{ $student['disciplinary_remarks'] }}</div>
+                                @endif
+
                                 @if(!empty($student['status_is_withdrawn']))
-                                    <div class="remark-title" style="color: #b91c1c; font-weight: 800;">{{ $student['status_display'] ?? $student['status_text'] }}</div>
+                                    <div class="remark-title" style="color: #b91c1c; font-weight: 800; margin-top: 4px;">{{ $student['status_display'] ?? $student['status_text'] }}</div>
                                     <div class="status-val">Session: {{ $student['status_session'] ?? '—' }} · Effective: {{ $student['status_effective_date'] ?? '—' }}</div>
-                                    @if(!empty($student['status_senate_reference']))<div class="status-val">Senate Ref: {{ $student['status_senate_reference'] }}</div>@endif
-                                    @if(!empty($student['repeat_courses']))
-                                        <div style="font-size: 8.5px; color: #64748b; margin-top: 2px;">(Uncleared: {{ implode(', ', $student['repeat_courses']) }})</div>
+                                    @if(!empty($student['status_senate_reference']))
+                                        <div class="status-val">Senate Ref: {{ $student['status_senate_reference'] }}</div>
                                     @endif
-                                @elseif($student['is_pass'])
-                                    <div>PASS</div>
                                 @else
-                                    @if(!empty($student['repeat_courses']))
-                                        <div class="remark-title">REPEAT:</div>
-                                        <div>{{ implode(', ', $student['repeat_courses']) }}</div>
+                                    @if(!empty($student['remark']))
+                                        <div class="status-val">{{ $student['remark'] }}</div>
                                     @endif
 
-                                    @if(!empty($student['status_text']))
+                                    @if(!empty($student['status_text']) && !str_contains((string) ($student['remark'] ?? ''), (string) $student['status_text']))
                                         <div class="status-title">STATUS:</div>
                                         <div class="status-val">{{ $student['status_display'] ?? $student['status_text'] }}</div>
                                     @endif
-                                @endif
-
-                                @if(!empty($student['disciplinary_remarks']))
-                                    <div class="remark-title" style="color: #1d4ed8; font-weight: 800; margin-top: 4px;">DISCIPLINARY:</div>
-                                    <div>{{ $student['disciplinary_remarks'] }}</div>
                                 @endif
                             </div>
                         </td>

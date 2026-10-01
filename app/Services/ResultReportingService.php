@@ -537,11 +537,17 @@ class ResultReportingService
                         default => null,
                     };
                 }
-                $remark = $isOfficiallyWithdrawn
-                    ? $statusText
-                    : (!empty($allUnclearedCourses) 
-                        ? 'REPEAT: ' . implode(', ', $allUnclearedCourses) 
-                        : ($isPass ? 'PASS' : ($statusText ?? 'PASS')));
+
+                if ($isOfficiallyWithdrawn) {
+                    $remark = $statusText;
+                } elseif ($standing === AcademicProgressionService::STANDING_REPEAT) {
+                    $repeatList = !empty($allUnclearedCourses) ? ' | REPEAT: ' . implode(', ', $allUnclearedCourses) : '';
+                    $remark = 'REPEAT LEVEL' . $repeatList;
+                } elseif (!empty($allUnclearedCourses)) {
+                    $remark = 'REPEAT: ' . implode(', ', $allUnclearedCourses);
+                } else {
+                    $remark = $isPass ? 'PASS' : ($statusText ?? 'PASS');
+                }
             }
 
             $broadsheetRows[] = [
@@ -611,11 +617,11 @@ class ResultReportingService
         $reference = trim((string) ($action->senate_ref_no ?: 'SENATE REF PENDING'));
 
         return match ($action->sanction_type) {
-            'course_cancellation' => 'WITHHELD (MALPRACTICE: ' . $reference . ')',
-            'repeat_session' => 'REPEAT SESSION (SDC: ' . $reference . ')',
-            'suspension' => 'SUSPENDED (DISCIPLINARY: ' . $reference . ')',
-            'expulsion' => 'EXPELLED (DISCIPLINARY: ' . $reference . ')',
-            default => 'DISCIPLINARY ACTION (' . $reference . ')',
+            'course_cancellation' => 'DISCIPLINARY: EXAM MALPRACTICE (SDC: ' . $reference . ')',
+            'repeat_session' => 'DISCIPLINARY: REPEAT SESSION (SDC: ' . $reference . ')',
+            'suspension' => 'DISCIPLINARY: SUSPENSION (SDC: ' . $reference . ')',
+            'expulsion' => 'DISCIPLINARY: EXPULSION (SDC: ' . $reference . ')',
+            default => 'DISCIPLINARY: ACTION (SDC: ' . $reference . ')',
         };
     }
 
@@ -658,7 +664,7 @@ class ResultReportingService
                 $isPass = true;
             }
 
-            if (!empty($repeatCourses) || str_starts_with($remark, 'REPEAT')) {
+            if (($standing === AcademicProgressionService::STANDING_REPEAT) || str_starts_with($remark, 'REPEAT LEVEL')) {
                 $repeatCount++;
             }
 
@@ -1062,6 +1068,12 @@ public function getCohortProgressionBroadsheet(array $filters): array
 
     $statusService = $this->studentStatusService ??= app(StudentStatusService::class);
     $cohortStatuses = $statusService->getCurrentStatuses($studentIds);
+    $disciplinaryActions = DisciplinaryAction::query()
+        ->whereIn('user_id', $studentIds)
+        ->where('is_active', true)
+        ->orderBy('effective_session')
+        ->get()
+        ->groupBy('user_id');
 
     // Identify all unique academic sessions present across the entire cohort
     $cohortSessions = $rawResults->pluck('academic_session')
@@ -1090,6 +1102,14 @@ public function getCohortProgressionBroadsheet(array $filters): array
 
         $statusRec = $cohortStatuses->get($student->id);
         $isCohortWithdrawn = $statusRec?->status?->isWithdrawn() === true;
+        $officialStatusRemark = $isCohortWithdrawn
+            ? 'WITHDRAWN: ' . strtoupper((string) $statusRec->status->label())
+            : null;
+        $disciplinaryRemark = $disciplinaryActions->get($student->id, collect())
+            ->map(fn (DisciplinaryAction $action) => $this->formatDisciplinaryRemark($action))
+            ->filter()
+            ->values()
+            ->implode(' | ');
 
         /** @var Collection<int, Result> $userResults */
         $userResults = $resultsGroupedByStudent->get($student->id, collect());
@@ -1359,6 +1379,12 @@ public function getCohortProgressionBroadsheet(array $filters): array
             $standingRemark = 'DEFICIENT: ' . implode(', ', $outstandingCodes);
         }
 
+        $displayRemark = trim(implode(' | ', array_filter([
+            $disciplinaryRemark ?: null,
+            $officialStatusRemark ?: null,
+            $standingRemark,
+        ])));
+
         $entryMode = !empty($student->isDe) || str_contains(strtolower((string) $acadDetail?->student_level_id), '200')
             ? 'DIRECT ENTRY (200L)'
             : 'UTME (100L)';
@@ -1381,6 +1407,9 @@ public function getCohortProgressionBroadsheet(array $filters): array
             'carry_overs_count'          => count($carryOverLedger),
             'has_outstanding_carryovers' => $hasOutstanding,
             'standing_remark'            => $standingRemark,
+            'display_remark'             => $displayRemark,
+            'disciplinary_remarks'       => $disciplinaryRemark ?: null,
+            'official_status_remark'     => $officialStatusRemark,
             'is_withdrawn'               => $isCohortWithdrawn,
             'withdrawal_status'          => $isCohortWithdrawn ? $statusRec->status->label() : null,
             'withdrawal_session'         => $isCohortWithdrawn ? $statusRec->academic_session : null,

@@ -6,6 +6,7 @@ namespace Tests\Feature;
 
 use App\Enums\ProgrammesEnum;
 use App\Models\AcademicDetail;
+use App\Models\AcademicProgressionRecord;
 use App\Models\Course;
 use App\Models\Department;
 use App\Models\Programme;
@@ -88,6 +89,62 @@ class StudentStatusManagementUiTest extends TestCase
 
         $this->assertSame(StudentStatusService::WORKFLOW_SENATE_APPROVED, $recommendation->fresh()->senate_decision);
         $this->assertSame('SEN-2026-901', $recommendation->fresh()->senate_reference);
+    }
+
+    public function test_admin_can_see_students_due_for_withdrawal_review_queue(): void
+    {
+        config(['academic_withdrawal.consecutive_probation' => [
+            'enabled' => true,
+            'threshold' => 2,
+            'unit' => 'session',
+            'reason_code' => 'CONSECUTIVE_PROBATION',
+            'reason' => 'Student has been on academic probation for {threshold} consecutive sessions.',
+        ]]);
+
+        $eligibleStudent = User::factory()->create([
+            'role' => 'student',
+            'programme_id' => ProgrammesEnum::Undergraduate->value,
+            'firstname' => 'Due',
+            'surname' => 'Review',
+        ]);
+
+        $detail = AcademicDetail::create([
+            'user_id' => $eligibleStudent->id,
+            'matric_no' => 'UG/STATUS/REVIEW-001',
+            'course_id' => Course::query()->first()->id,
+            'programme_id' => ProgrammesEnum::Undergraduate->value,
+            'department_id' => Department::query()->first()->id,
+            'student_level_id' => StudentLevel::first()->id,
+            'acad_session' => '2025/2026',
+            'admission_session' => '2025/2026',
+        ]);
+
+        AcademicProgressionRecord::create([
+            'user_id' => $eligibleStudent->id,
+            'academic_detail_id' => $detail->id,
+            'academic_session' => '2024/2025',
+            'semester' => 2,
+            'level' => '100',
+            'cgpa' => 1.20,
+            'standing' => 'PROBATION',
+            'withdrawal_recommended' => false,
+        ]);
+
+        AcademicProgressionRecord::create([
+            'user_id' => $eligibleStudent->id,
+            'academic_detail_id' => $detail->id,
+            'academic_session' => '2025/2026',
+            'semester' => 2,
+            'level' => '100',
+            'cgpa' => 1.10,
+            'standing' => 'PROBATION',
+            'withdrawal_recommended' => false,
+        ]);
+
+        Livewire::actingAs($this->admin)
+            ->test(StudentStatusManagement::class)
+            ->assertSee('Due for withdrawal review')
+            ->assertSee('Review');
     }
 
     public function test_student_search_matches_numeric_matric_number_tokens(): void
