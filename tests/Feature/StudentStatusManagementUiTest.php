@@ -90,6 +90,33 @@ class StudentStatusManagementUiTest extends TestCase
         $this->assertSame('SEN-2026-901', $recommendation->fresh()->senate_reference);
     }
 
+    public function test_student_search_matches_numeric_matric_number_tokens(): void
+    {
+        $student = User::factory()->create([
+            'role' => 'student',
+            'programme_id' => ProgrammesEnum::Undergraduate->value,
+            'firstname' => 'Numeric',
+            'surname' => 'Search',
+        ]);
+
+        AcademicDetail::create([
+            'user_id' => $student->id,
+            'matric_no' => 'UG/25/10905041',
+            'course_id' => Course::query()->first()->id,
+            'programme_id' => ProgrammesEnum::Undergraduate->value,
+            'department_id' => Department::query()->first()->id,
+            'student_level_id' => StudentLevel::first()->id,
+            'acad_session' => '2025/2026',
+            'admission_session' => '2025/2026',
+        ]);
+
+        Livewire::actingAs($this->admin)
+            ->test(StudentStatusManagement::class)
+            ->set('studentSearch', '2510905041')
+            ->assertSee('Numeric')
+            ->assertSee('Search');
+    }
+
     public function test_staff_without_status_view_capability_cannot_open_management_ui(): void
     {
         $staff = User::factory()->create(['role' => 'hod']);

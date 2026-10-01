@@ -129,6 +129,19 @@ class CertificateManagementTest extends TestCase
         $response->assertSee('Degree Certificate Generation & Collection Tracking');
     }
 
+    public function test_certificate_search_matches_numeric_matric_numbers(): void
+    {
+        $this->academicDetail->update(['matric_no' => 'UG/25/10905041']);
+        $this->graduationListItem->update(['matric_no' => 'UG/25/10905041']);
+
+        Livewire::actingAs($this->examOfficer)
+            ->test(ManageCertificates::class)
+            ->set('selectedSession', $this->session)
+            ->set('searchQuery', '2510905041')
+            ->assertSee('Aliyu')
+            ->assertSee('Suleiman');
+    }
+
     /**
      * Test unauthorized student cannot access certificate management.
      */

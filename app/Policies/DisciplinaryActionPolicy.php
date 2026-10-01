@@ -10,11 +10,11 @@ class DisciplinaryActionPolicy
 {
     public function manage(User $actor, User $student): bool
     {
-        if (!$student->isUndergraduate()) {
+        if (! $student->isUndergraduate()) {
             return false;
         }
 
-        if ($actor->isAdmin()) {
+        if ($actor->isAdmin() || $actor->isExamOfficer()) {
             return true;
         }
 
@@ -22,6 +22,7 @@ class DisciplinaryActionPolicy
             ->where('capability', 'disciplinary_actions.manage')
             ->where(function ($query) use ($student) {
                 $query->whereNull('department_id');
+
                 if ($student->academicDetail?->department_id) {
                     $query->orWhere('department_id', $student->academicDetail->department_id);
                 }

@@ -32,9 +32,9 @@ A Laravel-based Admission Management and Student Management Information System (
 3. Application review and approval
 4. Fee payment processing
 5. Course registration
-6. Result processing (Phases 1-5 implemented; Task 5.5 snapshot integrity is implemented with test execution pending, and Task 5.6 carry-over retake registration is in progress pending GPA policy confirmation, migration, and test execution — see `result_processing_agent_phases.md` as single source of truth)
-7. Graduation processing (Phase 6 IN PROGRESS, Task 6.1 Completed — see [`result_processing_agent_phases.md`](file:///c:/laragon/www/admission/result_processing_agent_phases.md))
-8. Examination Malpractice & Senate Disciplinary Enforcement Engine (Phase 7 IN PROGRESS; Tasks 7.1–7.2 implemented and Task 7.3 UI next — see [`result_processing_agent_phases.md`](file:///c:/laragon/www/admission/result_processing_agent_phases.md))
+6. Result processing (Phases 1-5 implemented; snapshot integrity and carry-over retake work remain in the detailed roadmap, with the authoritative task tracker preserved in `result_processing_agent_phases.md`)
+7. Graduation processing (Phase 6 IN PROGRESS with the detailed daily task plan tracked in `result_processing_agent_phases.md`)
+8. Examination Malpractice & Senate Disciplinary Enforcement Engine (Phase 7 completed and verified in production-safe UG scope, including the Exam Officer management UI and service enforcement logic — see [`result_processing_agent_phases.md`](file:///c:/laragon/www/admission/result_processing_agent_phases.md))
 
 ### What Makes This Different
 - NUC-compliant grading system for Nigerian universities

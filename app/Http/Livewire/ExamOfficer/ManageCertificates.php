@@ -389,9 +389,16 @@ class ManageCertificates extends Component
         // Search
         if (trim($this->searchQuery) !== '') {
             $q = trim($this->searchQuery);
-            $certQuery->where(function ($query) use ($q) {
+            $normalizedSearch = preg_replace('/[^A-Za-z0-9]/u', '', $q) ?: $q;
+            $normalizedLike = '%' . strtolower($normalizedSearch) . '%';
+
+            $certQuery->where(function ($query) use ($q, $normalizedLike) {
                 $query->where('certificate_number', 'like', "%{$q}%")
                     ->orWhere('class_of_degree', 'like', "%{$q}%")
+                    ->orWhereHas('academicDetail', function ($aq) use ($q, $normalizedLike) {
+                        $aq->where('matric_no', 'like', "%{$q}%")
+                            ->orWhereRaw("REPLACE(REPLACE(REPLACE(REPLACE(LOWER(matric_no), '/', ''), '-', ''), ' ', ''), '.', '') LIKE ?", [strtolower($normalizedLike)]);
+                    })
                     ->orWhereHas('user', function ($uq) use ($q) {
                         $uq->where('surname', 'like', "%{$q}%")
                             ->orWhere('firstname', 'like', "%{$q}%")
@@ -430,8 +437,12 @@ class ManageCertificates extends Component
 
         if (trim($this->searchQuery) !== '') {
             $q = trim($this->searchQuery);
-            $unissuedQuery->where(function ($query) use ($q) {
+            $normalizedSearch = preg_replace('/[^A-Za-z0-9]/u', '', $q) ?: $q;
+            $normalizedLike = '%' . strtolower($normalizedSearch) . '%';
+
+            $unissuedQuery->where(function ($query) use ($q, $normalizedLike) {
                 $query->where('matric_no', 'like', "%{$q}%")
+                    ->orWhereRaw("REPLACE(REPLACE(REPLACE(REPLACE(LOWER(matric_no), '/', ''), '-', ''), ' ', ''), '.', '') LIKE ?", [strtolower($normalizedLike)])
                     ->orWhere('full_name', 'like', "%{$q}%")
                     ->orWhereHas('user', function ($uq) use ($q) {
                         $uq->where('surname', 'like', "%{$q}%")

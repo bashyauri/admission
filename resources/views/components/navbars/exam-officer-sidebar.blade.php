@@ -94,6 +94,18 @@
                 </a>
             </li>
 
+            <li class="mt-0.5 w-full">
+                <a class="ease-soft-in-out py-2.7 text-size-sm my-0 mx-4 flex items-center whitespace-nowrap px-4 {{ Route::currentRouteName() == 'exam-officer.disciplinary-actions' ? 'font-semibold text-slate-700 xl:shadow-soft-xl rounded-lg bg-white' : 'font-medium text-slate-500 shadow-none' }} transition-colors dark:text-white dark:opacity-80"
+                    href="{{ route('exam-officer.disciplinary-actions') }}">
+                    <div class="mr-2 flex h-8 w-8 items-center justify-center rounded-lg bg-white p-2.5 text-center text-black shadow-soft-2xl">
+                        <svg class="h-4 w-4 fill-slate-800" viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M12 2.5a9.5 9.5 0 1 1 0 19 9.5 9.5 0 0 1 0-19zm0 3.5a1.25 1.25 0 0 0-1.25 1.25v4.25c0 .69.56 1.25 1.25 1.25s1.25-.56 1.25-1.25V7.25A1.25 1.25 0 0 0 12 6zm0 9.75a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3z"/>
+                        </svg>
+                    </div>
+                    <span class="ml-1 duration-300 opacity-100 pointer-events-none ease-soft">Disciplinary Actions</span>
+                </a>
+            </li>
+
             @can('student-status.view-any')
                 <li class="mt-0.5 w-full">
                     <a class="ease-soft-in-out py-2.7 text-size-sm my-0 mx-4 flex items-center whitespace-nowrap rounded-lg px-4 {{ Route::currentRouteName() == 'student-status.management' ? 'bg-white font-semibold text-slate-700 shadow-soft-xl' : 'font-medium text-slate-500 shadow-none hover:bg-slate-100' }} transition-colors dark:text-white dark:opacity-80"

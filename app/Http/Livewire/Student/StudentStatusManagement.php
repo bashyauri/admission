@@ -328,8 +328,14 @@ class StudentStatusManagement extends Component
         if (trim($this->studentSearch) !== '') {
             $term = trim($this->studentSearch);
             $like = '%' . $term . '%';
-            $query->where(function (Builder $student) use ($like) {
-                $student->whereHas('academicDetail', fn (Builder $academic) => $academic->where('matric_no', 'like', $like))
+            $normalizedTerm = preg_replace('/[^A-Za-z0-9]/u', '', $term) ?: $term;
+            $normalizedLike = '%' . $normalizedTerm . '%';
+
+            $query->where(function (Builder $student) use ($like, $normalizedLike) {
+                $student->whereHas('academicDetail', function (Builder $academic) use ($like, $normalizedLike) {
+                        $academic->where('matric_no', 'like', $like)
+                            ->orWhereRaw("REPLACE(REPLACE(REPLACE(REPLACE(LOWER(matric_no), '/', ''), '-', ''), ' ', ''), '.', '') LIKE ?", [strtolower($normalizedLike)]);
+                    })
                     ->orWhere('firstname', 'like', $like)
                     ->orWhere('surname', 'like', $like)
                     ->orWhere('m_name', 'like', $like);

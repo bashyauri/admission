@@ -686,6 +686,18 @@
                                     @endif
                                 @endforeach
 
+                                @foreach($capabilityOptions as $value => $option)
+                                    @if($value === 'disciplinary_actions.manage')
+                                        <label class="relative flex items-start p-3 rounded-xl border cursor-pointer transition {{ $capability === $value ? 'border-rose-600 bg-rose-50/50 ring-1 ring-rose-600' : 'border-slate-200 hover:bg-slate-50/60' }}">
+                                            <input type="radio" wire:model="capability" value="{{ $value }}" class="mt-0.5 mr-3 text-rose-600 focus:ring-rose-500" />
+                                            <div>
+                                                <span class="block text-xs font-bold text-slate-900">{{ $option['label'] }}</span>
+                                                <span class="block text-[11px] text-slate-500 mt-0.5">{{ $option['description'] }}</span>
+                                            </div>
+                                        </label>
+                                    @endif
+                                @endforeach
+
                             </div>
 
                             @if($capability === 'hod')

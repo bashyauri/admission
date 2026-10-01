@@ -29,7 +29,7 @@ graph TD
     P3 --> P4["Phase 4: Multi-Level Approval & Academic Board Broadsheets<br/>(COMPLETED)"]
     P4 --> P5["Phase 5: UG Student Portal & Transcripts<br/>(COMPLETED)"]
     P5 --> P6["Phase 6: UG Graduation & Student Academic Status Management<br/>(IN PROGRESS - Task 6.7 Up Next)"]
-    P6 --> P7["Phase 7: Exam Malpractice & Senate Disciplinary Engine<br/>(⏳ SCHEDULED - FUTURE EXTENSION)"]
+    P6 --> P7["Phase 7: Exam Malpractice & Senate Disciplinary Engine<br/>(✅ COMPLETED - UG enforcement + UI verified)"]
 ```
 
 ---
@@ -590,10 +590,10 @@ Phase 6.7 establishes the reusable student status infrastructure that Phase 7 (D
 
 ---
 
-## Phase 7: Examination Malpractice & Senate Disciplinary Enforcement Engine (IN PROGRESS - Tasks 7.1–7.2 Implemented; Task 7.3 Next)
+## Phase 7: Examination Malpractice & Senate Disciplinary Enforcement Engine (✅ COMPLETED - UG enforcement, sanctions UI, and verification in place)
 * **Goal:** Provide a centralized, statutory disciplinary ledger for the Exam Officer and Senate Disciplinary Committee (SDC) to enforce penalties (Course Cancellation, Repeat Session, Suspension, Expulsion), automatically lock progression levels, register carry-overs, and enforce graduation blocks.
 * **Risk Profile:** Medium (disciplinary outcomes can affect official results, progression, institutional status, and graduation; changes must be auditable and appealable).
-* **Status:** **In Progress — UG-only implementation**
+* **Status:** **Completed and verified — UG-only implementation**
 
 ### Integration Contract with Phase 6.7
 Phase 7 is a separate disciplinary case and sanction workflow. It must reuse Phase 6.7's authoritative status and activity-enforcement infrastructure where the sanction changes institutional student status:
@@ -662,7 +662,10 @@ Phase 7 is a separate disciplinary case and sanction workflow. It must reuse Pha
   - Authorized actions to record appeals or Senate reversals with required resolution reference and audit details.
   - Permission-aware actions backed by server-side authorization; UI visibility alone is not authorization.
   - Route: `/exam-officer/disciplinary-actions` & sidebar menu item.
+  - Validates session source from authoritative `registered_courses.academic_session`, normalized matric-number search, proper ID typing, and `View detail` modal behavior.
+  - Includes eager loading for `academicDetail` to avoid strict lazy-loading exceptions in the table render path.
 * **Automated Test:** `tests/Feature/ExamOfficerDisciplinaryManagementTest.php`
+* **Status:** Completed and verified with `php artisan test --filter=ExamOfficerDisciplinaryManagementTest --compact` (8 tests passed, 18 assertions).
 
 #### Task 7.4: Broadsheet & Official Transcript Integration
 * **Scope:** Display and audit integration.
