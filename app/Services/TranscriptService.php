@@ -6,6 +6,7 @@ namespace App\Services;
 
 use App\Enums\StudentStatus;
 use App\Models\DepartmentMaxUnit;
+use App\Models\DisciplinaryAction;
 use App\Models\Result;
 use App\Models\ResultGpaRecord;
 use App\Models\StudentStatusRecord;
@@ -114,6 +115,7 @@ class TranscriptService
                 'cgpa' => $this->cgpaAtWithdrawalPoint($resultsBreakdown, $withdrawalRecord),
             ]
             : null;
+        $disciplinaryAnnotation = $this->getDisciplinaryAnnotation($student);
 
         // Fetch DepartmentMaxUnit for allowed credit registered reference
         $departmentMaxUnit = null;
@@ -148,6 +150,7 @@ class TranscriptService
             'gpaRecords'        => $gpaRecords,
             'summary'           => $summary,
             'withdrawalAnnotation' => $withdrawalAnnotation,
+            'disciplinaryAnnotation' => $disciplinaryAnnotation,
             'departmentMaxUnit' => $departmentMaxUnit,
             'transcript'        => $transcript,
             'official'          => $official,
@@ -155,6 +158,57 @@ class TranscriptService
             'qrCodeSvg'         => $qrCodeSvg,
             'logoBase64'        => $logoBase64,
             'generated_at'      => now(),
+        ];
+    }
+
+    protected function getDisciplinaryAnnotation(User $student): ?array
+    {
+        $sanctions = DisciplinaryAction::query()
+            ->where('user_id', $student->id)
+            ->where('is_active', true)
+            ->orderByDesc('verdict_date')
+            ->orderByDesc('id')
+            ->get();
+
+        if ($sanctions->isEmpty()) {
+            return null;
+        }
+
+        $entries = $sanctions->map(function (DisciplinaryAction $action): array {
+            $reference = trim((string) ($action->senate_ref_no ?: 'SENATE REF PENDING'));
+
+            return [
+                'sanction_type' => $action->sanction_type,
+                'label' => match ($action->sanction_type) {
+                    'course_cancellation' => 'WITHHELD (MALPRACTICE)',
+                    'repeat_session' => 'REPEAT SESSION (SDC)',
+                    'suspension' => 'SUSPENDED (DISCIPLINARY)',
+                    'expulsion' => 'EXPELLED (DISCIPLINARY)',
+                    default => 'DISCIPLINARY ACTION',
+                },
+                'note' => match ($action->sanction_type) {
+                    'course_cancellation' => 'WITHHELD (MALPRACTICE: ' . $reference . ')',
+                    'repeat_session' => 'REPEAT SESSION (SDC: ' . $reference . ')',
+                    'suspension' => 'SUSPENDED (DISCIPLINARY: ' . $reference . ')',
+                    'expulsion' => 'EXPELLED (DISCIPLINARY: ' . $reference . ')',
+                    default => 'DISCIPLINARY ACTION (' . $reference . ')',
+                },
+                'senate_reference' => $reference,
+                'session' => $action->effective_session ?: $action->academic_session,
+                'effective_date' => $action->verdict_date,
+            ];
+        })->all();
+
+        $primary = $entries[0];
+
+        return [
+            'label' => 'Disciplinary Sanction',
+            'sanction_type' => $primary['sanction_type'],
+            'note' => $primary['note'],
+            'senate_reference' => $primary['senate_reference'],
+            'session' => $primary['session'],
+            'effective_date' => $primary['effective_date'],
+            'all' => $entries,
         ];
     }
 

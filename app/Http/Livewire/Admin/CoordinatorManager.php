@@ -37,6 +37,9 @@ class CoordinatorManager extends Component
     public string $activeTab = 'coordinators'; // 'coordinators', 'unassigned_cohorts'
 
     public array $availableSessions = [];
+    public $departments;
+    public $courses;
+    public $studentLevels;
 
     /*
     |--------------------------------------------------------------------------
@@ -140,6 +143,10 @@ class CoordinatorManager extends Component
 
         $this->selectedSession = $defaultSession;
         $this->formSession = $defaultSession;
+
+        $this->departments = Department::orderBy('name')->get();
+        $this->courses = Course::with('department')->orderBy('name')->get();
+        $this->studentLevels = StudentLevel::orderBy('id')->get();
     }
 
     public function updatingSearch(): void
@@ -453,24 +460,50 @@ class CoordinatorManager extends Component
 
         $coordinators = $coordinatorsQuery->paginate(15);
 
-        // Calculate student counts for coordinators on the current page
+        // Calculate student counts for coordinators on the current page using one grouped aggregate query.
         $coordinatorStudentCounts = [];
-        foreach ($coordinators as $coord) {
-            $studentCount = 0;
-            if ($coord->course_id) {
-                $studentCount = AcademicDetail::query()
-                    ->where('course_id', $coord->course_id)
-                    ->when($coord->student_level_id, fn($q) => $q->where('student_level_id', $coord->student_level_id))
-                    ->when($coord->academic_session, fn($q) => $q->where('admission_session', $coord->academic_session))
-                    ->count();
-            } elseif ($coord->department_id) {
-                $studentCount = AcademicDetail::query()
-                    ->where('department_id', $coord->department_id)
-                    ->when($coord->student_level_id, fn($q) => $q->where('student_level_id', $coord->student_level_id))
-                    ->when($coord->academic_session, fn($q) => $q->where('admission_session', $coord->academic_session))
-                    ->count();
+
+        if ($coordinators->isNotEmpty()) {
+            $coordinatorIds = $coordinators->pluck('id')->all();
+
+            $courseStudentCounts = DB::table('coordinators as c')
+                ->join('academic_details as ad', function ($join) {
+                    $join->on('ad.course_id', '=', 'c.course_id')
+                        ->on('ad.student_level_id', '=', 'c.student_level_id')
+                        ->on('ad.admission_session', '=', 'c.academic_session');
+                })
+                ->whereIn('c.id', $coordinatorIds)
+                ->whereNotNull('c.course_id')
+                ->select('c.id', DB::raw('COUNT(ad.id) as student_count'))
+                ->groupBy('c.id')
+                ->pluck('student_count', 'id')
+                ->mapWithKeys(fn ($count, $id) => [(int) $id => (int) $count])
+                ->all();
+
+            $departmentStudentCounts = DB::table('coordinators as c')
+                ->join('academic_details as ad', function ($join) {
+                    $join->on('ad.department_id', '=', 'c.department_id')
+                        ->on('ad.student_level_id', '=', 'c.student_level_id')
+                        ->on('ad.admission_session', '=', 'c.academic_session');
+                })
+                ->whereIn('c.id', $coordinatorIds)
+                ->whereNotNull('c.department_id')
+                ->whereNull('c.course_id')
+                ->select('c.id', DB::raw('COUNT(ad.id) as student_count'))
+                ->groupBy('c.id')
+                ->pluck('student_count', 'id')
+                ->mapWithKeys(fn ($count, $id) => [(int) $id => (int) $count])
+                ->all();
+
+            foreach ($coordinators as $coord) {
+                if ($coord->course_id) {
+                    $coordinatorStudentCounts[$coord->id] = (int) ($courseStudentCounts[$coord->id] ?? 0);
+                } elseif ($coord->department_id) {
+                    $coordinatorStudentCounts[$coord->id] = (int) ($departmentStudentCounts[$coord->id] ?? 0);
+                } else {
+                    $coordinatorStudentCounts[$coord->id] = 0;
+                }
             }
-            $coordinatorStudentCounts[$coord->id] = $studentCount;
         }
 
         // 2. Unassigned Cohorts (Cohorts from academic_details with students but without matching course coordinator)
@@ -517,9 +550,9 @@ class CoordinatorManager extends Component
             'coordinators' => $coordinators,
             'coordinatorStudentCounts' => $coordinatorStudentCounts,
             'unassignedCohorts' => $unassignedCohorts,
-            'departments' => Department::orderBy('name')->get(),
-            'courses' => Course::with('department')->orderBy('name')->get(),
-            'studentLevels' => StudentLevel::all(),
+            'departments' => $this->departments,
+            'courses' => $this->courses,
+            'studentLevels' => $this->studentLevels,
             'totalCoordinators' => $totalCoordinators,
             'courseBasedCoordinators' => $courseBasedCoordinators,
             'deptBasedCoordinators' => $deptBasedCoordinators,

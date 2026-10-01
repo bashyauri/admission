@@ -14,7 +14,7 @@ class DisciplinaryActionPolicy
             return false;
         }
 
-        if ($actor->isAdmin() || $actor->isExamOfficer()) {
+        if ($actor->isAdmin()) {
             return true;
         }
 

@@ -12,6 +12,7 @@ use App\Models\Course;
 use App\Models\CourseAllocation;
 use App\Models\Department;
 use App\Models\DepartmentCourse;
+use App\Models\DisciplinaryAction;
 use App\Models\DepartmentMaxUnit;
 use App\Models\GraduationEligibility;
 use App\Models\GraduationList;
@@ -282,6 +283,18 @@ class ResultReportingService
         $studentIds = $students->pluck('id')->all();
         $statusService = $this->studentStatusService ??= app(StudentStatusService::class);
         $statusesForSession = $statusService->getStatusesForSession($studentIds, $session);
+        $disciplinaryActions = DisciplinaryAction::query()
+            ->whereIn('user_id', $studentIds)
+            ->where('is_active', true)
+            ->where(function ($query) use ($session) {
+                $query->where('academic_session', $session)
+                    ->orWhere('effective_session', $session)
+                    ->orWhereNull('effective_session');
+            })
+            ->orderByDesc('verdict_date')
+            ->orderByDesc('id')
+            ->get()
+            ->groupBy('user_id');
 
         $releasedOnly = !empty($filters['released_only']) || !empty($filters['final']);
 
@@ -500,6 +513,11 @@ class ResultReportingService
             $statusText = $isOfficiallyWithdrawn
                 ? 'WITHDRAWN: ' . strtoupper($statusRecord->status->label())
                 : null;
+            $disciplinaryRemark = $disciplinaryActions->get($student->id, collect())
+                ->map(fn (DisciplinaryAction $action) => $this->formatDisciplinaryRemark($action))
+                ->filter()
+                ->values()
+                ->implode(' | ');
 
             if (!$hasResults) {
                 // Student has no exam records for this cohort/level (e.g. Direct Entry starting at 200L, unexamined, or deferred)
@@ -550,7 +568,8 @@ class ResultReportingService
                 'status_session' => $isOfficiallyWithdrawn ? $statusRecord->academic_session : null,
                 'status_effective_date' => $isOfficiallyWithdrawn ? $statusRecord->effective_date?->toDateString() : null,
                 'status_senate_reference' => $isOfficiallyWithdrawn ? $statusRecord->senate_reference : null,
-                'remark' => $remark,
+                'remark' => trim(implode(' | ', array_filter([$remark, $disciplinaryRemark]))),
+                'disciplinary_remarks' => $disciplinaryRemark ?: null,
             ];
 
         }
@@ -585,6 +604,19 @@ class ResultReportingService
             'workflow_stages_included' => $workflowStagesIncluded,
             'stage_summary' => $stageSummary,
         ];
+    }
+
+    protected function formatDisciplinaryRemark(DisciplinaryAction $action): string
+    {
+        $reference = trim((string) ($action->senate_ref_no ?: 'SENATE REF PENDING'));
+
+        return match ($action->sanction_type) {
+            'course_cancellation' => 'WITHHELD (MALPRACTICE: ' . $reference . ')',
+            'repeat_session' => 'REPEAT SESSION (SDC: ' . $reference . ')',
+            'suspension' => 'SUSPENDED (DISCIPLINARY: ' . $reference . ')',
+            'expulsion' => 'EXPELLED (DISCIPLINARY: ' . $reference . ')',
+            default => 'DISCIPLINARY ACTION (' . $reference . ')',
+        };
     }
 
     /**

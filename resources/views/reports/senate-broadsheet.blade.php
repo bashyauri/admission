@@ -494,6 +494,11 @@
                                         <div class="status-val">{{ $student['status_display'] ?? $student['status_text'] }}</div>
                                     @endif
                                 @endif
+
+                                @if(!empty($student['disciplinary_remarks']))
+                                    <div class="remark-title" style="color: #1d4ed8; font-weight: 800; margin-top: 4px;">DISCIPLINARY:</div>
+                                    <div>{{ $student['disciplinary_remarks'] }}</div>
+                                @endif
                             </div>
                         </td>
                     </tr>

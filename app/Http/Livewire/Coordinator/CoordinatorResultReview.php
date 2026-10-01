@@ -307,18 +307,6 @@ class CoordinatorResultReview extends Component
             return;
         }
 
-
-        /*
-        |--------------------------------------------------------------------------
-        | Get courses belonging to coordinator's department
-        |--------------------------------------------------------------------------
-        |
-        | department_courses.student_course_id
-        |             ↓
-        | student_courses.id
-        |
-        */
-
         $departmentCourses = DB::table('department_courses')
             ->join(
                 'student_courses',
@@ -335,11 +323,10 @@ class CoordinatorResultReview extends Component
                 'department_courses.student_course_id',
                 'student_courses.code as course_code',
                 'student_courses.title as course_title',
-                'student_courses.units',
+                'department_courses.units as units',
             ])
             ->orderBy('student_courses.code')
             ->get();
-
 
         if ($departmentCourses->isEmpty()) {
             $this->courseSummaries = [];
@@ -347,217 +334,78 @@ class CoordinatorResultReview extends Component
             return;
         }
 
+        $courseIds = $departmentCourses->pluck('department_course_id')->all();
 
-        /*
-        |--------------------------------------------------------------------------
-        | Get results
-        |--------------------------------------------------------------------------
-        */
-
-        $results = Result::query()
-            ->where(
-                'academic_session',
-                $this->selectedSession
-            )
-            ->where(
-                'semester',
-                $this->selectedSemester
-            )
-            ->whereIn(
-                'department_course_id',
-                $departmentCourses
-                    ->pluck('department_course_id')
-                    ->toArray()
-            )
-            ->get();
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | Build summaries
-        |--------------------------------------------------------------------------
-        */
+        $aggregates = DB::table('results')
+            ->where('results.academic_session', $this->selectedSession)
+            ->where('results.semester', $this->selectedSemester)
+            ->whereIn('results.department_course_id', $courseIds)
+            ->select([
+                'results.department_course_id',
+                DB::raw('COUNT(DISTINCT results.user_id) as student_count'),
+                DB::raw('COUNT(results.id) as total_results'),
+                DB::raw("SUM(CASE WHEN results.status = 'submitted' AND results.coordinator_approved_at IS NULL THEN 1 ELSE 0 END) as submitted"),
+                DB::raw("SUM(CASE WHEN results.coordinator_approved_at IS NOT NULL AND results.exam_officer_approved_at IS NULL AND results.status != 'released' THEN 1 ELSE 0 END) as coordinator_approved"),
+                DB::raw("SUM(CASE WHEN results.exam_officer_approved_at IS NOT NULL AND results.status != 'released' THEN 1 ELSE 0 END) as exam_officer_approved"),
+                DB::raw("SUM(CASE WHEN results.status = 'released' THEN 1 ELSE 0 END) as released"),
+                DB::raw("SUM(CASE WHEN results.status = 'pending' THEN 1 ELSE 0 END) as pending"),
+            ])
+            ->groupBy('results.department_course_id')
+            ->get()
+            ->keyBy('department_course_id');
 
         $summaries = [];
 
-
         foreach ($departmentCourses as $course) {
+            $courseAggregate = $aggregates->get($course->department_course_id, null);
 
-            $courseResults = $results->where(
-                'department_course_id',
-                $course->department_course_id
-            );
-
-
-            /*
-            |--------------------------------------------------------------------------
-            | Determine workflow counts
-            |--------------------------------------------------------------------------
-            */
-
-            $submitted = $courseResults
-                ->filter(function ($result) {
-                    return
-                        $result->status === 'submitted'
-                        &&
-                        empty($result->coordinator_approved_at);
-                })
-                ->count();
-
-
-            $coordinatorApproved = $courseResults
-                ->filter(function ($result) {
-                    return
-                        !empty($result->coordinator_approved_at)
-                        &&
-                        empty($result->exam_officer_approved_at)
-                        &&
-                        $result->status !== 'released';
-                })
-                ->count();
-
-
-            $examOfficerApproved = $courseResults
-                ->filter(function ($result) {
-                    return
-                        !empty($result->exam_officer_approved_at)
-                        &&
-                        $result->status !== 'released';
-                })
-                ->count();
-
-
-            $released = $courseResults
-                ->where('status', 'released')
-                ->count();
-
-
-            $pending = $courseResults
-                ->where('status', 'pending')
-                ->count();
-
-
-            /*
-            |--------------------------------------------------------------------------
-            | Apply Status Filter
-            |--------------------------------------------------------------------------
-            */
+            $submitted = (int) ($courseAggregate->submitted ?? 0);
+            $coordinatorApproved = (int) ($courseAggregate->coordinator_approved ?? 0);
+            $examOfficerApproved = (int) ($courseAggregate->exam_officer_approved ?? 0);
+            $released = (int) ($courseAggregate->released ?? 0);
+            $pending = (int) ($courseAggregate->pending ?? 0);
+            $studentCount = (int) ($courseAggregate->student_count ?? 0);
+            $totalResults = (int) ($courseAggregate->total_results ?? 0);
 
             $visibleCount = match ($this->statusFilter) {
-
-                'submitted' =>
-                    $submitted,
-
-                'coordinator_approved' =>
-                    $coordinatorApproved,
-
-                'exam_officer_approved' =>
-                    $examOfficerApproved,
-
-                'released' =>
-                    $released,
-
-                'pending' =>
-                    $pending,
-
-                default =>
-                    $courseResults
-                        ->pluck('user_id')
-                        ->filter()
-                        ->unique()
-                        ->count(),
+                'submitted' => $submitted,
+                'coordinator_approved' => $coordinatorApproved,
+                'exam_officer_approved' => $examOfficerApproved,
+                'released' => $released,
+                'pending' => $pending,
+                default => $studentCount,
             };
-
-
-            /*
-            |--------------------------------------------------------------------------
-            | Don't show courses that don't match selected status
-            |--------------------------------------------------------------------------
-            */
 
             if (
                 $this->statusFilter !== 'all'
-                &&
-                $visibleCount === 0
+                && $visibleCount === 0
             ) {
                 continue;
             }
 
-
-            /*
-            |--------------------------------------------------------------------------
-            | Unique students
-            |--------------------------------------------------------------------------
-            */
-
-            $studentCount = $courseResults
-                ->pluck('user_id')
-                ->filter()
-                ->unique()
-                ->count();
-
-
             $summaries[] = [
-
-                'department_course_id' =>
-                    (int) $course->department_course_id,
-
-                'student_course_id' =>
-                    (int) $course->student_course_id,
-
-                'course_code' =>
-                    $course->course_code,
-
-                'course_title' =>
-                    $course->course_title,
-
-                'units' =>
-                    $course->units,
-
-                'student_count' =>
-                    $studentCount,
-
-                'total_results' =>
-                    $courseResults->count(),
-
-                'submitted' =>
-                    $submitted,
-
-                'coordinator_approved' =>
-                    $coordinatorApproved,
-
-                'exam_officer_approved' =>
-                    $examOfficerApproved,
-
-                'released' =>
-                    $released,
-
-                'pending' =>
-                    $pending,
+                'department_course_id' => (int) $course->department_course_id,
+                'student_course_id' => (int) $course->student_course_id,
+                'course_code' => $course->course_code,
+                'course_title' => $course->course_title,
+                'units' => $course->units,
+                'student_count' => $studentCount,
+                'total_results' => $totalResults,
+                'submitted' => $submitted,
+                'coordinator_approved' => $coordinatorApproved,
+                'exam_officer_approved' => $examOfficerApproved,
+                'released' => $released,
+                'pending' => $pending,
             ];
         }
 
-
         $this->courseSummaries = $summaries;
 
-
-        /*
-        |--------------------------------------------------------------------------
-        | Select first course awaiting review
-        |--------------------------------------------------------------------------
-        */
-
         if (!$this->selectedDepartmentCourseId) {
-
-            $course = collect($this->courseSummaries)
-                ->first();
-
+            $course = collect($this->courseSummaries)->first();
 
             if ($course) {
-
-                $this->selectedDepartmentCourseId =
-                    $course['department_course_id'];
-
+                $this->selectedDepartmentCourseId = $course['department_course_id'];
                 $this->loadStudentScores();
             }
         }
@@ -600,7 +448,10 @@ class CoordinatorResultReview extends Component
         if ($hasCohortFilter) {
             $query->join('academic_details', function ($join) {
                 $join->on('academic_details.id', '=', 'results.academic_detail_id')
-                     ->whereIn('academic_details.admission_session', $this->cohortSessions);
+                    ->where(function ($clause) {
+                        $clause->whereIn('academic_details.admission_session', $this->cohortSessions)
+                            ->orWhereNull('academic_details.admission_session');
+                    });
             });
         }
         $this->courseSummaries = $query
@@ -1017,7 +868,10 @@ class CoordinatorResultReview extends Component
         if (!empty($this->cohortSessions)) {
             $cohort = $this->cohortSessions;
             $query->whereHas('academicDetail', function ($q) use ($cohort) {
-                $q->whereIn('admission_session', $cohort);
+                $q->where(function ($sub) use ($cohort) {
+                    $sub->whereIn('admission_session', $cohort)
+                        ->orWhereNull('admission_session');
+                });
             });
         }
 

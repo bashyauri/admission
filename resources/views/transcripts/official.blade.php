@@ -448,6 +448,22 @@
         </table>
     @endif
 
+    @if($disciplinaryAnnotation)
+        <table style="width: 100%; border-collapse: collapse; margin: 0 0 10px; border: 1px solid #1d4ed8; background: #eff6ff;">
+            <tr>
+                <td style="padding: 7px 9px; color: #1e3a8a; font-weight: 700; text-transform: uppercase; width: 25%;">
+                    Disciplinary Sanction
+                </td>
+                <td style="padding: 7px 9px; color: #1e3a8a;">
+                    {{ implode(' | ', array_map(fn (array $item) => $item['note'], $disciplinaryAnnotation['all'] ?? [$disciplinaryAnnotation])) }}
+                    &bull; Session: {{ $disciplinaryAnnotation['session'] ?: 'N/A' }}
+                    &bull; Effective: {{ $disciplinaryAnnotation['effective_date'] ? $disciplinaryAnnotation['effective_date']->format('d F Y') : 'N/A' }}
+                    &bull; Senate Ref: {{ $disciplinaryAnnotation['senate_reference'] ?: 'N/A' }}
+                </td>
+            </tr>
+        </table>
+    @endif
+
     <!-- Academic Records Per Session / Semester -->
     @forelse($resultsBreakdown as $sem)
         <div class="semester-block">

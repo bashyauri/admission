@@ -194,6 +194,31 @@ class DisciplinaryActionServiceTest extends TestCase
         $this->assertSame($this->academicDetail->student_level_id, $progression->getNextEligibleLevel($this->student));
     }
 
+    public function test_active_disciplinary_sanctions_are_included_in_broadsheets_and_transcripts(): void
+    {
+        [$result] = $this->releasedResult();
+        app(DisciplinaryActionService::class)->applySanction($this->payload('repeat_session', [
+            'academic_session' => '2024/2025',
+            'effective_session' => '2024/2025',
+            'semester' => 'first',
+            'result_id' => $result->id,
+        ]));
+
+        $broadsheet = app(\App\Services\ResultReportingService::class)->getDepartmentalBroadsheet([
+            'department_id' => $this->department->id,
+            'academic_session' => '2024/2025',
+            'semester' => 'first',
+            'released_only' => true,
+        ]);
+
+        $this->assertNotEmpty($broadsheet['students']);
+        $this->assertStringContainsString('REPEAT SESSION (SDC: SEN-2026-042)', $broadsheet['students'][0]['disciplinary_remarks'] ?? '');
+
+        $transcript = app(\App\Services\TranscriptService::class)->buildTranscriptData($this->student);
+        $this->assertSame('repeat_session', $transcript['disciplinaryAnnotation']['sanction_type']);
+        $this->assertSame('SEN-2026-042', $transcript['disciplinaryAnnotation']['senate_reference']);
+    }
+
     public function test_suspension_creates_authoritative_disciplinary_status_and_quash_closes_it(): void
     {
         $priorStatus = StudentStatusRecord::create([

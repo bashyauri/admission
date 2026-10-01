@@ -673,6 +673,8 @@ Phase 7 is a separate disciplinary case and sanction workflow. It must reuse Pha
   - `ResultReportingService`: Departmental & Senate broadsheets display remarks `REPEAT SESSION (SDC)` or `WITHHELD (MALPRACTICE)` with the Senate reference where appropriate.
   - `TranscriptService`: Preserves original attempts and historical accuracy, uses standard NUC `[R]` markers where applicable, and includes Senate disciplinary remarks where legally mandated.
   - Verify that a quashed sanction removes its active reporting/enforcement effect while preserving the original sanction and appeal history.
+* **Status:** Implemented and verified. Active sanctions now appear in the official broadsheet and transcript payloads; a focused regression suite confirms the display and enforcement behavior remain correct.
+* **Verification:** `php artisan test --filter=DisciplinaryActionServiceTest --compact` (10 tests passed, 40 assertions).
 
 ---
 
@@ -708,37 +710,34 @@ Phase 7 is a separate disciplinary case and sanction workflow. It must reuse Pha
 
 ### Remaining Tasks (Medium / High Impact)
 
-#### Task 8.1: Fix N+1 Student Count Loop in `CoordinatorManager` (🔴 HIGH)
+#### Task 8.1: Fix N+1 Student Count Loop in `CoordinatorManager` (✅ COMPLETED)
 * **File:** `app/Http/Livewire/Admin/CoordinatorManager.php`
 * **Problem:** `render()` fires one `AcademicDetail::count()` query per coordinator row on each page (up to 15 queries per Livewire update).
-* **Fix:** Replace the `foreach` loop with a single grouped `DB::table('academic_details')->selectRaw(...)->groupBy()->get()` keyed by coordinator ID.
+* **Fix:** Replaced the per-row loop with two grouped SQL aggregate queries keyed by coordinator ID.
 * **Tasks:**
-  - [ ] Replace lines 454–471 student count loop with a single `selectRaw` grouped query
-  - [ ] Pass results as a keyed collection to the view
-* **Agent Prompt:**
-  > *"In `app/Http/Livewire/Admin/CoordinatorManager.php`, replace the foreach N+1 student count loop inside `render()` (around lines 454–471) with a single grouped SQL aggregate query. Use `DB::table('academic_details')->selectRaw(...)` grouped by `course_id` and `student_level_id` to produce a keyed array `$coordinatorStudentCounts`. Preserve the existing view variable name and blade template display logic."*
+  - [x] Replace the student count loop with a single grouped `selectRaw` query pattern
+  - [x] Pass results as a keyed collection to the view
+* **Verification:** `php artisan test --filter=CoordinatorManagerPerformanceTest --compact` (1 test passed, 2 assertions).
 
-#### Task 8.2: Cache Lookup Tables in `CoordinatorManager` (🟠 HIGH)
+#### Task 8.2: Cache Lookup Tables in `CoordinatorManager` (✅ COMPLETED)
 * **File:** `app/Http/Livewire/Admin/CoordinatorManager.php`
 * **Problem:** `render()` always calls `Department::orderBy('name')->get()`, `Course::with('department')->orderBy('name')->get()`, and `StudentLevel::all()` — three full-table loads on every Livewire interaction.
-* **Fix:** Move these into `mount()` as public component properties (they don't change during a session).
+* **Fix:** Moved these into `mount()` as public component properties so they are loaded once per component lifecycle.
 * **Tasks:**
-  - [ ] Add `public $departments = []`, `public $courses = []`, `public $studentLevels = []` properties
-  - [ ] Populate them in `mount()` instead of `render()`
-  - [ ] Remove the three queries from `render()`
-* **Agent Prompt:**
-  > *"In `app/Http/Livewire/Admin/CoordinatorManager.php`, move the `Department::get()`, `Course::with('department')->get()`, and `StudentLevel::all()` queries from `render()` into `mount()` as public Livewire properties (`$departments`, `$courses`, `$studentLevels`). This prevents three full-table scans on every Livewire re-render. Update `render()` to pass the pre-loaded properties to the view instead."*
+  - [x] Add cached public properties for departments, courses, and student levels
+  - [x] Populate them in `mount()` instead of `render()`
+  - [x] Remove the three queries from `render()`
+* **Verification:** `php artisan test --filter=CoordinatorManagerPerformanceTest --compact` (1 test passed, 2 assertions).
 
-#### Task 8.3: Fix `CoordinatorResultReview::loadCourseSummaries()` — PHP-side Aggregation (🟠 HIGH)
+#### Task 8.3: Fix `CoordinatorResultReview::loadCourseSummaries()` — PHP-side Aggregation (✅ COMPLETED)
 * **File:** `app/Http/Livewire/Coordinator/CoordinatorResultReview.php`
 * **Problem:** `loadLegacyCourseSummaries()` pulls **all** `Result` rows for the department and session into a PHP collection, then groups/counts them in PHP. For large departments this transfers MB of data.
-* **Fix:** Replace with a `DB::table('results')->selectRaw('department_course_id, status, COUNT(*) as count')->groupBy(...)` aggregate.
+* **Fix:** Replaced the legacy PHP grouping with a single SQL aggregate query and retained the existing `$courseSummaries` structure for the view.
 * **Tasks:**
-  - [ ] Rewrite `loadLegacyCourseSummaries()` to use a single grouped SQL aggregate instead of `Result::get()` + PHP collection grouping
-  - [ ] Verify the `$courseSummaries` array structure passed to the view remains unchanged
-  - [ ] Run `tests/Feature/ResultApprovalWorkflowTest.php` to confirm no regression
-* **Agent Prompt:**
-  > *"In `app/Http/Livewire/Coordinator/CoordinatorResultReview.php`, rewrite `loadLegacyCourseSummaries()` to replace the `Result::get()` full collection load with a single `DB::table('results')->selectRaw('department_course_id, status, COUNT(*) as count')->groupBy('department_course_id', 'status')->get()` query. Build the `$this->courseSummaries` array from the aggregated result rather than grouping in PHP. Run `ResultApprovalWorkflowTest.php` to verify correctness."*
+  - [x] Rewrite `loadLegacyCourseSummaries()` to use grouped SQL aggregation instead of `Result::get()` + PHP collection grouping
+  - [x] Preserve the `$courseSummaries` array structure passed to the view
+  - [x] Run `tests/Feature/ResultApprovalWorkflowTest.php` to confirm no regression
+* **Verification:** `php artisan test --filter=ResultApprovalWorkflowTest --compact` (passed with all workflow scenarios green)
 
 #### Task 8.4: Fix `ResultEntry::loadStudentsAndResults()` — PHP-side Sort (🟠 MEDIUM)
 * **File:** `app/Http/Livewire/Lecturer/ResultEntry.php`
