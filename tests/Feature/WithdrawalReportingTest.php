@@ -229,4 +229,61 @@ class WithdrawalReportingTest extends TestCase
             ->assertOk()
             ->assertHeader('content-type', 'application/pdf');
     }
+
+    public function test_broadsheet_reflects_withdrawal_status_and_does_not_override_remark_with_repeat(): void
+    {
+        // Fetch broadsheet for 2025/2026 session
+        $filters = [
+            'department_id' => $this->department->id,
+            'academic_session' => '2025/2026',
+            'semester' => 'first',
+        ];
+
+        $broadsheet = $this->reporting->getDepartmentalBroadsheet($filters);
+        $studentRow = collect($broadsheet['students'])->firstWhere('matric_no', 'UG/2021/001');
+
+        $this->assertNotNull($studentRow);
+        // Student was reinstated in 2025/2026, so should not be marked as withdrawn in 2025/2026
+        $this->assertFalse($studentRow['status_is_withdrawn']);
+
+        // Check for medical withdrawal student in 2024/2025 session after Senate approval
+        $this->medicalWithdrawal->update(['senate_decision' => 'SENATE_APPROVED']);
+
+        $medFilters = [
+            'department_id' => $this->otherDepartment->id,
+            'academic_session' => '2024/2025',
+            'semester' => 'first',
+        ];
+
+        $medBroadsheet = $this->reporting->getDepartmentalBroadsheet($medFilters);
+        $medRow = collect($medBroadsheet['students'])->firstWhere('matric_no', 'UG/2020/002');
+
+        $this->assertNotNull($medRow);
+        $this->assertTrue($medRow['status_is_withdrawn']);
+        $this->assertStringContainsString('WITHDRAWN', $medRow['remark']);
+        $this->assertStringNotContainsString('REPEAT:', $medRow['remark']);
+    }
+
+    public function test_result_snapshot_service_prevents_lazy_loading_violation(): void
+    {
+        \Illuminate\Database\Eloquent\Model::preventLazyLoading(true);
+
+        $result = new \App\Models\Result([
+            'user_id' => $this->academicWithdrawalStudent->id,
+            'academic_session' => '2023/2024',
+            'semester' => 'first',
+            'ca_score' => 20,
+            'exam_score' => 40,
+            'total_score' => 60,
+            'grade' => 'B',
+            'credit_units' => 3,
+        ]);
+
+        $snapshotService = app(\App\Services\ResultCourseSnapshotService::class);
+        $snapshot = $snapshotService->resolve($result);
+        $units = $snapshotService->units($result);
+
+        $this->assertSame(3, $units);
+        $this->assertIsArray($snapshot);
+    }
 }

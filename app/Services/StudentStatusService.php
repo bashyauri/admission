@@ -840,17 +840,23 @@ class StudentStatusService
     }
 
     /**
-     * Get the latest Senate-approved status for each student in a session.
-     * The keyed result supports report generation without one status query per row.
+     * Get the latest Senate-approved status for each student effective up to a given session.
+     * The keyed result supports report generation without missing ongoing withdrawals from earlier sessions.
      *
      * @param iterable<string> $userIds
      * @return Collection<string, StudentStatusRecord>
      */
     public function getStatusesForSession(iterable $userIds, string $academicSession): Collection
     {
-        return StudentStatusRecord::whereIn('user_id', $userIds)
-            ->where('academic_session', $academicSession)
+        $ids = collect($userIds)->filter()->unique()->values();
+        if ($ids->isEmpty()) {
+            return new Collection();
+        }
+
+        return StudentStatusRecord::whereIn('user_id', $ids)
+            ->where('academic_session', '<=', $academicSession)
             ->whereIn('senate_decision', [self::WORKFLOW_SENATE_APPROVED, 'APPROVED'])
+            ->orderByDesc('academic_session')
             ->orderByDesc('effective_date')
             ->orderByDesc('id')
             ->get()

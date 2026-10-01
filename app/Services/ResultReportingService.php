@@ -453,7 +453,8 @@ class ResultReportingService
                 $classOfDegree = $gpaRecord->class_of_degree ?? $this->gradeCalculator->getClassOfDegree($cgpa);
             } else {
                 // Fallback: Compute on the fly from all historical released results
-                $allUserResults = Result::where('user_id', $student->id)
+                $allUserResults = Result::with(['departmentCourse.studentCourse', 'registeredCourse'])
+                    ->where('user_id', $student->id)
                     ->where('status', 'released')
                     ->get();
 
@@ -503,10 +504,12 @@ class ResultReportingService
             if (!$hasResults) {
                 // Student has no exam records for this cohort/level (e.g. Direct Entry starting at 200L, unexamined, or deferred)
                 $statusText ??= $student->isDe ? 'DIRECT ENTRY (200L ENTRY)' : 'NO REGISTRATION / NO RESULT';
-                $remark = $student->isDe ? 'D.E. CANDIDATE (STARTS AT 200L)' : 'NO RESULT';
+                $remark = $isOfficiallyWithdrawn
+                    ? $statusText
+                    : ($student->isDe ? 'D.E. CANDIDATE (STARTS AT 200L)' : 'NO RESULT');
                 $isPass = false;
             } else {
-                $isPass = $statusRecord?->status?->isWithdrawn() !== true
+                $isPass = !$isOfficiallyWithdrawn
                     && empty($allUnclearedCourses)
                     && $cgpa >= 1.50;
                 if (!$isOfficiallyWithdrawn) {
@@ -516,9 +519,11 @@ class ResultReportingService
                         default => null,
                     };
                 }
-                $remark = !empty($allUnclearedCourses) 
-                    ? 'REPEAT: ' . implode(', ', $allUnclearedCourses) 
-                    : ($isPass ? 'PASS' : ($statusText ?? 'PASS'));
+                $remark = $isOfficiallyWithdrawn
+                    ? $statusText
+                    : (!empty($allUnclearedCourses) 
+                        ? 'REPEAT: ' . implode(', ', $allUnclearedCourses) 
+                        : ($isPass ? 'PASS' : ($statusText ?? 'PASS')));
             }
 
             $broadsheetRows[] = [
@@ -541,7 +546,7 @@ class ResultReportingService
                 'repeat_courses' => $allUnclearedCourses,
                 'status_text' => $statusText,
                 'status_is_withdrawn' => $isOfficiallyWithdrawn,
-                'status_display' => $isOfficiallyWithdrawn ? 'WITHDRAWN FROM PROGRAMME' : $statusText,
+                'status_display' => $isOfficiallyWithdrawn ? 'WITHDRAWN: ' . strtoupper($statusRecord->status->label()) : $statusText,
                 'status_session' => $isOfficiallyWithdrawn ? $statusRecord->academic_session : null,
                 'status_effective_date' => $isOfficiallyWithdrawn ? $statusRecord->effective_date?->toDateString() : null,
                 'status_senate_reference' => $isOfficiallyWithdrawn ? $statusRecord->senate_reference : null,
@@ -1023,6 +1028,9 @@ public function getCohortProgressionBroadsheet(array $filters): array
         ->get()
         ->groupBy('user_id');
 
+    $statusService = $this->studentStatusService ??= app(StudentStatusService::class);
+    $cohortStatuses = $statusService->getCurrentStatuses($studentIds);
+
     // Identify all unique academic sessions present across the entire cohort
     $cohortSessions = $rawResults->pluck('academic_session')
         ->filter()
@@ -1038,6 +1046,7 @@ public function getCohortProgressionBroadsheet(array $filters): array
     $studentsWithCleanRecord   = 0;
     $studentsWithResolvedOnly  = 0;
     $studentsWithDeficiencies  = 0;
+    $studentsWithdrawnCount    = 0;
 
     foreach ($students as $student) {
         $acadDetail  = $student->academicDetail;
@@ -1046,6 +1055,9 @@ public function getCohortProgressionBroadsheet(array $filters): array
         if (empty(trim($studentName))) {
             $studentName = $student->name ?? 'Unknown Student';
         }
+
+        $statusRec = $cohortStatuses->get($student->id);
+        $isCohortWithdrawn = $statusRec?->status?->isWithdrawn() === true;
 
         /** @var Collection<int, Result> $userResults */
         $userResults = $resultsGroupedByStudent->get($student->id, collect());
@@ -1297,7 +1309,10 @@ public function getCohortProgressionBroadsheet(array $filters): array
         }
 
         // Categorize student compliance
-        if (empty($carryOverLedger)) {
+        if ($isCohortWithdrawn) {
+            $studentsWithdrawnCount++;
+            $standingRemark = 'WITHDRAWN: ' . strtoupper($statusRec->status->label());
+        } elseif (empty($carryOverLedger)) {
             $studentsWithCleanRecord++;
             $standingRemark = 'PASS (CLEAN RECORD)';
         } elseif (!$hasOutstanding) {
@@ -1334,6 +1349,10 @@ public function getCohortProgressionBroadsheet(array $filters): array
             'carry_overs_count'          => count($carryOverLedger),
             'has_outstanding_carryovers' => $hasOutstanding,
             'standing_remark'            => $standingRemark,
+            'is_withdrawn'               => $isCohortWithdrawn,
+            'withdrawal_status'          => $isCohortWithdrawn ? $statusRec->status->label() : null,
+            'withdrawal_session'         => $isCohortWithdrawn ? $statusRec->academic_session : null,
+            'withdrawal_reference'       => $isCohortWithdrawn ? $statusRec->senate_reference : null,
         ];
     }
 
@@ -1360,6 +1379,8 @@ public function getCohortProgressionBroadsheet(array $filters): array
             'resolved_carryover_percentage' => $totalStudents > 0 ? round(($studentsWithResolvedOnly / $totalStudents) * 100, 1) : 0.0,
             'deficient_count'               => $studentsWithDeficiencies,
             'deficient_percentage'          => $totalStudents > 0 ? round(($studentsWithDeficiencies / $totalStudents) * 100, 1) : 0.0,
+            'withdrawn_count'               => $studentsWithdrawnCount,
+            'withdrawn_percentage'          => $totalStudents > 0 ? round(($studentsWithdrawnCount / $totalStudents) * 100, 1) : 0.0,
             'total_carryovers_recorded'     => $totalOutstandingCarryOvers + $totalResolvedCarryOvers,
             'total_carryovers_cleared'      => $totalResolvedCarryOvers,
             'total_carryovers_outstanding'  => $totalOutstandingCarryOvers,

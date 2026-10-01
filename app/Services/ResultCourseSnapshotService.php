@@ -18,6 +18,23 @@ class ResultCourseSnapshotService
     /** @return array{code: ?string, title: ?string, units: int, semester: ?string, level: ?int} */
     public function resolve(Result $result): array
     {
+        if (
+            $result->course_code_snapshot !== null &&
+            $result->course_title_snapshot !== null &&
+            $result->credit_units_snapshot !== null &&
+            $result->semester_snapshot !== null &&
+            $result->level_snapshot !== null
+        ) {
+            return [
+                'code' => (string) $result->course_code_snapshot,
+                'title' => (string) $result->course_title_snapshot,
+                'units' => (int) $result->credit_units_snapshot,
+                'semester' => (string) $result->semester_snapshot,
+                'level' => (int) $result->level_snapshot,
+            ];
+        }
+
+        $result->loadMissing(['registeredCourse.departmentCourse.studentCourse', 'departmentCourse.studentCourse']);
         $registeredCourse = $result->registeredCourse;
         $departmentCourse = $result->departmentCourse ?? $registeredCourse?->departmentCourse;
         $studentCourse = $departmentCourse?->studentCourse;
@@ -53,6 +70,7 @@ class ResultCourseSnapshotService
             return (int) $result->credit_units_snapshot;
         }
 
+        $result->loadMissing(['registeredCourse.departmentCourse.studentCourse', 'departmentCourse.studentCourse']);
         $registeredCourse = $result->registeredCourse;
         if ($registeredCourse?->credit_units_snapshot !== null) {
             return (int) $registeredCourse->credit_units_snapshot;
@@ -71,6 +89,7 @@ class ResultCourseSnapshotService
     /** @return array{code: ?string, title: ?string, units: int, semester: ?string, level: ?int} */
     public function resolveRegistration(RegisteredCourse $registeredCourse): array
     {
+        $registeredCourse->loadMissing('departmentCourse.studentCourse');
         $studentCourse = $registeredCourse->departmentCourse?->studentCourse;
 
         return [

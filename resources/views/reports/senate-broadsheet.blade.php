@@ -474,7 +474,14 @@
                         </td>
                         <td class="col-remarks">
                             <div class="remark-block">
-                                @if($student['is_pass'])
+                                @if(!empty($student['status_is_withdrawn']))
+                                    <div class="remark-title" style="color: #b91c1c; font-weight: 800;">{{ $student['status_display'] ?? $student['status_text'] }}</div>
+                                    <div class="status-val">Session: {{ $student['status_session'] ?? '—' }} · Effective: {{ $student['status_effective_date'] ?? '—' }}</div>
+                                    @if(!empty($student['status_senate_reference']))<div class="status-val">Senate Ref: {{ $student['status_senate_reference'] }}</div>@endif
+                                    @if(!empty($student['repeat_courses']))
+                                        <div style="font-size: 8.5px; color: #64748b; margin-top: 2px;">(Uncleared: {{ implode(', ', $student['repeat_courses']) }})</div>
+                                    @endif
+                                @elseif($student['is_pass'])
                                     <div>PASS</div>
                                 @else
                                     @if(!empty($student['repeat_courses']))
@@ -485,10 +492,6 @@
                                     @if(!empty($student['status_text']))
                                         <div class="status-title">STATUS:</div>
                                         <div class="status-val">{{ $student['status_display'] ?? $student['status_text'] }}</div>
-                                        @if(!empty($student['status_is_withdrawn']))
-                                            <div class="status-val">Session: {{ $student['status_session'] ?? '—' }} · Effective: {{ $student['status_effective_date'] ?? '—' }}</div>
-                                            @if(!empty($student['status_senate_reference']))<div class="status-val">Senate Ref: {{ $student['status_senate_reference'] }}</div>@endif
-                                        @endif
                                     @endif
                                 @endif
                             </div>
