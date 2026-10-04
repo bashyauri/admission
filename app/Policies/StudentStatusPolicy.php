@@ -83,12 +83,15 @@ class StudentStatusPolicy
 
     private function hasCapabilityForStudent(User $actor, string $capability, User $student): bool
     {
+        $departmentId = $student->academicDetail()->value('department_id');
+
         return $actor->capabilities()
             ->where('capability', $capability)
-            ->where(function ($query) use ($student) {
+            ->where(function ($query) use ($departmentId) {
                 $query->whereNull('department_id');
-                if ($student->academicDetail?->department_id) {
-                    $query->orWhere('department_id', $student->academicDetail->department_id);
+
+                if ($departmentId !== null) {
+                    $query->orWhere('department_id', $departmentId);
                 }
             })
             ->exists();

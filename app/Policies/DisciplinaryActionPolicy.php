@@ -18,13 +18,15 @@ class DisciplinaryActionPolicy
             return true;
         }
 
+        $departmentId = $student->academicDetail()->value('department_id');
+
         return $actor->capabilities()
             ->where('capability', 'disciplinary_actions.manage')
-            ->where(function ($query) use ($student) {
+            ->where(function ($query) use ($departmentId) {
                 $query->whereNull('department_id');
 
-                if ($student->academicDetail?->department_id) {
-                    $query->orWhere('department_id', $student->academicDetail->department_id);
+                if ($departmentId !== null) {
+                    $query->orWhere('department_id', $departmentId);
                 }
             })
             ->exists();

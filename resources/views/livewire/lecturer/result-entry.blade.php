@@ -236,7 +236,7 @@
                                                 <span class="mt-1 block rounded border border-rose-200 bg-rose-50 px-2 py-1 text-[10px] font-bold text-rose-800">{{ $institutionalStatus }}</span>
                                             @endif
                                         </td>
-                                        <td class="p-2 text-center align-middle bg-transparent border-b whitespace-nowrap shadow-transparent">
+                                        <td class="p-2 text-center align-middle bg-transparent border-b whitespace-normal shadow-transparent">
                                             @if($isPending)
                                                 @if($canEnterNewResult)
                                                 <label class="mb-2 flex items-center justify-center gap-1.5 text-xs font-semibold text-slate-600">
@@ -251,7 +251,7 @@
                                                     <span wire:loading wire:target="saveScore('{{ $userId }}')">Saving...</span>
                                                 </button>
                                                 @else
-                                                    <span class="block max-w-40 text-[10px] font-semibold text-rose-700">New result entry is blocked. Previously saved results remain in the record.</span>
+                                                    <span class="block max-w-[180px] break-words text-left text-[10px] font-semibold leading-snug text-rose-700">New result entry is blocked. Previously saved results remain in the record.</span>
                                                 @endif
                                             @endif
                                         </td>

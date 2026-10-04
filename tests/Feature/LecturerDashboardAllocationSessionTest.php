@@ -4,19 +4,23 @@ namespace Tests\Feature;
 
 use App\Http\Livewire\Lecturer\LecturerDashboard;
 use App\Http\Livewire\Lecturer\ResultEntry;
+use App\Models\AcademicDetail;
 use App\Models\CourseAllocation;
+use App\Models\Course;
 use App\Models\Department;
 use App\Models\DepartmentCourse;
+use App\Models\Programme;
+use App\Models\RegisteredCourse;
 use App\Models\StudentCourse;
 use App\Models\StudentLevel;
 use App\Models\User;
-use Illuminate\Foundation\Testing\DatabaseTransactions;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 use Tests\TestCase;
 
 class LecturerDashboardAllocationSessionTest extends TestCase
 {
-    use DatabaseTransactions;
+    use RefreshDatabase;
 
     private User $lecturer;
 
@@ -26,11 +30,19 @@ class LecturerDashboardAllocationSessionTest extends TestCase
 
     private StudentLevel $level;
 
+    private Programme $programme;
+
     protected function setUp(): void
     {
         parent::setUp();
 
+        $this->programme = Programme::first() ?? Programme::create([
+            'name' => 'Undergraduate Test Programme',
+            'abv' => 'UG',
+        ]);
+
         $this->lecturer = User::create([
+            'programme_id' => $this->programme->id,
             'email' => 'lecturer_session_' . uniqid() . '@example.com',
             'role' => 'lecturer',
             'surname' => 'Lecturer',
@@ -42,7 +54,6 @@ class LecturerDashboardAllocationSessionTest extends TestCase
 
         $this->department = new Department();
         $this->department->name = 'Session Test Department ' . uniqid();
-        $this->department->code = 'S' . rand(10, 99);
         $this->department->save();
 
         $this->level = StudentLevel::first() ?? StudentLevel::create([
@@ -99,6 +110,7 @@ class LecturerDashboardAllocationSessionTest extends TestCase
         ]);
 
         $otherLecturer = User::create([
+            'programme_id' => $this->programme->id,
             'email' => 'other_lecturer_session_' . uniqid() . '@example.com',
             'role' => 'lecturer',
             'surname' => 'Other',
@@ -138,7 +150,7 @@ class LecturerDashboardAllocationSessionTest extends TestCase
             ->assertSee('2025/2026')
             ->set('selectedSession', '2024/2025')
             ->assertSee('Allocated Session Test Course')
-            ->assertSee('Second')
+            ->assertSee('second')
             ->assertDontSee('Current Session Course')
             ->assertDontSee('Other Lecturer Course')
             ->set('selectedSession', '2025/2026')
@@ -159,5 +171,59 @@ class LecturerDashboardAllocationSessionTest extends TestCase
             ->assertSet('selectedSession', '2024/2025')
             ->set('selectedSemester', 'first')
             ->assertSet('selectedSemester', 'second');
+    }
+
+    public function test_result_entry_loads_registered_students_in_matric_number_order(): void
+    {
+        $course = Course::create([
+            'name' => 'Result Entry Test Course',
+            'programme_id' => $this->programme->id,
+            'department_id' => $this->department->id,
+        ]);
+
+        $registrations = [];
+
+        foreach (['UG/2025/002', 'UG/2025/001'] as $index => $matricNumber) {
+            $student = User::create([
+                'programme_id' => $this->programme->id,
+                'surname' => 'Student',
+                'firstname' => 'Test ' . $index,
+                'email' => 'result_entry_student_' . uniqid() . '@example.com',
+                'role' => 'student',
+                'password' => bcrypt('secret'),
+                'vpassword' => 'secret',
+            ]);
+
+            $academicDetail = AcademicDetail::create([
+                'user_id' => $student->id,
+                'matric_no' => $matricNumber,
+                'course_id' => $course->id,
+                'programme_id' => $this->programme->id,
+                'department_id' => $this->department->id,
+                'student_level_id' => $this->level->id,
+            ]);
+
+            $registrations[] = RegisteredCourse::create([
+                'department_course_id' => $this->allocation->department_course_id,
+                'academic_detail_id' => $academicDetail->id,
+                'student_level_id' => $this->level->id,
+                'units' => 3,
+                'academic_session' => $this->allocation->academic_session,
+            ]);
+        }
+
+        $this->actingAs($this->lecturer);
+
+        $component = Livewire::test(ResultEntry::class, ['courseAllocation' => $this->allocation]);
+
+        $students = $component->get('students');
+        $this->assertSame(
+            ['UG/2025/001', 'UG/2025/002'],
+            $students->pluck('academicDetail.matric_no')->all(),
+        );
+        $this->assertSame(
+            [$registrations[1]->id, $registrations[0]->id],
+            $students->pluck('id')->all(),
+        );
     }
 }

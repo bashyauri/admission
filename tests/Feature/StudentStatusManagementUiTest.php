@@ -217,6 +217,31 @@ class StudentStatusManagementUiTest extends TestCase
             ->assertSee('Course history');
     }
 
+    public function test_department_scoped_policies_do_not_lazy_load_student_academic_detail(): void
+    {
+        $viewer = User::factory()->create(['role' => 'hod']);
+        UserCapability::create([
+            'user_id' => $viewer->id,
+            'capability' => 'student_status.view',
+            'department_id' => $this->student->academicDetail()->value('department_id'),
+            'is_active' => true,
+        ]);
+
+        $disciplinaryManager = User::factory()->create(['role' => 'hod']);
+        UserCapability::create([
+            'user_id' => $disciplinaryManager->id,
+            'capability' => 'disciplinary_actions.manage',
+            'department_id' => $this->student->academicDetail()->value('department_id'),
+            'is_active' => true,
+        ]);
+
+        $statusPolicy = app(\App\Policies\StudentStatusPolicy::class);
+        $disciplinaryPolicy = app(\App\Policies\DisciplinaryActionPolicy::class);
+
+        $this->assertTrue($statusPolicy->view($viewer, $this->student));
+        $this->assertTrue($disciplinaryPolicy->manage($disciplinaryManager, $this->student));
+    }
+
     public function test_staff_management_route_does_not_select_the_student_sidebar(): void
     {
         $this->actingAs($this->admin)

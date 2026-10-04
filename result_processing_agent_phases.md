@@ -28,8 +28,9 @@ graph TD
     P2 --> P3["Phase 3: Lecturer Result Entry<br/>(COMPLETED)"]
     P3 --> P4["Phase 4: Multi-Level Approval & Academic Board Broadsheets<br/>(COMPLETED)"]
     P4 --> P5["Phase 5: UG Student Portal & Transcripts<br/>(COMPLETED)"]
-    P5 --> P6["Phase 6: UG Graduation & Student Academic Status Management<br/>(IN PROGRESS - Task 6.7 Up Next)"]
-    P6 --> P7["Phase 7: Exam Malpractice & Senate Disciplinary Engine<br/>(✅ COMPLETED - UG enforcement + UI verified)"]
+    P5 --> P6["Phase 6: UG Graduation & Student Academic Status Management<br/>(COMPLETED)"]
+    P6 --> P7["Phase 7: Exam Malpractice & Senate Disciplinary Engine<br/>(COMPLETED - UG enforcement + UI verified)"]
+    P7 --> P8["Phase 8: TALL Stack Performance Optimisation<br/>(IN PROGRESS - Task 8.5)"]
 ```
 
 ---
@@ -221,10 +222,10 @@ graph TD
 
 ---
 
-## Phase 6: Undergraduate Graduation Processing & Senate Final Degree Approval (IN PROGRESS)
+## Phase 6: Undergraduate Graduation Processing & Senate Final Degree Approval (COMPLETED)
 * **Goal:** Automatically check undergraduate student graduation eligibility, generate the Senate Graduation Broadsheet, produce the Official Graduating/Pass List, and track certificate issuance.
 * **Risk Profile:** Low (primarily reports, eligibility evaluation, and certificate logging).
-* **Status:** **Ready for Execution (Structured into 15 Daily Tasks including Task 6.7 for Student Status Management)**
+* **Status:** **Completed (including student-status and withdrawal/reinstatement management)**
 
 > **Note:** Phase 6.7 (Student Academic Status, Withdrawal & Reinstatement Management) is detailed below and is being implemented following Senate-compliant architecture principles. Its reports preserve historical records and keep institutional status separate from academic progression.
 
@@ -311,10 +312,10 @@ graph TD
 * **Agent Prompt:**
   > *"Please implement Phase 6, Task 6.6: Implement Degree Certificate tracking, serial generation, collection logging, and student graduation clearance badge."*
 
-#### Task 6.7: Student Academic Status, Withdrawal & Reinstatement Management (⏳ UP NEXT)
+#### Task 6.7: Student Academic Status, Withdrawal & Reinstatement Management (✅ COMPLETED)
 * **Goal:** Implement Senate-compliant student status management with auditable withdrawal/reinstatement workflows, academic progression history tracking, and proper separation of academic performance from institutional decisions.
 * **Risk Profile:** Low (additive tables and service layer with proper governance workflows).
-* **Status:** **In Progress (Tasks 6.7.1–6.7.7 completed)**
+* **Status:** **Completed (Tasks 6.7.1–6.7.10; disciplinary status audit integration completed in Phase 7.2)**
 
 ### Design Principles
 The system must follow these governance rules:
@@ -446,7 +447,7 @@ The system must follow these governance rules:
   > *"Please implement Phase 6, Task 6.7.7: Integrate withdrawal status into transcripts, remove duplicated CGPA-based withdrawal calculations from ResultReportingService, and ensure historical result preservation."*
 
 #### Task 6.7.8: Security & Audit Infrastructure
-* **Scope:** Authorization policies and immutable audit trail. (WITHDRAWAL/REINSTATEMENT PATHS COMPLETED — September 2026; disciplinary suspension/expulsion integration awaits an approved mutation workflow.)
+* **Scope:** Authorization policies and immutable audit trail. (WITHDRAWAL, REINSTATEMENT, AND DISCIPLINARY SUSPENSION/EXPULSION PATHS COMPLETED — September 2026.)
 * **Tasks:**
   - [x] Create `StudentStatusPolicy` and server-side gates for status access and changes
     - Admins and explicitly granted `student_status.*` capabilities may act
@@ -461,7 +462,7 @@ The system must follow these governance rules:
   - [x] Extend the existing admin capability-management page to grant/revoke individual `student_status.*` capabilities with department scope; audit-trail viewing remains institution-wide and wildcard grants are rejected
   - [x] Add dedicated status audit storage; no existing audit subsystem was available
   - [x] Security test suite: `tests/Feature/StatusSecurityTest.php`
-  - [ ] Add audit hooks for suspension/expulsion with the approved disciplinary status mutation workflow in Phase 7; Task 7.2 must record these through `StudentStatusService` and its immutable audit trail.
+  - [x] Add audit hooks for suspension/expulsion through the Phase 7.2 disciplinary status mutation workflow in `StudentStatusService` and its immutable audit trail.
 *Agent Prompt:*
   > *"Please implement Phase 6, Task 6.7.8: Create authorization policies and immutable audit trail for Senate status decisions with proper role restrictions and Senate reference validation."*
 
@@ -681,7 +682,7 @@ Phase 7 is a separate disciplinary case and sanction workflow. It must reuse Pha
 ## Phase 8: TALL Stack Performance Optimisation (🔧 IN PROGRESS)
 * **Goal:** Eliminate N+1 query patterns, redundant full-table loads, and missing DB indexes across all Livewire components in the system.
 * **Risk Profile:** Zero (no schema changes beyond index additions; no business logic altered).
-* **Status:** **Quick Wins Completed — Medium/High Impact Pending**
+* **Status:** **Quick Wins and Tasks 8.1–8.4 Completed — Task 8.5 Next**
 
 > 📌 **SCOPE:** This phase targets only the Livewire backend components and blade views. No result calculations, grading logic, or progression rules are modified.
 
@@ -751,13 +752,15 @@ Phase 7 is a separate disciplinary case and sanction workflow. It must reuse Pha
   - [x] Add feature coverage for the queue in `tests/Feature/StudentStatusManagementUiTest.php`
 * **Verification:** `php artisan test tests/Feature/StudentStatusManagementUiTest.php --compact` (8 tests passed, 30 assertions).
 
-#### Task 8.4: Fix `ResultEntry::loadStudentsAndResults()` — PHP-side Sort (🟠 MEDIUM)
+#### Task 8.4: Fix `ResultEntry::loadStudentsAndResults()` — PHP-side Sort (✅ COMPLETED)
 * **File:** `app/Http/Livewire/Lecturer/ResultEntry.php`
 * **Problem:** `RegisteredCourse::with(['academicDetail.user'])->get()->sortBy(...)` pulls all students into PHP memory and sorts there instead of at the DB level.
 * **Fix:** Add a `join` on `academic_details` and use `->orderBy('academic_details.matric_no')` before `->get()`.
 * **Tasks:**
-  - [ ] Rewrite the `RegisteredCourse` query in `loadStudentsAndResults()` to use `->join('academic_details', ...)->orderBy('academic_details.matric_no')->select('registered_courses.*')->get()`
-  - [ ] Remove the `->sortBy()` and `->values()` PHP-side sort calls
+  - [x] Rewrite the `RegisteredCourse` query in `loadStudentsAndResults()` to use `->join('academic_details', ...)->orderBy('academic_details.matric_no')->select('registered_courses.*')->get()`
+  - [x] Remove the `->sortBy()` and `->values()` PHP-side sort calls
+  - [x] Add regression coverage in `tests/Feature/LecturerDashboardAllocationSessionTest.php` for matric-number ordering.
+* **Verification:** `php artisan test tests/Feature/LecturerDashboardAllocationSessionTest.php --compact` (3 tests passed).
 * **Agent Prompt:**
   > *"In `app/Http/Livewire/Lecturer/ResultEntry.php`, in `loadStudentsAndResults()`, replace the `->get()->sortBy(fn($rc) => $rc->academicDetail->matric_no)` pattern with a SQL-level `->join('academic_details', 'academic_details.id', '=', 'registered_courses.academic_detail_id')->orderBy('academic_details.matric_no')->select('registered_courses.*')->get()`. Keep the existing `->with(['academicDetail.user'])` eager load."*
 
