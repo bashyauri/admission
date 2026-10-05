@@ -28,24 +28,54 @@ class GenerateStudentPin extends Component
     public $academicSession;
     public $generatedPin;
 
+    /** Currently selected coordinator assignment */
+    public ?int $selectedAssignmentId = null;
+
     /** ID of the AcademicDetail record currently selected for course preview / approval */
     public ?int $selectedStudentId = null;
 
     public function mount(): void
     {
-        $coordinator = Auth::user()->coordinator;
+        // Select the first assignment by default, or the most recent one
+        $firstAssignment = Coordinator::where('user_id', Auth::id())
+            ->with(['course', 'course.department', 'department', 'studentLevel'])
+            ->orderBy('academic_session', 'desc')
+            ->first();
 
-        // Support both course-based and department-based coordinators
-        if ($coordinator->isCourseBased()) {
-            $this->courseId = $coordinator->course_id;
-            $this->departmentId = null;
-        } elseif ($coordinator->isDepartmentBased()) {
-            $this->departmentId = $coordinator->department_id;
-            $this->courseId = null;
+        if ($firstAssignment) {
+            $this->selectAssignment($firstAssignment->id);
+        }
+    }
+
+    /**
+     * Select a coordinator assignment to work with
+     */
+    public function selectAssignment(int $assignmentId): void
+    {
+        $this->selectedAssignmentId = $assignmentId;
+        $assignment = Coordinator::where('id', $assignmentId)
+            ->where('user_id', Auth::id())
+            ->with(['course', 'course.department', 'department', 'studentLevel'])
+            ->first();
+
+        if ($assignment) {
+            // Support both course-based and department-based coordinators
+            if ($assignment->isCourseBased()) {
+                $this->courseId = $assignment->course_id;
+                $this->departmentId = null;
+            } elseif ($assignment->isDepartmentBased()) {
+                $this->departmentId = $assignment->department_id;
+                $this->courseId = null;
+            }
+
+            $this->studentLevelId = $assignment->student_level_id;
+            $this->academicSession = $assignment->academic_session;
         }
 
-        $this->studentLevelId = $coordinator->student_level_id;
-        $this->academicSession = $coordinator->academic_session;
+        // Reset search and selection when switching assignments
+        $this->search = '';
+        $this->selectedStudentId = null;
+        $this->generatedPin = null;
     }
 
     /**
@@ -247,6 +277,12 @@ class GenerateStudentPin extends Component
 
     public function render()
     {
+        // Load all coordinator assignments for the logged-in user with eager-loaded relationships
+        $coordinatorAssignments = Coordinator::where('user_id', Auth::id())
+            ->with(['course', 'course.department', 'department', 'studentLevel'])
+            ->orderBy('academic_session', 'desc')
+            ->get();
+
         $students = $this->searchStudent();
 
         $selectedAcademicDetail = $this->selectedStudentId
@@ -266,6 +302,7 @@ class GenerateStudentPin extends Component
             'students'              => $students,
             'selectedAcademicDetail' => $selectedAcademicDetail,
             'registeredCourses'     => $registeredCourses,
+            'coordinatorAssignments' => $coordinatorAssignments,
         ]);
     }
 }

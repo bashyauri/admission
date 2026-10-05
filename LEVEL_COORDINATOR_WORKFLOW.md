@@ -120,6 +120,21 @@ public function scopeForCoordinator($query, $coordinatorId)
 - Coordinating approval transitions submitted results to `exam_officer_approved`, and records `coordinator_approved_by` and `coordinator_approved_at`. This is the queue consumed by the Exam Officer release workflow.
 - The review action uses an in-app confirmation panel that shows the course, period, submitted batch count, and downstream Exam Officer handoff. Returning a batch requires a reason.
 
+### 11. Multi-Assignment Session Selector (PIN Generation)
+- Coordinators can be assigned to multiple course/level/session cohorts (e.g., 100L/2025/2026, 200L/2025/2026, 200L/2024/2025)
+- The PIN generation page now includes a session selector that allows coordinators to switch between their different assignments
+- **Security**: The search always filters by the selected assignment's session, ensuring coordinators can only work within their assigned scope
+- **UI Behavior**:
+  - If coordinator has multiple assignments: Shows clickable buttons for each assignment (e.g., "B.Sc. Architecture — 100L — 2025/2026")
+  - If coordinator has single assignment: Shows a static info banner with their current assignment details
+  - Active assignment is highlighted in fuchsia color
+- **Implementation Details**:
+  - Coordinator assignments are loaded in the `render()` method with eager loading to prevent lazy loading violations
+  - The `selectAssignment()` method fetches the specific assignment from the database with proper eager loading
+  - Relationships are eager-loaded: `['course', 'course.department', 'department', 'studentLevel']`
+  - This avoids Livewire serialization issues with public properties containing relationships
+- **Use Case Example**: A coordinator responsible for all 100L and 200L students of B.Sc. Architecture across multiple admission sessions can now easily switch between cohorts to search for and generate PINs for students in any of their assigned sessions.
+
 ## Implementation Details
 
 ### Migrations Required
@@ -152,6 +167,7 @@ For legacy students, administrators review and explicitly approve admission-sess
 - `HodResultReview.php` - Deprecated, shows message about new workflow
 - `Result.php` - Added coordinator relationships and scopes, removed HOD fields
 - `ExamOfficerResultReview.php` - Updated to receive coordinator-approved results
+- `GenerateStudentPin.php` - Added multi-assignment session selector; coordinators can now switch between their different course/level/session assignments; loads assignments in render() with eager loading to prevent lazy loading violations
 
 ### Backward Compatibility
 The system supports both course-based (new) and department-based (legacy) coordinators to ensure existing assignments continue to work:
@@ -181,3 +197,24 @@ The PIN generation logic automatically detects and uses the appropriate coordina
 - **Streamlined Workflow**: Simplified result approval chain (Lecturer → Coordinator → Exam Officer)
 - **Improved Oversight**: Coordinators provide course-level academic oversight for exam officer review
 - **Backward Compatible**: Existing department-based coordinators continue to work
+- **Multi-Assignment Support**: Coordinators can manage multiple course/level/session cohorts with easy switching between assignments
+
+---
+
+## Recent Updates
+
+### 2026-10-05: Multi-Assignment Session Selector for PIN Generation
+**Problem**: Coordinators with multiple assignments (e.g., 100L/2025/2026, 200L/2025/2026, 200L/2024/2025) could only access one assignment when logging in, making it impossible to search for students in other assigned sessions.
+
+**Solution**: Added a session selector UI to the GenerateStudentPin component that allows coordinators to switch between their different assignments.
+
+**Changes**:
+- Added session selector UI with clickable buttons for each assignment
+- Active assignment highlighted in fuchsia color
+- Single assignments show static info banner
+- Security maintained: search always filters by selected assignment's session
+- Implemented in `GenerateStudentPin.php` and `generate-student-pin.blade.php`
+- Coordinator assignments loaded in `render()` method with eager loading to prevent lazy loading violations
+- `selectAssignment()` method fetches specific assignment from database with proper eager loading
+
+**Impact**: Coordinators can now easily switch between their assigned cohorts to search for and generate PINs for students in any of their assigned sessions while maintaining security boundaries.

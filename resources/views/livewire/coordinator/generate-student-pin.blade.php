@@ -1,5 +1,46 @@
 @use('App\Models\User')
 <div>
+    {{-- Session/Cohort Selector --}}
+    @if($coordinatorAssignments->count() > 1)
+        <div class="mb-4 rounded-xl bg-white/80 border border-slate-200 shadow-soft-sm p-4">
+            <h6 class="dark:text-white mb-3 text-sm font-bold">Select Assignment Cohort</h6>
+            <div class="flex flex-wrap gap-2">
+                @foreach($coordinatorAssignments as $assignment)
+                    <button wire:click="selectAssignment({{ $assignment->id }})"
+                            class="px-3 py-2 text-xs font-bold rounded-lg border transition-all
+                                   {{ $selectedAssignmentId === $assignment->id
+                                        ? 'bg-fuchsia-500 text-white border-fuchsia-500 shadow-soft-md'
+                                        : 'bg-white text-slate-600 border-slate-200 hover:border-fuchsia-300 hover:bg-fuchsia-50' }}">
+                        @if($assignment->course)
+                            {{ $assignment->course->name }}
+                        @elseif($assignment->department)
+                            {{ $assignment->department->name }}
+                        @endif
+                        — {{ $assignment->studentLevel?->name ?? $assignment->student_level_id }}L
+                        — {{ $assignment->academic_session }}
+                    </button>
+                @endforeach
+            </div>
+        </div>
+    @elseif($coordinatorAssignments->count() === 1)
+        {{-- Show single assignment info --}}
+        @php
+            $singleAssignment = $coordinatorAssignments->first();
+        @endphp
+        <div class="mb-4 rounded-xl bg-fuchsia-50 border border-fuchsia-200 shadow-soft-sm p-4">
+            <h6 class="dark:text-white mb-2 text-sm font-bold">Current Assignment</h6>
+            <p class="text-xs text-fuchsia-700">
+                @if($singleAssignment->course)
+                    {{ $singleAssignment->course->name }}
+                @elseif($singleAssignment->department)
+                    {{ $singleAssignment->department->name }}
+                @endif
+                — {{ $singleAssignment->studentLevel?->name ?? $singleAssignment->student_level_id }}L
+                — {{ $singleAssignment->academic_session }}
+            </p>
+        </div>
+    @endif
+
     <div class="flex flex-wrap -mx-3 mt-6">
 
         {{-- ─────────────────────────────────────────────────────────────
@@ -11,6 +52,14 @@
                 {{-- Search header --}}
                 <div class="border-black/12.5 rounded-t-2xl border-b-0 border-solid p-4">
                     <h6 class="dark:text-white mb-2">Find Student</h6>
+                    @if($academicSession)
+                        <p class="text-xs text-slate-400 mb-2">
+                            Session: <span class="font-bold text-fuchsia-600">{{ $academicSession }}</span>
+                            @if($studentLevelId)
+                                | Level: <span class="font-bold text-fuchsia-600">{{ $studentLevelId }}L</span>
+                            @endif
+                        </p>
+                    @endif
                     <input type="text"
                            id="coordinator-student-search"
                            placeholder="Matric / Registration number"
