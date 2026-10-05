@@ -3,6 +3,7 @@
 namespace App\Http\Livewire\Lecturer;
 
 use Livewire\Component;
+use Livewire\Attributes\Computed;
 use App\Models\CourseAllocation;
 use App\Models\RegisteredCourse;
 use App\Models\Result;
@@ -22,8 +23,7 @@ class ResultEntry extends Component
     use LivewireAlert, WithFileUploads;
 
     public $allocationId;
-    public CourseAllocation $allocation;
-    public $students = [];
+    protected ?CourseAllocation $cachedAllocation = null;
     public $results = []; // Format: [user_id => ['ca' => x, 'exam' => y]]
     public $file;
     public array $uploadPreviewRows = [];
@@ -47,32 +47,43 @@ class ResultEntry extends Component
             abort(403, 'Unauthorized access to this course allocation.');
         }
 
-        $this->allocation = $courseAllocation->loadMissing(['departmentCourse.studentCourse']);
         $this->allocationId = $courseAllocation->id;
+        $courseAllocation->loadMissing(['departmentCourse.studentCourse']);
+        $this->cachedAllocation = $courseAllocation;
 
-        $this->availableSessions = [$this->allocation->academic_session];
-        $this->selectedSession = $this->allocation->academic_session;
-        $this->selectedSemester = $this->allocation->semester ?: 'first';
+        $this->availableSessions = [$courseAllocation->academic_session];
+        $this->selectedSession = $courseAllocation->academic_session;
+        $this->selectedSemester = $courseAllocation->semester ?: 'first';
 
-        $this->loadCourseWeights();
+        $this->loadCourseWeights($courseAllocation);
         $this->loadStudentsAndResults();
     }
 
-    public function hydrate()
+    public function getAllocationProperty(): ?CourseAllocation
     {
-        if (isset($this->allocation)) {
-            $this->allocation->loadMissing(['departmentCourse.studentCourse']);
-        }
-        if ($this->students && method_exists($this->students, 'loadMissing')) {
-            $this->students->loadMissing(['academicDetail.user']);
-        }
-        $this->loadCourseWeights();
+        return $this->getAllocation();
     }
 
-    protected function loadCourseWeights(): void
+    #[Computed]
+    public function students(): \Illuminate\Support\Collection
     {
-        if (isset($this->allocation)) {
-            $studentCourse = $this->allocation->departmentCourse->studentCourse ?? null;
+        return $this->fetchStudents($this->getAllocation());
+    }
+
+    protected function getAllocation(): ?CourseAllocation
+    {
+        if ($this->cachedAllocation === null && $this->allocationId) {
+            $this->cachedAllocation = CourseAllocation::with(['departmentCourse.studentCourse'])->find($this->allocationId);
+        }
+
+        return $this->cachedAllocation;
+    }
+
+    protected function loadCourseWeights(?CourseAllocation $allocation = null): void
+    {
+        $allocation = $allocation ?? $this->getAllocation();
+        if ($allocation) {
+            $studentCourse = $allocation->departmentCourse->studentCourse ?? null;
             $this->maxCa = $studentCourse?->getMaxCa() ?? 40;
             $this->maxExam = $studentCourse?->getMaxExam() ?? 60;
         }
@@ -99,28 +110,34 @@ class ResultEntry extends Component
 
     protected function enforceAllocationContext(): void
     {
-        $this->selectedSession = $this->allocation->academic_session;
-        $this->selectedSemester = $this->allocation->semester ?: 'first';
+        $allocation = $this->getAllocation();
+        if ($allocation) {
+            $this->selectedSession = $allocation->academic_session;
+            $this->selectedSemester = $allocation->semester ?: 'first';
+        }
     }
 
     public function loadStudentsAndResults()
     {
-        $this->enforceAllocationContext();
-        $this->loadCourseWeights();
+        $allocation = $this->getAllocation();
+        if (!$allocation) {
+            return;
+        }
 
-        $session = $this->allocation->academic_session;
-        $semester = $this->allocation->semester ?: 'first';
+        $this->enforceAllocationContext();
+        $this->loadCourseWeights($allocation);
+
+        $session = $allocation->academic_session;
+        $semester = $allocation->semester ?: 'first';
 
         // Find registered courses for this department_course and selected session
         $registeredCourses = RegisteredCourse::with(['academicDetail.user'])
             ->join('academic_details', 'academic_details.id', '=', 'registered_courses.academic_detail_id')
-            ->where('registered_courses.department_course_id', $this->allocation->department_course_id)
+            ->where('registered_courses.department_course_id', $allocation->department_course_id)
             ->where('registered_courses.academic_session', $session)
             ->orderBy('academic_details.matric_no')
             ->select('registered_courses.*')
             ->get();
-
-        $this->students = $registeredCourses;
 
         $studentIds = $registeredCourses->pluck('academicDetail.user_id')->filter()->unique()->values();
         $studentStatusService = app(StudentStatusService::class);
@@ -132,7 +149,7 @@ class ResultEntry extends Component
         $statusGate = Gate::forUser(Auth::user());
 
         // Load existing results
-        $existingResults = Result::where('department_course_id', $this->allocation->department_course_id)
+        $existingResults = Result::where('department_course_id', $allocation->department_course_id)
             ->where('academic_session', $session)
             ->where('semester', $semester)
             ->get()
@@ -140,7 +157,7 @@ class ResultEntry extends Component
 
         // Populate the results array for Livewire
         $this->results = [];
-        foreach ($this->students as $regCourse) {
+        foreach ($this->fetchStudents($allocation) as $regCourse) {
             $userId = $regCourse->academicDetail->user_id ?? null;
             if (!$userId) continue;
             $studentUser = $regCourse->academicDetail->user;
@@ -200,7 +217,14 @@ class ResultEntry extends Component
             return;
         }
 
-        $student = RegisteredCourse::with('academicDetail')->where('department_course_id', $this->allocation->department_course_id)
+        $allocation = $this->getAllocation();
+        if (!$allocation) {
+            $this->alert('error', 'Course allocation not found.');
+            return;
+        }
+
+        $student = RegisteredCourse::with(['academicDetail.user', 'departmentCourse.studentCourse'])
+            ->where('department_course_id', $allocation->department_course_id)
             ->whereHas('academicDetail', function ($query) use ($userId) {
                 $query->where('user_id', $userId);
             })
@@ -241,7 +265,7 @@ class ResultEntry extends Component
             ? (int) ($existingResult?->credit_units_snapshot
                 ?? $student->credit_units_snapshot
                 ?? $student->units
-                ?? $this->allocation->departmentCourse?->units
+                ?? $allocation->departmentCourse?->units
                 ?? 0)
             : (int) $student->units;
         $attemptSnapshots = [];
@@ -269,7 +293,7 @@ class ResultEntry extends Component
         Result::updateOrCreate(
             $resultKey,
             [
-                'department_course_id' => $this->allocation->department_course_id,
+                'department_course_id' => $allocation->department_course_id,
                 'academic_detail_id' => $student->academic_detail_id,
                 'ca_score' => ($ca === '' || $ca === null) ? null : $ca,
                 'exam_score' => ($exam === '' || $exam === null) ? null : $exam,
@@ -295,11 +319,17 @@ class ResultEntry extends Component
 
     public function submitResults()
     {
+        $allocation = $this->getAllocation();
+        if (!$allocation) {
+            $this->alert('error', 'Course allocation not found.');
+            return;
+        }
+
         $session  = $this->selectedSession;
         $semester = $this->selectedSemester;
 
         // 1. Load all pending results with academicDetail fields we need for coordinator lookup
-        $results = Result::where('department_course_id', $this->allocation->department_course_id)
+        $results = Result::where('department_course_id', $allocation->department_course_id)
             ->where('academic_session', $session)
             ->where('semester', $semester)
             ->where('status', 'pending')
@@ -431,11 +461,14 @@ class ResultEntry extends Component
 
     public function downloadTemplate()
     {
-        $this->loadCourseWeights();
-        $studentCourse = $this->allocation->departmentCourse->studentCourse ?? null;
+        $allocation = $this->getAllocation();
+        $this->loadCourseWeights($allocation);
+        $studentCourse = $allocation?->departmentCourse?->studentCourse ?? null;
         $courseCode = $studentCourse->code ?? 'Course';
-        $fileName = 'Result_Template_' . str_replace(' ', '_', $courseCode) . '_' . str_replace('/', '-', $this->allocation->academic_session) . '.csv';
-        return Excel::download(new ResultTemplateExport($this->students, $this->maxCa, $this->maxExam), $fileName);
+        $session = $allocation?->academic_session ?? $this->selectedSession;
+        $fileName = 'Result_Template_' . str_replace(' ', '_', $courseCode) . '_' . str_replace('/', '-', $session) . '.csv';
+        $students = $this->fetchStudents($allocation);
+        return Excel::download(new ResultTemplateExport($students, $this->maxCa, $this->maxExam), $fileName);
     }
 
     public function previewResults(): void
@@ -444,13 +477,19 @@ class ResultEntry extends Component
             'file' => 'required|mimes:csv,txt,xlsx|max:2048',
         ]);
 
-        $this->loadCourseWeights();
+        $allocation = $this->getAllocation();
+        if (!$allocation) {
+            $this->alert('error', 'Course allocation not found.');
+            return;
+        }
+
+        $this->loadCourseWeights($allocation);
 
         try {
             $import = new ResultImport(
-                $this->allocation,
-                $this->allocation->academic_session,
-                $this->allocation->semester ?: 'first',
+                $allocation,
+                $allocation->academic_session,
+                $allocation->semester ?: 'first',
                 false,
                 $this->maxCa,
                 $this->maxExam
@@ -472,13 +511,19 @@ class ResultEntry extends Component
             return;
         }
 
-        $this->loadCourseWeights();
+        $allocation = $this->getAllocation();
+        if (!$allocation) {
+            $this->alert('error', 'Course allocation not found.');
+            return;
+        }
+
+        $this->loadCourseWeights($allocation);
 
         try {
             $import = new ResultImport(
-                $this->allocation,
-                $this->allocation->academic_session,
-                $this->allocation->semester ?: 'first',
+                $allocation,
+                $allocation->academic_session,
+                $allocation->semester ?: 'first',
                 true,
                 $this->maxCa,
                 $this->maxExam
@@ -511,10 +556,30 @@ class ResultEntry extends Component
         $this->previewValidCount = 0;
     }
 
+    protected function fetchStudents(?CourseAllocation $allocation): \Illuminate\Support\Collection
+    {
+        if (!$allocation) {
+            return collect();
+        }
+
+        return RegisteredCourse::with(['academicDetail.user'])
+            ->join('academic_details', 'academic_details.id', '=', 'registered_courses.academic_detail_id')
+            ->where('registered_courses.department_course_id', $allocation->department_course_id)
+            ->where('registered_courses.academic_session', $allocation->academic_session)
+            ->orderBy('academic_details.matric_no')
+            ->select('registered_courses.*')
+            ->get();
+    }
+
     public function render()
     {
-        $this->loadCourseWeights();
+        $allocation = $this->getAllocation();
+        $this->loadCourseWeights($allocation);
+        $students = $this->fetchStudents($allocation);
+
         return view('livewire.lecturer.result-entry', [
+            'allocation' => $allocation,
+            'students' => $students,
             'maxCa' => $this->maxCa,
             'maxExam' => $this->maxExam,
         ])->layout('layouts.app');

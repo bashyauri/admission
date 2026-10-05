@@ -12,22 +12,44 @@ class Approval extends Model
     {
         $this->update([
             'is_used' => true,
-            'approval_status' => 'Approved',
+            'approval_status' => $this->approval_status === 'Approved' ? 'Approved' : 'Pending',
         ]);
     }
+
     public function isPinUsed(): bool
     {
-        return $this->is_used;
+        return (bool) $this->is_used;
     }
 
+    public function isApproved(): bool
+    {
+        return $this->approval_status === 'Approved';
+    }
+
+    public function approve(?int $coordinatorId = null): void
+    {
+        $this->update([
+            'approval_status' => 'Approved',
+            'approval_date' => now(),
+            'coordinator_id' => $coordinatorId ?? $this->coordinator_id,
+        ]);
+    }
+
+    public function unlock(): void
+    {
+        $this->update([
+            'approval_status' => 'Pending',
+            'approval_date' => null,
+        ]);
+    }
 
     public function student()
     {
-        return $this->belongsTo(AcademicDetail::class);
+        return $this->belongsTo(AcademicDetail::class, 'academic_detail_id');
     }
 
     public function coordinator()
     {
-        return $this->belongsTo(Coordinator::class, 'user_id');
+        return $this->belongsTo(Coordinator::class, 'coordinator_id');
     }
 }

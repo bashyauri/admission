@@ -164,6 +164,12 @@ class CourseRegistration extends Component
     }
 
     #[Computed]
+    public function isRegistrationApproved(): bool
+    {
+        return (bool) $this->student?->approval?->isApproved();
+    }
+
+    #[Computed]
     public function totalRegisteredUnits(): int
     {
         return (int) app(CourseRegistrationService::class)
@@ -172,6 +178,15 @@ class CourseRegistration extends Component
 
     public function addCourse(DepartmentCourse $course): void
     {
+        if ($this->isRegistrationApproved) {
+            $this->alert('error', 'Course registration has been approved by your Level Coordinator and cannot be modified.', [
+                'position' => 'top-end',
+                'timer' => 4000,
+                'toast' => true,
+            ]);
+            return;
+        }
+
         if (!$this->isActivityAllowed) {
             $this->alert('error', 'Course registration is blocked due to your institutional student status.', [
                 'position' => 'top-end',
@@ -252,6 +267,15 @@ class CourseRegistration extends Component
 
     public function deleteCourse(RegisteredCourse $registeredCourse): void
     {
+        if ($this->isRegistrationApproved) {
+            $this->alert('error', 'Course registration has been approved by your Level Coordinator and courses cannot be removed.', [
+                'position' => 'top-end',
+                'timer' => 4000,
+                'toast' => true,
+            ]);
+            return;
+        }
+
         if (!$this->isActivityAllowed) {
             $statusLabel = $this->currentStudentStatus?->status?->label() ?? 'inactive';
             $this->alert('error', "Course registration changes are blocked by your current institutional status ({$statusLabel}).", [

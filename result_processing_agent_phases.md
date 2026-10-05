@@ -679,10 +679,10 @@ Phase 7 is a separate disciplinary case and sanction workflow. It must reuse Pha
 
 ---
 
-## Phase 8: TALL Stack Performance Optimisation (🔧 IN PROGRESS)
+## Phase 8: TALL Stack Performance Optimisation (✅ COMPLETED)
 * **Goal:** Eliminate N+1 query patterns, redundant full-table loads, and missing DB indexes across all Livewire components in the system.
 * **Risk Profile:** Zero (no schema changes beyond index additions; no business logic altered).
-* **Status:** **Quick Wins and Tasks 8.1–8.4 Completed — Task 8.5 Next**
+* **Status:** **Quick Wins and Tasks 8.1–8.5 Completed (Phase 8 Complete)**
 
 > 📌 **SCOPE:** This phase targets only the Livewire backend components and blade views. No result calculations, grading logic, or progression rules are modified.
 
@@ -764,16 +764,29 @@ Phase 7 is a separate disciplinary case and sanction workflow. It must reuse Pha
 * **Agent Prompt:**
   > *"In `app/Http/Livewire/Lecturer/ResultEntry.php`, in `loadStudentsAndResults()`, replace the `->get()->sortBy(fn($rc) => $rc->academicDetail->matric_no)` pattern with a SQL-level `->join('academic_details', 'academic_details.id', '=', 'registered_courses.academic_detail_id')->orderBy('academic_details.matric_no')->select('registered_courses.*')->get()`. Keep the existing `->with(['academicDetail.user'])` eager load."*
 
-#### Task 8.5: Fix `ResultEntry::hydrate()` — Redundant Relation Reloads (🟡 MEDIUM)
+#### Task 8.5: Fix `ResultEntry::hydrate()` — Redundant Relation Reloads (✅ COMPLETED)
 * **File:** `app/Http/Livewire/Lecturer/ResultEntry.php`
 * **Problem:** `hydrate()` fires on every Livewire request and calls `loadMissing()` unconditionally, re-querying the DB for relations that are already loaded.
 * **Fix:** Store the IDs, not the full model, in Livewire state. Load relations once in `render()` using `->loadMissing()` only when needed.
 * **Tasks:**
-  - [ ] Store only `$allocationId` (not `$allocation` model) in Livewire state
-  - [ ] Fetch `$allocation` fresh in `render()` with `->with(['departmentCourse.studentCourse'])`
-  - [ ] Remove the `hydrate()` method entirely
+  - [x] Store only `$allocationId` (not `$allocation` model) in Livewire state
+  - [x] Fetch `$allocation` fresh in `render()` with `->with(['departmentCourse.studentCourse'])`
+  - [x] Remove the `hydrate()` method entirely
+* **Verification:** `php artisan test tests/Feature/LecturerDashboardAllocationSessionTest.php --compact` (4 tests passed, 23 assertions).
 * **Agent Prompt:**
   > *"In `app/Http/Livewire/Lecturer/ResultEntry.php`, remove the `hydrate()` method. Instead, in `mount()` store only `$this->allocationId`. In `render()`, fetch `$allocation = CourseAllocation::with(['departmentCourse.studentCourse'])->find($this->allocationId)` once and pass it to the view. Update all references to `$this->allocation` in action methods to re-fetch via `CourseAllocation::find($this->allocationId)` when needed."*
+
+#### Task 8.6: Fix `ResultEntry` — Lazy Loading Exception on `$students` (✅ COMPLETED)
+* **File:** `app/Http/Livewire/Lecturer/ResultEntry.php`
+* **Problem:** `$students` was a `public` Livewire property holding an Eloquent Collection. On every subsequent Livewire request, Livewire serialised the collection but stripped all eager-loaded relations. Accessing `$student->academicDetail` in the Blade view (or in `loadStudentsAndResults()`) then triggered the `LazyLoadingException` because lazy loading is disabled project-wide.
+* **Fix:** Remove `public $students` from component state. Add a `#[Computed]` `students()` method and a `protected fetchStudents()` helper that always re-fetches with `->with(['academicDetail.user'])`. Pass the freshly fetched collection from `render()` into the view; `downloadTemplate()` also calls `fetchStudents()` directly.
+* **Tasks:**
+  - [x] Remove `public $students = []` from Livewire state
+  - [x] Add `#[Computed] public function students()` that delegates to `fetchStudents()`
+  - [x] Add `protected fetchStudents(?CourseAllocation)` that queries with eager loads
+  - [x] Pass `$students` from `render()` into the view
+  - [x] Update `downloadTemplate()` to call `fetchStudents()` instead of `$this->students`
+* **Verification:** `php artisan test tests/Feature/LecturerDashboardAllocationSessionTest.php --compact` (4 tests passed, 27 assertions — including the `preventLazyLoading(true)` scenario).
 
 ---
 

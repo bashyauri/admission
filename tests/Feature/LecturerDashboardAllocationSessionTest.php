@@ -226,4 +226,76 @@ class LecturerDashboardAllocationSessionTest extends TestCase
             $students->pluck('id')->all(),
         );
     }
+
+    public function test_result_entry_stores_allocation_id_only_and_renders_allocation_without_hydrate_method(): void
+    {
+        \Illuminate\Database\Eloquent\Model::preventLazyLoading(true);
+
+        $this->assertFalse(
+            method_exists(ResultEntry::class, 'hydrate'),
+            'ResultEntry::hydrate() method should be removed to prevent redundant database reloads.'
+        );
+
+        $course = Course::create([
+            'name' => 'Result Entry Test Course ' . uniqid(),
+            'programme_id' => $this->programme->id,
+            'department_id' => $this->department->id,
+        ]);
+
+        $student = User::create([
+            'programme_id' => $this->programme->id,
+            'surname' => 'Student',
+            'firstname' => 'LazyLoadTest',
+            'email' => 'lazy_load_student_' . uniqid() . '@example.com',
+            'role' => 'student',
+            'password' => bcrypt('secret'),
+            'vpassword' => 'secret',
+        ]);
+
+        $academicDetail = AcademicDetail::create([
+            'user_id' => $student->id,
+            'matric_no' => 'UG/2025/999',
+            'course_id' => $course->id,
+            'programme_id' => $this->programme->id,
+            'department_id' => $this->department->id,
+            'student_level_id' => $this->level->id,
+        ]);
+
+        RegisteredCourse::create([
+            'department_course_id' => $this->allocation->department_course_id,
+            'academic_detail_id' => $academicDetail->id,
+            'student_level_id' => $this->level->id,
+            'units' => 3,
+            'academic_session' => $this->allocation->academic_session,
+        ]);
+
+        $this->actingAs($this->lecturer);
+
+        $test = Livewire::test(ResultEntry::class, ['courseAllocation' => $this->allocation])
+            ->assertSet('allocationId', $this->allocation->id)
+            ->assertSee($this->allocation->academic_session)
+            ->assertSee('UG/2025/999')
+            ->call('$refresh')
+            ->assertSet('allocationId', $this->allocation->id)
+            ->assertSee($this->allocation->academic_session)
+            ->assertSee('UG/2025/999');
+
+        $instance = $test->instance();
+        $this->assertNotNull($instance->allocation);
+        $this->assertEquals($this->allocation->id, $instance->allocation->id);
+
+        $test->set("results.{$student->id}.ca", 25)
+            ->set("results.{$student->id}.exam", 45)
+            ->call('saveScore', $student->id)
+            ->assertHasNoErrors();
+
+        $this->assertDatabaseHas('results', [
+            'user_id' => $student->id,
+            'department_course_id' => $this->allocation->department_course_id,
+            'ca_score' => 25,
+            'exam_score' => 45,
+            'total_score' => 70,
+            'grade' => 'A',
+        ]);
+    }
 }
