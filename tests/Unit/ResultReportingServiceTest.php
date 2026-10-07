@@ -8,7 +8,7 @@ use App\Models\Result;
 use App\Services\AcademicProgressionService;
 use App\Services\GradeCalculationService;
 use App\Services\ResultReportingService;
-use PHPUnit\Framework\TestCase;
+use Tests\TestCase;
 
 class ResultReportingServiceTest extends TestCase
 {

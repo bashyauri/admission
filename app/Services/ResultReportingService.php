@@ -307,8 +307,17 @@ class ResultReportingService
             $resultsQuery->where('status', 'released');
         }
 
-        if (!empty($filters['single_semester_only']) && !empty($semester) && $semester !== 'second') {
+        $singleSemesterOnly = !empty($filters['single_semester_only'])
+            && !empty($semester)
+            && $semester !== 'all'
+            && $semester !== 'session';
+
+        if ($singleSemesterOnly) {
             $resultsQuery->where('semester', $semester);
+        }
+
+        if (!$singleSemesterOnly) {
+            $resultsQuery->whereIn('semester', ['first', 'second']);
         }
 
         $results = $resultsQuery->get();
@@ -529,7 +538,7 @@ class ResultReportingService
             } else {
                 $isPass = !$isOfficiallyWithdrawn
                     && empty($allUnclearedCourses)
-                    && $cgpa >= 1.50;
+                    && $cgpa >= 1.00;  // Updated to match FUBK policy (CGPA >= 1.00 is good standing)
                 if (!$isOfficiallyWithdrawn) {
                     $statusText = match ($standing) {
                         AcademicProgressionService::STANDING_PROBATION => 'ON PROBATION',
@@ -647,6 +656,7 @@ class ResultReportingService
             'Second Class Lower Division' => 0,
             'Third Class Honours' => 0,
             'Pass' => 0,
+            'Below Degree Standard' => 0,
             'Fail' => 0,
         ];
 
@@ -664,7 +674,7 @@ class ResultReportingService
                 $isPass = true;
             }
 
-            if (($standing === AcademicProgressionService::STANDING_REPEAT) || str_starts_with($remark, 'REPEAT LEVEL')) {
+            if (!empty($repeatCourses) || ($standing === AcademicProgressionService::STANDING_REPEAT) || str_starts_with($remark, 'REPEAT')) {
                 $repeatCount++;
             }
 
@@ -1628,7 +1638,6 @@ public function getCohortProgressionBroadsheet(array $filters): array
             'Second Class Upper Division',
             'Second Class Lower Division',
             'Third Class Honours',
-            'Pass',
         ];
 
         foreach ($classOrder as $class) {

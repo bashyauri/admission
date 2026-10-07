@@ -99,12 +99,16 @@ class AcademicProgressionService
         // Nigerian university pattern: low CGPA is treated as probation unless there is
         // an explicit Senate-level repeat sanction. Whole-level repeat is reserved for the
         // formal repeat decision, not for every low academic score.
-        if ($cgpa >= 1.50) {
+        // FUBK standard: CGPA < 0.50 → Withdrawn from University (withdrawal engine)
+        //                0.50–0.74   → Withdrawn from Program (withdrawal engine)
+        //                0.75–0.99   → Probation (this standing logic)
+        //                ≥ 1.00      → Good Standing / Promoted
+        if ($cgpa >= 1.00) {
             return [
                 'standing' => self::STANDING_PROMOTED,
                 'cgpa' => $cgpa,
                 'has_uncleared_carryovers' => $hasUnclearedCarryOvers,
-                'reason' => 'Good Academic Standing (CGPA >= 1.50)',
+                'reason' => 'Good Academic Standing (CGPA >= 1.00)',
             ];
         }
 
@@ -112,9 +116,7 @@ class AcademicProgressionService
             'standing' => self::STANDING_PROBATION,
             'cgpa' => $cgpa,
             'has_uncleared_carryovers' => $hasUnclearedCarryOvers,
-            'reason' => $cgpa >= 1.00
-                ? 'Probation (1.00 <= CGPA < 1.50)'
-                : 'Probation / low academic standing (CGPA < 1.00; Senate repeat decision required for full-level repeat)',
+            'reason' => 'Probation (CGPA < 1.00)',
         ];
     }
 
@@ -270,6 +272,108 @@ class AcademicProgressionService
         }
     }
 
+    /**
+     * Automatically evaluate and apply academic progression (standing, probation,
+     * and automatic withdrawal if eligible) for an undergraduate student.
+     *
+     * @return array{
+     *     standing: string,
+     *     cgpa: float,
+     *     status: ?string,
+     *     withdrawal_applied: bool,
+     *     reason_code: ?string,
+     *     reason: ?string,
+     * }
+     */
+    public function processAndApplyAcademicProgression(
+        User $student,
+        string $session,
+        ?int $semester = null
+    ): array {
+        if (!$student->isUndergraduate()) {
+            return [
+                'standing' => self::STANDING_PROMOTED,
+                'cgpa' => 0.0,
+                'status' => null,
+                'withdrawal_applied' => false,
+                'reason_code' => null,
+                'reason' => null,
+            ];
+        }
+
+        $standingInfo = $this->determineAcademicStanding($student);
+        $standing = $standingInfo['standing'];
+        $cgpa = (float) $standingInfo['cgpa'];
+        $academicDetail = $student->academicDetail;
+        $level = $academicDetail?->studentLevel?->level ?? (string) ($academicDetail?->student_level_id ?? '100');
+        $sem = $semester ?? 2;
+
+        // Persist or update AcademicProgressionRecord for this session/semester
+        $progRecord = AcademicProgressionRecord::where('user_id', $student->id)
+            ->where('academic_session', $session)
+            ->where('semester', $sem)
+            ->latest('id')
+            ->first();
+
+        if ($progRecord) {
+            $progRecord->update([
+                'level' => (string) $level,
+                'cgpa' => $cgpa,
+                'standing' => $standing,
+            ]);
+        } elseif ($academicDetail) {
+            $progRecord = AcademicProgressionRecord::create([
+                'user_id' => $student->id,
+                'academic_detail_id' => $academicDetail->id,
+                'academic_session' => $session,
+                'semester' => $sem,
+                'level' => (string) $level,
+                'cgpa' => $cgpa,
+                'standing' => $standing,
+                'withdrawal_recommended' => false,
+            ]);
+        }
+
+        // Evaluate withdrawal criteria (2 consecutive probations, < 0.50 university, 0.50–0.74 program, etc.)
+        $eligibility = $this->evaluateWithdrawalEligibility($student);
+
+        if ($eligibility['eligible'] && config('academic_withdrawal.auto_apply', true)) {
+            $reasonCode = (string) $eligibility['reason_code'];
+            $reason = (string) $eligibility['reason'];
+
+            $progRecord?->update(['withdrawal_recommended' => true]);
+
+            $statusService = app(StudentStatusService::class);
+            $statusRecord = $statusService->applyAcademicWithdrawal(
+                user: $student,
+                reasonCode: $reasonCode,
+                reason: $reason,
+                academicSession: $session,
+                semester: $semester,
+                notes: 'Automatically applied by academic progression engine.',
+                effectiveDate: now()
+            );
+
+            return [
+                'standing' => $standing,
+                'cgpa' => $cgpa,
+                'status' => $statusRecord->status->value,
+                'withdrawal_applied' => true,
+                'reason_code' => $reasonCode,
+                'reason' => $reason,
+            ];
+        }
+
+        return [
+            'standing' => $standing,
+            'cgpa' => $cgpa,
+            'status' => 'active',
+            'withdrawal_applied' => false,
+            'reason_code' => null,
+            'reason' => null,
+        ];
+    }
+
     // =========================================================================
     // Task 6.7.2: Withdrawal Eligibility Engine
     // =========================================================================
@@ -358,19 +462,39 @@ class AcademicProgressionService
         }
 
         // -------------------------------------------------------------------
-        // Rule 3: Minimum CGPA Threshold (DISABLED by default)
+        // Rule 3: Minimum CGPA Threshold (Two-Tier: University vs Program)
         // -------------------------------------------------------------------
         $rule = config('academic_withdrawal.minimum_cgpa', []);
         if (!empty($rule['enabled'])) {
-            $threshold = (float) $rule['threshold'];
-            if ($cgpa < $threshold) {
-                $triggeredRules[] = $rule['reason_code'];
+            $universityThreshold = (float) ($rule['university_threshold'] ?? $rule['threshold'] ?? 0.50);
+            $hasProgramTier = isset($rule['program_threshold']);
+            $programThreshold = $hasProgramTier ? (float) $rule['program_threshold'] : null;
+
+            $reasonCodeUniversity = $rule['reason_code_university'] ?? $rule['reason_code'] ?? 'CGPA_BELOW_UNIVERSITY_MINIMUM';
+            $reasonUniversity = $rule['reason_university'] ?? $rule['reason'] ?? 'Cumulative GPA ({cgpa}) is below university minimum ({threshold}).';
+
+            // Tier 1: CGPA < universityThreshold → Withdrawn from University
+            if ($cgpa < $universityThreshold) {
+                $triggeredRules[] = $reasonCodeUniversity;
                 if ($firstReasonCode === null) {
-                    $firstReasonCode = $rule['reason_code'];
+                    $firstReasonCode = $reasonCodeUniversity;
                     $firstReason = str_replace(
                         ['{cgpa}', '{threshold}'],
-                        [number_format($cgpa, 2), number_format($threshold, 2)],
-                        $rule['reason']
+                        [number_format($cgpa, 2), number_format($universityThreshold, 2)],
+                        $reasonUniversity
+                    );
+                }
+            }
+            // Tier 2: CGPA < programThreshold → Withdrawn from Program
+            elseif ($hasProgramTier && $cgpa < $programThreshold) {
+                $reasonCodeProgram = $rule['reason_code_program'] ?? 'CGPA_BELOW_PROGRAM_MINIMUM';
+                $triggeredRules[] = $reasonCodeProgram;
+                if ($firstReasonCode === null) {
+                    $firstReasonCode = $reasonCodeProgram;
+                    $firstReason = str_replace(
+                        ['{cgpa}', '{threshold}'],
+                        [number_format($cgpa, 2), number_format($programThreshold, 2)],
+                        $rule['reason_program'] ?? 'Cumulative GPA ({cgpa}) is below program minimum ({threshold}).'
                     );
                 }
             }
@@ -544,8 +668,8 @@ class AcademicProgressionService
                 $cgpa = (float) $gpa->cumulative_gpa;
 
                 $standing = match (true) {
-                    $cgpa >= 1.50 => self::STANDING_PROMOTED,
-                    $cgpa >= 1.00 => self::STANDING_PROBATION,
+                    $cgpa >= 1.00 => self::STANDING_PROMOTED,
+                    $cgpa >= 0.75 => self::STANDING_PROBATION,
                     default       => self::STANDING_REPEAT,
                 };
 

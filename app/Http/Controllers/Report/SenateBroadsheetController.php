@@ -25,7 +25,7 @@ class SenateBroadsheetController extends Controller
         Request $request,
         Department|int $department,
         string $session,
-        string $semester,
+        ?string $semester = null,
         ?int $level = null
     ): View {
         return $this->buildBroadsheet($request, $department, $session, $semester, $level, releasedOnly: false);
@@ -39,7 +39,7 @@ class SenateBroadsheetController extends Controller
         Request $request,
         Department|int $department,
         string $session,
-        string $semester,
+        ?string $semester = null,
         ?int $level = null
     ): View {
         return $this->buildBroadsheet($request, $department, $session, $semester, $level, releasedOnly: true);
@@ -49,7 +49,7 @@ class SenateBroadsheetController extends Controller
         Request $request,
         Department|int $department,
         string $session,
-        string $semester,
+        ?string $semester,
         ?int $level,
         bool $releasedOnly
     ): View {
@@ -58,11 +58,16 @@ class SenateBroadsheetController extends Controller
             : (int) $department;
 
         $normalizedSession = str_replace('-', '/', $session);
+        $normalizedSemester = $semester !== null ? trim((string) $semester) : null;
+
+        $singleSemesterOnly = $normalizedSemester !== null
+            && $normalizedSemester !== ''
+            && (bool) $request->query('single_semester_only', false);
 
         $filters = [
             'department_id'    => $departmentId,
             'academic_session' => $normalizedSession,
-            'semester'         => $semester,
+            'semester'         => $singleSemesterOnly ? $normalizedSemester : null,
             'student_level_id' => $level,
             'course_id'        => $request->query('course_id') ? (int) $request->query('course_id') : null,
             'admission_session' => $request->query('admission_session')
@@ -70,6 +75,7 @@ class SenateBroadsheetController extends Controller
                 : null,
             'released_only'    => $releasedOnly,
             'final'            => $releasedOnly,
+            'single_semester_only' => $singleSemesterOnly,
         ];
 
         $data = $this->reportingService->getDepartmentalBroadsheet($filters);

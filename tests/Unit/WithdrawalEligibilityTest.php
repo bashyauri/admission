@@ -241,8 +241,8 @@ class WithdrawalEligibilityTest extends TestCase
         $user   = $this->makeUgStudent();
         $detail = $this->attachAcademicDetail($user, $this->ugCourse, $this->level300);
 
-        $this->addGpaRecord($user, $detail, '2022/2023', 1.20); // PROBATION
-        $this->addGpaRecord($user, $detail, '2023/2024', 1.10); // PROBATION again
+        $this->addGpaRecord($user, $detail, '2022/2023', 0.85); // PROBATION (0.75-0.99)
+        $this->addGpaRecord($user, $detail, '2023/2024', 0.80); // PROBATION again
 
         $this->enableRule('consecutive_probation', [
             'threshold'   => 2,
@@ -263,8 +263,8 @@ class WithdrawalEligibilityTest extends TestCase
         $user   = $this->makeUgStudent();
         $detail = $this->attachAcademicDetail($user, $this->ugCourse, $this->level300);
 
-        $this->addGpaRecord($user, $detail, '2022/2023', 0.80); // REPEAT
-        $this->addGpaRecord($user, $detail, '2023/2024', 0.70); // REPEAT again
+        $this->addGpaRecord($user, $detail, '2022/2023', 0.70); // REPEAT (<0.75)
+        $this->addGpaRecord($user, $detail, '2023/2024', 0.60); // REPEAT again
 
         $this->enableRule('consecutive_repeat', [
             'threshold'   => 2,

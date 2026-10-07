@@ -13,8 +13,8 @@ Route::get('/graduation-audit', GraduationAudit::class)->name('graduation-audit'
 Route::get('/disciplinary-actions', ManageDisciplinaryActions::class)->name('disciplinary-actions');
 Route::get('/certificates', ManageCertificates::class)->name('certificates');
 Route::get('/course-score-sheet/{departmentCourse}/{session}/{semester}/{level?}', [\App\Http\Controllers\Report\CourseScoreSheetController::class, 'print'])->name('course-score-sheet');
-Route::get('/senate-broadsheet/{department}/{session}/{semester}/{level?}', [\App\Http\Controllers\Report\SenateBroadsheetController::class, 'print'])->name('senate-broadsheet');
-Route::get('/senate-broadsheet-final/{department}/{session}/{semester}/{level?}', [\App\Http\Controllers\Report\SenateBroadsheetController::class, 'printFinal'])->name('senate-broadsheet.final');
+Route::get('/senate-broadsheet/{department}/{session}/{semester?}/{level?}', [\App\Http\Controllers\Report\SenateBroadsheetController::class, 'print'])->name('senate-broadsheet');
+Route::get('/senate-broadsheet-final/{department}/{session}/{semester?}/{level?}', [\App\Http\Controllers\Report\SenateBroadsheetController::class, 'printFinal'])->name('senate-broadsheet.final');
 Route::get('/senate-graduation-broadsheet/{session}/{department?}', [\App\Http\Controllers\Report\SenateGraduationBroadsheetController::class, 'print'])->name('senate-graduation-broadsheet');
 Route::get('/senate-graduation-broadsheet-export/{session}/{department?}', [\App\Http\Controllers\Report\SenateGraduationBroadsheetController::class, 'exportCsv'])->name('senate-graduation-broadsheet.export');
 Route::get('/cohort-progression-broadsheet/{department}/{admissionSession}', [\App\Http\Controllers\Report\CohortProgressionBroadsheetController::class, 'print'])->name('cohort-progression-broadsheet');

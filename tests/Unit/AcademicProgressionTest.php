@@ -247,4 +247,137 @@ class AcademicProgressionTest extends TestCase
         $nextLevel = $this->progressionService->getNextEligibleLevel($user);
         $this->assertEquals(4, $nextLevel);
     }
+
+    public function test_process_and_apply_academic_progression_sets_probation_automatically(): void
+    {
+        config(['academic_withdrawal.auto_apply' => true, 'academic_withdrawal.bypass_senate' => true]);
+
+        $course = Course::first() ?? Course::create([
+            'name' => 'CS101',
+            'department_id' => $this->department->id,
+            'programme_id' => $this->programme->id,
+        ]);
+
+        $user = new User();
+        $user->id = (string) \Illuminate\Support\Str::uuid();
+        $user->programme_id = ProgrammesEnum::Undergraduate->value;
+        $user->surname = 'Probation';
+        $user->firstname = 'Student';
+        $user->email = 'probation_' . uniqid() . '@example.com';
+        $user->password = bcrypt('secret');
+        $user->vpassword = 'secret';
+        $user->role = 'student';
+        $user->save();
+
+        $academicDetail = AcademicDetail::create([
+            'user_id' => $user->id,
+            'matric_no' => 'MAT/PROB/' . rand(100, 999),
+            'course_id' => $course->id,
+            'department_id' => $this->department->id,
+            'programme_id' => ProgrammesEnum::Undergraduate->value,
+            'student_level_id' => $this->level100->id,
+            'acad_session' => '2023/2024',
+            'admission_session' => '2023/2024',
+        ]);
+
+        ResultGpaRecord::create([
+            'user_id' => $user->id,
+            'academic_detail_id' => $academicDetail->id,
+            'academic_session' => '2023/2024',
+            'semester' => 'second',
+            'semester_gpa' => 0.85,
+            'cumulative_gpa' => 0.85,
+            'total_credit_units' => 20,
+            'total_grade_points' => 17,
+            'cumulative_credit_units' => 20,
+            'cumulative_grade_points' => 17,
+            'class_of_degree' => 'Below Degree Standard',
+        ]);
+
+        $result = $this->progressionService->processAndApplyAcademicProgression($user, '2023/2024', 2);
+
+        $this->assertEquals(AcademicProgressionService::STANDING_PROBATION, $result['standing']);
+        $this->assertFalse($result['withdrawal_applied']);
+
+        $progRecord = \App\Models\AcademicProgressionRecord::where('user_id', $user->id)
+            ->where('academic_session', '2023/2024')
+            ->first();
+        $this->assertNotNull($progRecord);
+        $this->assertEquals(AcademicProgressionService::STANDING_PROBATION, $progRecord->standing);
+    }
+
+    public function test_two_consecutive_probation_sessions_automatically_applies_withdrawal_and_bypasses_senate(): void
+    {
+        config(['academic_withdrawal.auto_apply' => true, 'academic_withdrawal.bypass_senate' => true]);
+
+        $course = Course::first() ?? Course::create([
+            'name' => 'CS101',
+            'department_id' => $this->department->id,
+            'programme_id' => $this->programme->id,
+        ]);
+
+        $user = new User();
+        $user->id = (string) \Illuminate\Support\Str::uuid();
+        $user->programme_id = ProgrammesEnum::Undergraduate->value;
+        $user->surname = 'Withdrawal';
+        $user->firstname = 'Student';
+        $user->email = 'withdraw_' . uniqid() . '@example.com';
+        $user->password = bcrypt('secret');
+        $user->vpassword = 'secret';
+        $user->role = 'student';
+        $user->save();
+
+        $academicDetail = AcademicDetail::create([
+            'user_id' => $user->id,
+            'matric_no' => 'MAT/WDR/' . rand(100, 999),
+            'course_id' => $course->id,
+            'department_id' => $this->department->id,
+            'programme_id' => ProgrammesEnum::Undergraduate->value,
+            'student_level_id' => $this->level100->id,
+            'acad_session' => '2024/2025',
+            'admission_session' => '2023/2024',
+        ]);
+
+        // First session: probation (2023/2024)
+        \App\Models\AcademicProgressionRecord::create([
+            'user_id' => $user->id,
+            'academic_detail_id' => $academicDetail->id,
+            'academic_session' => '2023/2024',
+            'semester' => 2,
+            'level' => '100',
+            'cgpa' => 0.85,
+            'standing' => AcademicProgressionService::STANDING_PROBATION,
+            'withdrawal_recommended' => false,
+        ]);
+
+        // Second session GPA: probation again (2024/2025)
+        ResultGpaRecord::create([
+            'user_id' => $user->id,
+            'academic_detail_id' => $academicDetail->id,
+            'academic_session' => '2024/2025',
+            'semester' => 'second',
+            'semester_gpa' => 0.80,
+            'cumulative_gpa' => 0.80,
+            'total_credit_units' => 20,
+            'total_grade_points' => 16,
+            'cumulative_credit_units' => 40,
+            'cumulative_grade_points' => 32,
+            'class_of_degree' => 'Below Degree Standard',
+        ]);
+
+        // Process progression for the second session
+        $result = $this->progressionService->processAndApplyAcademicProgression($user, '2024/2025', 2);
+
+        $this->assertEquals(AcademicProgressionService::STANDING_PROBATION, $result['standing']);
+        $this->assertTrue($result['withdrawal_applied']);
+        $this->assertEquals('CONSECUTIVE_PROBATION', $result['reason_code']);
+
+        // Verify StudentStatusRecord was created and approved immediately (bypassing Senate)
+        $statusRecord = \App\Models\StudentStatusRecord::where('user_id', $user->id)->latest('id')->first();
+        $this->assertNotNull($statusRecord);
+        $this->assertEquals(\App\Enums\StudentStatus::ACADEMIC_WITHDRAWAL_PROGRAM, $statusRecord->status);
+        $this->assertEquals(\App\Services\StudentStatusService::WORKFLOW_SENATE_APPROVED, $statusRecord->senate_decision);
+        $this->assertNotNull($statusRecord->senate_reference);
+        $this->assertNotNull($statusRecord->senate_decision_date);
+    }
 }

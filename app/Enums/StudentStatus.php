@@ -7,6 +7,8 @@ enum StudentStatus: string
     case ACTIVE = 'active';
     case VOLUNTARY_WITHDRAWAL = 'voluntary_withdrawal';
     case ACADEMIC_WITHDRAWAL = 'academic_withdrawal';
+    case ACADEMIC_WITHDRAWAL_UNIVERSITY = 'academic_withdrawal_university';
+    case ACADEMIC_WITHDRAWAL_PROGRAM = 'academic_withdrawal_program';
     case MEDICAL_WITHDRAWAL = 'medical_withdrawal';
     case SUSPENDED = 'suspended';
     case EXPELLED = 'expelled';
@@ -18,6 +20,8 @@ enum StudentStatus: string
             self::ACTIVE => 'Active',
             self::VOLUNTARY_WITHDRAWAL => 'Voluntary Withdrawal',
             self::ACADEMIC_WITHDRAWAL => 'Academic Withdrawal',
+            self::ACADEMIC_WITHDRAWAL_UNIVERSITY => 'Withdrawn from University',
+            self::ACADEMIC_WITHDRAWAL_PROGRAM => 'Withdrawn from Program',
             self::MEDICAL_WITHDRAWAL => 'Medical Withdrawal',
             self::SUSPENDED => 'Suspended',
             self::EXPELLED => 'Expelled',
@@ -30,6 +34,8 @@ enum StudentStatus: string
         return in_array($this, [
             self::VOLUNTARY_WITHDRAWAL,
             self::ACADEMIC_WITHDRAWAL,
+            self::ACADEMIC_WITHDRAWAL_UNIVERSITY,
+            self::ACADEMIC_WITHDRAWAL_PROGRAM,
             self::MEDICAL_WITHDRAWAL,
         ], true);
     }

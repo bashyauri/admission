@@ -74,8 +74,8 @@ class GradeCalculationTest extends TestCase
         $this->assertEquals('Second Class Upper Division', $this->service->getClassOfDegree(3.80));
         $this->assertEquals('Second Class Lower Division', $this->service->getClassOfDegree(2.75));
         $this->assertEquals('Third Class Honours', $this->service->getClassOfDegree(1.85));
-        $this->assertEquals('Pass', $this->service->getClassOfDegree(1.20));
-        $this->assertEquals('Fail', $this->service->getClassOfDegree(0.85));
+        $this->assertEquals('Third Class Honours', $this->service->getClassOfDegree(1.20));
+        $this->assertEquals('Below Degree Standard', $this->service->getClassOfDegree(0.85));
     }
 
     public function test_quality_points_calculation(): void
@@ -180,8 +180,6 @@ class GradeCalculationTest extends TestCase
             'level_snapshot' => $level->id,
         ]);
 
-        // The current course can change after registration; historical calculation
-        // must still use the registration snapshot when this legacy result lacks one.
         $studentCourse->update([
             'code' => 'CSC201',
             'title' => 'Revised Course Title',
@@ -225,5 +223,140 @@ class GradeCalculationTest extends TestCase
         $this->assertEquals(4, $gpaRecord->total_credit_units);
         $this->assertEquals(20, $gpaRecord->total_grade_points);
         $this->assertEquals('First Class Honours', $gpaRecord->class_of_degree);
+    }
+
+    public function test_process_and_save_gpa_record_uses_session_totals(): void
+    {
+        $department = Department::first() ?? new Department();
+        if (!$department->exists) {
+            $department->name = 'Comp Sci ' . rand(100, 999);
+            $department->save();
+        }
+
+        $programme = Programme::first() ?? new Programme();
+        if (!$programme->exists) {
+            $programme->name = 'Undergraduate ' . rand(100, 999);
+            $programme->abv = 'UG';
+            $programme->save();
+        }
+
+        $student = new User();
+        $student->id = (string) \Illuminate\Support\Str::uuid();
+        $student->programme_id = $programme->id;
+        $student->email = 'session-gpa-' . rand(1000, 9999) . '@test.com';
+        $student->password = bcrypt('password');
+        $student->vpassword = 'password';
+        $student->role = 'student';
+        $student->save();
+
+        $level = StudentLevel::first() ?? new StudentLevel();
+        if (!$level->exists) {
+            $level->level = '100';
+            $level->save();
+        }
+
+        $course = new Course();
+        $course->name = 'MTH101';
+        $course->department_id = $department->id;
+        $course->programme_id = $programme->id;
+        $course->save();
+
+        $academicDetail = new AcademicDetail();
+        $academicDetail->user_id = $student->id;
+        $academicDetail->matric_no = 'MAT/' . rand(1000, 9999);
+        $academicDetail->course_id = $course->id;
+        $academicDetail->programme_id = $programme->id;
+        $academicDetail->department_id = $department->id;
+        $academicDetail->student_level_id = $level->id;
+        $academicDetail->acad_session = '2024-2025';
+        $academicDetail->save();
+
+        $studentCourse1 = StudentCourse::create([
+            'code' => 'MTH101',
+            'title' => 'Mathematics I',
+            'units' => 3,
+            'student_level_id' => $level->id,
+            'semester' => 1,
+        ]);
+
+        $studentCourse2 = StudentCourse::create([
+            'code' => 'PHY101',
+            'title' => 'Physics I',
+            'units' => 2,
+            'student_level_id' => $level->id,
+            'semester' => 2,
+        ]);
+
+        $deptCourse1 = DepartmentCourse::create([
+            'department_id' => $department->id,
+            'student_course_id' => $studentCourse1->id,
+            'units' => 3,
+        ]);
+
+        $deptCourse2 = DepartmentCourse::create([
+            'department_id' => $department->id,
+            'student_course_id' => $studentCourse2->id,
+            'units' => 2,
+        ]);
+
+        $registeredCourse1 = RegisteredCourse::create([
+            'department_course_id' => $deptCourse1->id,
+            'academic_detail_id' => $academicDetail->id,
+            'student_level_id' => $level->id,
+            'units' => 3,
+            'academic_session' => '2024-2025',
+            'course_code_snapshot' => 'MTH101',
+            'course_title_snapshot' => 'Mathematics I',
+            'credit_units_snapshot' => 3,
+            'semester_snapshot' => 'first',
+            'level_snapshot' => $level->id,
+        ]);
+
+        $registeredCourse2 = RegisteredCourse::create([
+            'department_course_id' => $deptCourse2->id,
+            'academic_detail_id' => $academicDetail->id,
+            'student_level_id' => $level->id,
+            'units' => 2,
+            'academic_session' => '2024-2025',
+            'course_code_snapshot' => 'PHY101',
+            'course_title_snapshot' => 'Physics I',
+            'credit_units_snapshot' => 2,
+            'semester_snapshot' => 'second',
+            'level_snapshot' => $level->id,
+        ]);
+
+        Result::create([
+            'user_id' => $student->id,
+            'registered_course_id' => $registeredCourse1->id,
+            'academic_detail_id' => $academicDetail->id,
+            'department_course_id' => $deptCourse1->id,
+            'semester' => 'first',
+            'academic_session' => '2024-2025',
+            'total_score' => 80.0,
+            'grade' => 'A',
+            'grade_point' => 5,
+            'credit_units' => 3,
+            'status' => 'released',
+        ]);
+
+        Result::create([
+            'user_id' => $student->id,
+            'registered_course_id' => $registeredCourse2->id,
+            'academic_detail_id' => $academicDetail->id,
+            'department_course_id' => $deptCourse2->id,
+            'semester' => 'second',
+            'academic_session' => '2024-2025',
+            'total_score' => 50.0,
+            'grade' => 'C',
+            'grade_point' => 3,
+            'credit_units' => 2,
+            'status' => 'released',
+        ]);
+
+        $gpaRecord = $this->service->processAndSaveGpaRecord($student, '2024-2025', 'first');
+
+        $this->assertEquals(4.20, (float) $gpaRecord->semester_gpa);
+        $this->assertEquals(5, $gpaRecord->total_credit_units);
+        $this->assertEquals(21, $gpaRecord->total_grade_points);
     }
 }

@@ -165,9 +165,19 @@
                                             <div>
                                                 <label for="reason-code" class="mb-1 block text-xs font-semibold text-slate-700">Reason code</label>
                                                 <select id="reason-code" wire:model="reasonCode" class="h-11 w-full rounded-xl border-slate-200 text-sm">
-                                                    <option value="CONSECUTIVE_PROBATION">Consecutive probation</option>
-                                                    <option value="POOR_ACADEMIC_STANDING">Poor academic standing</option>
-                                                    <option value="OTHER_APPROVED_REASON">Other approved reason</option>
+                                                    <optgroup label="CGPA-based">
+                                                        <option value="CGPA_BELOW_UNIVERSITY_MINIMUM">CGPA below university minimum — Withdrawn from University</option>
+                                                        <option value="CGPA_BELOW_PROGRAM_MINIMUM">CGPA below programme minimum — Withdrawn from Program</option>
+                                                    </optgroup>
+                                                    <optgroup label="Standing-based">
+                                                        <option value="CONSECUTIVE_PROBATION">Consecutive academic probation</option>
+                                                        <option value="CONSECUTIVE_REPEAT">Consecutive REPEAT standing</option>
+                                                    </optgroup>
+                                                    <optgroup label="Other">
+                                                        <option value="MAX_RESIDENCY_EXCEEDED">Maximum programme residency exceeded</option>
+                                                        <option value="NON_REGISTRATION_PATTERN">Non-registration pattern</option>
+                                                        <option value="OTHER_APPROVED_REASON">Other approved reason</option>
+                                                    </optgroup>
                                                 </select>
                                                 @error('reasonCode') <p class="mt-1 text-xs text-rose-600">Choose a reason code.</p> @enderror
                                             </div>

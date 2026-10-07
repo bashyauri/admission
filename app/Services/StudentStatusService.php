@@ -91,14 +91,20 @@ class StudentStatusService
         ?string $notes = null,
         ?User $processedBy = null,
         \DateTimeInterface|string|null $effectiveDate = null,
-        bool $reinstatementEligible = true
+        bool $reinstatementEligible = true,
+        ?bool $bypassSenate = null,
+        ?string $senateReference = null
     ): StudentStatusRecord {
         // Validate that user is undergraduate
         if (!$user->isUndergraduate()) {
             throw new \InvalidArgumentException('Withdrawal recommendations are only applicable to undergraduate students.');
         }
 
-        $processedBy = $this->authorizeStatusAction('recommend', $processedBy, $user);
+        $bypass = $bypassSenate ?? (bool) config('academic_withdrawal.bypass_senate', false);
+
+        if (!$bypass || $processedBy !== null || auth()->check()) {
+            $processedBy = $this->authorizeStatusAction('recommend', $processedBy, $user);
+        }
 
         // Validate academic session format
         if (!$this->isValidAcademicSession($academicSession)) {
@@ -117,6 +123,8 @@ class StudentStatusService
             ? $effectiveDate
             : ($effectiveDate ? Carbon::parse($effectiveDate) : now());
 
+        $bypass = $bypassSenate ?? (bool) config('academic_withdrawal.bypass_senate', false);
+
         return DB::transaction(function () use (
             $user,
             $reasonCode,
@@ -127,44 +135,101 @@ class StudentStatusService
             $processedBy,
             $progressionInfo,
             $effDate,
-            $reinstatementEligible
+            $reinstatementEligible,
+            $bypass,
+            $senateReference
         ) {
-            // Create the recommendation record
+            // Determine appropriate status based on reason code (two-tier withdrawal & consecutive probation)
+            $status = match ($reasonCode) {
+                'CGPA_BELOW_UNIVERSITY_MINIMUM' => StudentStatus::ACADEMIC_WITHDRAWAL_UNIVERSITY,
+                'CGPA_BELOW_PROGRAM_MINIMUM', 'CONSECUTIVE_PROBATION' => StudentStatus::ACADEMIC_WITHDRAWAL_PROGRAM,
+                default => StudentStatus::ACADEMIC_WITHDRAWAL,
+            };
+
+            $decision = $bypass ? self::WORKFLOW_SENATE_APPROVED : self::WORKFLOW_RECOMMENDED;
+            $senateRef = $bypass ? ($senateReference ?? ('SEN-AUTO-' . str_replace('/', '-', $academicSession))) : null;
+            $decisionDate = $bypass ? $effDate->toDateString() : null;
+
+            if ($bypass) {
+                $this->closePreviousActiveStatus(
+                    $user->id,
+                    $effDate,
+                    $processedBy ?? $user,
+                    'ACTIVE_STATUS_CLOSED_FOR_ACADEMIC_WITHDRAWAL'
+                );
+            }
+
+            // Create the status record
             $record = StudentStatusRecord::create([
                 'user_id' => $user->id,
                 'academic_detail_id' => $user->academicDetail?->id,
-                'status' => StudentStatus::ACADEMIC_WITHDRAWAL,
+                'status' => $status,
                 'status_type' => StudentStatusType::ACADEMIC,
                 'reason_code' => $reasonCode,
                 'reason' => $reason,
                 'academic_session' => $academicSession,
                 'semester' => $semester,
                 'effective_date' => $effDate->toDateString(),
-                'senate_decision' => self::WORKFLOW_RECOMMENDED,
+                'senate_decision' => $decision,
+                'senate_reference' => $senateRef,
+                'senate_decision_date' => $decisionDate,
                 'reinstatement_eligible' => $reinstatementEligible,
                 'processed_by' => $processedBy?->id,
                 'notes' => $notes,
             ]);
 
-            // Update academic progression record to flag withdrawal recommendation
+            // Update academic progression record to flag withdrawal
             $this->updateProgressionRecordWithRecommendation($user, $academicSession, $semester, $progressionInfo);
-            $this->writeStatusAudit($user, $record, 'WITHDRAWAL_RECOMMENDED', $processedBy, [
+            $action = $bypass ? 'WITHDRAWAL_APPLIED' : 'WITHDRAWAL_RECOMMENDED';
+            $this->writeStatusAudit($user, $record, $action, $processedBy ?? $user, [
                 'new_status' => $record->status,
                 'new_decision' => $record->senate_decision,
                 'reason' => $record->reason,
+                'senate_reference' => $record->senate_reference,
                 'reinstatement_eligible' => $record->reinstatement_eligible,
             ]);
 
-            Log::info('Withdrawal recommendation created', [
+            Log::info($bypass ? 'Academic withdrawal automatically applied' : 'Withdrawal recommendation created', [
                 'user_id' => $user->id,
                 'matric_no' => $user->academicDetail?->matric_no,
                 'reason_code' => $reasonCode,
                 'academic_session' => $academicSession,
                 'processed_by' => $processedBy?->id,
+                'senate_decision' => $decision,
             ]);
 
             return $record;
         });
+    }
+
+    /**
+     * Directly apply an academic withdrawal, bypassing the manual Senate queue.
+     */
+    public function applyAcademicWithdrawal(
+        User $user,
+        string $reasonCode,
+        string $reason,
+        string $academicSession,
+        ?int $semester = null,
+        ?string $notes = null,
+        ?User $processedBy = null,
+        \DateTimeInterface|string|null $effectiveDate = null,
+        bool $reinstatementEligible = false,
+        ?string $senateReference = null
+    ): StudentStatusRecord {
+        return $this->createWithdrawalRecommendation(
+            user: $user,
+            reasonCode: $reasonCode,
+            reason: $reason,
+            academicSession: $academicSession,
+            semester: $semester,
+            notes: $notes,
+            processedBy: $processedBy,
+            effectiveDate: $effectiveDate,
+            reinstatementEligible: $reinstatementEligible,
+            bypassSenate: true,
+            senateReference: $senateReference
+        );
     }
 
     // =========================================================================
@@ -1247,7 +1312,7 @@ class StudentStatusService
         User $student,
         ?StudentStatusRecord $record,
         string $action,
-        User $actor,
+        ?User $actor,
         array $changes = []
     ): StudentStatusAudit {
         $request = app()->bound('request') ? request() : null;
@@ -1256,7 +1321,7 @@ class StudentStatusService
 
         return StudentStatusAudit::create([
             'student_id' => $student->id,
-            'actor_id' => $actor->id,
+            'actor_id' => $actor?->id ?? $student->id,
             'student_status_record_id' => $record?->id,
             'action' => $action,
             'old_status' => $this->enumValue($changes['old_status'] ?? null),
@@ -1290,7 +1355,7 @@ class StudentStatusService
     private function closePreviousActiveStatus(
         string $userId,
         \DateTimeInterface|string $effectiveDate,
-        User $actor,
+        ?User $actor,
         string $action
     ): void
     {

@@ -89,17 +89,23 @@ class GradeCalculationService
     }
 
     /**
-     * Determine Class of Degree from CGPA based on NUC standards.
+     * Determine Class of Degree from CGPA based on FUBK institutional standards.
+     *
+     * FUBK classification:
+     *   4.50 – 5.00  →  First Class Honours
+     *   3.50 – 4.49  →  Second Class Upper Division (2.1)
+     *   2.50 – 3.49  →  Second Class Lower Division (2.2)
+     *   1.00 – 2.49  →  Third Class Honours
+     *   < 1.00       →  Below degree standard (probation / withdrawal)
      */
     public function getClassOfDegree(float $cgpa): string
     {
         return match (true) {
             $cgpa >= 4.50 => 'First Class Honours',
             $cgpa >= 3.50 => 'Second Class Upper Division',
-            $cgpa >= 2.40 => 'Second Class Lower Division',
-            $cgpa >= 1.50 => 'Third Class Honours',
-            $cgpa >= 1.00 => 'Pass',
-            default => 'Fail',
+            $cgpa >= 2.50 => 'Second Class Lower Division',
+            $cgpa >= 1.00 => 'Third Class Honours',
+            default => 'Below Degree Standard',
         };
     }
 
@@ -133,20 +139,23 @@ class GradeCalculationService
     }
 
     /**
-     * Calculate and record Semester and Cumulative GPA for a student in a specific session & semester.
+     * Calculate and record the student session GPA and cumulative GPA.
+     *
+     * Every academic calculation is session-based for governance reporting, so
+     * the GPA is built from all released results in the given session rather than
+     * from a single semester bucket.
      */
     public function processAndSaveGpaRecord(User $student, string $session, string $semester): ResultGpaRecord
     {
-        $semesterResults = Result::with(['registeredCourse', 'departmentCourse.studentCourse'])
+        $sessionResults = Result::with(['registeredCourse', 'departmentCourse.studentCourse'])
             ->where('user_id', $student->id)
             ->where('academic_session', $session)
-            ->where('semester', $semester)
             ->where('status', 'released')
             ->get();
 
-        $semesterCalc = $this->calculateSemesterGpa($semesterResults);
+        $sessionCalc = $this->calculateSemesterGpa($sessionResults);
 
-        // Fetch all released historical results for the student up to and including this session/semester
+        // Fetch all released historical results for the student up to and including this session.
         $allResults = Result::with(['registeredCourse', 'departmentCourse.studentCourse'])
             ->where('user_id', $student->id)
             ->where('status', 'released')
@@ -157,7 +166,7 @@ class GradeCalculationService
 
         $academicDetail = $student->academicDetail;
 
-        return ResultGpaRecord::updateOrCreate(
+        $record = ResultGpaRecord::updateOrCreate(
             [
                 'user_id' => $student->id,
                 'academic_session' => $session,
@@ -165,15 +174,26 @@ class GradeCalculationService
             ],
             [
                 'academic_detail_id' => $academicDetail?->id,
-                'semester_gpa' => $semesterCalc['semester_gpa'],
-                'total_credit_units' => $semesterCalc['total_units'],
-                'total_grade_points' => $semesterCalc['total_points'],
+                'semester_gpa' => $sessionCalc['semester_gpa'],
+                'total_credit_units' => $sessionCalc['total_units'],
+                'total_grade_points' => $sessionCalc['total_points'],
                 'cumulative_gpa' => $cumulativeCalc['semester_gpa'],
                 'cumulative_credit_units' => $cumulativeCalc['total_units'],
                 'cumulative_grade_points' => $cumulativeCalc['total_points'],
                 'class_of_degree' => $classOfDegree,
             ]
         );
+
+        if (config('academic_withdrawal.auto_apply', true)) {
+            $semesterNumber = match (strtolower((string) $semester)) {
+                'first', '1' => 1,
+                'second', '2' => 2,
+                default => 2,
+            };
+            app(AcademicProgressionService::class)->processAndApplyAcademicProgression($student, $session, $semesterNumber);
+        }
+
+        return $record;
     }
 
     /**

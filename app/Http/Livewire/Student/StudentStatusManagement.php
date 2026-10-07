@@ -149,7 +149,10 @@ class StudentStatusManagement extends Component
 
             $this->reset(['reason', 'notes']);
             $this->effectiveDate = now()->toDateString();
-            $this->alert('success', 'Withdrawal record created. Review its workflow status before submitting it to Senate.');
+            $message = $record->senate_decision === StudentStatusService::WORKFLOW_SENATE_APPROVED
+                ? 'Academic withdrawal applied successfully.'
+                : 'Withdrawal record created. Review its workflow status before submitting it to Senate.';
+            $this->alert('success', $message);
             $this->selectedStudentId = (string) $student->id;
             $this->dispatch('student-status-record-created', recordId: $record->id);
         } catch (AuthorizationException $exception) {

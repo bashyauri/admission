@@ -420,7 +420,6 @@
                         <th>SECOND CLASS (UPPER)</th>
                         <th>SECOND CLASS (LOWER)</th>
                         <th>THIRD CLASS</th>
-                        <th>PASS DEGREE</th>
                         <th>TOTAL GRADUANDS</th>
                     </tr>
                 </thead>
@@ -430,7 +429,6 @@
                         <td>{{ $summary['second_upper_count'] }}</td>
                         <td>{{ $summary['second_lower_count'] }}</td>
                         <td>{{ $summary['third_class_count'] }}</td>
-                        <td>{{ $summary['pass_count'] }}</td>
                         <td>{{ $summary['total_graduands'] }}</td>
                     </tr>
                     <tr>
@@ -438,7 +436,6 @@
                         <td>{{ $summary['second_upper_percentage'] }}%</td>
                         <td>{{ $summary['second_lower_percentage'] }}%</td>
                         <td>{{ $summary['third_class_percentage'] }}%</td>
-                        <td>{{ $summary['pass_percentage'] }}%</td>
                         <td>100%</td>
                     </tr>
                 </tbody>

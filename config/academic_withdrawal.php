@@ -26,6 +26,17 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Automatic Application & Senate Bypass
+    |--------------------------------------------------------------------------
+    | When enabled, academic standing issues and withdrawals are applied
+    | automatically to student records without requiring intermediate Senate
+    | recommendation queues.
+    */
+    'auto_apply'    => env('ACADEMIC_WITHDRAWAL_AUTO_APPLY', true),
+    'bypass_senate' => env('ACADEMIC_WITHDRAWAL_BYPASS_SENATE', true),
+
+    /*
+    |--------------------------------------------------------------------------
     | Rule: Consecutive Academic Probation
     |--------------------------------------------------------------------------
     | A student placed on academic probation for `threshold` consecutive
@@ -59,22 +70,23 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Rule: Minimum CGPA Threshold
+    | Rule: Minimum CGPA Threshold (Two-Tier)
     |--------------------------------------------------------------------------
-    | If a student's CGPA falls below this value, they may be flagged for
-    | withdrawal recommendation.
+    | FUBK Standard: Two-tier CGPA-based withdrawal
+    | - CGPA < 0.50:          WITHDRAWN FROM UNIVERSITY
+    | - 0.50 ≤ CGPA < 0.75:  WITHDRAWN FROM PROGRAM
+    | - 0.75 ≤ CGPA < 1.00:  PROBATION (handled by standing logic, not here)
     |
-    | IMPORTANT: Only enable this after institutional sign-off. The default
-    | threshold below is illustrative only and MUST be confirmed.
-    |
-    | Set 'enabled' => false until the institution confirms the minimum CGPA
-    | in writing.
+    | IMPORTANT: Enabled based on FUBK academic regulations from grade report.
     */
     'minimum_cgpa' => [
-        'enabled'   => false,    // DISABLED until institutionally confirmed
-        'threshold' => 0.50,     // Must be confirmed by academic regulations
-        'reason_code' => 'CGPA_BELOW_MINIMUM',
-        'reason'    => 'Cumulative GPA ({cgpa}) is below the institutional minimum of {threshold}.',
+        'enabled'   => true,     // ENABLED - matches FUBK policy
+        'university_threshold' => 0.50,  // Below this: withdrawn from university
+        'program_threshold' => 0.75,     // Below this (but above university): withdrawn from program
+        'reason_code_university' => 'CGPA_BELOW_UNIVERSITY_MINIMUM',
+        'reason_code_program' => 'CGPA_BELOW_PROGRAM_MINIMUM',
+        'reason_university' => 'Cumulative GPA ({cgpa}) is below university minimum ({threshold}). Student withdrawn from university.',
+        'reason_program' => 'Cumulative GPA ({cgpa}) is below programme minimum ({threshold}) but above university threshold. Student withdrawn from program.',
     ],
 
     /*
