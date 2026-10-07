@@ -71,6 +71,21 @@
                         </span>
                     </div>
                     <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Assigned Coordinator</label>
+                        @if($this->assignedCoordinator && $this->assignedCoordinator->user)
+                            <span class="inline-flex items-center gap-1.5 text-sm font-bold border border-indigo-200 bg-indigo-50 rounded-lg px-3 py-1.5 text-indigo-800">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                                </svg>
+                                {{ $this->assignedCoordinator->user->firstname }} {{ $this->assignedCoordinator->user->surname }}
+                            </span>
+                        @else
+                            <span class="inline-flex text-sm border border-amber-200 bg-amber-50 rounded-lg px-3 py-1.5 text-amber-700">
+                                No coordinator assigned
+                            </span>
+                        @endif
+                    </div>
+                    <div>
                         <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Scoring Weight</label>
                         <span class="inline-flex items-center gap-1.5 text-xs font-bold border border-fuchsia-200 bg-fuchsia-50 rounded-lg px-3 py-1.5 text-fuchsia-800">
                             <span>CA: {{ $maxCa }}%</span>

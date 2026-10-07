@@ -1283,7 +1283,7 @@ class CoordinatorResultReview extends Component
             ->where('department_id', $this->inspectingDepartment->id)
             ->when(
                 $this->selectedLevelId,
-                fn ($query) => $query->where('student_level_id', $this->selectedLevelId)
+                fn ($query) => $query->where(fn ($q) => $q->where('student_level_id', $this->selectedLevelId)->orWhereNull('student_level_id'))
             )
             ->pluck('id')
             ->map(fn ($id) => (int) $id)

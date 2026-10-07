@@ -10,6 +10,7 @@ use App\Models\Coordinator;
 use App\Models\Course;
 use App\Models\Department;
 use App\Models\RegisteredCourse;
+use App\Models\Result;
 use App\Models\Setting;
 use App\Models\StudentLevel;
 use App\Models\User;
@@ -351,8 +352,10 @@ class CoordinatorManager extends Component
             $existingUser = User::find($existing->user_id);
             $existingName = $existingUser ? trim($existingUser->surname . ' ' . $existingUser->firstname) : 'Another coordinator';
 
-            // If we are creating/reassigning, we can update the existing one or prompt
-            $this->alert('warning', "This cohort already has {$existingName} assigned. Updating the assignment...");
+            if ($this->isEditing) {
+                $this->alert('error', "Cannot update assignment: {$existingName} is already assigned as coordinator for this exact cohort (Course, Level, and Session). Please edit that coordinator record directly instead.");
+                return;
+            }
         }
 
         DB::transaction(function () use ($userId, $courseId, $departmentId, $levelId, $session) {
@@ -412,11 +415,120 @@ class CoordinatorManager extends Component
 
     /*
     |--------------------------------------------------------------------------
+    | Re-link Unassigned Submitted Results
+    |--------------------------------------------------------------------------
+    */
+    public function relinkUnassignedResults(): void
+    {
+        $unassignedResults = Result::whereNull('coordinator_id')
+            ->whereIn('status', ['submitted', 'pending'])
+            ->with(['academicDetail.coordinator', 'registeredCourse'])
+            ->get();
+
+        if ($unassignedResults->isEmpty()) {
+            $this->alert('info', 'No unassigned submitted or pending results found to re-link.');
+            return;
+        }
+
+        $coordinators = Coordinator::all();
+        $relinkedCount = 0;
+        $unmatchedCount = 0;
+
+        DB::transaction(function () use ($unassignedResults, $coordinators, &$relinkedCount, &$unmatchedCount) {
+            foreach ($unassignedResults as $result) {
+                $ad = $result->academicDetail;
+                if (!$ad) {
+                    $unmatchedCount++;
+                    continue;
+                }
+
+                $candidate = null;
+
+                // 1. Direct coordinator from academic details
+                if ($ad->coordinator_id) {
+                    $candidate = $coordinators->firstWhere('id', $ad->coordinator_id);
+                }
+
+                // 2. Resolve level directly
+                $levelId = $result->level_snapshot 
+                    ?? $result->registeredCourse?->level_snapshot 
+                    ?? $result->registeredCourse?->student_level_id 
+                    ?? $ad->student_level_id 
+                    ?? 1;
+
+                // 3. Exact course cohort match
+                if (!$candidate && $ad->course_id && $ad->admission_session) {
+                    $candidate = $coordinators->first(function ($c) use ($ad, $levelId) {
+                        return $c->course_id == $ad->course_id 
+                            && $c->student_level_id == $levelId 
+                            && $c->academic_session == $ad->admission_session;
+                    });
+                }
+
+                // 4. Course + academic session match
+                if (!$candidate && $ad->course_id && $result->academic_session) {
+                    $candidate = $coordinators->first(function ($c) use ($ad, $levelId, $result) {
+                        return $c->course_id == $ad->course_id 
+                            && $c->student_level_id == $levelId 
+                            && $c->academic_session == $result->academic_session;
+                    });
+                }
+
+                // 5. Dept cohort match
+                if (!$candidate && $ad->department_id && $ad->admission_session) {
+                    $candidate = $coordinators->first(function ($c) use ($ad, $levelId) {
+                        return $c->department_id == $ad->department_id 
+                            && $c->student_level_id == $levelId 
+                            && $c->academic_session == $ad->admission_session;
+                    });
+                }
+
+                // 6. Course + level (session-agnostic)
+                if (!$candidate && $ad->course_id) {
+                    $candidate = $coordinators->first(function ($c) use ($ad, $levelId) {
+                        return $c->course_id == $ad->course_id 
+                            && $c->student_level_id == $levelId;
+                    });
+                }
+
+                // 7. Dept + level (session-agnostic)
+                if (!$candidate && $ad->department_id) {
+                    $candidate = $coordinators->first(function ($c) use ($ad, $levelId) {
+                        return $c->department_id == $ad->department_id 
+                            && $c->student_level_id == $levelId;
+                    });
+                }
+
+                if ($candidate) {
+                    $result->update(['coordinator_id' => $candidate->id]);
+                    $relinkedCount++;
+                } else {
+                    $unmatchedCount++;
+                }
+            }
+        });
+
+        if ($relinkedCount > 0) {
+            $msg = "Successfully re-linked {$relinkedCount} result(s) to their respective coordinators.";
+            if ($unmatchedCount > 0) {
+                $msg .= " ({$unmatchedCount} result(s) could not be matched; please assign a coordinator for their cohort).";
+            }
+            $this->alert('success', $msg);
+        } else {
+            $this->alert('warning', "Could not find matching coordinators for {$unmatchedCount} result(s). Please configure coordinators for those cohorts first.");
+        }
+    }
+
+    /*
+    |--------------------------------------------------------------------------
     | Render
     |--------------------------------------------------------------------------
     */
     public function render()
     {
+        $unassignedSubmittedResultCount = Result::whereNull('coordinator_id')
+            ->whereIn('status', ['submitted', 'pending'])
+            ->count();
         // 1. Coordinators Query
         $coordinatorsQuery = Coordinator::with(['user', 'course.department', 'department', 'studentLevel'])
             ->when($this->selectedSession, function ($q) {
@@ -556,6 +668,7 @@ class CoordinatorManager extends Component
             'totalCoordinators' => $totalCoordinators,
             'courseBasedCoordinators' => $courseBasedCoordinators,
             'deptBasedCoordinators' => $deptBasedCoordinators,
+            'unassignedSubmittedResultCount' => $unassignedSubmittedResultCount,
             'staffMembers' => $this->staffMembers,
         ])->layout('layouts.app');
     }

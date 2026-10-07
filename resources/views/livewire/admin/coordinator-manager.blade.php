@@ -70,6 +70,37 @@
                 </div>
             </div>
         </div>
+
+        @if($unassignedSubmittedResultCount > 0)
+            <div class="mt-6 p-4 rounded-2xl bg-amber-50 border border-amber-200 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center shrink-0">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                        </svg>
+                    </div>
+                    <div>
+                        <h4 class="text-sm font-bold text-amber-900">
+                            {{ $unassignedSubmittedResultCount }} Submitted Result(s) Without Linked Coordinators
+                        </h4>
+                        <p class="text-xs text-amber-700 font-medium mt-0.5">
+                            These submitted results are currently unlinked from coordinator review workspaces. Click to automatically match and re-link them to their cohort coordinators.
+                        </p>
+                    </div>
+                </div>
+                <button wire:click="relinkUnassignedResults" wire:loading.attr="disabled"
+                    class="shrink-0 px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold shadow-xs transition flex items-center gap-2 cursor-pointer disabled:opacity-50">
+                    <svg wire:loading.remove wire:target="relinkUnassignedResults" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                    <svg wire:loading wire:target="relinkUnassignedResults" class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <span>Re-link Results to Coordinators</span>
+                </button>
+            </div>
+        @endif
     </div>
 
     {{-- ============================================================

@@ -213,8 +213,19 @@ The PIN generation logic automatically detects and uses the appropriate coordina
 - Active assignment highlighted in fuchsia color
 - Single assignments show static info banner
 - Security maintained: search always filters by selected assignment's session
-- Implemented in `GenerateStudentPin.php` and `generate-student-pin.blade.php`
+- Implemented in `GenerateStudentPin.php` and `generate-pin.blade.php`
 - Coordinator assignments loaded in `render()` method with eager loading to prevent lazy loading violations
 - `selectAssignment()` method fetches specific assignment from database with proper eager loading
 
 **Impact**: Coordinators can now easily switch between their assigned cohorts to search for and generate PINs for students in any of their assigned sessions while maintaining security boundaries.
+
+### 2026-10-07: Registration Snapshot Level Resolution & Orphaned Result Re-linking
+**Problem**: Result submission previously used fragile year arithmetic (`targetYear - admissionYear + 1`), which caused Direct Entry (200L) and repeating/spillover students to be mapped to incorrect level coordinators. Furthermore, legacy results submitted with `coordinator_id = null` remained invisible in coordinator review queues.
+
+**Solution**:
+1. Replaced runtime year arithmetic with explicit registration snapshot levels (`level_snapshot ?? student_level_id`).
+2. Prioritized student-assigned coordinator (`academic_details.coordinator_id`) before fallback matching.
+3. Added support in CoordinatorManager to detect and re-link unassigned/orphaned submitted results to their respective cohort coordinators.
+
+**Impact**: Direct Entry and repeating students are accurately assigned to their true registered level coordinators, and legacy submitted results can be safely re-linked into active review workspaces without altering historical grades.
+

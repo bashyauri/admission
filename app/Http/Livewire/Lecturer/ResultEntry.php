@@ -70,6 +70,72 @@ class ResultEntry extends Component
         return $this->fetchStudents($this->getAllocation());
     }
 
+    #[Computed]
+    public function assignedCoordinator(): ?\App\Models\Coordinator
+    {
+        $allocation = $this->getAllocation();
+        if (!$allocation) {
+            return null;
+        }
+
+        // Get the first student's academic detail to determine level and department
+        $firstStudent = $this->students->first();
+        if (!$firstStudent) {
+            return null;
+        }
+
+        $ad = $firstStudent->academicDetail;
+        if (!$ad) {
+            return null;
+        }
+
+        // 1. Direct assigned coordinator from academic details if present
+        if ($ad->coordinator_id) {
+            $assignedCoord = \App\Models\Coordinator::with('user')->find($ad->coordinator_id);
+            if ($assignedCoord) {
+                return $assignedCoord;
+            }
+        }
+
+        // 2. Resolve level directly from registration snapshot or student record (no year arithmetic)
+        $levelId = $firstStudent->level_snapshot
+            ?? $firstStudent->student_level_id
+            ?? $ad->student_level_id
+            ?? 1;
+        $departmentId = $ad->department_id ?? null;
+        $courseId = $ad->course_id ?? null;
+        $session = $ad->admission_session ?? $allocation->academic_session;
+
+        // Try to find coordinator with exact match first (session + level + course/department)
+        $coordinator = \App\Models\Coordinator::where('student_level_id', $levelId);
+        if ($session) {
+            $coordinator->where('academic_session', $session);
+        }
+
+        if ($courseId) {
+            $coordinator->where('course_id', $courseId);
+        } elseif ($departmentId) {
+            $coordinator->where('department_id', $departmentId)->whereNull('course_id');
+        }
+
+        $found = $coordinator->with('user')->first();
+
+        // If no exact match, try without session (level + course/department only)
+        if (!$found) {
+            $coordinator = \App\Models\Coordinator::where('student_level_id', $levelId);
+
+            if ($courseId) {
+                $coordinator->where('course_id', $courseId);
+            } elseif ($departmentId) {
+                $coordinator->where('department_id', $departmentId)->whereNull('course_id');
+            }
+
+            $found = $coordinator->with('user')->first();
+        }
+
+        return $found;
+    }
+
     protected function getAllocation(): ?CourseAllocation
     {
         if ($this->cachedAllocation === null && $this->allocationId) {
@@ -328,12 +394,15 @@ class ResultEntry extends Component
         $session  = $this->selectedSession;
         $semester = $this->selectedSemester;
 
-        // 1. Load all pending results with academicDetail fields we need for coordinator lookup
+        // 1. Load all pending results with academicDetail and registeredCourse fields we need for coordinator lookup
         $results = Result::where('department_course_id', $allocation->department_course_id)
             ->where('academic_session', $session)
             ->where('semester', $semester)
             ->where('status', 'pending')
-            ->with(['academicDetail:id,user_id,course_id,department_id,student_level_id,admission_session,coordinator_id'])
+            ->with([
+                'academicDetail:id,user_id,course_id,department_id,student_level_id,admission_session,coordinator_id',
+                'registeredCourse:id,student_level_id,level_snapshot',
+            ])
             ->get();
 
         if ($results->isEmpty()) {
@@ -352,20 +421,31 @@ class ResultEntry extends Component
         }
 
         // 3. Bulk-resolve coordinators in ONE query per (course+level+session) combination
-        //    instead of firing up to 5 queries per student inside the loop.
-        $acadDetails = $results->map->academicDetail->filter();
+        //    Use level_snapshot from result / registered_course / academicDetail (no year arithmetic)
+        $resultKeys = $results->map(function ($r) {
+            $ad = $r->academicDetail;
+            $levelId = $r->level_snapshot 
+                ?? $r->registeredCourse?->level_snapshot 
+                ?? $r->registeredCourse?->student_level_id 
+                ?? $ad?->student_level_id 
+                ?? 1;
 
-        // Gather all unique (course_id, student_level_id, admission_session) combos
-        $cohortKeys = $acadDetails->map(fn ($ad) => [
-            'course_id'       => $ad->course_id,
-            'department_id'   => $ad->department_id,
-            'level_id'        => $ad->student_level_id,
-            'admission'       => $ad->admission_session,
-        ])->unique(fn ($k) => $k['course_id'] . '|' . $k['level_id'] . '|' . $k['admission'])->values();
+            return [
+                'course_id'       => $ad?->course_id,
+                'department_id'   => $ad?->department_id,
+                'level_id'        => $levelId,
+                'admission'       => $ad?->admission_session,
+            ];
+        })->unique(fn ($k) => $k['course_id'] . '|' . $k['level_id'] . '|' . $k['admission'])->values();
+
+        $directCoordIds = $results->pluck('academicDetail.coordinator_id')->filter()->unique()->values()->all();
 
         // Single bulk fetch of all potentially matching coordinators
-        $coordinators = \App\Models\Coordinator::where(function ($q) use ($cohortKeys) {
-            foreach ($cohortKeys as $key) {
+        $coordinators = \App\Models\Coordinator::where(function ($q) use ($resultKeys, $directCoordIds) {
+            if (!empty($directCoordIds)) {
+                $q->whereIn('id', $directCoordIds);
+            }
+            foreach ($resultKeys as $key) {
                 $q->orWhere(function ($sub) use ($key) {
                     if ($key['course_id']) {
                         $sub->where('course_id', $key['course_id'])
@@ -388,6 +468,7 @@ class ResultEntry extends Component
         // Build a fast lookup: "courseId|levelId|admissionSession" => coordinator
         $coordMap = [];
         foreach ($coordinators as $coord) {
+            $coordMap['id|' . $coord->id] = $coord;
             // Prefer course+level+session exact match
             $key = $coord->course_id . '|' . $coord->student_level_id . '|' . $coord->academic_session;
             $coordMap[$key] = $coordMap[$key] ?? $coord;
@@ -401,12 +482,29 @@ class ResultEntry extends Component
             }
         }
 
-        // 4. Resolve coordinator per academicDetail using the pre-built map (zero extra queries)
-        $resolveCoordinator = function (\App\Models\AcademicDetail $ad) use ($coordMap): ?\App\Models\Coordinator {
-            $exactKey    = $ad->course_id . '|' . $ad->student_level_id . '|' . $ad->admission_session;
-            $courseKey   = $ad->course_id . '|' . $ad->student_level_id . '|';
-            $deptKey     = 'dept|' . $ad->department_id . '|' . $ad->student_level_id;
-            $legacyCoord = $ad->coordinator_id ? \App\Models\Coordinator::find($ad->coordinator_id) : null;
+        // 4. Resolve coordinator per result using the pre-built map (zero extra queries)
+        $resolveCoordinator = function (\App\Models\Result $result) use ($coordMap): ?\App\Models\Coordinator {
+            $ad = $result->academicDetail;
+            if (!$ad) {
+                return null;
+            }
+
+            // 1. Direct coordinator assignment from PIN gen / registration if present
+            if ($ad->coordinator_id && isset($coordMap['id|' . $ad->coordinator_id])) {
+                return $coordMap['id|' . $ad->coordinator_id];
+            }
+
+            // 2. Resolve level directly from registration snapshot or student record (no year arithmetic)
+            $levelId = $result->level_snapshot 
+                ?? $result->registeredCourse?->level_snapshot 
+                ?? $result->registeredCourse?->student_level_id 
+                ?? $ad->student_level_id 
+                ?? 1;
+
+            $exactKey    = $ad->course_id . '|' . $levelId . '|' . $ad->admission_session;
+            $courseKey   = $ad->course_id . '|' . $levelId . '|';
+            $deptKey     = 'dept|' . $ad->department_id . '|' . $levelId;
+            $legacyCoord = $ad->coordinator_id ? ($coordMap['id|' . $ad->coordinator_id] ?? \App\Models\Coordinator::find($ad->coordinator_id)) : null;
 
             return $coordMap[$exactKey]
                 ?? $coordMap[$courseKey]
@@ -417,29 +515,48 @@ class ResultEntry extends Component
         // 5. Batch all updates: separate result IDs by coordinator
         //    Then do ONE update per coordinator group instead of N individual updates
         $byCoordinator = []; // coordinator_id => [result_ids]
-        $unassignedCount = 0;
+        $unassignedStudents = []; // student details for error message
         $updated = 0;
 
         foreach ($results as $result) {
-            $ad = $result->academicDetail;
-            if (!$ad) {
-                $unassignedCount++;
-                continue;
-            }
-
-            $coordinator = $resolveCoordinator($ad);
+            $coordinator = $resolveCoordinator($result);
 
             if ($coordinator) {
                 $byCoordinator[$coordinator->id][] = $result->id;
                 $updated++;
             } else {
-                $unassignedCount++;
-                \Log::warning("No coordinator found for student {$ad->user_id} course={$ad->course_id} level={$ad->student_level_id} session={$ad->admission_session}");
+                $ad = $result->academicDetail;
+                $levelId = $result->level_snapshot 
+                    ?? $result->registeredCourse?->level_snapshot 
+                    ?? $result->registeredCourse?->student_level_id 
+                    ?? $ad?->student_level_id 
+                    ?? 1;
+
+                \Log::warning("No coordinator found for student {$result->user_id} course={$ad?->course_id} level={$levelId} session={$ad?->admission_session}");
+
+                // Collect student details for error message
+                $unassignedStudents[] = [
+                    'matric_no' => $ad?->matric_no ?? 'N/A',
+                    'name' => $result->user?->surname . ' ' . $result->user?->firstname ?? 'Unknown',
+                    'level' => $levelId ?? 'N/A',
+                ];
             }
         }
 
+        // Block submission if any student lacks a coordinator
+        if (!empty($unassignedStudents)) {
+            $studentList = collect($unassignedStudents)->map(fn ($s) => "{$s['matric_no']} ({$s['name']}, {$s['level']}L)")->join(', ');
+            $this->alert('error', "Cannot submit results. " . count($unassignedStudents) . " student(s) do not have coordinators assigned: {$studentList}. Please contact the administrator to assign coordinators to these students before submitting.");
+            return;
+        }
+
         // Single UPDATE per coordinator group (replaces N individual ->update() calls)
+        $coordinatorNames = [];
         foreach ($byCoordinator as $coordinatorId => $resultIds) {
+            $coordinator = \App\Models\Coordinator::with('user')->find($coordinatorId);
+            $coordinatorName = $coordinator?->user ? ($coordinator->user->firstname . ' ' . $coordinator->user->surname) : "Coordinator #{$coordinatorId}";
+            $coordinatorNames[] = "{$coordinatorName} (" . count($resultIds) . " results)";
+
             \Illuminate\Support\Facades\DB::table('results')
                 ->whereIn('id', $resultIds)
                 ->update([
@@ -450,10 +567,9 @@ class ResultEntry extends Component
         }
 
         if ($updated > 0) {
-            $this->alert('success', "{$updated} result(s) submitted to coordinator(s) successfully.");
+            $coordinatorList = implode(', ', $coordinatorNames);
+            $this->alert('success', "{$updated} result(s) submitted to coordinator(s): {$coordinatorList}");
             $this->loadStudentsAndResults();
-        } elseif ($unassignedCount > 0) {
-            $this->alert('warning', "No coordinator found for {$unassignedCount} student(s). Please ensure coordinators are assigned.");
         } else {
             $this->alert('info', 'No pending results to submit.');
         }
