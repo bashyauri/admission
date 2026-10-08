@@ -114,6 +114,8 @@ graph TD
 - [x] Added Course Allocation links in `admin-sidebar.blade.php` and `cit-sidebar.blade.php`.
 - [x] Implemented Coordinator Result Review component (`CoordinatorResultReview.php` & `coordinator-result-review.blade.php`) with multi-level course inspection, SQL summaries, paginated review, batch approval (`status = 'exam_officer_approved'`), and return/rejection audit actions.
 - [x] Implemented Exam Officer Result Review component (`ExamOfficerResultReview.php` & `exam-officer-result-review.blade.php`) with institutional grade auditing, batch result release (`status = 'released'`), GPA calculation triggering (`ResultGpaRecord`), and carry-over processing.
+- [x] Kept academic progression separate from institutional status: release-time progression records standing and withdrawal recommendations only; only Senate approval through `StudentStatusService` changes official withdrawal status.
+- [x] Documented the current partial-failure risk: result status updates precede downstream GPA/carry-over/progression/audit writes. Inspect all affected records before retrying a failed release; make the operation transactional and idempotent as a follow-up.
 - [x] Registered routes in `routes/coordinator.php` (`coordinator.result-review`) and `routes/exam_officer.php` (`exam-officer.results-review`).
 - [x] Added navigation menu links in `coordinator-sidebar.blade.php` and `exam-officer-sidebar.blade.php`.
 - [x] Created and passed `tests/Feature/ResultApprovalWorkflowTest.php` (4 tests) for coordinator approval, return, Exam Officer release, and Exam Officer return.

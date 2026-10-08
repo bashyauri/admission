@@ -570,8 +570,11 @@ Results follow a strict multi-level approval state machine:
    - If correct → clicks **Approve & Forward** → `submitted` → `exam_officer_approved` (records `coordinator_approved_by` and `coordinator_approved_at`)
    - If issues found → clicks **Return to Lecturer**, types detailed reason → `submitted` → `pending` (remarks saved; scores unlocked again so lecturer can correct and resubmit)
 3. Exam Officer audits coordinator-approved score sheets:
-   - If correct → clicks **Release to Students** → `exam_officer_approved` → `released` (auto-triggers GPA & carry-over computation)
+   - If correct → clicks **Release to Students** → `exam_officer_approved` → `released` (triggers GPA and carry-over processing)
    - If issues found → clicks **Return to Coordinator**, types reason → `exam_officer_approved` → `submitted` (returned to coordinator queue)
+4. Academic progression may record standing and withdrawal eligibility as a recommendation. Result release must not apply an institutional withdrawal; Senate approval through the student-status workflow is required first.
+
+**Failure handling:** Result status updates occur before downstream GPA, carry-over, progression, and audit processing completes. A 403/error can therefore leave partial writes. Inspect result status, GPA record, carry-over state, progression recommendation, and release audit before retrying.
 
 ---
 
@@ -668,18 +671,19 @@ The university operates under the following mandatory academic standing and degr
 
 ### 2. Academic Deficiency & Withdrawal Thresholds
 * **CGPA 0.75 – 0.99** → **PROBATION** (`STATUS: ON PROBATION`)
-* **CGPA 0.50 – 0.74** → **W/P — WITHDRAWAL FROM PROGRAMME** (`STATUS: WITHDRAWN FROM PROGRAM`)
-* **CGPA 0.00 – 0.49** → **W/U — WITHDRAWAL FROM UNIVERSITY** (`STATUS: WITHDRAWN FROM THE UNIVERSITY`)
+* **CGPA 0.50 – 0.74** → eligible for a **W/P programme-withdrawal recommendation**; this is not an official `WITHDRAWN` status until Senate approves it.
+* **CGPA 0.00 – 0.49** → eligible for a **W/U university-withdrawal recommendation**; this is not an official `WITHDRAWN` status until Senate approves it.
 
 ### 3. Consecutive Probation Rule
-* **Two (2) consecutive academic sessions on probation → W/P (WITHDRAWAL FROM PROGRAMME)**, regardless of the current CGPA, provided the two-session rule is actually satisfied.
+* **Two (2) consecutive academic sessions on probation → recommend W/P for Senate review**, regardless of current CGPA, provided the two-session rule is actually satisfied. Do not change institutional status before Senate approval.
 
 ### 4. Broadsheet Remarks & Status Display Rules (Print SR4)
 * **Clean Pass (CGPA ≥ 1.00, no failed courses):** `PASS` (no `STATUS:` line)
 * **Deficiency (CGPA ≥ 1.00 with failed courses):** `REPEAT: [failed courses]` (no `STATUS:` line)
 * **On Probation (0.75 ≤ CGPA < 1.00):** `REPEAT: [failed courses]` (if any) + `STATUS: ON PROBATION`
-* **Withdrawn from Programme (0.50 ≤ CGPA < 0.74 OR 2 consecutive probation sessions):** `REPEAT: [failed courses]` (if any) + `STATUS: WITHDRAWN FROM PROGRAM`
-* **Withdrawn from University (CGPA < 0.50):** `REPEAT: [failed courses]` (if any) + `STATUS: WITHDRAWN FROM THE UNIVERSITY`
+* **Programme withdrawal recommendation pending Senate:** show the applicable academic standing/recommendation only in authorized staff review; do not print or show an official withdrawn status.
+* **University withdrawal recommendation pending Senate:** show the applicable academic standing/recommendation only in authorized staff review; do not print or show an official withdrawn status.
+* **Senate-approved withdrawal:** show the official status, effective session/date, and Senate reference while retaining historical results.
 * **Official Administrative Withdrawal:** `REPEAT: [failed courses]` (if any) + `STATUS: [Official Label]` + Session + Effective Date + Senate Ref
 
 ---

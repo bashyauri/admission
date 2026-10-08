@@ -1,7 +1,7 @@
-#### Task 6.7: Student Academic Status, Withdrawal & Reinstatement Management (⏳ UP NEXT)
+#### Task 6.7: Student Academic Status, Withdrawal & Reinstatement Management (IMPLEMENTED; governance rules remain mandatory)
 * **Goal:** Implement Senate-compliant student status management with auditable withdrawal/reinstatement workflows, academic progression history tracking, and proper separation of academic performance from institutional decisions.
 * **Risk Profile:** Low (additive tables and service layer with proper governance workflows).
-* **Status:** **Ready for Execution (Structured into 10 Daily Tasks)**
+* **Status:** Senate-compliant status and withdrawal workflows are implemented. The rules below govern ongoing maintenance.
 
 ### Design Principles
 The system must follow these governance rules:
@@ -15,6 +15,12 @@ The system must follow these governance rules:
 - Disciplinary suspension/expulsion remains separate from ordinary academic withdrawal
 - Institutional regulations determine withdrawal thresholds
 - No withdrawal rule should be inferred merely from a CGPA unless the approved regulation says so
+- Result release may calculate progression and eligibility, but it must never apply an institutional withdrawal.
+- CGPA thresholds and consecutive-probation rules create recommendations for Senate review; they do not independently change student status.
+- Only the authorized Senate decision workflow may create an official withdrawal status.
+- Student-facing dashboards and result slips must not present a pending `WITHDRAWN_PROGRAM` recommendation or “Below Degree Standard” as an official status before Senate confirmation.
+- Result release can partially commit: result rows may become `released` before GPA, carry-over, progression, or audit work fails. Inspect every side effect before retrying; future release changes should be transactional/idempotent.
+- Service code must explicitly eager-load relations it accesses because production disables Eloquent lazy loading.
 
 ### Daily Tasks Breakdown:
 
