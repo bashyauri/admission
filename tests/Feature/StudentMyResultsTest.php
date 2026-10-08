@@ -252,6 +252,64 @@ class StudentMyResultsTest extends TestCase
             ->assertSee('First Class Honours');
     }
 
+    public function test_semester_cgpa_uses_results_through_that_semester_instead_of_stale_saved_cgpa(): void
+    {
+        $this->actingAs($this->student);
+
+        Result::create([
+            'user_id' => $this->student->id,
+            'registered_course_id' => $this->regCourse1->id,
+            'department_course_id' => $this->deptCourse1->id,
+            'academic_detail_id' => $this->academicDetail->id,
+            'academic_session' => '2024/2025',
+            'semester' => 'first',
+            'course_code_snapshot' => 'CSC101',
+            'course_title_snapshot' => 'Introduction to Computer Science',
+            'credit_units_snapshot' => 3,
+            'grade' => 'A',
+            'grade_point' => 5,
+            'credit_units' => 3,
+            'status' => 'released',
+        ]);
+        Result::create([
+            'user_id' => $this->student->id,
+            'registered_course_id' => $this->regCourse2->id,
+            'department_course_id' => $this->deptCourse2->id,
+            'academic_detail_id' => $this->academicDetail->id,
+            'academic_session' => '2024/2025',
+            'semester' => 'second',
+            'course_code_snapshot' => 'CSC102',
+            'course_title_snapshot' => 'Introduction to Problem Solving',
+            'credit_units_snapshot' => 2,
+            'grade' => 'C',
+            'grade_point' => 3,
+            'credit_units' => 2,
+            'status' => 'released',
+        ]);
+
+        foreach ([['first', 5.0], ['second', 3.0]] as [$semester, $semesterGpa]) {
+            ResultGpaRecord::create([
+                'user_id' => $this->student->id,
+                'academic_detail_id' => $this->academicDetail->id,
+                'academic_session' => '2024/2025',
+                'semester' => $semester,
+                'semester_gpa' => $semesterGpa,
+                'total_credit_units' => $semester === 'first' ? 3 : 2,
+                'total_grade_points' => $semester === 'first' ? 15 : 6,
+                'cumulative_gpa' => 3.58,
+                'cumulative_credit_units' => 5,
+                'cumulative_grade_points' => 18,
+                'class_of_degree' => 'Second Class Upper Division',
+            ]);
+        }
+
+        Livewire::test(MyResults::class)
+            ->assertStatus(200)
+            ->assertSee('5.00')
+            ->assertSee('4.20')
+            ->assertDontSee('3.58');
+    }
+
     public function test_provisional_withdrawal_and_degree_class_are_hidden_until_senate_approval(): void
     {
         $this->actingAs($this->student);

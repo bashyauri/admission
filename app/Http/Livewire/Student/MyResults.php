@@ -77,7 +77,18 @@ class MyResults extends Component
             ->orderBy('created_at', 'asc')
             ->get();
 
-        // Group results by academic_session, then by semester
+        // Calculate a historical running CGPA for each semester from released attempts.
+        // Stored GPA records may contain a cumulative value calculated after later terms.
+        $allReleasedResults = Result::query()
+            ->with(['registeredCourse', 'departmentCourse.studentCourse'])
+            ->where('user_id', $user->id)
+            ->where('status', 'released')
+            ->orderBy('academic_session')
+            ->orderByRaw("CASE WHEN LOWER(semester) IN ('first', '1') THEN 1 WHEN LOWER(semester) IN ('second', '2') THEN 2 ELSE 3 END")
+            ->orderBy('created_at')
+            ->orderBy('id')
+            ->get();
+
         $groupedResults = [];
         $sessions = $rawResults->pluck('academic_session')->unique()->values();
 
@@ -97,7 +108,23 @@ class MyResults extends Component
                 ?? $result->departmentCourse?->units
                 ?? 0);
 
-        // Fetch GPA records for fast lookup
+        $cumulativeCgpaBySemester = [];
+        $runningCreditUnits = 0;
+        $runningQualityPoints = 0;
+
+        foreach ($allReleasedResults as $releasedResult) {
+            $units = $unitsForResult($releasedResult);
+            $gradePoint = (int) ($releasedResult->grade_point ?? $gradeService->calculateGradePoint($releasedResult->grade ?? 'F'));
+            $runningCreditUnits += $units;
+            $runningQualityPoints += $gradePoint * $units;
+
+            if ($runningCreditUnits > 0) {
+                $semesterKey = $releasedResult->academic_session . '_' . strtolower((string) $releasedResult->semester);
+                $cumulativeCgpaBySemester[$semesterKey] = round($runningQualityPoints / $runningCreditUnits, 2);
+            }
+        }
+
+        // Fetch GPA records for semester GPA values and related academic metadata.
         $gpaRecords = ResultGpaRecord::query()
             ->where('user_id', $user->id)
             ->get()
@@ -134,7 +161,7 @@ class MyResults extends Component
                     }
 
                     $gpa = $gpaRecord ? (float) $gpaRecord->semester_gpa : ($tcr > 0 ? round($tqp / $tcr, 2) : 0.0);
-                    $cgpa = $gpaRecord ? (float) $gpaRecord->cumulative_gpa : null;
+                    $cgpa = $cumulativeCgpaBySemester[$key] ?? null;
 
                     $groupedResults[$session][$semester] = [
                         'courses' => $semesterCourses,
@@ -149,12 +176,7 @@ class MyResults extends Component
             }
         }
 
-        // Overall cumulative calculation
-        $allReleasedResults = Result::query()
-            ->with(['registeredCourse', 'departmentCourse.studentCourse'])
-            ->where('user_id', $user->id)
-            ->where('status', 'released')
-            ->get();
+        // Overall cumulative calculation from the same released attempts.
 
         $totalTcr = 0;
         $totalTcp = 0;
