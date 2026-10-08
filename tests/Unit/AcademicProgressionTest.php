@@ -54,6 +54,45 @@ class AcademicProgressionTest extends TestCase
         $this->level400 = StudentLevel::where('level', '400')->first() ?? StudentLevel::create(['level' => '400']);
     }
 
+    public function test_max_program_level_loads_course_for_partially_loaded_student(): void
+    {
+        $user = new User();
+        $user->id = (string) \Illuminate\Support\Str::uuid();
+        $user->programme_id = ProgrammesEnum::Undergraduate->value;
+        $user->email = 'partial' . rand(1000, 9999) . '@test.com';
+        $user->password = bcrypt('password');
+        $user->vpassword = 'password';
+        $user->role = 'student';
+        $user->save();
+
+        $course = Course::create([
+            'name' => 'Four Year Programme',
+            'department_id' => $this->department->id,
+            'programme_id' => $this->programme->id,
+            'semesters' => 8,
+        ]);
+
+        AcademicDetail::create([
+            'user_id' => $user->id,
+            'matric_no' => 'MAT/' . rand(1000, 9999),
+            'course_id' => $course->id,
+            'programme_id' => $this->programme->id,
+            'department_id' => $this->department->id,
+            'student_level_id' => $this->level100->id,
+            'acad_session' => '2023-2024',
+        ]);
+
+        $partiallyLoadedUser = User::with('academicDetail')->findOrFail($user->id);
+
+        \Illuminate\Database\Eloquent\Model::preventLazyLoading(true);
+        try {
+            $this->assertSame(4, $this->progressionService->getMaxProgramLevel($partiallyLoadedUser));
+            $this->assertTrue($partiallyLoadedUser->academicDetail->relationLoaded('course'));
+        } finally {
+            \Illuminate\Database\Eloquent\Model::preventLazyLoading(false);
+        }
+    }
+
     public function test_fresh_utme_student_starts_at_level_1(): void
     {
         $user = new User();
@@ -295,7 +334,13 @@ class AcademicProgressionTest extends TestCase
             'class_of_degree' => 'Below Degree Standard',
         ]);
 
-        $result = $this->progressionService->processAndApplyAcademicProgression($user, '2023/2024', 2);
+        $partiallyLoadedUser = User::with('academicDetail')->findOrFail($user->id);
+        \Illuminate\Database\Eloquent\Model::preventLazyLoading(true);
+        try {
+            $result = $this->progressionService->processAndApplyAcademicProgression($partiallyLoadedUser, '2023/2024', 2);
+        } finally {
+            \Illuminate\Database\Eloquent\Model::preventLazyLoading(false);
+        }
 
         $this->assertEquals(AcademicProgressionService::STANDING_PROBATION, $result['standing']);
         $this->assertFalse($result['withdrawal_applied']);
@@ -307,7 +352,7 @@ class AcademicProgressionTest extends TestCase
         $this->assertEquals(AcademicProgressionService::STANDING_PROBATION, $progRecord->standing);
     }
 
-    public function test_two_consecutive_probation_sessions_automatically_applies_withdrawal_and_bypasses_senate(): void
+    public function test_two_consecutive_probation_sessions_are_recommended_for_senate_without_changing_status(): void
     {
         config(['academic_withdrawal.auto_apply' => true, 'academic_withdrawal.bypass_senate' => true]);
 
@@ -370,16 +415,16 @@ class AcademicProgressionTest extends TestCase
         $result = $this->progressionService->processAndApplyAcademicProgression($user, '2024/2025', 2);
 
         $this->assertEquals(AcademicProgressionService::STANDING_PROBATION, $result['standing']);
-        $this->assertTrue($result['withdrawal_applied']);
+        $this->assertFalse($result['withdrawal_applied']);
+        $this->assertEquals('pending_senate_review', $result['status']);
         $this->assertEquals('CONSECUTIVE_PROBATION', $result['reason_code']);
 
-        // Verify StudentStatusRecord was created and approved immediately (bypassing Senate)
-        $statusRecord = \App\Models\StudentStatusRecord::where('user_id', $user->id)->latest('id')->first();
-        $this->assertNotNull($statusRecord);
-        $this->assertEquals(\App\Enums\StudentStatus::ACADEMIC_WITHDRAWAL_PROGRAM, $statusRecord->status);
-        $this->assertEquals(\App\Services\StudentStatusService::WORKFLOW_SENATE_APPROVED, $statusRecord->senate_decision);
-        $this->assertNotNull($statusRecord->senate_reference);
-        $this->assertNotNull($statusRecord->senate_decision_date);
+        $progressionRecord = \App\Models\AcademicProgressionRecord::where('user_id', $user->id)
+            ->where('academic_session', '2024/2025')
+            ->where('semester', 2)
+            ->firstOrFail();
+        $this->assertTrue($progressionRecord->withdrawal_recommended);
+        $this->assertDatabaseMissing('student_status_records', ['user_id' => $user->id]);
     }
 
     public function test_fubk_academic_standing_thresholds_and_consecutive_probation(): void
@@ -418,8 +463,12 @@ class AcademicProgressionTest extends TestCase
         $this->assertEquals(AcademicProgressionService::STANDING_WITHDRAWN_PROGRAM, $standing065['standing']);
 
         // CGPA 0.75–0.99 -> PROBATION
+        $standing075 = $this->progressionService->determineAcademicStanding($user, 0.75);
         $standing085 = $this->progressionService->determineAcademicStanding($user, 0.85);
+        $standing099 = $this->progressionService->determineAcademicStanding($user, 0.99);
+        $this->assertEquals(AcademicProgressionService::STANDING_PROBATION, $standing075['standing']);
         $this->assertEquals(AcademicProgressionService::STANDING_PROBATION, $standing085['standing']);
+        $this->assertEquals(AcademicProgressionService::STANDING_PROBATION, $standing099['standing']);
 
         // CGPA >= 1.00 -> Good Standing / PROMOTED
         $standing250 = $this->progressionService->determineAcademicStanding($user, 2.50);

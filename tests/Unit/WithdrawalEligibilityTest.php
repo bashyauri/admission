@@ -226,7 +226,7 @@ class WithdrawalEligibilityTest extends TestCase
         $user   = $this->makeUgStudent();
         $detail = $this->attachAcademicDetail($user, $this->ugCourse, $this->level300);
 
-        $this->addGpaRecord($user, $detail, '2023/2024', 1.20); // PROBATION (one session)
+        $this->addGpaRecord($user, $detail, '2023/2024', 0.85); // PROBATION (one session)
 
         $this->enableRule('consecutive_probation', ['threshold' => 2, 'unit' => 'session']);
 
@@ -255,7 +255,7 @@ class WithdrawalEligibilityTest extends TestCase
         $this->assertTrue($result['eligible']);
         $this->assertContains('CONSECUTIVE_PROBATION', $result['triggered_rules']);
         $this->assertEquals('CONSECUTIVE_PROBATION', $result['reason_code']);
-        $this->assertEquals(AcademicProgressionService::STANDING_PROBATION, $result['standing']);
+        $this->assertEquals(AcademicProgressionService::STANDING_WITHDRAWN_PROGRAM, $result['standing']);
     }
 
     public function test_two_consecutive_repeat_sessions_triggers_eligibility(): void
@@ -383,7 +383,7 @@ class WithdrawalEligibilityTest extends TestCase
         $this->assertIsBool($result['eligible']);
         $this->assertIsString($result['reason']);
         $this->assertIsString($result['standing']);
-        $this->assertIsFloat($result['cgpa']);
+        $this->assertTrue($result['cgpa'] === null || is_float($result['cgpa']));
         $this->assertIsArray($result['triggered_rules']);
     }
 

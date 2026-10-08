@@ -196,6 +196,10 @@ class AcademicProgressionService
      */
     public function getMaxProgramLevel(User $user): int
     {
+        // Load these explicitly because callers may provide a partially loaded user.
+        // This calculation must also work when Eloquent lazy loading is disabled.
+        $user->loadMissing(['academicDetail.course', 'proposedCourse.course']);
+
         $course = $user->academicDetail?->course ?? $user->proposedCourse?->course;
         if ($course && !empty($course->semesters)) {
             $semesters = (int) $course->semesters;
@@ -220,6 +224,8 @@ class AcademicProgressionService
         string $senateReference
     ): array
     {
+        $academicDetail->loadMissing('studentLevel');
+
         $semesters = $semester === null ? [1, 2] : [$semester];
         $latestGpa = ResultGpaRecord::where('user_id', $student->id)->latest('id')->value('cumulative_gpa');
         $level = $academicDetail->studentLevel?->level ?? (string) $academicDetail->student_level_id;
@@ -338,6 +344,7 @@ class AcademicProgressionService
         $standing = $standingInfo['standing'];
         $cgpa = (float) $standingInfo['cgpa'];
         $academicDetail = $student->academicDetail;
+        $academicDetail?->loadMissing('studentLevel');
         $level = $academicDetail?->studentLevel?->level ?? (string) ($academicDetail?->student_level_id ?? '100');
         $sem = $semester ?? 2;
 
@@ -367,43 +374,22 @@ class AcademicProgressionService
             ]);
         }
 
-        // Evaluate withdrawal criteria (2 consecutive probations, < 0.50 university, 0.50–0.74 program, etc.)
+        // Eligibility is a recommendation only. The Senate workflow in StudentStatusService
+        // is the only path that may create an institutional withdrawal status.
         $eligibility = $this->evaluateWithdrawalEligibility($student);
+        $withdrawalRecommended = (bool) $eligibility['eligible'];
 
-        if ($eligibility['eligible'] && config('academic_withdrawal.auto_apply', true)) {
-            $reasonCode = (string) $eligibility['reason_code'];
-            $reason = (string) $eligibility['reason'];
-
-            $progRecord?->update(['withdrawal_recommended' => true]);
-
-            $statusService = app(StudentStatusService::class);
-            $statusRecord = $statusService->applyAcademicWithdrawal(
-                user: $student,
-                reasonCode: $reasonCode,
-                reason: $reason,
-                academicSession: $session,
-                semester: $semester,
-                notes: 'Automatically applied by academic progression engine.',
-                effectiveDate: now()
-            );
-
-            return [
-                'standing' => $standing,
-                'cgpa' => $cgpa,
-                'status' => $statusRecord->status->value,
-                'withdrawal_applied' => true,
-                'reason_code' => $reasonCode,
-                'reason' => $reason,
-            ];
+        if ($progRecord && $withdrawalRecommended) {
+            $progRecord->update(['withdrawal_recommended' => true]);
         }
 
         return [
             'standing' => $standing,
             'cgpa' => $cgpa,
-            'status' => 'active',
+            'status' => $withdrawalRecommended ? 'pending_senate_review' : 'active',
             'withdrawal_applied' => false,
-            'reason_code' => null,
-            'reason' => null,
+            'reason_code' => $eligibility['reason_code'],
+            'reason' => $eligibility['reason'],
         ];
     }
 
