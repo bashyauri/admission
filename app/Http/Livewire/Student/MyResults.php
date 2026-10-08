@@ -7,8 +7,10 @@ namespace App\Http\Livewire\Student;
 use App\Models\Result;
 use App\Models\ResultGpaRecord;
 use App\Models\User;
+use App\Enums\StudentStatus;
 use App\Services\AcademicProgressionService;
 use App\Services\GradeCalculationService;
+use App\Services\StudentStatusService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
@@ -171,6 +173,30 @@ class MyResults extends Component
         $overallCgpa = $totalTcr > 0 ? round($totalTqp / $totalTcr, 2) : 0.0;
         $classOfDegree = $totalTcr > 0 ? $gradeService->getClassOfDegree($overallCgpa) : 'N/A';
         $academicStanding = $progressionService->determineAcademicStanding($user);
+        $officialStatus = $isUndergraduate
+            ? app(StudentStatusService::class)->getCurrentStatus($user)
+            : null;
+        $hasSenateConfirmedAcademicWithdrawal = in_array($officialStatus?->status, [
+            StudentStatus::ACADEMIC_WITHDRAWAL_PROGRAM,
+            StudentStatus::ACADEMIC_WITHDRAWAL_UNIVERSITY,
+        ], true);
+
+        if ($hasSenateConfirmedAcademicWithdrawal) {
+            $academicStanding['standing'] = $officialStatus->status === StudentStatus::ACADEMIC_WITHDRAWAL_PROGRAM
+                ? AcademicProgressionService::STANDING_WITHDRAWN_PROGRAM
+                : AcademicProgressionService::STANDING_WITHDRAWN_UNIVERSITY;
+        } else {
+            if (in_array($academicStanding['standing'] ?? null, [
+                AcademicProgressionService::STANDING_WITHDRAWN_PROGRAM,
+                AcademicProgressionService::STANDING_WITHDRAWN_UNIVERSITY,
+            ], true)) {
+                $academicStanding['standing'] = 'ACADEMIC REVIEW';
+            }
+
+            if ($classOfDegree === 'Below Degree Standard') {
+                $classOfDegree = 'N/A';
+            }
+        }
 
         $graduationEligibility = $user->graduationEligibility;
         $degreeCertificate = $user->degreeCertificate;

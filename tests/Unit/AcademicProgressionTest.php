@@ -10,6 +10,7 @@ use App\Models\Department;
 use App\Models\DepartmentCourse;
 use App\Models\Programme;
 use App\Models\RegisteredCourse;
+use App\Models\Result;
 use App\Models\ResultGpaRecord;
 use App\Models\StudentCourse;
 use App\Models\StudentLevel;
@@ -379,5 +380,182 @@ class AcademicProgressionTest extends TestCase
         $this->assertEquals(\App\Services\StudentStatusService::WORKFLOW_SENATE_APPROVED, $statusRecord->senate_decision);
         $this->assertNotNull($statusRecord->senate_reference);
         $this->assertNotNull($statusRecord->senate_decision_date);
+    }
+
+    public function test_fubk_academic_standing_thresholds_and_consecutive_probation(): void
+    {
+        $user = new User();
+        $user->id = (string) \Illuminate\Support\Str::uuid();
+        $user->programme_id = ProgrammesEnum::Undergraduate->value;
+        $user->email = 'fubk_test_' . uniqid() . '@example.com';
+        $user->password = bcrypt('secret');
+        $user->vpassword = 'secret';
+        $user->role = 'student';
+        $user->save();
+
+        $course = Course::first() ?? Course::create([
+            'name' => 'CS101',
+            'department_id' => $this->department->id,
+            'programme_id' => $this->programme->id,
+        ]);
+
+        AcademicDetail::create([
+            'user_id' => $user->id,
+            'matric_no' => 'MAT/FUBK/' . rand(100, 999),
+            'course_id' => $course->id,
+            'programme_id' => $this->programme->id,
+            'department_id' => $this->department->id,
+            'student_level_id' => $this->level100->id,
+            'acad_session' => '2024/2025',
+        ]);
+
+        // CGPA 0.00–0.49 -> W/U
+        $standing020 = $this->progressionService->determineAcademicStanding($user, 0.20);
+        $this->assertEquals(AcademicProgressionService::STANDING_WITHDRAWN_UNIVERSITY, $standing020['standing']);
+
+        // CGPA 0.50–0.74 -> W/P
+        $standing065 = $this->progressionService->determineAcademicStanding($user, 0.65);
+        $this->assertEquals(AcademicProgressionService::STANDING_WITHDRAWN_PROGRAM, $standing065['standing']);
+
+        // CGPA 0.75–0.99 -> PROBATION
+        $standing085 = $this->progressionService->determineAcademicStanding($user, 0.85);
+        $this->assertEquals(AcademicProgressionService::STANDING_PROBATION, $standing085['standing']);
+
+        // CGPA >= 1.00 -> Good Standing / PROMOTED
+        $standing250 = $this->progressionService->determineAcademicStanding($user, 2.50);
+        $this->assertEquals(AcademicProgressionService::STANDING_PROMOTED, $standing250['standing']);
+    }
+
+    public function test_withdrawal_eligibility_ignores_unreleased_results_when_gpa_is_unavailable(): void
+    {
+        config(['academic_withdrawal.minimum_cgpa.enabled' => true]);
+        [$user, $academicDetail, $registration, $departmentCourse] = $this->createStudentWithRegistration('pending-gpa');
+
+        Result::create([
+            'user_id' => $user->id,
+            'registered_course_id' => $registration->id,
+            'department_course_id' => $departmentCourse->id,
+            'academic_detail_id' => $academicDetail->id,
+            'academic_session' => '2024/2025',
+            'semester' => 'first',
+            'total_score' => 90,
+            'grade' => 'A',
+            'grade_point' => 5,
+            'credit_units' => 3,
+            'grade_point_total' => 15,
+            'status' => 'exam_officer_approved',
+        ]);
+
+        $eligibility = $this->progressionService->evaluateWithdrawalEligibility($user);
+
+        $this->assertFalse($eligibility['eligible']);
+        $this->assertNull($eligibility['reason_code']);
+        $this->assertNull($eligibility['cgpa']);
+        $this->assertStringContainsString('released result GPA data', $eligibility['reason']);
+    }
+
+    public function test_withdrawal_eligibility_falls_back_to_released_results_when_gpa_record_is_missing(): void
+    {
+        config(['academic_withdrawal.minimum_cgpa.enabled' => true]);
+        [$user, $academicDetail, $registration, $departmentCourse] = $this->createStudentWithRegistration('released-gpa');
+
+        Result::create([
+            'user_id' => $user->id,
+            'registered_course_id' => $registration->id,
+            'department_course_id' => $departmentCourse->id,
+            'academic_detail_id' => $academicDetail->id,
+            'academic_session' => '2024/2025',
+            'semester' => 'first',
+            'total_score' => 90,
+            'grade' => 'A',
+            'grade_point' => 5,
+            'credit_units' => 3,
+            'grade_point_total' => 15,
+            'status' => 'released',
+        ]);
+
+        $eligibility = $this->progressionService->evaluateWithdrawalEligibility($user);
+
+        $this->assertFalse($eligibility['eligible']);
+        $this->assertEquals(5.0, $eligibility['cgpa']);
+        $this->assertNull($eligibility['reason_code']);
+    }
+
+    public function test_released_zero_cgpa_still_triggers_university_minimum_rule(): void
+    {
+        config(['academic_withdrawal.minimum_cgpa.enabled' => true]);
+        [$user, $academicDetail, $registration, $departmentCourse] = $this->createStudentWithRegistration('zero-gpa');
+
+        Result::create([
+            'user_id' => $user->id,
+            'registered_course_id' => $registration->id,
+            'department_course_id' => $departmentCourse->id,
+            'academic_detail_id' => $academicDetail->id,
+            'academic_session' => '2024/2025',
+            'semester' => 'first',
+            'total_score' => 20,
+            'grade' => 'F',
+            'grade_point' => 0,
+            'credit_units' => 3,
+            'grade_point_total' => 0,
+            'status' => 'released',
+        ]);
+
+        $eligibility = $this->progressionService->evaluateWithdrawalEligibility($user);
+
+        $this->assertTrue($eligibility['eligible']);
+        $this->assertEquals('CGPA_BELOW_UNIVERSITY_MINIMUM', $eligibility['reason_code']);
+        $this->assertEquals(0.0, $eligibility['cgpa']);
+    }
+
+    /** @return array{User, AcademicDetail, RegisteredCourse, DepartmentCourse} */
+    private function createStudentWithRegistration(string $suffix): array
+    {
+        $user = new User();
+        $user->id = (string) \Illuminate\Support\Str::uuid();
+        $user->programme_id = ProgrammesEnum::Undergraduate->value;
+        $user->email = $suffix . '_' . uniqid() . '@example.com';
+        $user->password = bcrypt('secret');
+        $user->vpassword = 'secret';
+        $user->role = 'student';
+        $user->save();
+
+        $course = Course::create([
+            'name' => 'Course ' . $suffix,
+            'department_id' => $this->department->id,
+            'programme_id' => $this->programme->id,
+            'semesters' => '8',
+        ]);
+        $academicDetail = AcademicDetail::create([
+            'user_id' => $user->id,
+            'matric_no' => 'MAT/' . strtoupper($suffix) . '/' . rand(1000, 9999),
+            'course_id' => $course->id,
+            'programme_id' => $this->programme->id,
+            'department_id' => $this->department->id,
+            'student_level_id' => $this->level100->id,
+            'acad_session' => '2024/2025',
+        ]);
+
+        $studentCourse = StudentCourse::create([
+            'code' => 'TST' . rand(1000, 9999),
+            'title' => 'Test Course ' . $suffix,
+            'units' => '3',
+            'student_level_id' => $this->level100->id,
+            'semester' => 1,
+        ]);
+        $departmentCourse = DepartmentCourse::create([
+            'department_id' => $this->department->id,
+            'student_course_id' => $studentCourse->id,
+            'units' => 3,
+        ]);
+        $registration = RegisteredCourse::create([
+            'department_course_id' => $departmentCourse->id,
+            'academic_detail_id' => $academicDetail->id,
+            'student_level_id' => $this->level100->id,
+            'units' => '3',
+            'academic_session' => '2024/2025',
+        ]);
+
+        return [$user, $academicDetail, $registration, $departmentCourse];
     }
 }

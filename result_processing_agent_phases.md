@@ -788,6 +788,30 @@ Phase 7 is a separate disciplinary case and sanction workflow. It must reuse Pha
   - [x] Update `downloadTemplate()` to call `fetchStudents()` instead of `$this->students`
 * **Verification:** `php artisan test tests/Feature/LecturerDashboardAllocationSessionTest.php --compact` (4 tests passed, 27 assertions — including the `preventLazyLoading(true)` scenario).
 
+#### Task 8.7: Broadsheet Academic Standing, Probation, and Two-Tier Withdrawal (W/U & W/P) Engine (✅ COMPLETED)
+* **Goal:** Align Departmental and Senate Broadsheets (`SenateBroadsheetController`, `ResultReportingService`, `senate-broadsheet.blade.php`, and `AcademicProgressionService`) with the official Waziri Umaru Federal Polytechnic / Federal University Birnin Kebbi (FUBK) Senate Grade Report layout and regulations.
+* **Scope:**
+  - **Standing Calculation on Unreleased Broadsheets:** Support passing computed provisional CGPA to `AcademicProgressionService::determineAcademicStanding(User $user, ?float $calculatedCgpa = null)` so provisional staff broadsheets without persisted `ResultGpaRecord` rows evaluate standing dynamically instead of defaulting to `PROMOTED`.
+  - **FUBK Affiliation Regulations:**
+    - `CGPA 4.50 – 5.00`: Good Standing / First Class Honours
+    - `CGPA 3.50 – 4.49`: Good Standing / Second Class Upper Division (2:1)
+    - `CGPA 2.50 – 3.49`: Good Standing / Second Class Lower Division (2:2)
+    - `CGPA 1.00 – 2.49`: Good Standing / Third Class Honours
+    - `CGPA 0.75 – 0.99`: `STATUS: ON PROBATION`, listing uncleared courses under `REPEAT: [courses]`.
+    - `CGPA 0.50 – 0.74`: `STATUS: WITHDRAWN FROM PROGRAM` (W/P), listing uncleared courses under `REPEAT: [courses]`.
+    - `CGPA 0.00 – 0.49`: `STATUS: WITHDRAWN FROM THE UNIVERSITY` (W/U), listing uncleared courses under `REPEAT: [courses]`.
+    - `Two consecutive academic sessions on probation`: `STATUS: WITHDRAWN FROM PROGRAM` (W/P), regardless of current CGPA, provided the two-session rule is actually satisfied.
+    - `CGPA ≥ 1.00`: `PASS` when all courses cleared; `REPEAT: [courses]` when deficiencies exist (no `STATUS:` line).
+  - **Senate Broadsheet Summary Footer:**
+    - Correctly tally `PASS`, `PROBATION`, `WITHDRAWN` (combining W/U and W/P), `SPECIAL CASES` (0 examination units / unexamined / DE), and `OTHERS` (students with CGPA ≥ 1.00 having repeat courses).
+* **Tasks:**
+  - [x] Extend `AcademicProgressionService::determineAcademicStanding()` to accept `?float $calculatedCgpa = null`, check consecutive probation sessions (threshold = 2 sessions), and return `STANDING_WITHDRAWN_UNIVERSITY` and `STANDING_WITHDRAWN_PROGRAM` constants.
+  - [x] Update `AcademicProgressionService::getNextEligibleLevel()` to retain current level on withdrawal standings.
+  - [x] In `ResultReportingService::getDepartmentalBroadsheet()`, pass computed CGPA to standing determination and assign FUBK-compliant `$statusText` and `$remark`.
+  - [x] In `ResultReportingService::getSenateSummaryStats()`, correctly categorize withdrawn, probation, special cases, and repeat students.
+  - [x] Update `resources/views/reports/senate-broadsheet.blade.php` to display `REPEAT:` courses and `STATUS:` lines matching official FUBK Print SR4 specifications.
+* **Verification:** Unit and feature test suites covering progression, withdrawal, and broadsheet rendering.
+
 ---
 
 ## How to Manage Cache and Migrations on Production

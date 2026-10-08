@@ -649,8 +649,38 @@ GPA / CGPA Calculated (GradeCalculationService → result_gpa_records)
         ↓
 Carry-Over Courses Processed (CarryOverRegistrationService → carry_over_courses)
         ↓
-[Future: Transcript Generation]
+Academic Standing & Progression Evaluated (AcademicProgressionService)
+        ↓
+Senate Broadsheet & Transcripts (ResultReportingService / TranscriptService)
 ```
+
+---
+
+## Undergraduate Grading, Academic Standing & Withdrawal Regulations (FUBK Affiliation Standard)
+
+The university operates under the following mandatory academic standing and degree classification rules:
+
+### 1. Degree Classification & Good Standing
+* **CGPA 4.50 – 5.00** → Good Academic Standing / First Class Honours
+* **CGPA 3.50 – 4.49** → Good Academic Standing / Second Class Upper Division (2:1)
+* **CGPA 2.50 – 3.49** → Good Academic Standing / Second Class Lower Division (2:2)
+* **CGPA 1.00 – 2.49** → Good Academic Standing / Third Class Honours
+
+### 2. Academic Deficiency & Withdrawal Thresholds
+* **CGPA 0.75 – 0.99** → **PROBATION** (`STATUS: ON PROBATION`)
+* **CGPA 0.50 – 0.74** → **W/P — WITHDRAWAL FROM PROGRAMME** (`STATUS: WITHDRAWN FROM PROGRAM`)
+* **CGPA 0.00 – 0.49** → **W/U — WITHDRAWAL FROM UNIVERSITY** (`STATUS: WITHDRAWN FROM THE UNIVERSITY`)
+
+### 3. Consecutive Probation Rule
+* **Two (2) consecutive academic sessions on probation → W/P (WITHDRAWAL FROM PROGRAMME)**, regardless of the current CGPA, provided the two-session rule is actually satisfied.
+
+### 4. Broadsheet Remarks & Status Display Rules (Print SR4)
+* **Clean Pass (CGPA ≥ 1.00, no failed courses):** `PASS` (no `STATUS:` line)
+* **Deficiency (CGPA ≥ 1.00 with failed courses):** `REPEAT: [failed courses]` (no `STATUS:` line)
+* **On Probation (0.75 ≤ CGPA < 1.00):** `REPEAT: [failed courses]` (if any) + `STATUS: ON PROBATION`
+* **Withdrawn from Programme (0.50 ≤ CGPA < 0.74 OR 2 consecutive probation sessions):** `REPEAT: [failed courses]` (if any) + `STATUS: WITHDRAWN FROM PROGRAM`
+* **Withdrawn from University (CGPA < 0.50):** `REPEAT: [failed courses]` (if any) + `STATUS: WITHDRAWN FROM THE UNIVERSITY`
+* **Official Administrative Withdrawal:** `REPEAT: [failed courses]` (if any) + `STATUS: [Official Label]` + Session + Effective Date + Senate Ref
 
 ---
 
