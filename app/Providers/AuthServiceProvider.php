@@ -43,6 +43,7 @@ class AuthServiceProvider extends ServiceProvider
             'student-status.recommend' => 'recommend',
             'student-status.submit-for-senate' => 'submitForSenate',
             'student-status.decide-senate' => 'decideSenate',
+            'student-status.record-senate-approved-withdrawal' => 'recordSenateApprovedWithdrawal',
             'student-status.process-voluntary' => 'processVoluntary',
             'student-status.process-medical' => 'processMedical',
             'student-status.process-disciplinary' => 'processDisciplinary',

@@ -100,11 +100,11 @@ class StudentStatusService
             throw new \InvalidArgumentException('Withdrawal recommendations are only applicable to undergraduate students.');
         }
 
-        $bypass = $bypassSenate ?? (bool) config('academic_withdrawal.bypass_senate', false);
-
-        if (!$bypass || $processedBy !== null || auth()->check()) {
-            $processedBy = $this->authorizeStatusAction('recommend', $processedBy, $user);
+        if ($bypassSenate === true) {
+            throw new \InvalidArgumentException('Senate approval cannot be bypassed. Record the actual Senate reference and decision date through the Senate workflow.');
         }
+
+        $processedBy = $this->authorizeStatusAction('recommend', $processedBy, $user);
 
         // Validate academic session format
         if (!$this->isValidAcademicSession($academicSession)) {
@@ -123,8 +123,6 @@ class StudentStatusService
             ? $effectiveDate
             : ($effectiveDate ? Carbon::parse($effectiveDate) : now());
 
-        $bypass = $bypassSenate ?? (bool) config('academic_withdrawal.bypass_senate', false);
-
         return DB::transaction(function () use (
             $user,
             $reasonCode,
@@ -135,9 +133,7 @@ class StudentStatusService
             $processedBy,
             $progressionInfo,
             $effDate,
-            $reinstatementEligible,
-            $bypass,
-            $senateReference
+            $reinstatementEligible
         ) {
             // Determine appropriate status based on reason code (two-tier withdrawal & consecutive probation)
             $status = match ($reasonCode) {
@@ -146,18 +142,9 @@ class StudentStatusService
                 default => StudentStatus::ACADEMIC_WITHDRAWAL,
             };
 
-            $decision = $bypass ? self::WORKFLOW_SENATE_APPROVED : self::WORKFLOW_RECOMMENDED;
-            $senateRef = $bypass ? ($senateReference ?? ('SEN-AUTO-' . str_replace('/', '-', $academicSession))) : null;
-            $decisionDate = $bypass ? $effDate->toDateString() : null;
-
-            if ($bypass) {
-                $this->closePreviousActiveStatus(
-                    $user->id,
-                    $effDate,
-                    $processedBy ?? $user,
-                    'ACTIVE_STATUS_CLOSED_FOR_ACADEMIC_WITHDRAWAL'
-                );
-            }
+            $decision = self::WORKFLOW_RECOMMENDED;
+            $senateRef = null;
+            $decisionDate = null;
 
             // Create the status record
             $record = StudentStatusRecord::create([
@@ -180,8 +167,7 @@ class StudentStatusService
 
             // Update academic progression record to flag withdrawal
             $this->updateProgressionRecordWithRecommendation($user, $academicSession, $semester, $progressionInfo);
-            $action = $bypass ? 'WITHDRAWAL_APPLIED' : 'WITHDRAWAL_RECOMMENDED';
-            $this->writeStatusAudit($user, $record, $action, $processedBy ?? $user, [
+            $this->writeStatusAudit($user, $record, 'WITHDRAWAL_RECOMMENDED', $processedBy, [
                 'new_status' => $record->status,
                 'new_decision' => $record->senate_decision,
                 'reason' => $record->reason,
@@ -189,7 +175,7 @@ class StudentStatusService
                 'reinstatement_eligible' => $record->reinstatement_eligible,
             ]);
 
-            Log::info($bypass ? 'Academic withdrawal automatically applied' : 'Withdrawal recommendation created', [
+            Log::info('Withdrawal recommendation created', [
                 'user_id' => $user->id,
                 'matric_no' => $user->academicDetail?->matric_no,
                 'reason_code' => $reasonCode,
@@ -203,7 +189,63 @@ class StudentStatusService
     }
 
     /**
-     * Directly apply an academic withdrawal, bypassing the manual Senate queue.
+     * Record an academic withdrawal after Senate has already approved it.
+     *
+     * This admin shortcut performs recommendation, Senate submission, and approval
+     * as one transaction while preserving each workflow audit event. A real Senate
+     * reference and decision date are required; this does not bypass Senate.
+     */
+    public function recordSenateApprovedAcademicWithdrawal(
+        User $user,
+        string $reasonCode,
+        string $reason,
+        string $academicSession,
+        string $senateReference,
+        \DateTimeInterface|string $senateDecisionDate,
+        ?int $semester = null,
+        ?string $notes = null,
+        ?User $processedBy = null,
+        \DateTimeInterface|string|null $effectiveDate = null,
+        bool $reinstatementEligible = true
+    ): StudentStatusRecord {
+        $actor = $this->authorizeStatusAction('recommend', $processedBy, $user);
+        $this->authorizeStatusAction('submit-for-senate', $actor, $user);
+        $this->authorizeStatusAction('decide-senate', $actor, $user);
+
+        return DB::transaction(function () use (
+            $user, $reasonCode, $reason, $academicSession, $senateReference,
+            $senateDecisionDate, $semester, $notes, $actor, $effectiveDate,
+            $reinstatementEligible
+        ) {
+            $recommendation = $this->createWithdrawalRecommendation(
+                user: $user,
+                reasonCode: $reasonCode,
+                reason: $reason,
+                academicSession: $academicSession,
+                semester: $semester,
+                notes: $notes,
+                processedBy: $actor,
+                effectiveDate: $effectiveDate,
+                reinstatementEligible: $reinstatementEligible,
+                bypassSenate: false,
+            );
+
+            $pendingDecision = $this->submitForSenate($recommendation, $actor);
+
+            return $this->approveWithdrawal(
+                recommendation: $pendingDecision,
+                senateReference: $senateReference,
+                senateDecisionDate: $senateDecisionDate,
+                senateDecisionDetails: $notes,
+                approvedBy: $actor,
+                effectiveDate: $effectiveDate,
+            );
+        });
+    }
+
+    /**
+     * @deprecated Senate bypass is prohibited. Use recordSenateApprovedAcademicWithdrawal() with
+     * a verified Senate reference and decision date.
      */
     public function applyAcademicWithdrawal(
         User $user,

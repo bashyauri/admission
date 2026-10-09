@@ -199,6 +199,12 @@ Responsible for institutional student status such as:
 
 Academic standing and institutional status are separate concepts.
 
+**Withdrawal governance:** `AcademicProgressionService` may calculate academic standing and record withdrawal eligibility/recommendations after released results are processed. It must not create or approve an institutional withdrawal status. An eligibility result, low CGPA, probation history, or a `WITHDRAWN_PROGRAM` progression value is not a Senate decision. Only the authorized Senate workflow in `StudentStatusService` may change official institutional status. Keep pending recommendations out of student-facing official status labels until Senate decides.
+
+**Result-release failures:** Exam Officer release changes result statuses and then performs GPA, carry-over, and progression work. If any later step throws, earlier writes may already have committed. Before retrying, inspect result statuses, GPA records, carry-over rows, progression recommendations, and release audit rows for the affected course/session/semester. Result release should be made transactional/idempotent before assuming a failed request rolled back.
+
+**Lazy-loading safety:** Services must explicitly eager-load or `loadMissing()` relations they access when passed Eloquent models. Do not rely on lazy loading; production may disable it. Add regression coverage with lazy loading disabled for affected paths.
+
 ---
 
 ### `ResultReportingService`

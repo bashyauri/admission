@@ -480,6 +480,9 @@
                                 @endif
 
                                 @if(!empty($student['status_is_withdrawn']))
+                                    @if(!empty($student['remark']) && $student['remark'] !== ($student['status_display'] ?? $student['status_text']))
+                                        <div class="status-val">{{ $student['remark'] }}</div>
+                                    @endif
                                     <div class="remark-title" style="color: #b91c1c; font-weight: 800; margin-top: 4px;">{{ $student['status_display'] ?? $student['status_text'] }}</div>
                                     <div class="status-val">Session: {{ $student['status_session'] ?? '—' }} · Effective: {{ $student['status_effective_date'] ?? '—' }}</div>
                                     @if(!empty($student['status_senate_reference']))

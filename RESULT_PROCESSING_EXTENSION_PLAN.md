@@ -1606,15 +1606,20 @@ Route::get('senate-grade-report', \App\Http\Livewire\ExamOfficer\SenateGradeRepo
 
 ---
 
-### Remark / Status Rules
+### Remark / Status Rules (FUBK Affiliation Senate Standard)
 
-| Condition | Remark |
-|---|---|
-| No failed courses, CGPA ≥ 1.00 | `PASS` |
-| Failed courses present | `REPEAT: [failed course codes]` |
-| CGPA between 1.00–1.49 (2nd consecutive) | `STATUS: ON PROBATION` |
-| CGPA < 1.00 or 3rd consecutive probation | `STATUS: WITHDRAWN FROM PROGRAMME` |
-| Withdrawn twice | `STATUS: WITHDRAWN FROM THE UNIVERSITY` |
+| Condition | Remark & Status Line | Classification / Standing |
+|---|---|---|
+| CGPA 4.50 – 5.00 (No failed courses) | `PASS` (no STATUS line) | Good Standing / First Class Honours |
+| CGPA 3.50 – 4.49 (No failed courses) | `PASS` (no STATUS line) | Good Standing / Second Class Upper Division (2:1) |
+| CGPA 2.50 – 3.49 (No failed courses) | `PASS` (no STATUS line) | Good Standing / Second Class Lower Division (2:2) |
+| CGPA 1.00 – 2.49 (No failed courses) | `PASS` (no STATUS line) | Good Standing / Third Class Honours |
+| CGPA ≥ 1.00 (Failed courses present) | `REPEAT: [failed course codes]` (no STATUS line) | Good Standing / Deficiency |
+| CGPA 0.75 – 0.99 | `REPEAT: [failed course codes]` (if any) + `STATUS: ON PROBATION` | PROBATION |
+| CGPA 0.50 – 0.74 | `REPEAT: [failed course codes]` (if any) + `STATUS: WITHDRAWN FROM PROGRAM` | W/P — WITHDRAWAL FROM PROGRAMME |
+| CGPA 0.00 – 0.49 | `REPEAT: [failed course codes]` (if any) + `STATUS: WITHDRAWN FROM THE UNIVERSITY` | W/U — WITHDRAWAL FROM UNIVERSITY |
+| Two consecutive sessions on probation | `REPEAT: [failed course codes]` (if any) + `STATUS: WITHDRAWN FROM PROGRAM` | W/P (Two consecutive academic sessions on probation) |
+| Official Administrative Withdrawal | `REPEAT: [failed course codes]` (if any) + `STATUS: [Official Label]` + Session + Effective Date + Senate Ref | Official Senate Status |
 
 ---
 

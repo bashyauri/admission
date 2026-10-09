@@ -10,6 +10,9 @@ use App\Models\Department;
 use App\Models\RegisteredCourse;
 use App\Models\StudentStatusRecord;
 use App\Models\User;
+use App\Models\AcademicDetail;
+use App\Models\AcademicProgressionRecord;
+use App\Models\ResultGpaRecord;
 use App\Services\AcademicProgressionService;
 use App\Services\AcademicSessionService;
 use App\Services\StudentStatusService;
@@ -58,7 +61,7 @@ class StudentStatusManagement extends Component
         Gate::authorize('student-status.view-any');
         $this->academicSession = app(AcademicSessionService::class)->getAcademicSession(Auth::user());
         $this->effectiveDate = now()->toDateString();
-        $this->senateDecisionDate = now()->toDateString();
+        $this->senateDecisionDate = '';
     }
 
     public function updatedStudentSearch(): void
@@ -71,6 +74,8 @@ class StudentStatusManagement extends Component
         $student = $this->visibleStudentsQuery()->findOrFail($studentId);
         Gate::authorize('student-status.view', $student);
         $this->selectedStudentId = (string) $student->id;
+        $this->senateReference = '';
+        $this->senateDecisionDate = '';
         $this->withdrawalType = Gate::allows('student-status.recommend', $student)
             ? 'academic'
             : (Gate::allows('student-status.process-voluntary', $student) ? 'voluntary' : 'medical');
@@ -83,7 +88,7 @@ class StudentStatusManagement extends Component
 
     public function createStatusRecord(): void
     {
-        $this->validate([
+        $rules = [
             'selectedStudentId' => ['required', 'exists:users,id'],
             'withdrawalType' => ['required', 'in:academic,voluntary,medical'],
             'reasonCode' => ['required_if:withdrawalType,academic', 'nullable', 'string', 'max:80'],
@@ -93,10 +98,23 @@ class StudentStatusManagement extends Component
             'effectiveDate' => ['required', 'date'],
             'reinstatementEligible' => ['boolean'],
             'notes' => ['nullable', 'string', 'max:4000'],
-        ]);
+        ];
+        $this->validate($rules);
 
         $student = $this->visibleStudentsQuery()->findOrFail($this->selectedStudentId);
         Gate::authorize('student-status.view', $student);
+        $recordSenateDecision = $this->withdrawalType === 'academic'
+            && Gate::allows('student-status.record-senate-approved-withdrawal', $student);
+        if ($recordSenateDecision) {
+            $this->validate([
+                'senateReference' => ['required', 'string', 'max:100', function ($attribute, $value, $fail) {
+                    if (!app(StudentStatusService::class)->isValidSenateReference((string) $value)) {
+                        $fail('Enter a valid Senate reference.');
+                    }
+                }],
+                'senateDecisionDate' => ['required', 'date'],
+            ]);
+        }
 
         if (!app(StudentStatusService::class)->isAcademicallyActive($student)) {
             $this->addError('selectedStudentId', 'This student already has a current inactive status. Review the status history before taking another action.');
@@ -108,8 +126,24 @@ class StudentStatusManagement extends Component
             $service = app(StudentStatusService::class);
 
             $record = match ($this->withdrawalType) {
-                'academic' => (function () use ($service, $student, $semester) {
+                'academic' => (function () use ($service, $student, $semester, $recordSenateDecision) {
                     Gate::authorize('student-status.recommend', $student);
+                    if ($recordSenateDecision) {
+                        Gate::authorize('student-status.record-senate-approved-withdrawal', $student);
+                        return $service->recordSenateApprovedAcademicWithdrawal(
+                            user: $student,
+                            reasonCode: $this->reasonCode,
+                            reason: $this->reason,
+                            academicSession: $this->academicSession,
+                            senateReference: $this->senateReference,
+                            senateDecisionDate: $this->senateDecisionDate,
+                            semester: $semester,
+                            notes: $this->notes ?: null,
+                            processedBy: Auth::user(),
+                            effectiveDate: $this->effectiveDate,
+                            reinstatementEligible: $this->reinstatementEligible,
+                        );
+                    }
                     return $service->createWithdrawalRecommendation(
                         user: $student,
                         reasonCode: $this->reasonCode,
@@ -147,7 +181,7 @@ class StudentStatusManagement extends Component
                 })(),
             };
 
-            $this->reset(['reason', 'notes']);
+            $this->reset(['reason', 'notes', 'senateReference', 'senateDecisionDate']);
             $this->effectiveDate = now()->toDateString();
             $message = $record->senate_decision === StudentStatusService::WORKFLOW_SENATE_APPROVED
                 ? 'Academic withdrawal applied successfully.'
@@ -322,7 +356,7 @@ class StudentStatusManagement extends Component
 
         if (!$actor->isAdmin()) {
             $scopes = $actor->capabilities()
-                ->where('capability', 'student_status.view')
+                ->whereIn('capability', ['student_status.view', 'student_status.record_senate_approved_withdrawal'])
                 ->pluck('department_id');
 
             if (!$scopes->contains(null)) {
@@ -369,7 +403,7 @@ class StudentStatusManagement extends Component
         $query = User::query()
             ->where('role', 'student')
             ->where('programme_id', ProgrammesEnum::Undergraduate->value)
-            ->with(['academicDetail.department', 'academicDetail.course', 'academicDetail.studentLevel'])
+            ->with(['academicDetail.department', 'academicDetail.course', 'academicDetail.studentLevel', 'academicProgressionRecords', 'studentStatusRecords', 'gpaRecords'])
             ->select(['id', 'firstname', 'surname', 'm_name', 'role', 'programme_id']);
 
         if ($this->dueReviewSession !== '') {
@@ -380,9 +414,24 @@ class StudentStatusManagement extends Component
             $query->whereHas('academicDetail', fn (Builder $academic) => $academic->where('department_id', $this->dueReviewDepartment));
         }
 
-        $students = $query->get();
+        $query->where(function (Builder $sub) {
+            $sub->whereHas('academicProgressionRecords', function (Builder $p) {
+                $p->whereIn('standing', [
+                    AcademicProgressionService::STANDING_PROBATION,
+                    AcademicProgressionService::STANDING_REPEAT,
+                    AcademicProgressionService::STANDING_WITHDRAWN_PROGRAM,
+                    AcademicProgressionService::STANDING_WITHDRAWN_UNIVERSITY,
+                ])->orWhere('withdrawal_recommended', true)
+                  ->orWhere('cgpa', '<', 1.50);
+            })->orWhereHas('gpaRecords', function (Builder $g) {
+                $g->where('cumulative_gpa', '<', 1.50);
+            });
+        });
 
-        return $students->filter(function (User $student) use ($actor) {
+        $students = $query->limit(50)->get();
+        $targetDate = now()->toDateString();
+
+        return $students->filter(function (User $student) use ($actor, $targetDate) {
             if (!$actor->isAdmin() && !Gate::allows('student-status.view', $student)) {
                 return false;
             }
@@ -391,19 +440,28 @@ class StudentStatusManagement extends Component
                 return false;
             }
 
-            $statusService = app(StudentStatusService::class);
-            $currentStatus = $statusService->getCurrentStatus($student);
-            if ($currentStatus && !$currentStatus->status->isActive()) {
+            $currentStatusRecord = $student->studentStatusRecords
+                ->filter(function ($record) use ($targetDate) {
+                    $eff = $record->effective_date?->toDateString();
+                    $end = $record->end_date?->toDateString();
+                    $approved = in_array($record->senate_decision, [StudentStatusService::WORKFLOW_SENATE_APPROVED, 'APPROVED'], true);
+                    return $approved
+                        && ($eff === null || $eff <= $targetDate)
+                        && ($end === null || $end >= $targetDate);
+                })
+                ->sortByDesc('effective_date')
+                ->first();
+
+            if ($currentStatusRecord && !$currentStatusRecord->status->isActive()) {
                 return false;
             }
 
-            $existingRecommendation = StudentStatusRecord::query()
-                ->where('user_id', $student->id)
+            $existingRecommendation = $student->studentStatusRecords
                 ->whereIn('senate_decision', [
                     StudentStatusService::WORKFLOW_RECOMMENDED,
                     StudentStatusService::WORKFLOW_PENDING_SENATE,
                 ])
-                ->exists();
+                ->isNotEmpty();
 
             if ($existingRecommendation) {
                 return false;
@@ -436,7 +494,9 @@ class StudentStatusManagement extends Component
 
         $actor = Auth::user();
         if (!$actor->isAdmin()) {
-            $scopes = $actor->capabilities()->where('capability', 'student_status.view')->pluck('department_id');
+            $scopes = $actor->capabilities()
+                ->whereIn('capability', ['student_status.view', 'student_status.record_senate_approved_withdrawal'])
+                ->pluck('department_id');
             if (!$scopes->contains(null)) {
                 $departmentIds = $scopes->filter()->values();
                 $query->whereHas('user.academicDetail', fn (Builder $academic) => $academic->whereIn('department_id', $departmentIds));
@@ -451,6 +511,8 @@ class StudentStatusManagement extends Component
         }
         $withdrawalStatuses = [
             StudentStatus::ACADEMIC_WITHDRAWAL->value,
+            StudentStatus::ACADEMIC_WITHDRAWAL_PROGRAM->value,
+            StudentStatus::ACADEMIC_WITHDRAWAL_UNIVERSITY->value,
             StudentStatus::VOLUNTARY_WITHDRAWAL->value,
             StudentStatus::MEDICAL_WITHDRAWAL->value,
         ];
@@ -502,9 +564,22 @@ class StudentStatusManagement extends Component
 
         $dueForWithdrawalReview = $this->dueForWithdrawalReviewList();
 
+        $allWithdrawalStatuses = [
+            StudentStatus::ACADEMIC_WITHDRAWAL->value,
+            StudentStatus::ACADEMIC_WITHDRAWAL_PROGRAM->value,
+            StudentStatus::ACADEMIC_WITHDRAWAL_UNIVERSITY->value,
+            StudentStatus::VOLUNTARY_WITHDRAWAL->value,
+            StudentStatus::MEDICAL_WITHDRAWAL->value,
+        ];
+
+        $pendingSubmissions = $this->scopedWorkflowRecords(
+            [StudentStatusService::WORKFLOW_RECOMMENDED],
+            $allWithdrawalStatuses,
+        )->limit(25)->get();
+
         $pendingDecisions = $this->scopedWorkflowRecords(
             [StudentStatusService::WORKFLOW_PENDING_SENATE],
-            [StudentStatus::ACADEMIC_WITHDRAWAL->value, StudentStatus::VOLUNTARY_WITHDRAWAL->value, StudentStatus::MEDICAL_WITHDRAWAL->value],
+            $allWithdrawalStatuses,
         )->limit(25)->get();
 
         $reinstatementRequests = $this->scopedWorkflowRecords(
@@ -520,12 +595,36 @@ class StudentStatusManagement extends Component
             $request->setRelation('originalWithdrawal', $originalWithdrawals->get($request->user_id));
         });
 
-        $sessions = RegisteredCourse::query()->whereNotNull('academic_session')->distinct()->orderByDesc('academic_session')->pluck('academic_session');
-        $departments = Department::query()->orderBy('name')->get(['id', 'name']);
+        $canRecordSenateApprovedWithdrawal = $selectedStudent
+            ? Gate::allows('student-status.record-senate-approved-withdrawal', $selectedStudent)
+            : false;
+
+        $sessions = \Illuminate\Support\Facades\Cache::remember('student_status_sessions_list', 120, function () {
+            $statusSessions = StudentStatusRecord::query()->whereNotNull('academic_session')->pluck('academic_session');
+            $detailSessions = AcademicDetail::query()->whereNotNull('acad_session')->pluck('acad_session');
+            $regSessions = RegisteredCourse::query()->whereNotNull('academic_session')->pluck('academic_session');
+            $gpaSessions = ResultGpaRecord::query()->whereNotNull('academic_session')->pluck('academic_session');
+            $progSessions = AcademicProgressionRecord::query()->whereNotNull('academic_session')->pluck('academic_session');
+
+            return $statusSessions
+                ->concat($detailSessions)
+                ->concat($regSessions)
+                ->concat($gpaSessions)
+                ->concat($progSessions)
+                ->filter()
+                ->unique()
+                ->sortDesc()
+                ->values();
+        });
+
+        $departments = \Illuminate\Support\Facades\Cache::remember('student_status_departments_list', 300, function () {
+            return Department::query()->orderBy('name')->get(['id', 'name']);
+        });
 
         return view('livewire.student.student-status-management', compact(
             'students', 'selectedStudent', 'currentStatus', 'history', 'auditEntries', 'registrationHistory',
-            'progression', 'dueForWithdrawalReview', 'pendingDecisions', 'reinstatementRequests', 'sessions', 'departments',
+            'progression', 'dueForWithdrawalReview', 'pendingSubmissions', 'pendingDecisions', 'reinstatementRequests', 'sessions', 'departments',
+            'canRecordSenateApprovedWithdrawal',
         ))->layout('layouts.app');
     }
 }

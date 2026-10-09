@@ -114,6 +114,8 @@ graph TD
 - [x] Added Course Allocation links in `admin-sidebar.blade.php` and `cit-sidebar.blade.php`.
 - [x] Implemented Coordinator Result Review component (`CoordinatorResultReview.php` & `coordinator-result-review.blade.php`) with multi-level course inspection, SQL summaries, paginated review, batch approval (`status = 'exam_officer_approved'`), and return/rejection audit actions.
 - [x] Implemented Exam Officer Result Review component (`ExamOfficerResultReview.php` & `exam-officer-result-review.blade.php`) with institutional grade auditing, batch result release (`status = 'released'`), GPA calculation triggering (`ResultGpaRecord`), and carry-over processing.
+- [x] Kept academic progression separate from institutional status: release-time progression records standing and withdrawal recommendations only; only Senate approval through `StudentStatusService` changes official withdrawal status.
+- [x] Documented the current partial-failure risk: result status updates precede downstream GPA/carry-over/progression/audit writes. Inspect all affected records before retrying a failed release; make the operation transactional and idempotent as a follow-up.
 - [x] Registered routes in `routes/coordinator.php` (`coordinator.result-review`) and `routes/exam_officer.php` (`exam-officer.results-review`).
 - [x] Added navigation menu links in `coordinator-sidebar.blade.php` and `exam-officer-sidebar.blade.php`.
 - [x] Created and passed `tests/Feature/ResultApprovalWorkflowTest.php` (4 tests) for coordinator approval, return, Exam Officer release, and Exam Officer return.
@@ -740,17 +742,25 @@ Phase 7 is a separate disciplinary case and sanction workflow. It must reuse Pha
   - [x] Run `tests/Feature/ResultApprovalWorkflowTest.php` to confirm no regression
 * **Verification:** `php artisan test --filter=ResultApprovalWorkflowTest --compact` (passed with all workflow scenarios green)
 
-#### Additional Governance Queue Task: Due-for-Withdrawal Review Filter (✅ COMPLETED)
-* **File:** `app/Http/Livewire/Student/StudentStatusManagement.php`
-* **Problem:** The student-status dashboard had no way to surface students who match the configured withdrawal-eligibility rules before a formal Senate recommendation is approved.
-* **Fix:** Added a `Due for withdrawal review` queue that evaluates only undergraduate students, filters by department/session, excludes students already pending or inactive, and shows the configured rule code and reason for review.
+#### Additional Governance Queue Task & UX Restructuring: `StudentStatusManagement` Performance & Workflow Tabs (✅ COMPLETED)
+* **File:** `app/Http/Livewire/Student/StudentStatusManagement.php` & `resources/views/livewire/student/student-status-management.blade.php`
+* **Problem:** 
+  1. The student-status dashboard had no surface view for recommended status records awaiting Senate submission, and candidate evaluation for withdrawal reviews fetched all users in memory, causing ~4s request latency per Livewire update.
+  2. `student-status.record-senate-approved-withdrawal` gate was missing from `AuthServiceProvider.php` gate mappings, causing 403 authorization errors when attempting to record Senate-approved withdrawals.
+  3. `scopedWorkflowRecords` and `render()` queried only `ACADEMIC_WITHDRAWAL`, omitting specific enum values (`ACADEMIC_WITHDRAWAL_PROGRAM`, `ACADEMIC_WITHDRAWAL_UNIVERSITY`, `VOLUNTARY_WITHDRAWAL`, `MEDICAL_WITHDRAWAL`).
+* **Fix:**
+  - Added 4 top-level metric summary cards (Due for Review, Recommendations, Pending Senate, Reinstatements) and a 5-tab pill navigation bar (`overview`, `review`, `recommendations`, `senate`, `reinstatement`).
+  - Added dedicated **"Recommendations Pending Senate Submission"** tab with direct inline "Submit to Senate" actions for records in `WORKFLOW_RECOMMENDED` state.
+  - Scoped `dueForWithdrawalReviewList()` candidates at SQL level (`whereHas('academicProgressionRecords', ...)`), capped evaluation at 50 candidates, and eager-loaded `studentStatusRecords`.
+  - Cached `$sessions` and `$departments` dropdown lists using `Cache::remember`.
+  - Registered missing gate mapping in `AuthServiceProvider.php`: `'student-status.record-senate-approved-withdrawal' => 'recordSenateApprovedWithdrawal'`.
 * **Tasks:**
-  - [x] Add a `dueForWithdrawalReviewList()` method to calculate only eligible UG students using the existing withdrawal eligibility engine
-  - [x] Exclude students with active formal withdrawal/inactive status and those already awaiting Senate review
-  - [x] Render a queue in the management view with session and department filters and a direct student-open action
-  - [x] Keep the recommendation-to-Senate approval workflow intact so official withdrawal only occurs after Senate approval
-  - [x] Add feature coverage for the queue in `tests/Feature/StudentStatusManagementUiTest.php`
-* **Verification:** `php artisan test tests/Feature/StudentStatusManagementUiTest.php --compact` (8 tests passed, 30 assertions).
+  - [x] Add a `dueForWithdrawalReviewList()` method with DB-level candidate scoping and batch limits for high-performance evaluation
+  - [x] Add `$pendingSubmissions` query and tab for `WORKFLOW_RECOMMENDED` state records
+  - [x] Implement 5 top-level visual workflow tabs and metric summary bar in Blade layout
+  - [x] Register missing gate mapping in `AuthServiceProvider.php`
+  - [x] Add feature coverage for the queue and tabs in `tests/Feature/StudentStatusManagementUiTest.php` and policy tests
+* **Verification:** `php artisan test --filter=StudentStatus` (55 tests passed, 155 assertions).
 
 #### Task 8.4: Fix `ResultEntry::loadStudentsAndResults()` — PHP-side Sort (✅ COMPLETED)
 * **File:** `app/Http/Livewire/Lecturer/ResultEntry.php`
@@ -787,6 +797,30 @@ Phase 7 is a separate disciplinary case and sanction workflow. It must reuse Pha
   - [x] Pass `$students` from `render()` into the view
   - [x] Update `downloadTemplate()` to call `fetchStudents()` instead of `$this->students`
 * **Verification:** `php artisan test tests/Feature/LecturerDashboardAllocationSessionTest.php --compact` (4 tests passed, 27 assertions — including the `preventLazyLoading(true)` scenario).
+
+#### Task 8.7: Broadsheet Academic Standing, Probation, and Two-Tier Withdrawal (W/U & W/P) Engine (✅ COMPLETED)
+* **Goal:** Align Departmental and Senate Broadsheets (`SenateBroadsheetController`, `ResultReportingService`, `senate-broadsheet.blade.php`, and `AcademicProgressionService`) with the official Waziri Umaru Federal Polytechnic / Federal University Birnin Kebbi (FUBK) Senate Grade Report layout and regulations.
+* **Scope:**
+  - **Standing Calculation on Unreleased Broadsheets:** Support passing computed provisional CGPA to `AcademicProgressionService::determineAcademicStanding(User $user, ?float $calculatedCgpa = null)` so provisional staff broadsheets without persisted `ResultGpaRecord` rows evaluate standing dynamically instead of defaulting to `PROMOTED`.
+  - **FUBK Affiliation Regulations:**
+    - `CGPA 4.50 – 5.00`: Good Standing / First Class Honours
+    - `CGPA 3.50 – 4.49`: Good Standing / Second Class Upper Division (2:1)
+    - `CGPA 2.50 – 3.49`: Good Standing / Second Class Lower Division (2:2)
+    - `CGPA 1.00 – 2.49`: Good Standing / Third Class Honours
+    - `CGPA 0.75 – 0.99`: `STATUS: ON PROBATION`, listing uncleared courses under `REPEAT: [courses]`.
+    - `CGPA 0.50 – 0.74`: `STATUS: WITHDRAWN FROM PROGRAM` (W/P), listing uncleared courses under `REPEAT: [courses]`.
+    - `CGPA 0.00 – 0.49`: `STATUS: WITHDRAWN FROM THE UNIVERSITY` (W/U), listing uncleared courses under `REPEAT: [courses]`.
+    - `Two consecutive academic sessions on probation`: `STATUS: WITHDRAWN FROM PROGRAM` (W/P), regardless of current CGPA, provided the two-session rule is actually satisfied.
+    - `CGPA ≥ 1.00`: `PASS` when all courses cleared; `REPEAT: [courses]` when deficiencies exist (no `STATUS:` line).
+  - **Senate Broadsheet Summary Footer:**
+    - Correctly tally `PASS`, `PROBATION`, `WITHDRAWN` (combining W/U and W/P), `SPECIAL CASES` (0 examination units / unexamined / DE), and `OTHERS` (students with CGPA ≥ 1.00 having repeat courses).
+* **Tasks:**
+  - [x] Extend `AcademicProgressionService::determineAcademicStanding()` to accept `?float $calculatedCgpa = null`, check consecutive probation sessions (threshold = 2 sessions), and return `STANDING_WITHDRAWN_UNIVERSITY` and `STANDING_WITHDRAWN_PROGRAM` constants.
+  - [x] Update `AcademicProgressionService::getNextEligibleLevel()` to retain current level on withdrawal standings.
+  - [x] In `ResultReportingService::getDepartmentalBroadsheet()`, pass computed CGPA to standing determination and assign FUBK-compliant `$statusText` and `$remark`.
+  - [x] In `ResultReportingService::getSenateSummaryStats()`, correctly categorize withdrawn, probation, special cases, and repeat students.
+  - [x] Update `resources/views/reports/senate-broadsheet.blade.php` to display `REPEAT:` courses and `STATUS:` lines matching official FUBK Print SR4 specifications.
+* **Verification:** Unit and feature test suites covering progression, withdrawal, and broadsheet rendering.
 
 ---
 

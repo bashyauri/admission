@@ -6,6 +6,7 @@ namespace Tests\Feature;
 
 use App\Enums\ProgrammesEnum;
 use App\Enums\Role;
+use App\Enums\StudentStatus;
 use App\Http\Livewire\Student\MyResults;
 use App\Models\AcademicDetail;
 use App\Models\Course;
@@ -17,6 +18,7 @@ use App\Models\Result;
 use App\Models\ResultGpaRecord;
 use App\Models\StudentCourse;
 use App\Models\StudentLevel;
+use App\Models\StudentStatusRecord;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
@@ -45,8 +47,13 @@ class StudentMyResultsTest extends TestCase
 
         $this->department = Department::first() ?? Department::create(['name' => 'Computer Science ' . rand(100, 999)]);
         
-        $this->programme = Programme::find(ProgrammesEnum::Undergraduate->value) 
-            ?? Programme::create(['id' => ProgrammesEnum::Undergraduate->value, 'name' => 'Undergraduate', 'abv' => 'UG']);
+        $programme = Programme::find(ProgrammesEnum::Undergraduate->value);
+        if (!$programme) {
+            $programme = new Programme(['name' => 'Undergraduate', 'abv' => 'UG']);
+            $programme->id = ProgrammesEnum::Undergraduate->value;
+            $programme->save();
+        }
+        $this->programme = $programme;
 
         $this->level = StudentLevel::first() ?? StudentLevel::create(['level' => '100']);
 
@@ -245,6 +252,113 @@ class StudentMyResultsTest extends TestCase
             ->assertSee('First Class Honours');
     }
 
+    public function test_semester_cgpa_uses_results_through_that_semester_instead_of_stale_saved_cgpa(): void
+    {
+        $this->actingAs($this->student);
+
+        Result::create([
+            'user_id' => $this->student->id,
+            'registered_course_id' => $this->regCourse1->id,
+            'department_course_id' => $this->deptCourse1->id,
+            'academic_detail_id' => $this->academicDetail->id,
+            'academic_session' => '2024/2025',
+            'semester' => 'first',
+            'course_code_snapshot' => 'CSC101',
+            'course_title_snapshot' => 'Introduction to Computer Science',
+            'credit_units_snapshot' => 3,
+            'grade' => 'A',
+            'grade_point' => 5,
+            'credit_units' => 3,
+            'status' => 'released',
+        ]);
+        Result::create([
+            'user_id' => $this->student->id,
+            'registered_course_id' => $this->regCourse2->id,
+            'department_course_id' => $this->deptCourse2->id,
+            'academic_detail_id' => $this->academicDetail->id,
+            'academic_session' => '2024/2025',
+            'semester' => 'second',
+            'course_code_snapshot' => 'CSC102',
+            'course_title_snapshot' => 'Introduction to Problem Solving',
+            'credit_units_snapshot' => 2,
+            'grade' => 'C',
+            'grade_point' => 3,
+            'credit_units' => 2,
+            'status' => 'released',
+        ]);
+
+        foreach ([['first', 5.0], ['second', 3.0]] as [$semester, $semesterGpa]) {
+            ResultGpaRecord::create([
+                'user_id' => $this->student->id,
+                'academic_detail_id' => $this->academicDetail->id,
+                'academic_session' => '2024/2025',
+                'semester' => $semester,
+                'semester_gpa' => $semesterGpa,
+                'total_credit_units' => $semester === 'first' ? 3 : 2,
+                'total_grade_points' => $semester === 'first' ? 15 : 6,
+                'cumulative_gpa' => 3.58,
+                'cumulative_credit_units' => 5,
+                'cumulative_grade_points' => 18,
+                'class_of_degree' => 'Second Class Upper Division',
+            ]);
+        }
+
+        Livewire::test(MyResults::class)
+            ->assertStatus(200)
+            ->assertSee('5.00')
+            ->assertSee('4.20')
+            ->assertDontSee('3.58');
+    }
+
+    public function test_provisional_withdrawal_and_degree_class_are_hidden_until_senate_approval(): void
+    {
+        $this->actingAs($this->student);
+        $this->createLowCgpaReleasedResults();
+
+        StudentStatusRecord::create([
+            'user_id' => $this->student->id,
+            'academic_detail_id' => $this->academicDetail->id,
+            'status' => StudentStatus::ACADEMIC_WITHDRAWAL_PROGRAM,
+            'status_type' => 'academic',
+            'reason_code' => 'CGPA_BELOW_PROGRAM_MINIMUM',
+            'reason' => 'Withdrawal recommendation awaiting Senate review.',
+            'academic_session' => '2025/2026',
+            'effective_date' => now()->toDateString(),
+            'senate_decision' => 'WITHDRAWAL_RECOMMENDED',
+        ]);
+
+        Livewire::test(MyResults::class)
+            ->assertStatus(200)
+            ->assertSee('ACADEMIC REVIEW')
+            ->assertDontSee('WITHDRAWN_PROGRAM')
+            ->assertDontSee('Below Degree Standard');
+    }
+
+    public function test_senate_confirmed_withdrawal_and_degree_class_are_visible(): void
+    {
+        $this->actingAs($this->student);
+        $this->createLowCgpaReleasedResults();
+
+        StudentStatusRecord::create([
+            'user_id' => $this->student->id,
+            'academic_detail_id' => $this->academicDetail->id,
+            'status' => StudentStatus::ACADEMIC_WITHDRAWAL_PROGRAM,
+            'status_type' => 'academic',
+            'reason_code' => 'CGPA_BELOW_PROGRAM_MINIMUM',
+            'reason' => 'Senate approved academic withdrawal.',
+            'academic_session' => '2025/2026',
+            'effective_date' => now()->subDay()->toDateString(),
+            'senate_decision' => 'SENATE_APPROVED',
+            'senate_reference' => 'SEN-TEST-2026-001',
+            'senate_decision_date' => now()->toDateString(),
+        ]);
+
+        Livewire::test(MyResults::class)
+            ->assertStatus(200)
+            ->assertSee('WITHDRAWN_PROGRAM')
+            ->assertSee('Below Degree Standard');
+    }
+
     public function test_session_filtering_works_correctly(): void
     {
         $this->actingAs($this->student);
@@ -296,5 +410,56 @@ class StudentMyResultsTest extends TestCase
             ->set('selectedSession', '2025/2026')
             ->assertSee('CSC102')
             ->assertDontSee('2024/2025 Academic Session');
+    }
+
+    private function createLowCgpaReleasedResults(): void
+    {
+        Result::create([
+            'user_id' => $this->student->id,
+            'registered_course_id' => $this->regCourse1->id,
+            'department_course_id' => $this->deptCourse1->id,
+            'academic_detail_id' => $this->academicDetail->id,
+            'academic_session' => '2025/2026',
+            'semester' => 'first',
+            'course_code_snapshot' => 'CSC101',
+            'course_title_snapshot' => 'Introduction to Computer Science',
+            'credit_units_snapshot' => 3,
+            'total_score' => 42,
+            'grade' => 'E',
+            'grade_point' => 1,
+            'credit_units' => 3,
+            'grade_point_total' => 3,
+            'status' => 'released',
+        ]);
+        Result::create([
+            'user_id' => $this->student->id,
+            'registered_course_id' => $this->regCourse2->id,
+            'department_course_id' => $this->deptCourse2->id,
+            'academic_detail_id' => $this->academicDetail->id,
+            'academic_session' => '2025/2026',
+            'semester' => 'first',
+            'course_code_snapshot' => 'CSC102',
+            'course_title_snapshot' => 'Introduction to Problem Solving',
+            'credit_units_snapshot' => 3,
+            'total_score' => 25,
+            'grade' => 'F',
+            'grade_point' => 0,
+            'credit_units' => 3,
+            'grade_point_total' => 0,
+            'status' => 'released',
+        ]);
+        ResultGpaRecord::create([
+            'user_id' => $this->student->id,
+            'academic_detail_id' => $this->academicDetail->id,
+            'academic_session' => '2025/2026',
+            'semester' => 'first',
+            'semester_gpa' => 0.50,
+            'total_credit_units' => 6,
+            'total_grade_points' => 3,
+            'cumulative_gpa' => 0.50,
+            'cumulative_credit_units' => 6,
+            'cumulative_grade_points' => 3,
+            'class_of_degree' => 'Below Degree Standard',
+        ]);
     }
 }

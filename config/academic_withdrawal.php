@@ -11,13 +11,9 @@ declare(strict_types=1);
 | Eligibility Engine (Task 6.7.2).
 |
 | IMPORTANT GOVERNANCE RULES:
-|   - No withdrawal is triggered automatically from CGPA alone.
-|   - All thresholds here are defaults that MUST be confirmed by the
-|     institution's approved academic regulations before enabling any rule.
-|   - Set 'enabled' => false for any rule not yet confirmed in writing by
-|     the institution to prevent premature withdrawal recommendations.
-|   - These rules only produce a *recommendation*; Senate approval is
-|     required before any official withdrawal can be recorded.
+|   - Eligibility rules identify students for staff review only.
+|   - Thresholds and enabled rules must match FUBK-approved academic regulations.
+|   - Senate approval is required before an official withdrawal is recorded.
 |   - PG students are excluded from all rules in this file.
 |
 */
@@ -26,31 +22,28 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Automatic Application & Senate Bypass
+    | Automatic Progression Evaluation
     |--------------------------------------------------------------------------
-    | When enabled, academic standing issues and withdrawals are applied
-    | automatically to student records without requiring intermediate Senate
-    | recommendation queues.
+    | The progression engine only prepares a staff recommendation when a rule
+    | matches. Senate approval is required before an official status is created.
     */
-    'auto_apply'    => env('ACADEMIC_WITHDRAWAL_AUTO_APPLY', true),
-    'bypass_senate' => env('ACADEMIC_WITHDRAWAL_BYPASS_SENATE', true),
+    'auto_apply' => env('ACADEMIC_WITHDRAWAL_AUTO_APPLY', false),
 
     /*
     |--------------------------------------------------------------------------
     | Rule: Consecutive Academic Probation
     |--------------------------------------------------------------------------
-    | A student placed on academic probation for `threshold` consecutive
-    | semesters (or sessions, per `unit`) may be recommended for academic
-    | withdrawal.
+    | A student at CGPA 0.75–0.99 is on probation. Two consecutive probation
+    | sessions make the student eligible for a programme-withdrawal recommendation.
     |
     | unit: 'semester' | 'session'
     */
     'consecutive_probation' => [
         'enabled'   => true,
-        'threshold' => 2,      // e.g. 2 consecutive semesters of PROBATION
+        'threshold' => 2,      // two consecutive probation sessions
         'unit'      => 'session', // count per academic session, not per semester
         'reason_code' => 'CONSECUTIVE_PROBATION',
-        'reason'    => 'Student has been on academic probation for {threshold} consecutive sessions.',
+        'reason'    => 'Student has been on academic probation for {threshold} consecutive sessions; recommend programme withdrawal for Senate review.',
     ],
 
     /*
@@ -72,21 +65,23 @@ return [
     |--------------------------------------------------------------------------
     | Rule: Minimum CGPA Threshold (Two-Tier)
     |--------------------------------------------------------------------------
-    | FUBK Standard: Two-tier CGPA-based withdrawal
-    | - CGPA < 0.50:          WITHDRAWN FROM UNIVERSITY
-    | - 0.50 ≤ CGPA < 0.75:  WITHDRAWN FROM PROGRAM
-    | - 0.75 ≤ CGPA < 1.00:  PROBATION (handled by standing logic, not here)
+    | CGPA below 0.50: university withdrawal recommendation.
+    | CGPA 0.50–0.74: programme withdrawal recommendation.
+    | CGPA 0.75–0.99: probation; two consecutive probation sessions trigger
+    | a programme-withdrawal recommendation.
+    | - CGPA < 0.50:          recommend withdrawal from the University
+    | - 0.50 ≤ CGPA < 0.75:  recommend withdrawal from the programme
     |
-    | IMPORTANT: Enabled based on FUBK academic regulations from grade report.
+    | These thresholds follow the FUBK rules confirmed for this workflow.
     */
     'minimum_cgpa' => [
-        'enabled'   => true,     // ENABLED - matches FUBK policy
-        'university_threshold' => 0.50,  // Below this: withdrawn from university
-        'program_threshold' => 0.75,     // Below this (but above university): withdrawn from program
+        'enabled'   => true,     // Active per confirmed FUBK thresholds
+        'university_threshold' => 0.50,  // Below this: recommend university withdrawal to Senate
+        'program_threshold' => 0.75,     // Below this (but above university): recommend programme withdrawal
         'reason_code_university' => 'CGPA_BELOW_UNIVERSITY_MINIMUM',
         'reason_code_program' => 'CGPA_BELOW_PROGRAM_MINIMUM',
-        'reason_university' => 'Cumulative GPA ({cgpa}) is below university minimum ({threshold}). Student withdrawn from university.',
-        'reason_program' => 'Cumulative GPA ({cgpa}) is below programme minimum ({threshold}) but above university threshold. Student withdrawn from program.',
+        'reason_university' => 'Cumulative GPA ({cgpa}) is below the university minimum ({threshold}); recommend the case for Senate review.',
+        'reason_program' => 'Cumulative GPA ({cgpa}) is below the programme minimum ({threshold}) but above the university threshold; recommend the case for Senate review.',
     ],
 
     /*
