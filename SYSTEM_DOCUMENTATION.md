@@ -385,6 +385,9 @@ This is a comprehensive Laravel-based admission management system built for hand
 - `ExamOfficerIndex` - Exam officer dashboard
 - `ExamOfficerResultReview` - Faculty-wide score sheet auditing, return to HOD, and official batch result release (triggers GPA & carry-over computation)
 
+### Student Status & Governance Components
+- `StudentStatusManagement` - Multi-tab student academic status and withdrawal management UI (`/student-status-management`). Features 5 workflow tabs (`Overview`, `Due for Review`, `Recommendations Pending Senate`, `Senate Decisions`, `Reinstatements`), top-level metrics summary header, database candidate query scoping (`whereHas('academicProgressionRecords', ...)`), cached dropdowns, and direct Senate submission/approval workflow actions.
+
 ### Student Components
 - `StudentIndex` - Student dashboard
 - `CourseRegistration` - Course registration
@@ -437,9 +440,16 @@ This is a comprehensive Laravel-based admission management system built for hand
 - UTME applicant data management
 - Bulk import functionality
 
-### ApplicantCleanupService
-- Applicant data cleanup
-- Data maintenance operations
+### StudentStatusService
+- Institutional student status lifecycle (Active, Voluntary Withdrawal, Academic Withdrawal, Medical Withdrawal, Suspended, Expelled, Reinstated)
+- Senate approval workflow (WITHDRAWAL_RECOMMENDED → PENDING_SENATE → SENATE_APPROVED/REJECTED)
+- Reinstatement eligibility and level determination
+- Academic activity enforcement gate (`canPerformAcademicActivity`)
+
+### AcademicProgressionService
+- NUC undergraduate academic standing calculation (PROMOTED, PROBATION, REPEAT, SPILLOVER)
+- Rule-driven withdrawal eligibility evaluation (`evaluateWithdrawalEligibility`)
+- Two-session probation rule and CGPA deficiency thresholds
 
 ### Report Services (Report/)
 - Report generation
@@ -447,6 +457,18 @@ This is a comprehensive Laravel-based admission management system built for hand
 - Excel export
 
 ## Policies (Authorization)
+
+### StudentStatusPolicy & Gate Mappings
+- Mapped in `AuthServiceProvider` for status authorization:
+  - `student-status.manage`
+  - `student-status.recommend-withdrawal`
+  - `student-status.submit-to-senate`
+  - `student-status.approve-withdrawal`
+  - `student-status.reject-withdrawal`
+  - `student-status.record-senate-approved-withdrawal` (one-step administrative entry of an already-approved Senate decision)
+  - `student-status.request-reinstatement`
+  - `student-status.process-reinstatement`
+  - `student-status.view-audit-trail`
 
 ### UserPolicy
 - `viewAny` - Admin only

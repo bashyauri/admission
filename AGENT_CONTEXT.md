@@ -573,6 +573,7 @@ Results follow a strict multi-level approval state machine:
    - If correct → clicks **Release to Students** → `exam_officer_approved` → `released` (triggers GPA and carry-over processing)
    - If issues found → clicks **Return to Coordinator**, types reason → `exam_officer_approved` → `submitted` (returned to coordinator queue)
 4. Academic progression may record standing and withdrawal eligibility as a recommendation. Result release must not apply an institutional withdrawal; Senate approval through the student-status workflow is required first.
+5. Admins may record an already-approved Senate withdrawal in one submission on `/student-status-management?sidebar=admin` by entering the real Senate reference and decision date. The service atomically records recommendation, Senate submission, approval, and audit history. This is an administrative entry of an existing Senate decision, not a Senate bypass.
 
 **Failure handling:** Result status updates occur before downstream GPA, carry-over, progression, and audit processing completes. A 403/error can therefore leave partial writes. Inspect result status, GPA record, carry-over state, progression recommendation, and release audit before retrying.
 
@@ -1085,10 +1086,10 @@ Direct deployment to production without version control.
 - Academic detail management
 - Department and programme management
 - O-level result management
-- Phase 6 undergraduate graduation and student-status workflows, including withdrawal/reinstatement and disciplinary audit integration
+- Phase 6 undergraduate graduation and student-status workflows, including withdrawal/reinstatement management UI, performance optimizations, and disciplinary audit integration
+- Phase 8 TALL stack performance optimizations (Quick Wins, Tasks 8.1–8.7, and StudentStatusManagement candidate query scoping and dropdown caching)
 
 ### In Progress
-- Phase 8 performance optimisation: quick wins and Tasks 8.1–8.4 are complete; Task 8.5 is next.
 - Result history integrity: Phase 5 follow-up Task 5.5 is implemented and regression tests are added; test execution is pending. For UG, use result-attempt snapshots first, linked `registered_courses` snapshots second, and current `student_courses` data only when both snapshots are missing. Preserve PG and payment workflows.
 - Carry-over retake registration: Phase 5 follow-up Task 5.6 is in progress. The registration screen can process outstanding retakes in a later eligible session, but the task remains incomplete pending official changed-unit GPA/CGPA policy confirmation and the roadmap's remaining verification. Preserve failed-attempt snapshots; require stable identity or approved course mapping for changed offerings, route ambiguous matches to department review, create a new retake snapshot, and follow approved unit-load policies. Keep PG and payment flows unchanged.
 

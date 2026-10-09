@@ -742,17 +742,25 @@ Phase 7 is a separate disciplinary case and sanction workflow. It must reuse Pha
   - [x] Run `tests/Feature/ResultApprovalWorkflowTest.php` to confirm no regression
 * **Verification:** `php artisan test --filter=ResultApprovalWorkflowTest --compact` (passed with all workflow scenarios green)
 
-#### Additional Governance Queue Task: Due-for-Withdrawal Review Filter (✅ COMPLETED)
-* **File:** `app/Http/Livewire/Student/StudentStatusManagement.php`
-* **Problem:** The student-status dashboard had no way to surface students who match the configured withdrawal-eligibility rules before a formal Senate recommendation is approved.
-* **Fix:** Added a `Due for withdrawal review` queue that evaluates only undergraduate students, filters by department/session, excludes students already pending or inactive, and shows the configured rule code and reason for review.
+#### Additional Governance Queue Task & UX Restructuring: `StudentStatusManagement` Performance & Workflow Tabs (✅ COMPLETED)
+* **File:** `app/Http/Livewire/Student/StudentStatusManagement.php` & `resources/views/livewire/student/student-status-management.blade.php`
+* **Problem:** 
+  1. The student-status dashboard had no surface view for recommended status records awaiting Senate submission, and candidate evaluation for withdrawal reviews fetched all users in memory, causing ~4s request latency per Livewire update.
+  2. `student-status.record-senate-approved-withdrawal` gate was missing from `AuthServiceProvider.php` gate mappings, causing 403 authorization errors when attempting to record Senate-approved withdrawals.
+  3. `scopedWorkflowRecords` and `render()` queried only `ACADEMIC_WITHDRAWAL`, omitting specific enum values (`ACADEMIC_WITHDRAWAL_PROGRAM`, `ACADEMIC_WITHDRAWAL_UNIVERSITY`, `VOLUNTARY_WITHDRAWAL`, `MEDICAL_WITHDRAWAL`).
+* **Fix:**
+  - Added 4 top-level metric summary cards (Due for Review, Recommendations, Pending Senate, Reinstatements) and a 5-tab pill navigation bar (`overview`, `review`, `recommendations`, `senate`, `reinstatement`).
+  - Added dedicated **"Recommendations Pending Senate Submission"** tab with direct inline "Submit to Senate" actions for records in `WORKFLOW_RECOMMENDED` state.
+  - Scoped `dueForWithdrawalReviewList()` candidates at SQL level (`whereHas('academicProgressionRecords', ...)`), capped evaluation at 50 candidates, and eager-loaded `studentStatusRecords`.
+  - Cached `$sessions` and `$departments` dropdown lists using `Cache::remember`.
+  - Registered missing gate mapping in `AuthServiceProvider.php`: `'student-status.record-senate-approved-withdrawal' => 'recordSenateApprovedWithdrawal'`.
 * **Tasks:**
-  - [x] Add a `dueForWithdrawalReviewList()` method to calculate only eligible UG students using the existing withdrawal eligibility engine
-  - [x] Exclude students with active formal withdrawal/inactive status and those already awaiting Senate review
-  - [x] Render a queue in the management view with session and department filters and a direct student-open action
-  - [x] Keep the recommendation-to-Senate approval workflow intact so official withdrawal only occurs after Senate approval
-  - [x] Add feature coverage for the queue in `tests/Feature/StudentStatusManagementUiTest.php`
-* **Verification:** `php artisan test tests/Feature/StudentStatusManagementUiTest.php --compact` (8 tests passed, 30 assertions).
+  - [x] Add a `dueForWithdrawalReviewList()` method with DB-level candidate scoping and batch limits for high-performance evaluation
+  - [x] Add `$pendingSubmissions` query and tab for `WORKFLOW_RECOMMENDED` state records
+  - [x] Implement 5 top-level visual workflow tabs and metric summary bar in Blade layout
+  - [x] Register missing gate mapping in `AuthServiceProvider.php`
+  - [x] Add feature coverage for the queue and tabs in `tests/Feature/StudentStatusManagementUiTest.php` and policy tests
+* **Verification:** `php artisan test --filter=StudentStatus` (55 tests passed, 155 assertions).
 
 #### Task 8.4: Fix `ResultEntry::loadStudentsAndResults()` — PHP-side Sort (✅ COMPLETED)
 * **File:** `app/Http/Livewire/Lecturer/ResultEntry.php`

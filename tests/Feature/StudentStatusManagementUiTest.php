@@ -64,31 +64,50 @@ class StudentStatusManagementUiTest extends TestCase
         ]);
     }
 
-    public function test_admin_can_create_recommendation_and_submit_senate_decision_through_ui_actions(): void
+    public function test_admin_can_record_a_senate_approved_withdrawal_in_one_submission(): void
     {
-        $component = Livewire::actingAs($this->admin)
+        Livewire::actingAs($this->admin)
             ->test(StudentStatusManagement::class)
             ->set('studentSearch', 'UG/STATUS/UI-001')
             ->call('selectStudent', (string) $this->student->id)
             ->set('reasonCode', 'CONSECUTIVE_PROBATION')
-            ->set('reason', 'Academic review recommendation')
+            ->set('reason', 'Senate approved the withdrawal recommendation.')
             ->set('academicSession', '2025/2026')
             ->set('effectiveDate', '2026-09-01')
+            ->set('senateReference', 'SEN-2026-902')
+            ->set('senateDecisionDate', '2026-09-10')
             ->call('createStatusRecord')
             ->assertHasNoErrors();
 
-        $recommendation = StudentStatusRecord::query()->where('user_id', $this->student->id)->firstOrFail();
-        $this->assertSame(StudentStatusService::WORKFLOW_RECOMMENDED, $recommendation->senate_decision);
+        $record = StudentStatusRecord::query()->where('user_id', $this->student->id)->firstOrFail();
+        $this->assertSame(StudentStatusService::WORKFLOW_SENATE_APPROVED, $record->senate_decision);
+        $this->assertSame('SEN-2026-902', $record->senate_reference);
+        $this->assertSame('2026-09-10', $record->senate_decision_date->toDateString());
 
-        $component->call('submitRecommendation', $recommendation->id)
-            ->call('beginSenateDecision', $recommendation->id, true)
-            ->set('senateReference', 'SEN-2026-901')
-            ->set('senateDecisionDate', '2026-09-10')
-            ->call('decideWithdrawal')
-            ->assertHasNoErrors();
+        $actions = \Illuminate\Support\Facades\DB::table('student_status_audits')
+            ->where('student_id', $this->student->id)
+            ->pluck('action')
+            ->all();
+        $this->assertContains('WITHDRAWAL_RECOMMENDED', $actions);
+        $this->assertContains('WITHDRAWAL_SUBMITTED_FOR_SENATE', $actions);
+        $this->assertContains('WITHDRAWAL_APPROVED', $actions);
+    }
 
-        $this->assertSame(StudentStatusService::WORKFLOW_SENATE_APPROVED, $recommendation->fresh()->senate_decision);
-        $this->assertSame('SEN-2026-901', $recommendation->fresh()->senate_reference);
+
+    public function test_admin_must_supply_senate_reference_and_date_for_single_action(): void
+    {
+        Livewire::actingAs($this->admin)
+            ->test(StudentStatusManagement::class)
+            ->set('studentSearch', 'UG/STATUS/UI-001')
+            ->call('selectStudent', (string) $this->student->id)
+            ->set('reasonCode', 'CONSECUTIVE_PROBATION')
+            ->set('reason', 'Senate review required.')
+            ->set('academicSession', '2025/2026')
+            ->set('effectiveDate', '2026-09-01')
+            ->call('createStatusRecord')
+            ->assertHasErrors(['senateReference', 'senateDecisionDate']);
+
+        $this->assertDatabaseMissing('student_status_records', ['user_id' => $this->student->id]);
     }
 
     public function test_admin_can_see_students_due_for_withdrawal_review_queue(): void

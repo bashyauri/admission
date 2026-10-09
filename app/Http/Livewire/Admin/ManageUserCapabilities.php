@@ -49,6 +49,7 @@ class ManageUserCapabilities extends Component
         'student_status.recommend' => ['label' => 'Recommend Withdrawal', 'description' => 'Recommend an academic withdrawal'],
         'student_status.submit_to_senate' => ['label' => 'Submit Withdrawal to Senate', 'description' => 'Submit a withdrawal recommendation for Senate decision'],
         'student_status.senate_decide' => ['label' => 'Decide Senate Withdrawal', 'description' => 'Approve or reject a Senate withdrawal decision'],
+        'student_status.record_senate_approved_withdrawal' => ['label' => 'Record Full Senate-Approved Withdrawal', 'description' => 'Create, submit, and record a Senate-approved withdrawal in one audited action; requires the actual Senate reference and decision date'],
         'student_status.process_voluntary' => ['label' => 'Process Voluntary Withdrawal', 'description' => 'Process a student-requested voluntary withdrawal'],
         'student_status.process_medical' => ['label' => 'Process Medical Withdrawal', 'description' => 'Process a medical withdrawal'],
         'disciplinary_actions.manage' => ['label' => 'Manage Disciplinary Actions', 'description' => 'Apply and resolve Senate-approved disciplinary sanctions for undergraduate students'],

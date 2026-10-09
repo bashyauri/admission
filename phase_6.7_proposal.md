@@ -18,6 +18,7 @@ The system must follow these governance rules:
 - Result release may calculate progression and eligibility, but it must never apply an institutional withdrawal.
 - CGPA thresholds and consecutive-probation rules create recommendations for Senate review; they do not independently change student status.
 - Only the authorized Senate decision workflow may create an official withdrawal status.
+- The admin status page supports a single atomic submission to record a Senate decision that has already been made. Require the actual Senate reference and decision date, and preserve recommendation/submission/approval audit events. Never present this shortcut as authority for an admin to decide without Senate approval.
 - Student-facing dashboards and result slips must not present a pending `WITHDRAWN_PROGRAM` recommendation or “Below Degree Standard” as an official status before Senate confirmation.
 - Result release can partially commit: result rows may become `released` before GPA, carry-over, progression, or audit work fails. Inspect every side effect before retrying; future release changes should be transactional/idempotent.
 - Service code must explicitly eager-load relations it accesses because production disables Eloquent lazy loading.

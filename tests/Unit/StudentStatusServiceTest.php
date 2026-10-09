@@ -380,6 +380,8 @@ class StudentStatusServiceTest extends TestCase
 
     public function test_create_withdrawal_recommendation_creates_record(): void
     {
+        config(['academic_withdrawal.bypass_senate' => true]);
+
         $record = $this->service->createWithdrawalRecommendation(
             user: $this->undergraduateUser,
             reasonCode: 'CONSECUTIVE_PROBATION',
@@ -390,7 +392,7 @@ class StudentStatusServiceTest extends TestCase
         );
 
         $this->assertInstanceOf(StudentStatusRecord::class, $record);
-        $this->assertEquals(StudentStatus::ACADEMIC_WITHDRAWAL, $record->status);
+        $this->assertEquals(StudentStatus::ACADEMIC_WITHDRAWAL_PROGRAM, $record->status);
         $this->assertEquals(StudentStatusType::ACADEMIC, $record->status_type);
         $this->assertEquals(StudentStatusService::WORKFLOW_RECOMMENDED, $record->senate_decision);
         $this->assertEquals('CONSECUTIVE_PROBATION', $record->reason_code);

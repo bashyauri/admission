@@ -22,13 +22,12 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Automatic Application & Senate Bypass
+    | Automatic Progression Evaluation
     |--------------------------------------------------------------------------
     | The progression engine only prepares a staff recommendation when a rule
     | matches. Senate approval is required before an official status is created.
     */
-    'auto_apply'    => env('ACADEMIC_WITHDRAWAL_AUTO_APPLY', false),
-    'bypass_senate' => env('ACADEMIC_WITHDRAWAL_BYPASS_SENATE', false),
+    'auto_apply' => env('ACADEMIC_WITHDRAWAL_AUTO_APPLY', false),
 
     /*
     |--------------------------------------------------------------------------
