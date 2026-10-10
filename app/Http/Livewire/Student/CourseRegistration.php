@@ -78,6 +78,11 @@ class CourseRegistration extends Component
     #[Computed]
     public function registeredCourses(): Collection
     {
+        // Process required retakes before reading this session's registrations
+        // so newly created retake rows are included. The shared service applies
+        // the same carry-over, semester, and course-code order used elsewhere.
+        $this->carryOverCourses;
+
         $service = new CourseRegistrationService();
         $courses = collect($service->getRegisteredCourses(
             $this->student->id,
@@ -100,6 +105,10 @@ class CourseRegistration extends Component
     #[Computed]
     public function getAvailableCourses(): Collection
     {
+        // Retakes get first claim on the unit limit and must not still appear
+        // as ordinary choices after the carry-over service registers them.
+        $carryOvers = $this->carryOverCourses;
+
         $service = new CourseRegistrationService();
         $courses = $service->getAvailableCourses(
             $this->departmentId,
@@ -170,6 +179,12 @@ class CourseRegistration extends Component
     }
 
     #[Computed]
+    public function isSubmittedForApproval(): bool
+    {
+        return (bool) $this->student?->approval?->isSubmitted();
+    }
+
+    #[Computed]
     public function totalRegisteredUnits(): int
     {
         return (int) app(CourseRegistrationService::class)
@@ -178,8 +193,8 @@ class CourseRegistration extends Component
 
     public function addCourse(DepartmentCourse $course): void
     {
-        if ($this->isRegistrationApproved) {
-            $this->alert('error', 'Course registration has been approved by your Level Coordinator and cannot be modified.', [
+        if ($this->isRegistrationApproved || $this->isSubmittedForApproval) {
+            $this->alert('error', 'Your course registration has been submitted for Coordinator review and is locked while awaiting a decision.', [
                 'position' => 'top-end',
                 'timer' => 4000,
                 'toast' => true,
@@ -191,6 +206,16 @@ class CourseRegistration extends Component
             $this->alert('error', 'Course registration is blocked due to your institutional student status.', [
                 'position' => 'top-end',
                 'timer' => 4000,
+                'toast' => true,
+            ]);
+            return;
+        }
+
+        if ($this->student->user?->isUndergraduate()
+            && $this->carryOverCourses->contains(fn ($carryOver) => $carryOver->registration_status === 'limit_blocked')) {
+            $this->alert('warning', 'A required carry-over retake is waiting for room under your unit limit. Remove an eligible course before adding other courses.', [
+                'position' => 'top-end',
+                'timer' => 5000,
                 'toast' => true,
             ]);
             return;
@@ -241,6 +266,7 @@ class CourseRegistration extends Component
         } catch (\Exception $e) {
             $isServiceError = str_contains($e->getMessage(), 'institutional status')
                 || str_contains($e->getMessage(), 'exceed the maximum')
+                || str_contains($e->getMessage(), 'required carry-over retake')
                 || str_contains($e->getMessage(), 'not available for registration');
             $message = $isServiceError
                 ? $e->getMessage()
@@ -267,8 +293,8 @@ class CourseRegistration extends Component
 
     public function deleteCourse(RegisteredCourse $registeredCourse): void
     {
-        if ($this->isRegistrationApproved) {
-            $this->alert('error', 'Course registration has been approved by your Level Coordinator and courses cannot be removed.', [
+        if ($this->isRegistrationApproved || $this->isSubmittedForApproval) {
+            $this->alert('error', 'Your course registration has been submitted for Coordinator review and is locked while awaiting a decision.', [
                 'position' => 'top-end',
                 'timer' => 4000,
                 'toast' => true,
@@ -338,6 +364,30 @@ class CourseRegistration extends Component
         $this->dispatch('pinUsed')->self();
     }
 
+    public function submitRegistrationForApproval(): void
+    {
+        $approval = $this->student->approval;
+        if (!$approval?->isPinUsed()) {
+            $this->alert('error', 'Use your registration PIN before submitting your courses.', ['position' => 'top-end', 'timer' => 3500, 'toast' => true]);
+            return;
+        }
+
+        if ($approval->isApproved() || $approval->isSubmitted()) {
+            return;
+        }
+
+        if (!$this->isActivityAllowed || !RegisteredCourse::where('academic_detail_id', $this->student->id)
+            ->where('academic_session', $this->currentAcademicSession())->exists()) {
+            $this->alert('error', 'Add at least one course and make sure your registration is eligible before submitting.', ['position' => 'top-end', 'timer' => 4000, 'toast' => true]);
+            return;
+        }
+
+        $approval->update(['registration_submitted_at' => now()]);
+        $this->student->unsetRelation('approval');
+        unset($this->isSubmittedForApproval, $this->isRegistrationApproved, $this->getAvailableCourses);
+        $this->alert('success', 'Your course registration has been submitted to your Coordinator for review.', ['position' => 'top-end', 'timer' => 3500, 'toast' => true]);
+    }
+
     public function clearSearch(string $type): void
     {
         if ($type === 'available') {
@@ -358,9 +408,9 @@ class CourseRegistration extends Component
     public function render()
     {
         return view('livewire.student.course-registration', [
+            'carryOverCourses' => $this->carryOverCourses,
             'courses' => $this->getAvailableCourses,
             'registeredCourses' => $this->registeredCourses,
-            'carryOverCourses' => $this->carryOverCourses,
         ]);
     }
 }

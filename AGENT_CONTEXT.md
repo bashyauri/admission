@@ -613,19 +613,20 @@ Admission Offer (if approved)
 
 ### Course Registration Workflow
 ```
-Login as Student
+Coordinator generates PIN after fee confirmation
   ↓
-View Available Courses
+Student activates PIN and selects courses (within unit limits)
   ↓
-Select Courses (within unit limits)
+Student submits the completed course selection for Coordinator review
   ↓
-Register Courses
+Registration is locked while review is pending; student may print a provisional review copy
   ↓
-Fee Payment Confirmation
-  ↓
-Registration Confirmed
+Coordinator reviews the submitted course list
+  ├── Approve & Lock → Official course form is available to the student
+  └── Unlock → Student may edit and submit the registration again
 ```
 
+Students cannot change a submitted registration while it is awaiting review. The Coordinator queue lists submitted students in oldest-first order with their waiting time. Only a Coordinator-approved registration is official; a provisional print is clearly marked and cannot be used as the official form.
 ### Result Processing Workflow (IMPLEMENTED)
 ```
 Admin/CIT Allocates Course to Lecturer (CourseAllocationManager)

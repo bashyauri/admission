@@ -34,6 +34,11 @@ class PrintCourseForm extends Controller
 
         abort_unless($hasPaidSchoolFees, 403, 'You must pay school fees before printing your course form.');
 
+        $approval = $user->academicDetail?->approval;
+        if ($user->isUndergraduate()) {
+            abort_unless($approval?->isApproved() || $approval?->isSubmitted(), 403, 'Submit your course registration to your Coordinator before printing the review copy.');
+        }
+
         try {
             $registeredCourses = $this->service->getRegisteredCourses(
                 $user->academicDetail->id,
@@ -50,7 +55,7 @@ class PrintCourseForm extends Controller
             return redirect()->back()->with(['error_message' => 'Something went wrong. Please contact CIT.']);
         }
 
-        return view('student.print-course-form', ['courses' => $registeredCourses, 'user' => $user, 'totalUnits' => $totalUnits, 'academicSession' => $academicSession, 'isUndergraduate' => $user->isUndergraduate()]);
+        return view('student.print-course-form', ['courses' => $registeredCourses, 'user' => $user, 'totalUnits' => $totalUnits, 'academicSession' => $academicSession, 'isUndergraduate' => $user->isUndergraduate(), 'isApproved' => $approval?->isApproved() ?? false]);
     }
 
     public function printSession(User $user, string $session)

@@ -258,6 +258,12 @@
                 <h6>In Affiliation with </h6>
                 <h6>Federal University Birnin Kebbi</h6>
                 <h6>COURSE REGISTRATION FORM</h6>
+                @if(isset($isApproved) && !$isApproved)
+                    <h3 style="color:#b45309;border:2px solid #f59e0b;padding:8px;">PROVISIONAL — COORDINATOR REVIEW COPY</h3>
+                    <p>This copy is not an approved course form.</p>
+                @elseif(isset($isApproved) && $isApproved)
+                    <h3 style="color:#047857;">OFFICIALLY APPROVED</h3>
+                @endif
             </div>
             <div class="logo-container">
                 <img src="{{ asset('assets/img') }}/fubk-icon.jpg" alt="Right Logo" height="80">
@@ -330,8 +336,11 @@
                 </div>
             </div>
         </div>
-        <p style="color:red;tex-align:center"><strong>Valid only when Approved, Signed & Dated by the Level
-                Coordinator</strong></p>
+        @if(!isset($isApproved) || $isApproved)
+            <p style="color:red;text-align:center"><strong>Valid only when approved, signed and dated by the Level Coordinator.</strong></p>
+        @else
+            <p style="color:#b45309;text-align:center"><strong>PROVISIONAL REVIEW COPY — NOT VALID AS AN OFFICIAL COURSE FORM.</strong></p>
+        @endif
     </div>
 
 

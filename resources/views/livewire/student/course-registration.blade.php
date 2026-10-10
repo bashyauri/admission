@@ -1,6 +1,6 @@
 @use('App\Models\StudentCourse')
 
-<div x-data="{ focused: false }">
+<div x-data="{ focused: false, confirmAddOpen: false, selectedCourse: null }">
     <!-- Enhanced PIN Section -->
     <div class="w-full max-w-full px-3 mb-6">
         <div class="bg-gradient-to-r from-fuchsia-500 to-purple-600 rounded-xl shadow-lg p-6 text-white">
@@ -20,8 +20,12 @@
                                 @else
                                     <span class="text-yellow-200">PIN not generated - Contact your coordinator</span>
                                 @endif
+                            @elseif($this->isRegistrationApproved)
+                                <span class="text-green-200">Coordinator approved this registration. Your official course form is available below.</span>
+                            @elseif($this->isSubmittedForApproval)
+                                <span class="text-yellow-100">Submitted for Coordinator review. Course changes are locked while review is pending.</span>
                             @else
-                                <span class="text-green-200">✓ Approved - You can register courses</span>
+                                <span class="text-green-200">PIN active. Select courses, then submit your registration for review.</span>
                             @endif
                         </p>
                     </div>
@@ -196,9 +200,11 @@
                         @if($courses->isNotEmpty())
                             <div class="grid gap-4">
                                 @foreach ($courses as $course)
-                                    <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-5 hover:shadow-lg hover:border-fuchsia-300 dark:hover:border-fuchsia-600 transition-all duration-300 cursor-pointer group
-                                        {{ $isActive ? 'opacity-50 cursor-not-allowed' : '' }}"
-                                        wire:click="addCourse({{ $course->id }})" wire:loading.attr="disabled" wire:target="addCourse">
+                                    <button type="button"
+                                        class="w-full text-left bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-5 hover:shadow-lg hover:border-fuchsia-300 dark:hover:border-fuchsia-600 transition-all duration-300 group disabled:opacity-50 disabled:cursor-not-allowed"
+                                        x-on:click="selectedCourse = { id: {{ $course->id }}, code: @js($course->code), title: @js($course->title), units: {{ (int) $course->units }} }; confirmAddOpen = true"
+                                        wire:loading.attr="disabled" wire:target="addCourse"
+                                        @disabled($isActive || !$this->isActivityAllowed || $this->isRegistrationApproved)>
                                         
                                         <div class="flex items-start justify-between mb-3">
                                             <div class="flex-1">
@@ -232,7 +238,7 @@
                                                 </svg>
                                             </div>
                                         </div>
-                                    </div>
+                                    </button>
                                 @endforeach
                             </div>
                         @else
@@ -345,14 +351,16 @@
                         <!-- Print Buttons -->
                         @if ($registeredCourses->count() && $student->approval?->isPinUsed())
                             <div class="flex flex-wrap justify-center gap-3 mt-4">
+                                @if($this->isRegistrationApproved || $this->isSubmittedForApproval)
                                 <a href="{{ route('student.print-course-form', ['user' => $student->user_id]) }}"
                                     target="_blank"
                                     class="inline-flex items-center gap-2 px-6 py-3 text-sm font-semibold text-white bg-fuchsia-500 rounded-lg hover:bg-fuchsia-600 focus:outline-none focus:ring-2 focus:ring-fuchsia-400 focus:ring-offset-2 transition-colors duration-200">
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0 1 10.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0 .229 2.523a1.125 1.125 0 0 1-1.12 1.227H7.231c-.662 0-1.18-.568-1.12-1.227L6.34 18m11.318 0h1.091A2.25 2.25 0 0 0 21 15.75V9.456c0-1.081-.768-2.015-1.837-2.175a48.055 48.055 0 0 0-1.913-.247M6.34 18H5.25A2.25 2.25 0 0 1 3 15.75V9.456c0-1.081.768-2.015-1.837-2.175a48.041 48.041 0 0 1 1.913-.247m10.5 0a48.536 48.536 0 0 0-10.5 0m10.5 0V3.375c0-.621-.504-1.125-1.125-1.125h-8.25c-.621 0-1.125.504-1.125 1.125v3.659M18 10.5h.008v.008H18V10.5Zm-3 0h.008v.008H15V10.5Z" />
                                     </svg>
-                                    Print Course Form
+                                    {{ $this->isRegistrationApproved ? 'Print Official Course Form' : 'Print Provisional Review Copy' }}
                                 </a>
+                                @endif
                                 <a href="{{ route('student.course-history') }}"
                                     class="inline-flex items-center gap-2 px-6 py-3 text-sm font-semibold text-fuchsia-600 bg-white border border-fuchsia-400 rounded-lg hover:bg-fuchsia-50 focus:outline-none focus:ring-2 focus:ring-fuchsia-400 focus:ring-offset-2 transition-colors duration-200 dark:bg-gray-800 dark:text-fuchsia-300 dark:border-fuchsia-500 dark:hover:bg-gray-700">
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
@@ -361,6 +369,17 @@
                                     Previous Sessions
                                 </a>
                             </div>
+                            @if(!$this->isRegistrationApproved && !$this->isSubmittedForApproval)
+                                <div class="mt-4 flex flex-col items-center gap-2">
+                                    <p class="text-sm text-amber-700">Check your registered course list before submitting. You cannot edit it while your Coordinator reviews it.</p>
+                                    <button type="button" wire:click="submitRegistrationForApproval" wire:loading.attr="disabled" class="rounded-lg bg-fuchsia-600 px-6 py-3 text-sm font-semibold text-white hover:bg-fuchsia-700 disabled:opacity-60">
+                                        <span wire:loading.remove wire:target="submitRegistrationForApproval">Submit Registration for Coordinator Review</span>
+                                        <span wire:loading wire:target="submitRegistrationForApproval">Submitting...</span>
+                                    </button>
+                                </div>
+                            @elseif($this->isSubmittedForApproval)
+                                <p class="mt-4 text-center text-sm font-semibold text-amber-700">Awaiting Coordinator approval. You can print the provisional review copy above.</p>
+                            @endif
                         @endif
                     </div>
 
@@ -531,6 +550,30 @@
             });
         });
     </script>
+
+    <div x-cloak x-show="confirmAddOpen" x-on:keydown.escape.window="confirmAddOpen = false"
+        class="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/50 p-4"
+        role="dialog" aria-modal="true" aria-labelledby="confirm-course-title">
+        <div x-on:click.outside="confirmAddOpen = false"
+            class="w-full max-w-md rounded-xl bg-white p-6 shadow-xl dark:bg-gray-800">
+            <h2 id="confirm-course-title" class="text-lg font-semibold text-gray-900 dark:text-white">Confirm course selection</h2>
+            <p class="mt-2 text-sm text-gray-600 dark:text-gray-300">Check the course details before adding it to your registration.</p>
+            <div class="mt-4 rounded-lg bg-gray-50 p-4 dark:bg-gray-700">
+                <p class="font-semibold text-gray-900 dark:text-white" x-text="selectedCourse ? `${selectedCourse.code} — ${selectedCourse.title}` : ''"></p>
+                <p class="mt-1 text-sm text-gray-600 dark:text-gray-300" x-text="selectedCourse ? `${selectedCourse.units} units` : ''"></p>
+            </div>
+            <div class="mt-6 flex justify-end gap-3">
+                <button type="button" x-on:click="confirmAddOpen = false; selectedCourse = null"
+                    class="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700">Cancel</button>
+                <button type="button" x-on:click="if (selectedCourse) { await $wire.addCourse(selectedCourse.id); confirmAddOpen = false; selectedCourse = null }"
+                    wire:loading.attr="disabled" wire:target="addCourse"
+                    class="rounded-lg bg-fuchsia-600 px-4 py-2 text-sm font-semibold text-white hover:bg-fuchsia-700 disabled:opacity-50">
+                    <span wire:loading.remove wire:target="addCourse">Add this course</span>
+                    <span wire:loading wire:target="addCourse">Adding...</span>
+                </button>
+            </div>
+        </div>
+    </div>
 
     <style>
         /* Custom scrollbar for better UX */

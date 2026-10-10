@@ -41,6 +41,27 @@
         </div>
     @endif
 
+    @if($pendingSubmissions->isNotEmpty())
+        <section class="mb-5 rounded-2xl border border-amber-200 bg-white p-4 shadow-soft-sm" aria-labelledby="pending-registration-heading">
+            <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
+                <div>
+                    <h6 id="pending-registration-heading" class="mb-1 font-bold text-slate-800">Submitted registrations awaiting your review</h6>
+                    <p class="text-xs text-slate-500">Oldest submissions appear first. Select a student to review the course list.</p>
+                </div>
+                <span class="rounded-full bg-amber-100 px-3 py-1 text-xs font-bold text-amber-800">{{ $pendingSubmissions->count() }} pending</span>
+            </div>
+            <div class="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
+                @foreach($pendingSubmissions as $pendingStudent)
+                    <button type="button" wire:click="selectStudent({{ $pendingStudent->id }})" class="rounded-xl border border-slate-200 p-3 text-left transition hover:border-fuchsia-300 hover:bg-fuchsia-50">
+                        <span class="block text-sm font-semibold text-slate-800">{{ $pendingStudent->user?->surname }} {{ $pendingStudent->user?->firstname }} {{ $pendingStudent->user?->m_name }}</span>
+                        <span class="block font-mono text-xs text-slate-500">{{ $pendingStudent->matric_no }}</span>
+                        <span class="mt-1 block text-xs font-semibold text-amber-700">Waiting {{ $pendingStudent->approval?->registration_submitted_at?->diffForHumans() }}</span>
+                    </button>
+                @endforeach
+            </div>
+        </section>
+    @endif
+
     <div class="flex flex-wrap -mx-3 mt-6">
 
         {{-- ─────────────────────────────────────────────────────────────
@@ -200,6 +221,8 @@
                                         <span class="inline-flex items-center gap-1 text-xs font-bold px-2.5 py-1 rounded-lg bg-green-100 text-green-700 border border-green-200">
                                             ✅ Registration Approved &amp; Locked
                                         </span>
+                                    @elseif($selectedAcademicDetail->approval?->isSubmitted())
+                                        <span class="inline-flex items-center gap-1 text-xs font-bold px-2.5 py-1 rounded-lg bg-amber-100 text-amber-700 border border-amber-200">Submitted — Awaiting Coordinator Review</span>
                                     @elseif($isPinUsed)
                                         <span class="inline-flex items-center gap-1 text-xs font-bold px-2.5 py-1 rounded-lg bg-blue-100 text-blue-700 border border-blue-200">
                                             📌 PIN Used — Awaiting Approval
@@ -234,18 +257,18 @@
                                         <span wire:loading.remove wire:target="unlockRegistration">🔓 Unlock Registration</span>
                                         <span wire:loading wire:target="unlockRegistration">Unlocking...</span>
                                     </button>
+                                @elseif($selectedAcademicDetail->approval?->isSubmitted())
+                                    <button id="approve-registration-btn" wire:click="approveRegistration({{ $selectedAcademicDetail->id }})" wire:loading.attr="disabled" class="inline-flex items-center rounded-lg bg-green-600 px-5 py-2.5 text-xs font-bold uppercase text-white hover:bg-green-700 disabled:opacity-60">
+                                        <span wire:loading.remove wire:target="approveRegistration">Approve &amp; Lock Registration</span>
+                                        <span wire:loading wire:target="approveRegistration">Approving...</span>
+                                    </button>
                                 @else
                                     <button id="approve-registration-btn"
-                                            wire:click="approveRegistration({{ $selectedAcademicDetail->id }})"
-                                            wire:loading.attr="disabled"
-                                            wire:target="approveRegistration"
-                                            onclick="return confirm('Approve and lock this student\'s course registration?\n\nThey will NOT be able to add or remove courses after this.')"
-                                            {{ $registeredCourses->isEmpty() ? 'disabled' : '' }}
+                                            type="button"
+                                            disabled
                                             class="inline-block px-5 py-2.5 text-xs font-bold text-white uppercase align-middle transition-all border-0 rounded-lg cursor-pointer shadow-soft-md bg-150 bg-x-25 hover:scale-102 active:opacity-85
-                                                   {{ $registeredCourses->isEmpty() ? 'bg-gradient-gray text-slate-400 cursor-not-allowed scale-100 opacity-60' : 'bg-gradient-to-r from-green-500 to-teal-500 hover:from-green-600 hover:to-teal-600' }}
-                                                   disabled:opacity-60 disabled:cursor-not-allowed disabled:scale-100">
-                                        <span wire:loading.remove wire:target="approveRegistration">✅ Approve &amp; Lock Registration</span>
-                                        <span wire:loading wire:target="approveRegistration">Approving...</span>
+                                                   bg-gradient-gray text-slate-400 cursor-not-allowed scale-100 opacity-60">
+                                        Waiting for student submission
                                     </button>
                                 @endif
                             </div>
@@ -333,9 +356,9 @@
                                 </table>
                             </div>
 
-                            @if(!$isApproved && !$registeredCourses->isEmpty())
+                            @if(!$isApproved && $selectedAcademicDetail->approval?->isSubmitted() && !$registeredCourses->isEmpty())
                                 <p class="text-xs text-slate-400 mt-3 text-center">
-                                    Review the courses above, then click <strong class="text-green-700">Approve &amp; Lock Registration</strong> when satisfied.
+                                    Review the submitted courses above, then approve to make the course form official.
                                 </p>
                             @endif
                         @endif

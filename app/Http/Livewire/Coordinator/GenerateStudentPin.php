@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Eloquent\Collection;
 use App\Services\AcademicSessionService;
+use App\Services\CourseRegistrationService;
 
 class GenerateStudentPin extends Component
 {
@@ -179,6 +180,19 @@ class GenerateStudentPin extends Component
      */
     public function selectStudent(int $academicDetailId): void
     {
+        $isAssigned = $this->currentCoordinatorId() && AcademicDetail::query()
+            ->whereKey($academicDetailId)
+            ->where('student_level_id', $this->studentLevelId)
+            ->where('admission_session', $this->academicSession)
+            ->when($this->courseId, fn ($query) => $query->where('course_id', $this->courseId))
+            ->when($this->departmentId, fn ($query) => $query->where('department_id', $this->departmentId))
+            ->exists();
+
+        if (!$isAssigned) {
+            $this->selectedStudentId = null;
+            return;
+        }
+
         $this->selectedStudentId = $academicDetailId;
         $this->generatedPin = null;
     }
@@ -191,6 +205,11 @@ class GenerateStudentPin extends Component
     public function approveRegistration(AcademicDetail $academicDetail): void
     {
         $approval = $academicDetail->approval;
+
+        if (!$approval?->isSubmitted() || $approval->coordinator_id !== $this->currentCoordinatorId()) {
+            $this->alert('error', 'This submitted registration is not assigned to your Coordinator account.', ['position' => 'top-end', 'timer' => 4000, 'toast' => true]);
+            return;
+        }
 
         if (!$approval) {
             $this->alert('error', 'No approval record found. Generate a PIN for this student first.', [
@@ -214,8 +233,7 @@ class GenerateStudentPin extends Component
             return;
         }
 
-        $coordinator = $this->getCoordinatorForStudent($academicDetail);
-        $approval->approve($coordinator?->id);
+        $approval->approve($this->currentCoordinatorId());
 
         $this->alert('success', 'Course registration approved and locked successfully.', [
             'position' => 'top-end',
@@ -238,6 +256,11 @@ class GenerateStudentPin extends Component
                 'timer'    => 3000,
                 'toast'    => true,
             ]);
+            return;
+        }
+
+        if ($approval->coordinator_id !== $this->currentCoordinatorId()) {
+            $this->alert('error', 'This registration is not assigned to your Coordinator account.', ['position' => 'top-end', 'timer' => 4000, 'toast' => true]);
             return;
         }
 
@@ -275,6 +298,13 @@ class GenerateStudentPin extends Component
             ->get();
     }
 
+    private function currentCoordinatorId(): ?int
+    {
+        return Coordinator::where('id', $this->selectedAssignmentId)
+            ->where('user_id', Auth::id())
+            ->value('id');
+    }
+
     public function render()
     {
         // Load all coordinator assignments for the logged-in user with eager-loaded relationships
@@ -285,17 +315,41 @@ class GenerateStudentPin extends Component
 
         $students = $this->searchStudent();
 
-        $selectedAcademicDetail = $this->selectedStudentId
-            ? AcademicDetail::with(['user:id,surname,firstname,m_name', 'approval'])->find($this->selectedStudentId)
+        $pendingSubmissions = collect();
+        if ($coordinatorId = $this->currentCoordinatorId()) {
+            $pendingSubmissions = AcademicDetail::query()
+                ->whereHas('approval', fn ($query) => $query
+                    ->where('coordinator_id', $coordinatorId)
+                    ->whereNotNull('registration_submitted_at')
+                    ->where('approval_status', '!=', 'Approved'))
+                ->with(['user:id,surname,firstname,m_name', 'approval'])
+                ->when($this->courseId, fn ($query) => $query->where('course_id', $this->courseId))
+                ->when($this->departmentId, fn ($query) => $query->where('department_id', $this->departmentId))
+                ->where('student_level_id', $this->studentLevelId)
+                ->where('admission_session', $this->academicSession)
+                ->get()
+                ->sortBy(fn ($student) => $student->approval?->registration_submitted_at?->timestamp ?? 0)
+                ->values();
+        }
+
+        $coordinatorId = $this->currentCoordinatorId();
+        $selectedAcademicDetail = $this->selectedStudentId && $coordinatorId
+            ? AcademicDetail::whereKey($this->selectedStudentId)
+                ->where('student_level_id', $this->studentLevelId)
+                ->where('admission_session', $this->academicSession)
+                ->when($this->courseId, fn ($query) => $query->where('course_id', $this->courseId))
+                ->when($this->departmentId, fn ($query) => $query->where('department_id', $this->departmentId))
+                ->with(['user:id,surname,firstname,m_name', 'approval'])
+                ->first()
             : null;
 
         $registeredCourses = collect();
         if ($selectedAcademicDetail) {
             $currentSession = app(AcademicSessionService::class)->getAcademicSession($selectedAcademicDetail->user);
-            $registeredCourses = RegisteredCourse::with(['departmentCourse.studentCourse'])
-                ->where('academic_detail_id', $this->selectedStudentId)
-                ->where('academic_session', $currentSession)
-                ->get();
+            $registeredCourses = app(CourseRegistrationService::class)->getRegisteredCourses(
+                $this->selectedStudentId,
+                $currentSession
+            );
         }
 
         return view('livewire.coordinator.generate-student-pin', [
@@ -303,6 +357,7 @@ class GenerateStudentPin extends Component
             'selectedAcademicDetail' => $selectedAcademicDetail,
             'registeredCourses'     => $registeredCourses,
             'coordinatorAssignments' => $coordinatorAssignments,
+            'pendingSubmissions' => $pendingSubmissions,
         ]);
     }
 }
