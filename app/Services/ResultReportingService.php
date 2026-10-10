@@ -495,7 +495,7 @@ class ResultReportingService
                 : '-';
 
             // Determine Academic Standing & Official Senate Remarks
-            $standingInfo = $this->progressionService->determineAcademicStanding($student);
+            $standingInfo = $this->progressionService->determineAcademicStanding($student, ($uts > 0 || $utd > 0) ? $cgpa : null);
             $standing = $standingInfo['standing'] ?? AcademicProgressionService::STANDING_PROMOTED;
 
             // Build course breakdown items for Nigerian Senate report
@@ -538,17 +538,27 @@ class ResultReportingService
             } else {
                 $isPass = !$isOfficiallyWithdrawn
                     && empty($allUnclearedCourses)
-                    && $cgpa >= 1.00;  // Updated to match FUBK policy (CGPA >= 1.00 is good standing)
+                    && $cgpa >= 1.00;
+
                 if (!$isOfficiallyWithdrawn) {
-                    $statusText = match ($standing) {
-                        AcademicProgressionService::STANDING_PROBATION => 'ON PROBATION',
-                        AcademicProgressionService::STANDING_REPEAT => 'REPEAT LEVEL',
-                        default => null,
-                    };
+                    if ($cgpa < 0.50 || $standing === AcademicProgressionService::STANDING_WITHDRAWN_UNIVERSITY) {
+                        $statusText = 'WITHDRAWN FROM THE UNIVERSITY';
+                    } elseif ($standing === AcademicProgressionService::STANDING_WITHDRAWN_PROGRAM || $cgpa < 0.75) {
+                        $statusText = 'WITHDRAWN FROM PROGRAM';
+                    } elseif ($standing === AcademicProgressionService::STANDING_PROBATION || $cgpa < 1.00) {
+                        $statusText = 'ON PROBATION';
+                    } else {
+                        $statusText = match ($standing) {
+                            AcademicProgressionService::STANDING_REPEAT => 'REPEAT LEVEL',
+                            default => null,
+                        };
+                    }
                 }
 
                 if ($isOfficiallyWithdrawn) {
-                    $remark = $statusText;
+                    $remark = !empty($allUnclearedCourses)
+                        ? 'REPEAT: ' . implode(', ', $allUnclearedCourses)
+                        : $statusText;
                 } elseif ($standing === AcademicProgressionService::STANDING_REPEAT) {
                     $repeatList = !empty($allUnclearedCourses) ? ' | REPEAT: ' . implode(', ', $allUnclearedCourses) : '';
                     $remark = 'REPEAT LEVEL' . $repeatList;
@@ -649,6 +659,7 @@ class ResultReportingService
         $repeatCount = 0;
         $spilloverCount = 0;
         $specialCasesCount = 0;
+        $othersCount = 0;
 
         $classDistribution = [
             'First Class Honours' => 0,
@@ -678,27 +689,25 @@ class ResultReportingService
                 $repeatCount++;
             }
 
-            if (str_contains($statusText, 'WITHDRAWN')) {
+            if (str_contains($statusText, 'WITHDRAWN') || $standing === AcademicProgressionService::STANDING_WITHDRAWN_UNIVERSITY || $standing === AcademicProgressionService::STANDING_WITHDRAWN_PROGRAM) {
                 $withdrawnCount++;
-            } elseif ($isPass) {
-                $passCount++;
             } elseif ($statusText === 'ON PROBATION' || $remark === 'PROBATION' || $standing === AcademicProgressionService::STANDING_PROBATION) {
                 $probationCount++;
+            } elseif ($isPass) {
+                $passCount++;
             } elseif (str_contains($statusText, 'SPILLOVER') || $remark === 'SPILLOVER' || $standing === AcademicProgressionService::STANDING_SPILLOVER) {
                 $spilloverCount++;
             } elseif ($uts === 0 && $utd === 0) {
                 // Students with 0 examination units (Direct Entry, unexamined, special cases)
                 $specialCasesCount++;
             } else {
-                $specialCasesCount++;
+                $othersCount++;
             }
 
             if (isset($classDistribution[$class]) && ($uts > 0 || $utd > 0)) {
                 $classDistribution[$class]++;
             }
         }
-
-        $othersCount = max(0, $total - ($passCount + $probationCount + $withdrawnCount + $specialCasesCount));
 
         return [
             'total_students' => $total,
