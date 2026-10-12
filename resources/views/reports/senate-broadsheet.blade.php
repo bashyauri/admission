@@ -474,6 +474,14 @@
                         </td>
                         <td class="col-remarks">
                             <div class="remark-block">
+                                @foreach($student['pending_release_courses'] ?? [] as $pendingCourse)
+                                    <div class="remark-title" style="color: #a16207; font-weight: 800;">PROVISIONAL PASS — AWAITING RELEASE:</div>
+                                    <div class="status-val" style="color: #854d0e;">{{ $pendingCourse['course'] }} ({{ $pendingCourse['grade'] }} · {{ $pendingCourse['stage'] }})</div>
+                                @endforeach
+                                @foreach($student['senate_correction_annotations'] ?? [] as $correction)
+                                    <div class="remark-title" style="color: #7e22ce; font-weight: 800;">SENATE CORRECTION:</div>
+                                    <div class="status-val" style="color: #7e22ce;">{{ $correction['course'] }} · {{ $correction['reference'] }} · {{ $correction['adjustment'] > 0 ? '+' : '' }}{{ number_format($correction['adjustment'], 2) }}</div>
+                                @endforeach
                                 @if(!empty($student['disciplinary_remarks']))
                                     <div class="remark-title" style="color: #b91c1c; font-weight: 800;">DISCIPLINARY:</div>
                                     <div style="color: #b91c1c; font-weight: 700;">{{ $student['disciplinary_remarks'] }}</div>

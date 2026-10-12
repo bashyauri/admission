@@ -35,8 +35,9 @@ A Laravel-based Admission Management and Student Management Information System (
 6. Result processing (Phases 1-5 implemented; snapshot integrity is implemented and its verification status is tracked in `result_processing_agent_phases.md`; carry-over retake GPA policy remains pending institutional confirmation)
 7. Graduation processing (Phase 6 completed; details are tracked in `result_processing_agent_phases.md`)
 8. Examination Malpractice & Senate Disciplinary Enforcement Engine (Phase 7 completed and verified in production-safe UG scope, including the Exam Officer management UI and service enforcement logic — see [`result_processing_agent_phases.md`](file:///c:/laragon/www/admission/result_processing_agent_phases.md))
-9. TALL Stack Performance Optimisation (Phase 8 completed: quick wins and Tasks 8.1–8.6 are complete — see [`result_processing_agent_phases.md`](file:///c:/laragon/www/admission/result_processing_agent_phases.md))
-10. Coordinator Course Registration Approval: Coordinators can now review a student's registered courses and explicitly approve/lock or unlock registrations from `generate-student-pin` — preventing students from adding or removing courses after coordinator approval.
+9. Senate Grade Correction System (Phase 8 implementation in progress; individual UG corrections require `senate_grade_correction`; bulk cohort corrections require the separate `senate_bulk_grade_correction` capability, department scope, Senate reference/evidence verification, and per-result audit. Students and applicants cannot receive either capability. Student results show effective values without exposing Senate correction details; reversal and complete consumer verification remain — see [`result_processing_agent_phases.md`](file:///c:/laragon/www/admission/result_processing_agent_phases.md))
+10. TALL Stack Performance Optimisation (Phase 9 completed: quick wins and Tasks 9.1–9.7 are complete — see [`result_processing_agent_phases.md`](file:///c:/laragon/www/admission/result_processing_agent_phases.md))
+11. Coordinator Course Registration Approval: Coordinators can now review a student's registered courses and explicitly approve/lock or unlock registrations from `generate-student-pin` — preventing students from adding or removing courses after coordinator approval.
 
 ### What Makes This Different
 - NUC-compliant grading system for Nigerian universities
@@ -682,6 +683,7 @@ The university operates under the following mandatory academic standing and degr
 ### 4. Broadsheet Remarks & Status Display Rules (Print SR4)
 * **Clean Pass (CGPA ≥ 1.00, no failed courses):** `PASS` (no `STATUS:` line)
 * **Deficiency (CGPA ≥ 1.00 with failed courses):** `REPEAT: [failed courses]` (no `STATUS:` line)
+* **Provisional passing retake:** In a provisional staff broadsheet, do not list a course as `REPEAT` when its matching result is passing but unreleased; label it `PROVISIONAL PASS — AWAITING RELEASE` with the current approval stage. Keep the carry-over record active and clear it only after successful release. This display rule does not change official GPA, progression, or student status.
 * **On Probation (0.75 ≤ CGPA < 1.00):** `REPEAT: [failed courses]` (if any) + `STATUS: ON PROBATION`
 * **Programme withdrawal recommendation pending Senate:** show the applicable academic standing/recommendation only in authorized staff review; do not print or show an official withdrawn status.
 * **University withdrawal recommendation pending Senate:** show the applicable academic standing/recommendation only in authorized staff review; do not print or show an official withdrawn status.
@@ -727,6 +729,10 @@ The university operates under the following mandatory academic standing and degr
 - `role:hod` - Require HOD role
 - `capability:lecturer` - Require lecturer capability (via `user_capabilities` table)
 - `capability:exam_officer` - Require exam officer capability
+
+### Senate Grade Correction Route
+- `/senate-corrections` is a standalone authenticated, verified route protected by `senate_grade_correction`, so an explicitly authorized staff member can use it regardless of account role. Its course-of-study/department filter is limited to the user's granted department scope.
+- The correction service independently enforces the capability and its department scope against the student's course-of-study department; scoped access includes shared course results such as GST. The capability management UI excludes student and applicant accounts.
 
 ---
 
@@ -1088,7 +1094,7 @@ Direct deployment to production without version control.
 - Department and programme management
 - O-level result management
 - Phase 6 undergraduate graduation and student-status workflows, including withdrawal/reinstatement management UI, performance optimizations, and disciplinary audit integration
-- Phase 8 TALL stack performance optimizations (Quick Wins, Tasks 8.1–8.7, and StudentStatusManagement candidate query scoping and dropdown caching)
+- Phase 9 TALL stack performance optimizations (Quick Wins, Tasks 9.1–9.7, and StudentStatusManagement candidate query scoping and dropdown caching)
 
 ### In Progress
 - Result history integrity: Phase 5 follow-up Task 5.5 is implemented and regression tests are added; test execution is pending. For UG, use result-attempt snapshots first, linked `registered_courses` snapshots second, and current `student_courses` data only when both snapshots are missing. Preserve PG and payment workflows.

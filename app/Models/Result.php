@@ -116,6 +116,11 @@ class Result extends Model
         return $this->hasMany(Result::class, 'original_result_id');
     }
 
+    public function senateGradeCorrections(): HasMany
+    {
+        return $this->hasMany(SenateGradeCorrection::class)->latest('implemented_at');
+    }
+
     // Scopes
     public function scopePending($query)
     {

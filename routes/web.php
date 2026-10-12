@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 use Illuminate\Http\Request;
 use App\Http\Livewire\Auth\Login;
+use App\Http\Livewire\ExamOfficer\SenateGradeCorrection;
+use App\Http\Livewire\ExamOfficer\SenateBulkGradeCorrection;
 use App\Http\Livewire\Auth\Logout;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\WelcomeController;
@@ -21,6 +23,7 @@ use Illuminate\Auth\Events\Verified;
 
 use App\Http\Livewire\Dashboards\Crm;
 use Illuminate\Support\Facades\Route;
+
 use App\Http\Livewire\Auth\DegreeLogin;
 // use App\Http\Livewire\Pages\PricingPage;
 
@@ -132,6 +135,14 @@ use App\Http\Livewire\Student\StudentStatusManagement;
 | contains the "web" middleware group. Now create something great!
 |
 */
+
+Route::middleware(['auth', 'verified', 'capability:senate_grade_correction'])
+    ->get('/senate-corrections', SenateGradeCorrection::class)
+    ->name('senate-corrections');
+
+Route::middleware(['auth', 'verified', 'capability:senate_bulk_grade_correction'])
+    ->get('/senate-corrections/bulk', SenateBulkGradeCorrection::class)
+    ->name('senate-corrections.bulk');
 
 Route::get('/', [WelcomeController::class, 'index'])->name('home');
 

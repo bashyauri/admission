@@ -329,6 +329,7 @@ class AcademicProgressionService
         string $session,
         ?int $semester = null
     ): array {
+        $student->loadMissing(['academicDetail.studentLevel', 'proposedCourse.course']);
         if (!$student->isUndergraduate()) {
             return [
                 'standing' => self::STANDING_PROMOTED,
@@ -344,7 +345,6 @@ class AcademicProgressionService
         $standing = $standingInfo['standing'];
         $cgpa = (float) $standingInfo['cgpa'];
         $academicDetail = $student->academicDetail;
-        $academicDetail?->loadMissing('studentLevel');
         $level = $academicDetail?->studentLevel?->level ?? (string) ($academicDetail?->student_level_id ?? '100');
         $sem = $semester ?? 2;
 

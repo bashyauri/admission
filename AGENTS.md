@@ -203,6 +203,8 @@ Academic standing and institutional status are separate concepts.
 
 **Result-release failures:** Exam Officer release changes result statuses and then performs GPA, carry-over, and progression work. If any later step throws, earlier writes may already have committed. Before retrying, inspect result statuses, GPA records, carry-over rows, progression recommendations, and release audit rows for the affected course/session/semester. Result release should be made transactional/idempotent before assuming a failed request rolled back.
 
+**Senate grade corrections:** Student-facing result pages and printed statements must show the effective corrected result without identifying that a Senate correction occurred. Preserve correction references, adjustment details, and audit history in authorized staff tools and reports only. The correction capability may be assigned to any staff role; authorization and department scope must be enforced server-side. Filtered cohort corrections require an exact department, historical level, course offering, session, semester, and explicit scope (all released results or failed results only); preview all before/after values, block totals above 100, apply atomically, and create one immutable audit entry per result.
+
 **Lazy-loading safety:** Services must explicitly eager-load or `loadMissing()` relations they access when passed Eloquent models. Do not rely on lazy loading; production may disable it. Add regression coverage with lazy loading disabled for affected paths.
 
 ---

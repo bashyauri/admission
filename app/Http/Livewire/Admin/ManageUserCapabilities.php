@@ -53,6 +53,8 @@ class ManageUserCapabilities extends Component
         'student_status.process_voluntary' => ['label' => 'Process Voluntary Withdrawal', 'description' => 'Process a student-requested voluntary withdrawal'],
         'student_status.process_medical' => ['label' => 'Process Medical Withdrawal', 'description' => 'Process a medical withdrawal'],
         'disciplinary_actions.manage' => ['label' => 'Manage Disciplinary Actions', 'description' => 'Apply and resolve Senate-approved disciplinary sanctions for undergraduate students'],
+        'senate_grade_correction' => ['label' => 'Senate Grade Correction', 'description' => 'Apply individually verified Senate-authorized corrections to released undergraduate results in the assigned department'],
+        'senate_bulk_grade_correction' => ['label' => 'Senate Bulk Grade Correction', 'description' => 'Apply a verified Senate mark adjustment to a filtered undergraduate cohort, with per-result audit records'],
         'student_status.request_reinstatement' => ['label' => 'Request Reinstatement', 'description' => 'Submit a reinstatement request for a student'],
         'student_status.reinstatement.department_review' => ['label' => 'Review Reinstatement (Department)', 'description' => 'Complete the department reinstatement review'],
         'student_status.reinstatement.faculty_review' => ['label' => 'Review Reinstatement (Faculty)', 'description' => 'Complete the faculty reinstatement review'],
@@ -149,6 +151,14 @@ class ManageUserCapabilities extends Component
     public function assignCapability(): void
     {
         $this->validate();
+
+        if (in_array($this->capability, ['senate_grade_correction', 'senate_bulk_grade_correction'], true)) {
+            $target = User::query()->findOrFail($this->selectedUserId);
+            if (in_array(strtolower((string) $target->role), ['student', 'applicant', 'graduate'], true)) {
+                $this->addError('selectedUserId', 'Senate correction capabilities can only be assigned to staff accounts.');
+                return;
+            }
+        }
 
         $existing = UserCapability::where('user_id', $this->selectedUserId)
             ->where('capability', $this->capability)

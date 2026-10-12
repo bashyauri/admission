@@ -299,7 +299,7 @@ class ResultReportingService
         $releasedOnly = !empty($filters['released_only']) || !empty($filters['final']);
 
         // 2. Fetch all Results for these students in this session (across both semesters for full session broadsheet)
-        $resultsQuery = Result::with(['departmentCourse.studentCourse', 'registeredCourse'])
+        $resultsQuery = Result::with(['departmentCourse.studentCourse', 'registeredCourse', 'senateGradeCorrections'])
             ->whereIn('user_id', $studentIds)
             ->where('academic_session', $session);
 
@@ -416,6 +416,14 @@ class ResultReportingService
 
             /** @var Collection<int, Result> $userResults */
             $userResults = $studentResultsGrouped->get($student->id, collect());
+            $senateCorrectionAnnotations = $userResults
+                ->flatMap(fn (Result $result) => $result->senateGradeCorrections->map(fn ($correction) => [
+                    'reference' => $correction->senate_reference,
+                    'adjustment' => (float) $correction->adjustment_amount,
+                    'course' => $result->course_code_snapshot ?: $result->departmentCourse?->studentCourse?->code,
+                ]))
+                ->values()
+                ->all();
             $resultsByCode = $userResults->keyBy(function (Result $r) use ($courseSnapshotService) {
                 return $courseSnapshotService->resolve($r)['code']
                     ?? $r->departmentCourse?->studentCourse?->code 
@@ -427,6 +435,7 @@ class ResultReportingService
             $gpts = 0; // Grade Points Session
             $courseScoresMap = [];
             $failedCoursesThisSession = [];
+            $failedDepartmentCourseIdsThisSession = [];
 
             foreach ($headers as $hdr) {
                 $code = $hdr['code'];
@@ -444,7 +453,10 @@ class ResultReportingService
                     $gpts += $qualityPoints;
 
                     if ($grade === 'F' || ($total !== null && $total < 40.0)) {
-                        $failedCoursesThisSession[] = $code;
+                        $failedCoursesThisSession[$res->department_course_id ?? 'code:' . $code] = $code;
+                        if ($res->department_course_id !== null) {
+                            $failedDepartmentCourseIdsThisSession[] = (int) $res->department_course_id;
+                        }
                     }
 
                     $courseScoresMap[$code] = [
@@ -508,7 +520,64 @@ class ResultReportingService
 
             // Determine Academic Standing & Status matching Affiliation Broadsheet standards
             $studentCarryOvers = $carryOvers->get($student->id, collect());
-            $activeCarryCodes = $studentCarryOvers->map(function (CarryOverCourse $co) {
+            $activeCarryDepartmentCourseIds = $studentCarryOvers
+                ->pluck('department_course_id')
+                ->filter()
+                ->map(fn ($id) => (int) $id)
+                ->unique()
+                ->all();
+
+            // Provisional passing attempts do not clear official carry-over rows, but they
+            // should not be labelled as repeats while the result is still awaiting release.
+            $pendingReleasePasses = $userResults
+                ->sortByDesc('id')
+                ->filter(function (Result $result) use ($activeCarryDepartmentCourseIds, $failedDepartmentCourseIdsThisSession): bool {
+                    $total = $result->total_score !== null ? (float) $result->total_score : null;
+                    $grade = strtoupper((string) ($result->grade ?? ($total !== null ? $this->gradeCalculator->calculateGrade($total) : 'F')));
+
+                    return $result->status !== 'released'
+                        && $result->department_course_id !== null
+                        && $grade !== 'F'
+                        && $total !== null
+                        && $total >= 40.0
+                        && (in_array((int) $result->department_course_id, $activeCarryDepartmentCourseIds, true)
+                            || in_array((int) $result->department_course_id, $failedDepartmentCourseIdsThisSession, true));
+                })
+                ->unique('department_course_id')
+                ->values();
+
+            $pendingReleaseDepartmentCourseIds = $pendingReleasePasses
+                ->pluck('department_course_id')
+                ->map(fn ($id) => (int) $id)
+                ->all();
+
+            $pendingReleaseCourses = $pendingReleasePasses->map(function (Result $result) use ($courseSnapshotService): array {
+                $snapshot = $courseSnapshotService->resolve($result);
+                $stage = match ($result->status) {
+                    'pending' => 'Lecturer draft',
+                    'submitted' => 'Coordinator review',
+                    'exam_officer_approved' => 'Exam Officer review',
+                    default => 'Awaiting release',
+                };
+
+                return [
+                    'course' => $snapshot['code'] ?? "CRS-{$result->department_course_id}",
+                    'grade' => strtoupper((string) ($result->grade ?? $this->gradeCalculator->calculateGrade((float) $result->total_score))),
+                    'stage' => $stage,
+                ];
+            })->all();
+
+            $failedCoursesThisSession = array_values(array_filter(
+                $failedCoursesThisSession,
+                function (string $courseCode, int|string $key) use ($pendingReleaseDepartmentCourseIds): bool {
+                    return !is_numeric($key) || !in_array((int) $key, $pendingReleaseDepartmentCourseIds, true);
+                },
+                ARRAY_FILTER_USE_BOTH,
+            ));
+
+            $activeCarryCodes = $studentCarryOvers
+                ->reject(fn (CarryOverCourse $co) => in_array((int) $co->department_course_id, $pendingReleaseDepartmentCourseIds, true))
+                ->map(function (CarryOverCourse $co) {
                 return $co->registeredCourse?->course_code_snapshot
                     ?? $co->departmentCourse?->studentCourse?->code
                     ?? 'N/A';
@@ -538,6 +607,7 @@ class ResultReportingService
             } else {
                 $isPass = !$isOfficiallyWithdrawn
                     && empty($allUnclearedCourses)
+                    && empty($pendingReleaseCourses)
                     && $cgpa >= 1.00;
 
                 if (!$isOfficiallyWithdrawn) {
@@ -567,6 +637,13 @@ class ResultReportingService
                 } else {
                     $remark = $isPass ? 'PASS' : ($statusText ?? 'PASS');
                 }
+
+                if (!$isOfficiallyWithdrawn && !empty($pendingReleaseCourses)) {
+                    $pendingRemark = 'PENDING RELEASE: ' . implode(', ', array_column($pendingReleaseCourses, 'course'));
+                    $remark = $remark === 'PASS'
+                        ? $pendingRemark
+                        : trim(implode(' | ', array_filter([$remark, $pendingRemark])));
+                }
             }
 
             $broadsheetRows[] = [
@@ -587,6 +664,7 @@ class ResultReportingService
                 'standing' => $standing,
                 'is_pass' => $isPass,
                 'repeat_courses' => $allUnclearedCourses,
+                'pending_release_courses' => $pendingReleaseCourses,
                 'status_text' => $statusText,
                 'status_is_withdrawn' => $isOfficiallyWithdrawn,
                 'status_display' => $isOfficiallyWithdrawn ? 'WITHDRAWN: ' . strtoupper($statusRecord->status->label()) : $statusText,
@@ -595,6 +673,7 @@ class ResultReportingService
                 'status_senate_reference' => $isOfficiallyWithdrawn ? $statusRecord->senate_reference : null,
                 'remark' => trim(implode(' | ', array_filter([$remark, $disciplinaryRemark]))),
                 'disciplinary_remarks' => $disciplinaryRemark ?: null,
+                'senate_correction_annotations' => $senateCorrectionAnnotations,
             ];
 
         }

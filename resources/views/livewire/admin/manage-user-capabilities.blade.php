@@ -687,9 +687,10 @@
                                 @endforeach
 
                                 @foreach($capabilityOptions as $value => $option)
-                                    @if($value === 'disciplinary_actions.manage')
-                                        <label class="relative flex items-start p-3 rounded-xl border cursor-pointer transition {{ $capability === $value ? 'border-rose-600 bg-rose-50/50 ring-1 ring-rose-600' : 'border-slate-200 hover:bg-slate-50/60' }}">
-                                            <input type="radio" wire:model="capability" value="{{ $value }}" class="mt-0.5 mr-3 text-rose-600 focus:ring-rose-500" />
+                                    @if(in_array($value, ['disciplinary_actions.manage', 'senate_grade_correction', 'senate_bulk_grade_correction'], true))
+                                        @php($isSenateCorrectionCapability = str_starts_with($value, 'senate_'))
+                                        <label class="relative flex items-start p-3 rounded-xl border cursor-pointer transition {{ $capability === $value ? ($isSenateCorrectionCapability ? 'border-fuchsia-600 bg-fuchsia-50/50 ring-1 ring-fuchsia-600' : 'border-rose-600 bg-rose-50/50 ring-1 ring-rose-600') : 'border-slate-200 hover:bg-slate-50/60' }}">
+                                            <input type="radio" wire:model="capability" value="{{ $value }}" class="mt-0.5 mr-3 {{ $isSenateCorrectionCapability ? 'text-fuchsia-600 focus:ring-fuchsia-500' : 'text-rose-600 focus:ring-rose-500' }}" />
                                             <div>
                                                 <span class="block text-xs font-bold text-slate-900">{{ $option['label'] }}</span>
                                                 <span class="block text-[11px] text-slate-500 mt-0.5">{{ $option['description'] }}</span>
@@ -713,6 +714,14 @@
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                     </svg>
                                     <span>Grants coordinator access. You can assign specific level and admission cohorts in the Coordinator Manager.</span>
+                                </div>
+                            @elseif($capability === 'senate_grade_correction')
+                                <div class="mt-2.5 rounded-lg bg-fuchsia-50 border border-fuchsia-200 p-2.5 text-[11px] text-fuchsia-900">
+                                    Assign this only to staff explicitly authorized to implement Senate decisions. Department scope follows the students' course of study, so it includes their shared service-course results (for example, GST courses). Use institution-wide scope only when the staff member is authorized across all departments.
+                                </div>
+                            @elseif($capability === 'senate_bulk_grade_correction')
+                                <div class="mt-2.5 rounded-lg bg-fuchsia-50 border border-fuchsia-200 p-2.5 text-[11px] text-fuchsia-900">
+                                    This is a separate high-impact permission for cohort corrections. Grant it only to staff authorized to apply bulk Senate decisions. The selected department scope is checked against every affected student's course of study.
                                 </div>
                             @endif
 

@@ -30,7 +30,8 @@ graph TD
     P4 --> P5["Phase 5: UG Student Portal & Transcripts<br/>(COMPLETED)"]
     P5 --> P6["Phase 6: UG Graduation & Student Academic Status Management<br/>(COMPLETED)"]
     P6 --> P7["Phase 7: Exam Malpractice & Senate Disciplinary Engine<br/>(COMPLETED - UG enforcement + UI verified)"]
-    P7 --> P8["Phase 8: TALL Stack Performance Optimisation<br/>(IN PROGRESS - Task 8.5)"]
+    P7 --> P8["Phase 8: Senate Grade Correction System<br/>(🚧 IMPLEMENTATION IN PROGRESS)"]
+    P7 --> P9["Phase 9: TALL Stack Performance Optimisation<br/>(✅ COMPLETED)"]
 ```
 
 ---
@@ -681,10 +682,134 @@ Phase 7 is a separate disciplinary case and sanction workflow. It must reuse Pha
 
 ---
 
-## Phase 8: TALL Stack Performance Optimisation (✅ COMPLETED)
+## Phase 8: Senate Grade Correction System (🚧 IMPLEMENTATION IN PROGRESS)
+
+* **Goal:** Let explicitly authorized staff apply a verified Senate decision to one released result or a precisely filtered cohort, with immutable per-result audit and consistent academic recalculation.
+* **Risk Profile:** High. A correction changes an official grade and may affect GPA/CGPA, carry-over status, progression, transcripts, and graduation eligibility.
+* **Status:** Initial UG implementation underway; audit migration is applied in the current environment. Reversal workflow and full consumer verification remain outstanding.
+* **Scope:** UG result corrections only for the initial release. PG results remain unchanged unless separately specified and reviewed.
+
+### Governance and Workflow
+
+The ordinary result workflow remains unchanged:
+
+```text
+Lecturer → Coordinator → Exam Officer → Released
+```
+
+A Senate correction is an exceptional action on an already released result:
+
+```text
+Official Senate decision and evidence
+  → Verification against the authoritative decision/minutes
+  → Staff member with the dedicated capability searches for one student and one released course attempt
+  → Preview original marks, proposed adjustment, revised grade, and academic impact
+  → Confirm and apply this one correction
+  → Audit record and consistent GPA/progression recalculation
+```
+
+Corrections may target one student/result or a narrowly defined cohort. Bulk application is permitted only after selecting course of study/department, historical result level, exact course offering, academic session, semester, and target group (all released results or failed results only). The preview lists each student's current and revised total/grade, flags totals above 100, and requires confirmation naming the cohort and count. Apply atomically, with one immutable audit row per result under the same verified Senate reference. Enforce capability scope on every student, block already-corrected or unsafe carry-over cases, cap one operation at 250 results, and require a fresh preview if the cohort changes. Do not provide unfiltered or background mass correction. Never interpret “across the course” as every session or every course sharing a similar code.
+
+### Supported Correction Semantics
+
+- The default operation is a **mark adjustment** to the released result. Example: original total `48`, Senate-authorized adjustment `+2`, corrected total `50`; calculate the resulting letter grade and grade point using the existing `GradeCalculationService` and the institution's configured grading scale. Under the current service, `50` maps to grade `C` and 3 grade points.
+- Preserve the original CA, exam, total, grade, and grade point in the immutable correction audit record. Store the adjustment explicitly and make the corrected total/grade the effective official result used by existing application calculations and reports.
+- Do not silently allocate a total-mark adjustment to CA or examination marks. Keep the original CA/exam breakdown and display the Senate adjustment separately. If the Senate decision explicitly changes CA or exam marks, record the authorized component change and derive the corrected total from those components.
+- Validate corrected values against the applicable course assessment limits and total-score bounds. Reject an adjustment that conflicts with the verified decision or course configuration; do not impose an arbitrary percentage cap that could reject a legitimate Senate ruling.
+- Do not permit a grade-only/status-only override that conflicts with the corrected score and configured grading scale. Any different institutional policy requires explicit approval and its own specification.
+
+### Senate Decision Verification and Authorization
+
+- Require the Senate reference, decision date, minutes/decision reference, detailed reason, and evidence location or attachment where institutional policy allows it.
+- A reference matching a string pattern is **not proof** of Senate authorization. Record how the decision was verified against an authoritative Senate decision register, minutes, or approved evidence, including verifier and verification time where the process supports it. Only verified decisions may be implemented.
+- Require the dedicated `senate_grade_correction` capability regardless of the staff member's account role. The capability is inactive by default, can be assigned to staff roles (never students/applicants), and is granted/revoked through the existing capability-management workflow. Department scope limits which results they can correct.
+- Enforce authorization and workflow checks in the backend service and route/component; hiding the menu item is not security.
+- Require a final confirmation that names the student, course, session/semester, original mark, adjustment, revised mark/grade, and Senate reference.
+
+### Audit Data and Idempotency
+
+Create an immutable `senate_grade_corrections` record for each corrected result. At minimum, record:
+
+- `result_id` (the authoritative result-attempt link; avoid redundant student/course foreign keys unless a concrete reporting requirement needs them)
+- Senate reference, decision date, minutes/decision reference, and verified evidence metadata
+- Correction method (`total_mark_adjustment` or explicitly authorized component correction), adjustment amount, and reason
+- Before and after CA/exam/total/grade/grade-point values as applicable
+- Implementing staff user, decision verifier where applicable, implementation timestamp, and optional implementation notes
+- Reversal/supersession linkage if a later appeal or Senate decision reverses the correction
+
+Preserve the original result values in the audit history. The result row holds the **current effective** marks and grade so existing SQL-based consumers remain correct; do not rely only on Eloquent accessors that queries, aggregates, and exports may bypass. Never delete or rewrite correction audit entries. A reversal is another audited action that restores the authorized prior effective values.
+
+Enforce idempotency in the database and service: the same Senate reference must not be applied twice to the same result. Multiple results may share one Senate reference, and a later distinct Senate decision may create a new correction for that result.
+
+### Atomic Application and Academic Recalculation
+
+The service must apply one correction inside a database transaction:
+
+1. Lock and reload the target result; verify it is released, belongs to the selected student/course/session, and has not already been corrected by this Senate reference.
+2. Recheck user capability, decision verification, mark bounds, and the expected current result values.
+3. Persist the immutable before/after audit entry and update the result's effective score, grade, grade point, and quality points consistently.
+4. Recalculate the affected session/semester GPA and cumulative GPA using existing result and registered-course snapshot rules.
+5. Reconcile carry-over state if the corrected grade changes pass/fail, and recompute relevant progression recommendations without creating an institutional withdrawal decision. Senate status decisions continue to use `StudentStatusService`.
+6. Commit only when all required database changes succeed. Make retries safe; inspect/handle any external side effects through an idempotent mechanism rather than assuming a failed request rolled back earlier writes.
+
+### UI and Reporting
+
+The Senate Grade Correction interface provides separate individual and bulk pages. Individual correction searches by student and released result. Bulk correction filters by course of study/department, historical result level, exact course offering, session, semester, and target group. Department filter options stay within the user's granted scope. Department scope is based on the student's course-of-study department, so shared service-course results (for example, a Microbiology student's GST course) are included even when another department owns the offering. Course choices come from released results accessible to the user. Show the cohort's before/after scores and grades before applying, and provide an audit history for individual results.
+
+After correction, broadsheets, transcripts, student results, result review panels, GPA calculations, carry-over processing, and progression reports must all read the same effective result values. Show correction annotations and audit details in staff-facing reports and review tools only; student result pages and printed statements must show the corrected effective result without revealing that a Senate correction occurred. Add a correction ledger searchable by Senate reference, session, department/course, student, and implementing staff user. Reports should include original values, adjustment, corrected values, reason/reference, verifier, implementer, and timestamps.
+
+Keep the interface aligned with the existing Soft UI design system, accessible, responsive, and explicit about provisional previews versus applied corrections. Bulk correction must be limited to an explicitly filtered cohort and use a before/after preview with atomic application.
+
+### Tasks Breakdown
+
+#### Task 8.1: Governance and Data Foundation
+- [x] Reuse the existing Senate reference validator; require an evidence attachment and officer attestation of verification against official minutes/register (institutional policy confirmation is still required).
+- [x] Create the immutable correction audit migration/model and `Result` relationship; enforce per-reference/per-result idempotency.
+- [x] Add single-result validation and dedicated capability management integration.
+- Add unit tests for allowed adjustment/component cases, mark bounds, and duplicate prevention.
+
+#### Task 8.2: Transactional Service
+- [x] Implement transactional apply for one correction at a time.
+- [x] Lock and revalidate the released result; record original/effective values; update the result and recalculate GPA/CGPA, carry-over state, and applicable progression recommendations atomically.
+- [ ] Implement audited reversal/supersession; do not edit or delete an applied audit row.
+- Add service tests for transaction rollback, retry safety, pass/fail transitions, and lazy-loading-disabled execution.
+
+#### Task 8.3: Exam Officer Interface
+- [x] Add capability-protected single-result search, preview, confirmation, apply, and history views.
+- Capture Senate reference/date/minutes/evidence, verification details, reason, and the explicitly authorized adjustment.
+- Implement filtered cohort correction with preview, confirmation, and per-result audit entries.
+- Add authorization, validation, and accessible UI feature coverage.
+
+#### Task 8.4: Effective Result Integration
+- Update all SQL and Eloquent consumers to use the result row's effective marks/grade consistently.
+- [x] Annotate corrected grades in staff-facing Senate broadsheets; student result/statement displays show only effective values without a Senate-correction annotation.
+- [ ] Verify and annotate every transcript and staff review consumer.
+- Verify GPA/CGPA, carry-over, progression, and graduation-facing calculations after a corrected result.
+- Add integration tests for each affected consumer and reversal behavior.
+
+#### Task 8.5: Audit Reporting
+- [x] Build a correction ledger and per-result history with original values, adjustment, corrected values, evidence/verifier, reason, implementer, and timestamps.
+- [ ] Complete ledger filtering by session, department/course, student, reference, and implementing officer.
+- Add report authorization and coverage for filters, history, and reversals.
+
+#### Task 8.6: Capability Management
+- Add `senate_grade_correction` to existing capability management with a clear description and inactive default.
+- Test grant/revoke audit behavior and backend denial when the dedicated capability is absent or outside its department scope, regardless of account role.
+
+### Implementation Guidelines
+
+1. Apply one released result or a filtered cohort of up to 250 results per operation.
+2. Verify the Senate decision; a formatted reference alone is insufficient.
+3. Preserve original values in immutable audit history and use the result row for current effective values.
+4. Update result, GPA, carry-over, and progression data consistently and idempotently.
+5. Keep standard result approval and Senate-approved institutional status workflows intact.
+6. Keep the 250-result transaction limit; do not add unfiltered/background bulk processing or unapproved PG behavior.
+
+---
+## Phase 9: TALL Stack Performance Optimisation (✅ COMPLETED)
 * **Goal:** Eliminate N+1 query patterns, redundant full-table loads, and missing DB indexes across all Livewire components in the system.
 * **Risk Profile:** Zero (no schema changes beyond index additions; no business logic altered).
-* **Status:** **Quick Wins and Tasks 8.1–8.5 Completed (Phase 8 Complete)**
+* **Status:** **Quick Wins and Tasks 9.1–9.7 Completed (Phase 9 Complete)**
 
 > 📌 **SCOPE:** This phase targets only the Livewire backend components and blade views. No result calculations, grading logic, or progression rules are modified.
 
@@ -713,7 +838,7 @@ Phase 7 is a separate disciplinary case and sanction workflow. It must reuse Pha
 
 ### Remaining Tasks (Medium / High Impact)
 
-#### Task 8.1: Fix N+1 Student Count Loop in `CoordinatorManager` (✅ COMPLETED)
+#### Task 9.1: Fix N+1 Student Count Loop in `CoordinatorManager` (✅ COMPLETED)
 * **File:** `app/Http/Livewire/Admin/CoordinatorManager.php`
 * **Problem:** `render()` fires one `AcademicDetail::count()` query per coordinator row on each page (up to 15 queries per Livewire update).
 * **Fix:** Replaced the per-row loop with two grouped SQL aggregate queries keyed by coordinator ID.
@@ -722,7 +847,7 @@ Phase 7 is a separate disciplinary case and sanction workflow. It must reuse Pha
   - [x] Pass results as a keyed collection to the view
 * **Verification:** `php artisan test --filter=CoordinatorManagerPerformanceTest --compact` (1 test passed, 2 assertions).
 
-#### Task 8.2: Cache Lookup Tables in `CoordinatorManager` (✅ COMPLETED)
+#### Task 9.2: Cache Lookup Tables in `CoordinatorManager` (✅ COMPLETED)
 * **File:** `app/Http/Livewire/Admin/CoordinatorManager.php`
 * **Problem:** `render()` always calls `Department::orderBy('name')->get()`, `Course::with('department')->orderBy('name')->get()`, and `StudentLevel::all()` — three full-table loads on every Livewire interaction.
 * **Fix:** Moved these into `mount()` as public component properties so they are loaded once per component lifecycle.
@@ -732,7 +857,7 @@ Phase 7 is a separate disciplinary case and sanction workflow. It must reuse Pha
   - [x] Remove the three queries from `render()`
 * **Verification:** `php artisan test --filter=CoordinatorManagerPerformanceTest --compact` (1 test passed, 2 assertions).
 
-#### Task 8.3: Fix `CoordinatorResultReview::loadCourseSummaries()` — PHP-side Aggregation (✅ COMPLETED)
+#### Task 9.3: Fix `CoordinatorResultReview::loadCourseSummaries()` — PHP-side Aggregation (✅ COMPLETED)
 * **File:** `app/Http/Livewire/Coordinator/CoordinatorResultReview.php`
 * **Problem:** `loadLegacyCourseSummaries()` pulls **all** `Result` rows for the department and session into a PHP collection, then groups/counts them in PHP. For large departments this transfers MB of data.
 * **Fix:** Replaced the legacy PHP grouping with a single SQL aggregate query and retained the existing `$courseSummaries` structure for the view.
@@ -762,7 +887,7 @@ Phase 7 is a separate disciplinary case and sanction workflow. It must reuse Pha
   - [x] Add feature coverage for the queue and tabs in `tests/Feature/StudentStatusManagementUiTest.php` and policy tests
 * **Verification:** `php artisan test --filter=StudentStatus` (55 tests passed, 155 assertions).
 
-#### Task 8.4: Fix `ResultEntry::loadStudentsAndResults()` — PHP-side Sort (✅ COMPLETED)
+#### Task 9.4: Fix `ResultEntry::loadStudentsAndResults()` — PHP-side Sort (✅ COMPLETED)
 * **File:** `app/Http/Livewire/Lecturer/ResultEntry.php`
 * **Problem:** `RegisteredCourse::with(['academicDetail.user'])->get()->sortBy(...)` pulls all students into PHP memory and sorts there instead of at the DB level.
 * **Fix:** Add a `join` on `academic_details` and use `->orderBy('academic_details.matric_no')` before `->get()`.
@@ -774,7 +899,7 @@ Phase 7 is a separate disciplinary case and sanction workflow. It must reuse Pha
 * **Agent Prompt:**
   > *"In `app/Http/Livewire/Lecturer/ResultEntry.php`, in `loadStudentsAndResults()`, replace the `->get()->sortBy(fn($rc) => $rc->academicDetail->matric_no)` pattern with a SQL-level `->join('academic_details', 'academic_details.id', '=', 'registered_courses.academic_detail_id')->orderBy('academic_details.matric_no')->select('registered_courses.*')->get()`. Keep the existing `->with(['academicDetail.user'])` eager load."*
 
-#### Task 8.5: Fix `ResultEntry::hydrate()` — Redundant Relation Reloads (✅ COMPLETED)
+#### Task 9.5: Fix `ResultEntry::hydrate()` — Redundant Relation Reloads (✅ COMPLETED)
 * **File:** `app/Http/Livewire/Lecturer/ResultEntry.php`
 * **Problem:** `hydrate()` fires on every Livewire request and calls `loadMissing()` unconditionally, re-querying the DB for relations that are already loaded.
 * **Fix:** Store the IDs, not the full model, in Livewire state. Load relations once in `render()` using `->loadMissing()` only when needed.
@@ -786,7 +911,7 @@ Phase 7 is a separate disciplinary case and sanction workflow. It must reuse Pha
 * **Agent Prompt:**
   > *"In `app/Http/Livewire/Lecturer/ResultEntry.php`, remove the `hydrate()` method. Instead, in `mount()` store only `$this->allocationId`. In `render()`, fetch `$allocation = CourseAllocation::with(['departmentCourse.studentCourse'])->find($this->allocationId)` once and pass it to the view. Update all references to `$this->allocation` in action methods to re-fetch via `CourseAllocation::find($this->allocationId)` when needed."*
 
-#### Task 8.6: Fix `ResultEntry` — Lazy Loading Exception on `$students` (✅ COMPLETED)
+#### Task 9.6: Fix `ResultEntry` — Lazy Loading Exception on `$students` (✅ COMPLETED)
 * **File:** `app/Http/Livewire/Lecturer/ResultEntry.php`
 * **Problem:** `$students` was a `public` Livewire property holding an Eloquent Collection. On every subsequent Livewire request, Livewire serialised the collection but stripped all eager-loaded relations. Accessing `$student->academicDetail` in the Blade view (or in `loadStudentsAndResults()`) then triggered the `LazyLoadingException` because lazy loading is disabled project-wide.
 * **Fix:** Remove `public $students` from component state. Add a `#[Computed]` `students()` method and a `protected fetchStudents()` helper that always re-fetches with `->with(['academicDetail.user'])`. Pass the freshly fetched collection from `render()` into the view; `downloadTemplate()` also calls `fetchStudents()` directly.
@@ -798,7 +923,7 @@ Phase 7 is a separate disciplinary case and sanction workflow. It must reuse Pha
   - [x] Update `downloadTemplate()` to call `fetchStudents()` instead of `$this->students`
 * **Verification:** `php artisan test tests/Feature/LecturerDashboardAllocationSessionTest.php --compact` (4 tests passed, 27 assertions — including the `preventLazyLoading(true)` scenario).
 
-#### Task 8.7: Broadsheet Academic Standing, Probation, and Two-Tier Withdrawal (W/U & W/P) Engine (✅ COMPLETED)
+#### Task 9.7: Broadsheet Academic Standing, Probation, and Two-Tier Withdrawal (W/U & W/P) Engine (✅ COMPLETED)
 * **Goal:** Align Departmental and Senate Broadsheets (`SenateBroadsheetController`, `ResultReportingService`, `senate-broadsheet.blade.php`, and `AcademicProgressionService`) with the official Waziri Umaru Federal Polytechnic / Federal University Birnin Kebbi (FUBK) Senate Grade Report layout and regulations.
 * **Scope:**
   - **Standing Calculation on Unreleased Broadsheets:** Support passing computed provisional CGPA to `AcademicProgressionService::determineAcademicStanding(User $user, ?float $calculatedCgpa = null)` so provisional staff broadsheets without persisted `ResultGpaRecord` rows evaluate standing dynamically instead of defaulting to `PROMOTED`.

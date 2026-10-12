@@ -147,6 +147,7 @@ class GradeCalculationService
      */
     public function processAndSaveGpaRecord(User $student, string $session, string $semester): ResultGpaRecord
     {
+        $student->loadMissing('academicDetail');
         $sessionResults = Result::with(['registeredCourse', 'departmentCourse.studentCourse'])
             ->where('user_id', $student->id)
             ->where('academic_session', $session)

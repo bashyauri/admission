@@ -41,6 +41,7 @@
             <!-- primary list  -->
 
             <ul class="flex flex-col pl-0 mb-0 list-none">
+            @include('components.navbars.partials.senate-corrections-link')
                 <!-- primary list item -->
 
                 <li class="mt-0.5 w-full">
@@ -457,10 +458,7 @@
                                     </span>
                                 </a>
                             </li>
-
-
-
-                        </ul>
+        </ul>
                     </div>
                 </li>
 
