@@ -489,22 +489,26 @@ class ResultEntry extends Component
                 return null;
             }
 
-            // 1. Direct coordinator assignment from PIN gen / registration if present
-            if ($ad->coordinator_id && isset($coordMap['id|' . $ad->coordinator_id])) {
-                return $coordMap['id|' . $ad->coordinator_id];
-            }
-
-            // 2. Resolve level directly from registration snapshot or student record (no year arithmetic)
+            // 1. Resolve level directly from registration snapshot or student record (no year arithmetic)
             $levelId = $result->level_snapshot 
                 ?? $result->registeredCourse?->level_snapshot 
                 ?? $result->registeredCourse?->student_level_id 
                 ?? $ad->student_level_id 
                 ?? 1;
 
+            // 2. Direct coordinator assignment from PIN gen / registration (only if level matches or is level-agnostic)
+            $directCoord = ($ad->coordinator_id && isset($coordMap['id|' . $ad->coordinator_id]))
+                ? $coordMap['id|' . $ad->coordinator_id]
+                : null;
+
+            if ($directCoord && (!$directCoord->student_level_id || (int)$directCoord->student_level_id === (int)$levelId)) {
+                return $directCoord;
+            }
+
             $exactKey    = $ad->course_id . '|' . $levelId . '|' . $ad->admission_session;
             $courseKey   = $ad->course_id . '|' . $levelId . '|';
             $deptKey     = 'dept|' . $ad->department_id . '|' . $levelId;
-            $legacyCoord = $ad->coordinator_id ? ($coordMap['id|' . $ad->coordinator_id] ?? \App\Models\Coordinator::find($ad->coordinator_id)) : null;
+            $legacyCoord = $directCoord ?? ($ad->coordinator_id ? ($coordMap['id|' . $ad->coordinator_id] ?? \App\Models\Coordinator::find($ad->coordinator_id)) : null);
 
             return $coordMap[$exactKey]
                 ?? $coordMap[$courseKey]

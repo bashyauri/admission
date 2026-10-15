@@ -444,17 +444,20 @@ class CoordinatorManager extends Component
 
                 $candidate = null;
 
-                // 1. Direct coordinator from academic details
-                if ($ad->coordinator_id) {
-                    $candidate = $coordinators->firstWhere('id', $ad->coordinator_id);
-                }
-
-                // 2. Resolve level directly
+                // 1. Resolve level directly
                 $levelId = $result->level_snapshot 
                     ?? $result->registeredCourse?->level_snapshot 
                     ?? $result->registeredCourse?->student_level_id 
                     ?? $ad->student_level_id 
                     ?? 1;
+
+                // 2. Direct coordinator from academic details (only if level matches or is level-agnostic)
+                if ($ad->coordinator_id) {
+                    $coord = $coordinators->firstWhere('id', $ad->coordinator_id);
+                    if ($coord && (!$coord->student_level_id || (int)$coord->student_level_id === (int)$levelId)) {
+                        $candidate = $coord;
+                    }
+                }
 
                 // 3. Exact course cohort match
                 if (!$candidate && $ad->course_id && $ad->admission_session) {
