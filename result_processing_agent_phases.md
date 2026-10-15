@@ -546,7 +546,8 @@ The system must follow these governance rules:
     - Show `WITHDRAWN FROM PROGRAMME` or `WITHDRAWN FROM UNIVERSITY` where appropriate
     - Show withdrawal session/effective date where appropriate
     - Show Senate reference where appropriate
-    - Preserve the student's historical representation for auditability
+    - Preserve the student's row in the withdrawal session's broadsheet for auditability
+    - Exclude a student whose latest Senate-approved status is withdrawal from earlier-session broadsheets; include again if a later Senate-approved reinstatement is effective by the report session
   - [x] Integrate Student Portal status UI:
     - Show a clear professional withdrawal/status banner
     - Explain effective session/date

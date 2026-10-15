@@ -283,6 +283,24 @@ class ResultReportingService
         $studentIds = $students->pluck('id')->all();
         $statusService = $this->studentStatusService ??= app(StudentStatusService::class);
         $statusesForSession = $statusService->getStatusesForSession($studentIds, $session);
+
+        // Keep a student's withdrawal-session results in that session's
+        // historical broadsheet, but omit them from later-session cohort
+        // reports unless a subsequent Senate-approved reinstatement exists.
+        $withdrawnBeforeSessionIds = $statusesForSession
+            ->filter(fn (StudentStatusRecord $status): bool =>
+                $status->status?->isWithdrawn() === true
+                && $status->academic_session < $session
+            )
+            ->keys();
+
+        if ($withdrawnBeforeSessionIds->isNotEmpty()) {
+            $students = $students
+                ->reject(fn (User $student): bool => $withdrawnBeforeSessionIds->contains((string) $student->id))
+                ->values();
+            $studentIds = $students->pluck('id')->all();
+        }
+
         $disciplinaryActions = DisciplinaryAction::query()
             ->whereIn('user_id', $studentIds)
             ->where('is_active', true)
