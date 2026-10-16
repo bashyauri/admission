@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Jantinnerezo\LivewireAlert\LivewireAlert;
 use Illuminate\Validation\ValidationException;
+use Illuminate\Database\QueryException;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 
@@ -194,10 +195,31 @@ class Settings extends Component
         } catch (ValidationException $e) {
             $this->setErrorBag($e->validator->errors());
             $this->showValidationErrors($e);
+        } catch (QueryException $e) {
+            if ($this->isCourseDuplicateConstraintViolation($e)) {
+                report($e);
+                $this->showErrorAlert('This course code or title is already in the catalog. Search for the existing course and use it instead.');
+                return;
+            }
+
+            report($e);
+            $this->showErrorAlert('Save failed. Please try again.');
         } catch (\Exception $e) {
             report($e);
             $this->showErrorAlert('Save failed.');
         }
+    }
+
+    private function isCourseDuplicateConstraintViolation(QueryException $exception): bool
+    {
+        $sqlState = (string) ($exception->errorInfo[0] ?? $exception->getCode());
+        $driverCode = (int) ($exception->errorInfo[1] ?? 0);
+        $message = strtolower($exception->getMessage());
+
+        return in_array($sqlState, ['23000', '23505'], true)
+            && (in_array($driverCode, [19, 1062], true)
+                || str_contains($message, 'unique constraint')
+                || str_contains($message, 'duplicate entry'));
     }
 
     private function showSuccessAlert($message): void

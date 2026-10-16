@@ -385,6 +385,8 @@ Authorization checks permission via Policies
 **Relationships:**
 - hasMany DepartmentCourses
 
+**Course creation rule:** `student_courses` is the shared canonical course catalog. Create a course once, identified primarily by its normalized course code; departments should reference the existing catalog course through `department_courses` rather than create another copy. Reject duplicate codes (case-insensitive and ignoring surrounding whitespace) and duplicate titles in the admin form, show field-level guidance, and retain database unique constraints as the final concurrency safeguard. If concurrent creation reaches a unique constraint, show a clear duplicate-and-reuse message while preserving the entered form values. A course code/title change to an existing catalog course is a course-maintenance/versioning decision, not a reason to create a duplicate.
+
 #### `department_courses`
 **Purpose:** Course allocation to departments
 
