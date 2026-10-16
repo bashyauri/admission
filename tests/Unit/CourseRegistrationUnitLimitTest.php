@@ -158,7 +158,7 @@ class CourseRegistrationUnitLimitTest extends TestCase
      */
     public function test_service_allows_registration_when_no_max_configured(): void
     {
-        // No DepartmentMaxUnit row → getMaxUnits returns 0 → skip enforcement
+        // Existing behavior: a missing cap does not impose an artificial limit.
         $sc = StudentCourse::create([
             'code' => 'TST701', 'title' => 'No limit configured',
             'units' => 20, 'student_level_id' => $this->level->id, 'semester' => 1,

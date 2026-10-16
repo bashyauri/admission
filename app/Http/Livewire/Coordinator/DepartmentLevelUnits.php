@@ -5,8 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Livewire\Coordinator;
 
 use Livewire\Component;
-use App\Enums\StudentLevel;
-use App\Http\Livewire\Admin\Settings;
+use App\Services\AcademicLevelService;
 use Jantinnerezo\LivewireAlert\LivewireAlert;
 use Illuminate\Validation\ValidationException;
 use App\Livewire\Forms\DepartmentLevelUnitsForm;
@@ -50,6 +49,8 @@ class DepartmentLevelUnits extends Component
     }
     public function render()
     {
-        return view('livewire.coordinator.department-level-units', ['levels' => StudentLevel::getLevels()]);
+        return view('livewire.coordinator.department-level-units', [
+            'levels' => app(AcademicLevelService::class)->undergraduateLevelOptions(),
+        ]);
     }
 }

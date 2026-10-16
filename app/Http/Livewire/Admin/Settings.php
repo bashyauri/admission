@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Http\Livewire\Admin;
 
 use App\Enums\Role;
-use App\Enums\StudentLevel;
 use App\Livewire\Forms\CreateCoordinatorForm;
 use Livewire\Component;
 use App\Models\Department;
@@ -289,10 +288,13 @@ class Settings extends Component
 
     public function render()
     {
+        $undergraduateLevels = app(\App\Services\AcademicLevelService::class)
+            ->undergraduateLevelOptions();
+
         return view('livewire.admin.settings', [
             'departments' => Department::get(['id', 'name']),
             'roles' => Role::getRoles(),
-            'levels' => StudentLevel::getLevels(),
+            'levels' => $undergraduateLevels,
             'sessions' => $this->sessions,
             'programmes' => [
                 ['name' => 'HND', 'value' => 1],

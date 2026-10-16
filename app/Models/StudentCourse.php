@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class StudentCourse extends Model
 {
@@ -35,5 +36,10 @@ class StudentCourse extends Model
     public function departmentCourses(): HasMany
     {
         return $this->hasMany(DepartmentCourse::class);
+    }
+
+    public function studentLevel(): BelongsTo
+    {
+        return $this->belongsTo(StudentLevel::class);
     }
 }

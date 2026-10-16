@@ -36,7 +36,7 @@ class CourseRegistrationService
             return collect();
         }
 
-        $query = DepartmentCourse::with('studentCourse') // Eager load the relationship
+        $query = DepartmentCourse::with('studentCourse.studentLevel') // Eager load the course and its authoritative level label.
             ->where('department_courses.department_id', $departmentId);
 
         // UG offerings are defined by department and level. Keep PG selection
@@ -130,15 +130,13 @@ class CourseRegistrationService
         // This is the authoritative check — the Livewire canAddCourse() is UI-only.
         if ($user->isUndergraduate()) {
             $maxUnits = $this->getMaxUnits((int) $student->department_id, (int) $student->student_level_id);
-            if ($maxUnits > 0) {
-                $currentTotal = $this->getTotalUnitsOfRegisteredCourses($student->id, $academicSession);
-                $courseUnits = (int) $course->units;
-                if (($currentTotal + $courseUnits) > $maxUnits) {
-                    throw new \InvalidArgumentException(
-                        "Adding this course ({$courseUnits} units) would exceed the maximum allowed load of {$maxUnits} units for your level. "
-                        . "You currently have {$currentTotal} units registered."
-                    );
-                }
+            $currentTotal = $this->getTotalUnitsOfRegisteredCourses($student->id, $academicSession);
+            $courseUnits = (int) $course->units;
+            if ($maxUnits > 0 && ($currentTotal + $courseUnits) > $maxUnits) {
+                throw new \InvalidArgumentException(
+                    "Adding this course ({$courseUnits} units) would exceed the maximum allowed load of {$maxUnits} units for your level. "
+                    . "You currently have {$currentTotal} units registered."
+                );
             }
         }
 

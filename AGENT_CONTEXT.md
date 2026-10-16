@@ -387,6 +387,8 @@ Authorization checks permission via Policies
 
 **Course creation rule:** `student_courses` is the shared canonical course catalog. Create a course once, identified primarily by its normalized course code; departments should reference the existing catalog course through `department_courses` rather than create another copy. Reject duplicate codes (case-insensitive and ignoring surrounding whitespace) and duplicate titles in the admin form, show field-level guidance, and retain database unique constraints as the final concurrency safeguard. If concurrent creation reaches a unique constraint, show a clear duplicate-and-reuse message while preserving the entered form values. A course code/title change to an existing catalog course is a course-maintenance/versioning decision, not a reason to create a duplicate.
 
+**Academic level mapping issue:** Do not treat `student_level_id` as a globally meaningful display label. The configured database, `App\\Enums\\StudentLevel`, and `StudentLevelSeeder` currently disagree, and UG and PG records reuse level IDs with programme-specific meanings. Resolve labels using programme context. The admin UG course form reads actual `student_levels` rows labeled 100–500 and validates against those rows; it must not assume the visible level label equals the row ID. Do not relabel or remap existing level IDs until the target database has been audited and every affected reference can be mapped unambiguously. See [`ACADEMIC_LEVEL_MAPPING_PLAN.md`](ACADEMIC_LEVEL_MAPPING_PLAN.md) for the read-only audit and migration design.
+
 #### `department_courses`
 **Purpose:** Course allocation to departments
 

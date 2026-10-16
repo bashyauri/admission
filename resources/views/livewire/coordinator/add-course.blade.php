@@ -89,9 +89,6 @@
                         @foreach ($selectedCourses as $pickedCourse)
                                                 @php
     $course = StudentCourse::find($pickedCourse->student_course_id);
-    $lastDigit = (int) substr($course->code, -1);
-    $semester = $lastDigit % 2 === 0 ? 2 : 1;
-
                                                 @endphp
                                                 <li
                                                     class="border-black/12.5 rounded-t-inherit relative mb-4 block flex-col items-center border-0 border-solid px-4 py-0 pl-0 text-inherit">
@@ -118,7 +115,7 @@
                                                                     class="mb-0 font-semibold leading-tight text-size-xs text-slate-400 dark:text-white/80">
                                                                     Semester
                                                                 </p>
-                                                                <span class="font-bold leading-tight text-size-xs">{{ $semester }}</span>
+                                                                <span class="font-bold leading-tight text-size-xs">{{ (int) $course->semester === 1 ? 'First' : 'Second' }}</span>
                                                             </div>
                                                             <div class="mx-auto">
                                                                 <p

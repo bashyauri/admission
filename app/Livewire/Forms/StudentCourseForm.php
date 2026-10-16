@@ -3,6 +3,7 @@
 namespace App\Livewire\Forms;
 
 use App\Models\StudentCourse;
+use App\Models\StudentLevel;
 use Livewire\Form;
 
 class StudentCourseForm extends Form
@@ -13,6 +14,8 @@ class StudentCourseForm extends Form
     public $units;
 
     public $level_id;
+
+    public $semester;
 
 
     protected function rules(): array
@@ -47,7 +50,20 @@ class StudentCourseForm extends Form
                 },
             ],
             'units' => ['required', 'integer', 'min:1'],
-            'level_id' => ['required', 'exists:student_levels,id'],
+            'semester' => ['required', 'integer', 'in:1,2'],
+            'level_id' => [
+                'required',
+                function (string $attribute, mixed $value, \Closure $fail): void {
+                    $isUndergraduateLevel = StudentLevel::query()
+                        ->whereKey($value)
+                        ->whereIn('level', ['100', '200', '300', '400', '500'])
+                        ->exists();
+
+                    if (! $isUndergraduateLevel) {
+                        $fail('Select a valid undergraduate level from the course catalog.');
+                    }
+                },
+            ],
         ];
     }
 
@@ -59,8 +75,10 @@ class StudentCourseForm extends Form
             'units.required' => 'Enter the course credit units.',
             'units.integer' => 'Credit units must be a whole number.',
             'units.min' => 'Credit units must be at least 1.',
+            'semester.required' => 'Select the course semester.',
+            'semester.integer' => 'Select a valid semester.',
+            'semester.in' => 'Select First or Second semester.',
             'level_id.required' => 'Select the course level.',
-            'level_id.exists' => 'Select a valid course level.',
         ];
     }
 
@@ -70,15 +88,12 @@ class StudentCourseForm extends Form
         $this->title = preg_replace('/\s+/', ' ', trim((string) $this->title));
         $this->validate();
 
-        $lastDigit = substr($this->code, -1);
-        $semester = $lastDigit % 2 === 0 ? 2 : 1;
-
         StudentCourse::create([
             'code' => $this->code,
             'title' => $this->title,
             'units' => $this->units,
             'student_level_id' => (int)$this->level_id,
-            'semester' => (int)$semester
+            'semester' => (int) $this->semester,
 
 
         ]);

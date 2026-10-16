@@ -42,7 +42,7 @@
                     </div>
                     @error('courseForm.units') <p class="mt-1 text-xs font-semibold text-red-600" role="alert">{{ $message }}</p> @enderror
                 </div>
-                <div class="w-full max-w-full px-3 md:w-6/12 flex-0">
+                <div class="w-full max-w-full px-3 md:w-4/12 flex-0">
                     <label class="mt-6 mb-2 ml-1 font-bold text-size-xs text-slate-700 dark:text-white/80"
                         for="course-level">Level</label>
                     <div wire:ignore x-data x-init="
@@ -56,14 +56,31 @@
                         <select wire:model="courseForm.level_id" choice name="course-level" id="course-level"
                             x-ref="levels">
                             <option value="">Select level</option>
-                            @foreach ($levels as $level)
-
+                            @forelse ($levels as $level)
                                 <option value="{{ $level['value'] }}">{{ $level['name'] }}</option>
-
-                            @endforeach
+                            @empty
+                                <option value="" disabled>No undergraduate levels configured</option>
+                            @endforelse
                         </select>
                     </div>
+                    @if (empty($levels))
+                        <p class="mt-1 text-xs text-amber-700" role="status">Add undergraduate levels 100–500 to the academic level catalog before creating courses.</p>
+                    @endif
                     @error('courseForm.level_id') <p class="mt-1 text-xs font-semibold text-red-600" role="alert">{{ $message }}</p> @enderror
+                </div>
+                <div class="w-full max-w-full px-3 md:w-4/12 flex-0">
+                    <label class="mt-6 mb-2 ml-1 font-bold text-size-xs text-slate-700 dark:text-white/80"
+                        for="course-semester">Semester <span class="text-red-600" aria-hidden="true">*</span></label>
+                    <select id="course-semester" wire:model="courseForm.semester" required
+                        aria-describedby="course-semester-help"
+                        aria-invalid="{{ $errors->has('courseForm.semester') ? 'true' : 'false' }}"
+                        class="focus:shadow-soft-primary-outline dark:bg-gray-950 dark:text-white/80 text-size-sm leading-5.6 ease-soft block w-full appearance-none rounded-lg border border-solid {{ $errors->has('courseForm.semester') ? 'border-red-500' : 'border-gray-300' }} bg-white bg-clip-padding px-3 py-2 font-normal text-gray-700 outline-none transition-all focus:border-fuchsia-300 focus:outline-none">
+                        <option value="">Select semester</option>
+                        <option value="1">First Semester</option>
+                        <option value="2">Second Semester</option>
+                    </select>
+                    <p id="course-semester-help" class="mt-1 text-xs text-slate-500">Choose the semester from the approved curriculum.</p>
+                    @error('courseForm.semester') <p class="mt-1 text-xs font-semibold text-red-600" role="alert">{{ $message }}</p> @enderror
                 </div>
 
             </div>

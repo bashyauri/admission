@@ -38,6 +38,7 @@ class AcademicProgressionService
             ];
         }
 
+        $user->loadMissing('academicDetail.studentLevel');
         $academicDetail = $user->academicDetail;
         if (!$academicDetail) {
             return [
@@ -77,7 +78,8 @@ class AcademicProgressionService
             ];
         }
 
-        $currentLevel = (int) ($academicDetail->student_level_id ?? 1);
+        $levelService = app(AcademicLevelService::class);
+        $currentLevel = $levelService->undergraduateYearForId((int) $academicDetail->student_level_id);
         $maxLevel = $this->getMaxProgramLevel($user);
 
         if ($hasSanctionedRepeat) {
@@ -90,7 +92,7 @@ class AcademicProgressionService
         }
 
         // Check if student is in their final year with uncleared carry overs
-        if ($currentLevel >= $maxLevel && $hasUnclearedCarryOvers) {
+        if ($currentLevel !== null && $currentLevel >= $maxLevel && $hasUnclearedCarryOvers) {
             return [
                 'standing' => self::STANDING_SPILLOVER,
                 'cgpa' => $cgpa,
@@ -156,6 +158,9 @@ class AcademicProgressionService
      */
     public function getNextEligibleLevel(User $user): int
     {
+        $levelService = app(AcademicLevelService::class);
+        $user->loadMissing('academicDetail.studentLevel');
+
         if (!$user->isUndergraduate()) {
             // For postgraduate / other roles, fallback to current or level 1
             return (int) ($user->academicDetail?->student_level_id ?? 1);
@@ -166,10 +171,17 @@ class AcademicProgressionService
         // Fresh student
         if (!$academicDetail) {
             // DE students start at level 2 (200 Level), UTME at level 1 (100 Level)
-            return $user->isDe ? 2 : 1;
+            $entryYear = $user->isDe ? 2 : 1;
+            return $levelService->undergraduateLevelIdForYear($entryYear) ?? $entryYear;
         }
 
-        $currentLevel = (int) ($academicDetail->student_level_id ?? 1);
+        $currentLevelId = (int) ($academicDetail->student_level_id ?? 1);
+        $currentYear = $levelService->undergraduateYearForId($currentLevelId);
+        if ($currentYear === null) {
+            // An unrecognized/legacy label (for example Spill Over) has no
+            // undergraduate ordinal. Preserve it for staff review.
+            return $currentLevelId;
+        }
         $maxLevel = $this->getMaxProgramLevel($user);
         $standingInfo = $this->determineAcademicStanding($user);
         $standing = $standingInfo['standing'];
@@ -179,15 +191,20 @@ class AcademicProgressionService
             case self::STANDING_SPILLOVER:
             case self::STANDING_WITHDRAWN_UNIVERSITY:
             case self::STANDING_WITHDRAWN_PROGRAM:
-                // Retain current level (capped at max level)
-                return min($currentLevel, $maxLevel);
+                // Retain current level, capping only by academic year order.
+                $cappedYear = min($currentYear, $maxLevel);
+                return $cappedYear < $currentYear
+                    ? ($levelService->undergraduateLevelIdForYear($cappedYear) ?? $currentLevelId)
+                    : $currentLevelId;
 
             case self::STANDING_PROBATION:
             case self::STANDING_PROMOTED:
             default:
                 // Advance to next level, but never exceed max program level
-                $nextLevel = $currentLevel + 1;
-                return min($nextLevel, $maxLevel);
+                $nextYear = min($currentYear + 1, $maxLevel);
+                return $nextYear > $currentYear
+                    ? ($levelService->undergraduateLevelIdForYear($nextYear) ?? $currentLevelId)
+                    : $currentLevelId;
         }
     }
 

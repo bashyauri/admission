@@ -167,6 +167,9 @@ class CourseRegistration extends Component
         }
 
         $carryOverService = app(CarryOverRegistrationService::class);
+        if ($this->maxUnits <= 0) {
+            return $carryOverService->getActiveCarryOvers($user);
+        }
         return $this->student->approval?->isPinUsed()
             ? $carryOverService->registerEligibleRetakes($user, $this->student)
             : $carryOverService->getActiveCarryOvers($user);
@@ -283,7 +286,7 @@ class CourseRegistration extends Component
 
     private function canAddCourse(int $courseUnits): bool
     {
-        return ($this->totalRegisteredUnits + $courseUnits) <= $this->maxUnits;
+        return $this->maxUnits > 0 && ($this->totalRegisteredUnits + $courseUnits) <= $this->maxUnits;
     }
 
     private function currentAcademicSession(): string

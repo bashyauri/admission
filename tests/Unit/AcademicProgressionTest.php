@@ -28,6 +28,7 @@ class AcademicProgressionTest extends TestCase
     protected Programme $programme;
     protected StudentLevel $level100;
     protected StudentLevel $level200;
+    protected StudentLevel $level300;
     protected StudentLevel $level400;
 
     protected function setUp(): void
@@ -50,7 +51,7 @@ class AcademicProgressionTest extends TestCase
 
         $this->level100 = StudentLevel::where('level', '100')->first() ?? StudentLevel::create(['level' => '100']);
         $this->level200 = StudentLevel::where('level', '200')->first() ?? StudentLevel::create(['level' => '200']);
-        $level300 = StudentLevel::where('level', '300')->first() ?? StudentLevel::create(['level' => '300']);
+        $this->level300 = StudentLevel::where('level', '300')->first() ?? StudentLevel::create(['level' => '300']);
         $this->level400 = StudentLevel::where('level', '400')->first() ?? StudentLevel::create(['level' => '400']);
     }
 
@@ -105,7 +106,75 @@ class AcademicProgressionTest extends TestCase
         $user->save();
 
         $level = $this->progressionService->getNextEligibleLevel($user);
-        $this->assertEquals(1, $level);
+        $this->assertSame((int) $this->level100->id, $level);
+    }
+
+    public function test_ug_promotion_resolves_new_level_id_without_reusing_spill_over_id(): void
+    {
+        // Mirror the live database: legacy ID 3 remains Spill Over and the new
+        // undergraduate 300-level row has a different ID.
+        $spillOverId = (int) $this->level300->id;
+        $this->level300->update(['level' => 'Spill Over']);
+        $new300 = StudentLevel::create(['level' => '300']);
+        $this->assertNotSame($spillOverId, (int) $new300->id);
+
+        $user = new User();
+        $user->id = (string) \Illuminate\Support\Str::uuid();
+        $user->programme_id = ProgrammesEnum::Undergraduate->value;
+        $user->email = 'levelmap' . rand(1000, 9999) . '@test.com';
+        $user->password = bcrypt('password');
+        $user->vpassword = 'password';
+        $user->role = 'student';
+        $user->save();
+
+        $course = Course::create([
+            'name' => 'Four Year Programme',
+            'department_id' => $this->department->id,
+            'programme_id' => $this->programme->id,
+            'semesters' => 8,
+        ]);
+        AcademicDetail::create([
+            'user_id' => $user->id,
+            'matric_no' => 'MAP/' . rand(1000, 9999),
+            'course_id' => $course->id,
+            'programme_id' => $this->programme->id,
+            'department_id' => $this->department->id,
+            'student_level_id' => $this->level200->id,
+            'acad_session' => '2023-2024',
+        ]);
+
+        $this->assertSame((int) $new300->id, $this->progressionService->getNextEligibleLevel($user));
+        $this->assertSame('Spill Over', StudentLevel::findOrFail($spillOverId)->level);
+    }
+
+    public function test_postgraduate_level_id_is_not_changed_by_ug_level_mapping(): void
+    {
+        $user = new User();
+        $user->id = (string) \Illuminate\Support\Str::uuid();
+        $user->programme_id = ProgrammesEnum::PG->value;
+        $user->email = 'pglevelmap' . rand(1000, 9999) . '@test.com';
+        $user->password = bcrypt('password');
+        $user->vpassword = 'password';
+        $user->role = 'student';
+        $user->save();
+
+        $course = Course::create([
+            'name' => 'Postgraduate Programme',
+            'department_id' => $this->department->id,
+            'programme_id' => $this->programme->id,
+            'semesters' => 6,
+        ]);
+        AcademicDetail::create([
+            'user_id' => $user->id,
+            'matric_no' => 'PGMAP/' . rand(1000, 9999),
+            'course_id' => $course->id,
+            'programme_id' => $this->programme->id,
+            'department_id' => $this->department->id,
+            'student_level_id' => $this->level300->id,
+            'acad_session' => '2023-2024',
+        ]);
+
+        $this->assertSame((int) $this->level300->id, $this->progressionService->getNextEligibleLevel($user));
     }
 
     public function test_student_with_good_standing_is_promoted(): void
@@ -153,7 +222,7 @@ class AcademicProgressionTest extends TestCase
         $this->assertEquals(AcademicProgressionService::STANDING_PROMOTED, $standing['standing']);
 
         $nextLevel = $this->progressionService->getNextEligibleLevel($user);
-        $this->assertEquals(2, $nextLevel); // Promoted to 200L
+        $this->assertSame((int) $this->level200->id, $nextLevel); // Promoted to 200L
     }
 
     public function test_student_with_poor_standing_is_on_probation_under_nigerian_system(): void
@@ -201,7 +270,7 @@ class AcademicProgressionTest extends TestCase
         $this->assertEquals(AcademicProgressionService::STANDING_PROBATION, $standing['standing']);
 
         $nextLevel = $this->progressionService->getNextEligibleLevel($user);
-        $this->assertEquals(2, $nextLevel); // Probation does not force a whole-level repeat
+        $this->assertSame((int) $this->level200->id, $nextLevel); // Probation does not force a whole-level repeat
     }
 
     public function test_final_year_spillover_student_capped_at_max_level(): void
@@ -285,7 +354,7 @@ class AcademicProgressionTest extends TestCase
 
         // Should be capped at 4 (400 Level), never overflowing to 500 Level
         $nextLevel = $this->progressionService->getNextEligibleLevel($user);
-        $this->assertEquals(4, $nextLevel);
+        $this->assertSame((int) $this->level400->id, $nextLevel);
     }
 
     public function test_process_and_apply_academic_progression_sets_probation_automatically(): void

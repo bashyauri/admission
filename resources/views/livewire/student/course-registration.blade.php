@@ -218,7 +218,7 @@
                                                 <span class="bg-fuchsia-100 text-fuchsia-700 text-sm font-bold px-3 py-1 rounded-full">
                                                     {{ $course->units }} Units
                                                 </span>
-                                                <span class="text-xs text-gray-500">Level {{ $course->student_level_id }}00</span>
+                                                <span class="text-xs text-gray-500">Level {{ $course->studentCourse?->studentLevel?->level ?? 'Not set' }}</span>
                                             </div>
                                         </div>
                                         
@@ -297,6 +297,7 @@
 
                             <!-- Enhanced Unit Progress Bar -->
                             <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
+                                @if($maxUnits > 0)
                                 <div class="flex justify-between items-center mb-2">
                                     <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Unit Usage</span>
                                     <span class="text-sm font-bold {{ $registeredCourses->sum(fn ($course) => $course->credit_units_snapshot ?? $course->units) > $maxUnits ? 'text-red-600 dark:text-red-400' : 'text-gray-700 dark:text-gray-300' }}">
@@ -323,6 +324,11 @@
                                             <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
                                         </svg>
                                         Approaching unit limit
+                                    </p>
+                                @endif
+                                @else
+                                    <p class="text-sm font-medium text-amber-800 dark:text-amber-200" role="status">
+                                        Your Coordinator has not configured the maximum unit load for this level yet. Course registration is unavailable until it is set.
                                     </p>
                                 @endif
                             </div>
@@ -437,7 +443,7 @@
                                                     <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                                                     </svg>
-                                                    Level {{ $pickedCourse->student_level_id }}00
+                                                    Level {{ $pickedCourse->studentCourse?->studentLevel?->level ?? 'Not set' }}
                                                 </span>
                                                 <span class="flex items-center">
                                                     <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
