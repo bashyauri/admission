@@ -121,6 +121,28 @@ graph TD
 - [x] Added navigation menu links in `coordinator-sidebar.blade.php` and `exam-officer-sidebar.blade.php`.
 - [x] Created and passed `tests/Feature/ResultApprovalWorkflowTest.php` (4 tests) for coordinator approval, return, Exam Officer release, and Exam Officer return.
 
+### Phase 4 Follow-up: Task 4.1 - Result Workflow Email Notifications (PLANNED)
+
+* **Goal:** Prompt the next responsible staff member when UG results are returned or forwarded, while keeping the portal as the authoritative workflow and notification record.
+* **Workflow and recipients:**
+  - Lecturer submits a new result sheet: notify the assigned Coordinator that the results are ready for review.
+  - Coordinator returns results to Lecturer: notify the responsible Lecturer with the return reason and a secure link to correct and resubmit.
+  - Lecturer resubmits a returned result sheet: notify the assigned Coordinator that the corrections are ready for another review.
+  - Coordinator approves and forwards results: notify the assigned Exam Officer that the course results are ready for review.
+  - Exam Officer returns results: notify the responsible Coordinator with the return reason so they can coordinate correction with the Lecturer.
+  - After a successful submission, resubmission, or forward, send the initiating staff member a concise confirmation.
+* **Requirements:**
+  - Create/update the in-portal notification alongside the workflow transition; use email as an additional prompt, not the source of truth.
+  - Send only on actionable handoffs and confirmations. Do not email students about staff workflow changes.
+  - Keep messages concise: course, session, semester, required action, return reason where applicable, and an authenticated portal link. Do not include student names, matriculation numbers, marks, or result attachments.
+  - Resolve recipients from the existing course/cohort assignment and approval workflow; do not broadcast to unrelated staff.
+  - Queue email delivery and make notification dispatch idempotent so retries do not duplicate messages. Record delivery success/failure for authorized staff follow-up.
+  - Email delivery failure must not roll back or block a valid result workflow transition; show the authoritative state and in-portal notification regardless.
+  - Preserve the existing Lecturer -> Coordinator -> Exam Officer -> Released approval chain and UG/PG isolation.
+* **Verification:** Cover recipient resolution and each transition, return reason inclusion, privacy-safe content, duplicate/retry behavior, delivery failure handling, and unchanged approval state transitions.
+* **Agent prompt:**
+  > *"Implement Phase 4 Follow-up Task 4.1 from `result_processing_agent_phases.md`: add idempotent, queued email prompts and in-portal notifications for result workflow submissions, resubmissions, returns, and handoffs. Notify the assigned Coordinator when a Lecturer submits or resubmits results; notify the Lecturer on Coordinator return; notify the assigned Exam Officer on Coordinator forward; and notify the responsible Coordinator on Exam Officer return. Confirm successful submission/resubmission/forward to the initiating staff member. Include return reasons and secure portal links where relevant, exclude student-identifying information and marks, record delivery outcomes, and do not make email delivery block workflow transitions. Preserve existing authorization, recipient assignment, approval state machine, and UG/PG isolation. Add focused regression coverage."*
+
 ### Admission Cohort Population (✅ COMPLETED)
 - [x] Populate `academic_details.admission_session` when each student's academic detail is created during admission or import (`AcademicDetailForm.php` & `UgAcademicDetailForm.php`).
 - [x] Provide an admin-reviewed backfill queue that derives historical admission sessions from the first two matric-number digits, for example `24...` to `2024/2025` and `25...` to `2025/2026` (`AdmissionSessionSynchronizer.php`).

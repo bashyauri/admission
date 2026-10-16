@@ -103,6 +103,13 @@
                     </div>
                 </div>
 
+                <div class="mx-4 mt-4 flex items-start gap-3 rounded-xl border border-sky-100 bg-sky-50 px-4 py-3 sm:mx-6">
+                    <span aria-hidden="true" class="mt-0.5 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-sky-100 text-sm font-bold text-sky-700">i</span>
+                    <p class="mb-0 text-sm leading-5 text-sky-900">
+                        Save each student’s scores with <strong>Save score</strong>. When the course results are complete, use <strong>Submit to Coordinators</strong> to send the pending results for review.
+                    </p>
+                </div>
+
                 @if($uploadPreviewRows)
                     <div class="border-b border-slate-200 bg-white px-6 py-5">
                         <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -160,7 +167,118 @@
 
                 {{-- Student Results Table --}}
                 <div class="flex-auto px-0 pt-0 pb-2">
-                    <div class="p-0 overflow-x-auto">
+                    {{-- Compact student cards keep scores and the save action visible on phones/tablets. --}}
+                    <div class="space-y-3 px-4 py-4 2xl:hidden">
+                        @forelse($students as $student)
+                            @php
+                                $userId = $student->academicDetail->user_id ?? null;
+                                $ca = $results[$userId]['ca'] ?? null;
+                                $exam = $results[$userId]['exam'] ?? null;
+                                $isAbsent = (bool) ($results[$userId]['is_absent'] ?? false);
+                                $hasInvalidCa = $ca !== null && $ca !== '' && (!is_numeric($ca) || (float) $ca < 0 || (float) $ca > $maxCa);
+                                $hasInvalidExam = $exam !== null && $exam !== '' && (!is_numeric($exam) || (float) $exam < 0 || (float) $exam > $maxExam);
+                                $hasInvalidScore = $hasInvalidCa || $hasInvalidExam;
+                                $hasScore = ($ca !== null && $ca !== '') || ($exam !== null && $exam !== '');
+                                $hasCompleteScore = $isAbsent || ($ca !== null && $ca !== '' && $exam !== null && $exam !== '');
+                                $total = $isAbsent ? 0 : ($hasInvalidScore || !$hasCompleteScore ? null : (float) $ca + (float) $exam);
+                                $grade = $isAbsent ? 'F' : (!$hasCompleteScore || $hasInvalidScore ? '-' : match(true) {
+                                    $total >= 70 => 'A',
+                                    $total >= 60 => 'B',
+                                    $total >= 50 => 'C',
+                                    $total >= 45 => 'D',
+                                    $total >= 40 => 'E',
+                                    default => 'F',
+                                });
+                                $status = $results[$userId]['status'] ?? 'pending';
+                                $isPending = $status === 'pending';
+                                $canEnterNewResult = $results[$userId]['can_enter_new_result'] ?? true;
+                                $institutionalStatus = $results[$userId]['institutional_status'] ?? null;
+                            @endphp
+                            <article wire:key="result-entry-mobile-{{ $userId }}" class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+                                <div class="flex items-start justify-between gap-3">
+                                    <div class="min-w-0">
+                                        <h3 class="break-words text-sm font-bold text-slate-900">
+                                            {{ $student->academicDetail->user->surname ?? '' }}
+                                            {{ $student->academicDetail->user->firstname ?? '' }}
+                                            {{ $student->academicDetail->user->m_name ?? '' }}
+                                        </h3>
+                                        <p class="mt-1 font-mono text-xs text-slate-500">{{ $student->academicDetail->matric_no ?? 'N/A' }}</p>
+                                    </div>
+                                    <span class="shrink-0 rounded-full px-2.5 py-1 text-[10px] font-bold uppercase
+                                        @if($status === 'pending') bg-amber-100 text-amber-800
+                                        @elseif($status === 'submitted') bg-blue-100 text-blue-800
+                                        @else bg-emerald-100 text-emerald-800 @endif">
+                                        {{ $status }}
+                                    </span>
+                                </div>
+
+                                @if($institutionalStatus)
+                                    <p class="mt-3 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-xs font-semibold text-rose-800">{{ $institutionalStatus }}</p>
+                                @endif
+
+                                <div class="mt-4 grid grid-cols-2 gap-3">
+                                    <label class="block text-xs font-semibold text-slate-600">
+                                        CA score <span class="font-normal">(max {{ $maxCa }})</span>
+                                        <input type="number" step="0.01" min="0" max="{{ $maxCa }}"
+                                            wire:model.live.debounce.300ms="results.{{ $userId }}.ca"
+                                            aria-label="CA score for {{ $student->academicDetail->matric_no ?? 'student' }}"
+                                            aria-invalid="{{ $hasInvalidCa ? 'true' : 'false' }}"
+                                            class="mt-1 w-full rounded-lg border px-3 py-2 text-sm text-slate-900 focus:ring-2 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-500 {{ $hasInvalidCa ? 'border-red-500 bg-red-50 focus:ring-red-200' : 'border-slate-300 bg-white focus:ring-fuchsia-200' }}"
+                                            {{ !$isPending || $isAbsent || !$canEnterNewResult ? 'disabled' : '' }}>
+                                        @if($hasInvalidCa)
+                                            <span class="mt-1 block text-xs font-medium text-red-700">Enter a value from 0 to {{ $maxCa }}.</span>
+                                        @endif
+                                    </label>
+                                    <label class="block text-xs font-semibold text-slate-600">
+                                        Exam score <span class="font-normal">(max {{ $maxExam }})</span>
+                                        <input type="number" step="0.01" min="0" max="{{ $maxExam }}"
+                                            wire:model.live.debounce.300ms="results.{{ $userId }}.exam"
+                                            aria-label="Exam score for {{ $student->academicDetail->matric_no ?? 'student' }}"
+                                            aria-invalid="{{ $hasInvalidExam ? 'true' : 'false' }}"
+                                            class="mt-1 w-full rounded-lg border px-3 py-2 text-sm text-slate-900 focus:ring-2 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-500 {{ $hasInvalidExam ? 'border-red-500 bg-red-50 focus:ring-red-200' : 'border-slate-300 bg-white focus:ring-fuchsia-200' }}"
+                                            {{ !$isPending || $isAbsent || !$canEnterNewResult ? 'disabled' : '' }}>
+                                        @if($hasInvalidExam)
+                                            <span class="mt-1 block text-xs font-medium text-red-700">Enter a value from 0 to {{ $maxExam }}.</span>
+                                        @endif
+                                    </label>
+                                </div>
+
+                                <div class="mt-3 flex items-center justify-between rounded-lg bg-slate-50 px-3 py-2 text-xs">
+                                    <span class="text-slate-600">Total
+                                        <strong class="ml-1 {{ $hasInvalidScore ? 'text-red-700' : 'text-slate-900' }}">
+                                            {{ $isAbsent ? 'Absent' : ($hasInvalidScore ? 'Fix score' : ($hasCompleteScore ? number_format($total, 1) : ($hasScore ? 'Incomplete' : '-'))) }}
+                                        </strong>
+                                    </span>
+                                    <span class="text-slate-600">Grade <strong class="ml-1 text-sm text-slate-900">{{ $grade }}</strong></span>
+                                </div>
+
+                                @if($isPending && $canEnterNewResult)
+                                    <div class="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 pt-3">
+                                        <label class="inline-flex min-h-11 items-center gap-2 text-sm font-medium text-slate-700">
+                                            <input type="checkbox" wire:model.live="results.{{ $userId }}.is_absent" class="h-4 w-4 rounded border-slate-300 text-red-600 focus:ring-red-500">
+                                            Mark absent
+                                        </label>
+                                        <button type="button" wire:click="saveScore('{{ $userId }}')"
+                                            wire:loading.attr="disabled" wire:target="saveScore('{{ $userId }}')"
+                                            class="inline-flex min-h-11 w-full items-center justify-center rounded-lg bg-slate-800 px-4 py-2 text-sm font-bold text-white transition hover:bg-fuchsia-600 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto">
+                                            <span wire:loading.remove wire:target="saveScore('{{ $userId }}')">Save score</span>
+                                            <span wire:loading wire:target="saveScore('{{ $userId }}')">Saving...</span>
+                                        </button>
+                                    </div>
+                                @elseif($isPending)
+                                    <p class="mt-4 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-xs font-semibold text-rose-800">New result entry is blocked by the student’s institutional status. Previously saved results remain in the record.</p>
+                                @else
+                                    <p class="mt-4 rounded-lg border border-blue-200 bg-blue-50 px-3 py-2 text-xs font-semibold text-blue-800">Editing is locked because this result has been {{ $status }}.</p>
+                                @endif
+                            </article>
+                        @empty
+                            <div class="rounded-xl border border-dashed border-slate-300 bg-slate-50 px-4 py-8 text-center text-sm text-slate-500">
+                                No students registered for this course in <strong>{{ $selectedSession }}</strong> ({{ ucfirst($selectedSemester) }} Semester).
+                            </div>
+                        @endforelse
+                    </div>
+
+                    <div class="hidden p-0 overflow-x-auto 2xl:block">
                         <table class="items-center w-full mb-0 align-top border-gray-200 text-slate-500">
                             <thead class="align-bottom">
                                 <tr>

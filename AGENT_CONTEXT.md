@@ -576,6 +576,15 @@ Results follow a strict multi-level approval state machine:
 4. Academic progression may record standing and withdrawal eligibility as a recommendation. Result release must not apply an institutional withdrawal; Senate approval through the student-status workflow is required first.
 5. Admins may record an already-approved Senate withdrawal in one submission on `/student-status-management?sidebar=admin` by entering the real Senate reference and decision date. The service atomically records recommendation, Senate submission, approval, and audit history. This is an administrative entry of an existing Senate decision, not a Senate bypass.
 
+**Result workflow notifications (recommended behavior):** Keep the portal workflow status and in-portal notification as the source of truth; email is a prompt for staff who need to act. Notify the next responsible person when the workflow changes hands, and send the person who submitted or forwarded results a brief confirmation:
+- Lecturer submits new results or resubmits after corrections: notify the assigned Coordinator that the results are ready for review.
+- Coordinator returns results to the lecturer: notify the lecturer with the return reason and a secure link to correct and resubmit.
+- Coordinator approves and forwards results: notify the assigned Exam Officer that the results are ready for review.
+- Exam Officer returns results to the coordinator: notify the responsible coordinator with the return reason.
+- On successful submit, resubmit, or forward, confirm the action to the staff member who initiated it.
+
+Emails should be concise and contain only course, session, semester, the action required, any relevant return reason, and a secure portal link. Do not include student names, matriculation numbers, marks, or result attachments. Make sending idempotent so retries do not produce duplicate messages, and record delivery success/failure for staff follow-up. Do not make email delivery a prerequisite for a workflow status transition.
+
 **Failure handling:** Result status updates occur before downstream GPA, carry-over, progression, and audit processing completes. A 403/error can therefore leave partial writes. Inspect result status, GPA record, carry-over state, progression recommendation, and release audit before retrying.
 
 ---
