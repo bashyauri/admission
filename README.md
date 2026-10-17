@@ -27,6 +27,7 @@ This system manages the complete student lifecycle from admission to graduation,
 - Programme management (Undergraduate, Postgraduate, HND, ND, NCE, PD)
 - Department and school management
 - Course allocation manager (`CourseAllocationManager`) for assigning courses to lecturers
+- Coordinator department course assignment with debounced catalog search, course metadata, and paginated lists
 - Student application workflow with status tracking
 - O-level result and certificate upload management
 - Post-UTME credential management

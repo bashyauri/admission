@@ -9,6 +9,7 @@ use App\Models\RegisteredCourse;
 use App\Models\Result;
 use App\Services\GradeCalculationService;
 use App\Services\StudentStatusService;
+use App\Services\ResultWorkflowNotificationService;
 use App\Enums\AcademicActivity;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
@@ -556,6 +557,9 @@ class ResultEntry extends Component
 
         // Single UPDATE per coordinator group (replaces N individual ->update() calls)
         $coordinatorNames = [];
+        $coordinatorRecipients = [];
+        $submittedIds = $results->pluck('id')->values()->all();
+        $eventKey = 'lecturer-submit:'.hash('sha256', implode('|', $submittedIds).now()->format('U.u'));
         foreach ($byCoordinator as $coordinatorId => $resultIds) {
             $coordinator = \App\Models\Coordinator::with('user')->find($coordinatorId);
             $coordinatorName = $coordinator?->user ? ($coordinator->user->firstname . ' ' . $coordinator->user->surname) : "Coordinator #{$coordinatorId}";
@@ -568,9 +572,43 @@ class ResultEntry extends Component
                     'coordinator_id' => $coordinatorId,
                     'updated_at'     => now(),
                 ]);
+
+            if ($coordinator?->user) {
+                $coordinatorRecipients[$coordinatorId] = $coordinator->user;
+            }
         }
 
         if ($updated > 0) {
+            $context = [
+                'course' => trim(($allocation->departmentCourse?->studentCourse?->code ?? '').' '.($allocation->departmentCourse?->studentCourse?->title ?? '')),
+                'session' => $session,
+                'semester' => $semester,
+                'action' => 'Review and approve or return the submitted results.',
+            ];
+            $notifications = app(ResultWorkflowNotificationService::class);
+            foreach ($coordinatorRecipients as $coordinatorId => $coordinatorUser) {
+                $notifications->notify(
+                    [$coordinatorUser],
+                    'lecturer_submission',
+                    $eventKey.':coordinator:'.$coordinatorId,
+                    'Results ready for Coordinator review',
+                    'A lecturer submitted course results for your review.',
+                    url('/coordinator/result-review'),
+                    $context
+                );
+            }
+            $notifications->notify(
+                [Auth::user()],
+                'lecturer_submission_confirmation',
+                $eventKey.':lecturer:'.Auth::id(),
+                'Results submitted successfully',
+                'Your course results were submitted to the assigned Coordinator(s).',
+                url('/lecturer/result-entry/'.$allocation->id),
+                [
+                    ...$context,
+                    'action' => 'Your submission is awaiting Coordinator review.',
+                ]
+            );
             $coordinatorList = implode(', ', $coordinatorNames);
             $this->alert('success', "{$updated} result(s) submitted to coordinator(s): {$coordinatorList}");
             $this->loadStudentsAndResults();

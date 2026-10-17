@@ -209,6 +209,15 @@ class ResultApprovalWorkflowTest extends TestCase
 
         $this->assertNotNull($approval);
         $this->assertEquals($this->coordinator->id, $approval->approved_by);
+        $this->assertDatabaseHas('result_workflow_notifications', [
+            'user_id' => $this->examOfficer->id,
+            'event_type' => 'coordinator_forward',
+            'email_status' => 'queued',
+        ]);
+        $this->assertDatabaseHas('result_workflow_notifications', [
+            'user_id' => $this->coordinator->id,
+            'event_type' => 'coordinator_forward_confirmation',
+        ]);
     }
 
     public function test_coordinator_can_return_results_to_lecturer(): void
@@ -261,6 +270,11 @@ class ResultApprovalWorkflowTest extends TestCase
 
         $this->assertNotNull($approval);
         $this->assertEquals('CA scores require recalculation for Musa.', $approval->comments);
+        $this->assertDatabaseHas('result_workflow_notifications', [
+            'user_id' => $this->lecturer->id,
+            'event_type' => 'coordinator_return',
+            'context->reason' => 'CA scores require recalculation for Musa.',
+        ]);
     }
 
     public function test_exam_officer_can_release_results_and_trigger_gpa_calculation(): void
@@ -373,5 +387,12 @@ class ResultApprovalWorkflowTest extends TestCase
         $result->refresh();
         $this->assertEquals('submitted', $result->status);
         $this->assertStringContainsString('Discrepancy in continuous assessment format.', $result->remarks);
+        $this->assertNull($result->coordinator_approved_at);
+        $this->assertNull($result->exam_officer_approved_at);
+        $this->assertDatabaseHas('result_workflow_notifications', [
+            'user_id' => $this->coordinator->id,
+            'event_type' => 'exam_officer_return',
+            'context->reason' => 'Discrepancy in continuous assessment format.',
+        ]);
     }
 }

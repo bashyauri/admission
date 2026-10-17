@@ -121,7 +121,11 @@ graph TD
 - [x] Added navigation menu links in `coordinator-sidebar.blade.php` and `exam-officer-sidebar.blade.php`.
 - [x] Created and passed `tests/Feature/ResultApprovalWorkflowTest.php` (4 tests) for coordinator approval, return, Exam Officer release, and Exam Officer return.
 
-### Phase 4 Follow-up: Task 4.1 - Result Workflow Email Notifications (PLANNED)
+### Phase 4 Follow-up: Task 4.1 - Result Workflow Email Notifications (IMPLEMENTED; VERIFICATION PENDING)
+
+* **Status:** Workflow-specific in-portal records and queued email prompts are implemented for Lecturer submission/resubmission, Coordinator return/forward, Exam Officer return, and successful handoff confirmations. The notifications page now shows recipient-scoped messages and email delivery status. Focused regression tests and production queue-worker verification remain pending.
+* **Implementation:** `ResultWorkflowNotificationService`, `ResultWorkflowNotification`, and `SendResultWorkflowNotificationEmail` persist an idempotent outbox row per event and recipient, then queue mail on the database `notifications` queue. Email failures are recorded without reversing the result transition. `/notifications` displays each user's own updates and supports marking them read. Exam Officer returns clear prior approval stamps so returned work re-enters the Coordinator review queue.
+* **Operational requirement:** Configure a database queue worker for the `notifications` queue in each deployment. The existing `jobs` table migration is reused; this feature's migration has not been run automatically.
 
 * **Goal:** Prompt the next responsible staff member when UG results are returned or forwarded, while keeping the portal as the authoritative workflow and notification record.
 * **Workflow and recipients:**

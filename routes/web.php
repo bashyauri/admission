@@ -124,6 +124,7 @@ use App\Http\Livewire\Transactions\AcceptanceInvoice;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Livewire\Transactions\PostutmeScreeningInvoice;
 use App\Http\Livewire\Student\StudentStatusManagement;
+use App\Http\Livewire\Pages\Notifications;
 
 /*
 |--------------------------------------------------------------------------
@@ -164,6 +165,10 @@ Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])
 Route::get('/student-status-management', StudentStatusManagement::class)
     ->middleware(['auth', 'verified'])
     ->name('student-status.management');
+
+Route::get('/notifications', Notifications::class)
+    ->middleware(['auth', 'verified'])
+    ->name('notifications');
 
 Route::middleware(['auth', 'verified', 'role:applicant'])->group(function () {
 

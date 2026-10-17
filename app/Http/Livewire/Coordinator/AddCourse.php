@@ -6,17 +6,31 @@ use App\Livewire\Forms\EditUnitForm;
 use App\Models\DepartmentCourse;
 use App\Models\StudentCourse;
 use Jantinnerezo\LivewireAlert\LivewireAlert;
+use Livewire\Attributes\Locked;
 use Livewire\Component;
 use Livewire\WithPagination;
+use Illuminate\Validation\ValidationException;
 
 class AddCourse extends Component
 {
     use LivewireAlert, WithPagination;
 
     public $search = '';
+    #[Locked]
     public $departmentId;
     public $editingCourseId;
     public EditUnitForm $form;
+
+    public function updatingSearch(): void
+    {
+        $this->resetPage('availablePage');
+    }
+
+    public function clearSearch(): void
+    {
+        $this->search = '';
+        $this->resetPage('availablePage');
+    }
 
     // Initialize the department ID when the component mounts
     public function mount(): void
@@ -44,6 +58,7 @@ class AddCourse extends Component
                 'department_id' => $this->departmentId,
                 'units' => $course->units,
             ]);
+            $this->resetPage('availablePage');
 
             $this->alert('success', 'Course added successfully!', [
                 'position' => 'top-end',
@@ -64,7 +79,11 @@ class AddCourse extends Component
     public function deleteCourse(int $id): void
     {
         try {
-            DepartmentCourse::findOrFail($id)->delete();
+            DepartmentCourse::query()
+                ->where('department_id', $this->departmentId)
+                ->findOrFail($id)
+                ->delete();
+            $this->resetPage('departmentPage');
             $this->alert('success', 'Course deleted successfully!', [
                 'position' => 'top-end',
                 'timer' => 3000,
@@ -83,8 +102,11 @@ class AddCourse extends Component
     // Start editing a course's units
     public function editCourse(int $id): void
     {
+        $departmentCourse = DepartmentCourse::query()
+            ->where('department_id', $this->departmentId)
+            ->findOrFail($id);
+
         $this->editingCourseId = $id;
-        $departmentCourse = DepartmentCourse::findOrFail($id);
         $this->form->unit = $departmentCourse->units;
     }
 
@@ -92,12 +114,19 @@ class AddCourse extends Component
     public function saveUnit(): void
     {
         try {
-            $this->form->update($this->editingCourseId);
+            if (!$this->editingCourseId) {
+                return;
+            }
+
+            $this->form->update($this->editingCourseId, (int) $this->departmentId);
             $this->alert('success', 'Units updated successfully!', [
                 'position' => 'top-end',
                 'timer' => 3000,
                 'toast' => true,
             ]);
+        } catch (ValidationException $e) {
+            $this->setErrorBag($e->validator->errors());
+            return;
         } catch (\Exception $e) {
             report($e);
             $this->alert('error', 'Failed to update units.', [
@@ -139,14 +168,17 @@ class AddCourse extends Component
     private function getCoursesNotPicked()
     {
         return StudentCourse::query()
-            ->leftJoin('department_courses', function ($join) {
-                $join->on('student_courses.id', '=', 'department_courses.student_course_id')
-                    ->where('department_courses.department_id', $this->departmentId);
+            ->with('studentLevel')
+            ->whereDoesntHave('departmentCourses', fn ($query) => $query->where('department_id', $this->departmentId))
+            ->when(trim((string) $this->search) !== '', function ($query): void {
+                $term = trim((string) $this->search);
+                $query->where(function ($courseQuery) use ($term): void {
+                    $courseQuery->where('code', 'like', "%{$term}%")
+                        ->orWhere('title', 'like', "%{$term}%");
+                });
             })
-            ->whereNull('department_courses.id')
-            ->where('student_courses.code', 'like', "%{$this->search}%")
-            ->select('student_courses.*')
-            ->paginate(10);
+            ->orderBy('code')
+            ->paginate(10, ['*'], 'availablePage');
     }
 
     // Get courses already picked by the department
@@ -154,8 +186,8 @@ class AddCourse extends Component
     {
         return DepartmentCourse::query()
             ->where('department_id', $this->departmentId)
-            ->with('studentCourse')
+            ->with('studentCourse.studentLevel')
             ->orderBy('created_at', 'desc')
-            ->get();
+            ->paginate(20, ['*'], 'departmentPage');
     }
 }

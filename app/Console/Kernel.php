@@ -33,7 +33,14 @@ class Kernel extends ConsoleKernel
         ->everyMinute()
         ->withoutOverlapping();
 
-        // 3. Default/remita queue worker
+        // 3. Dedicated worker for result workflow notification emails.
+        $schedule->command(
+            'queue:work database --queue=notifications --stop-when-empty --tries=3 --timeout=120 --memory=192 --sleep=2 --max-jobs=80'
+        )
+            ->everyMinute()
+            ->withoutOverlapping();
+
+        // 4. Default/remita queue worker
   $schedule->command(
     'queue:work --queue=default,remita 
      --stop-when-empty 
@@ -46,7 +53,7 @@ class Kernel extends ConsoleKernel
     ->everyMinute()
     ->withoutOverlapping();
 
-    // 4. Daily queue restart (helps after deployments or code changes)
+    // 5. Daily queue restart (helps after deployments or code changes)
     $schedule->command('queue:restart')
         ->dailyAt('03:00');
 

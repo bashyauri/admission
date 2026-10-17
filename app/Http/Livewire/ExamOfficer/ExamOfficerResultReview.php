@@ -14,6 +14,7 @@ use App\Models\User;
 use App\Services\CarryOverRegistrationService;
 use App\Services\GradeCalculationService;
 use App\Services\StudentStatusService;
+use App\Services\ResultWorkflowNotificationService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
@@ -570,6 +571,8 @@ class ExamOfficerResultReview extends Component
                 'The reason must be at least 5 characters long.',
         ]);
 
+        $returnReason = $this->rejectionReason;
+
 
         $session = $this->selectedSession;
 
@@ -580,7 +583,7 @@ class ExamOfficerResultReview extends Component
          * Only return Coordinator-approved results belonging to
          * registered students in the selected session.
          */
-        $updatedCount = Result::query()
+        $returnQuery = Result::query()
             ->join(
                 'registered_courses as rc',
                 'rc.id',
@@ -606,16 +609,26 @@ class ExamOfficerResultReview extends Component
             ->where(
                 'results.status',
                 'exam_officer_approved'
-            )
-            ->update([
+            );
+
+        $returnedResults = Result::query()
+            ->whereIn('id', (clone $returnQuery)->select('results.id'))
+            ->with('coordinator.user')
+            ->get(['id', 'coordinator_id']);
+
+        $updatedCount = $returnQuery->update([
                 'results.status' => 'submitted',
+                'results.coordinator_approved_by' => null,
+                'results.coordinator_approved_at' => null,
+                'results.exam_officer_approved_by' => null,
+                'results.exam_officer_approved_at' => null,
 
                 'results.remarks' =>
                     '[Exam Officer]: ' . $this->rejectionReason,
             ]);
 
 
-        $deptCourse = DepartmentCourse::find(
+        $deptCourse = DepartmentCourse::with('studentCourse')->find(
             $this->selectedCourseId
         );
 
@@ -640,6 +653,24 @@ class ExamOfficerResultReview extends Component
         $this->alert(
             'warning',
             "{$updatedCount} result(s) returned to Coordinator for revision."
+        );
+
+        $eventKey = 'exam-officer-return:'.hash('sha256', $returnedResults->pluck('id')->implode('|').now()->format('U.u'));
+        $context = [
+            'course' => trim(($deptCourse?->studentCourse?->code ?? '').' '.($deptCourse?->studentCourse?->title ?? '')),
+            'session' => $session,
+            'semester' => $semester,
+            'reason' => $returnReason,
+            'action' => 'Coordinate correction with the Lecturer, then resubmit the results for Exam Officer review.',
+        ];
+        app(ResultWorkflowNotificationService::class)->notify(
+            $returnedResults->pluck('coordinator.user')->filter()->unique('id')->values(),
+            'exam_officer_return',
+            $eventKey.':coordinator',
+            'Results returned for Coordinator action',
+            'The Exam Officer returned course results. Coordinate the correction with the Lecturer.',
+            url('/coordinator/result-review'),
+            $context
         );
 
 

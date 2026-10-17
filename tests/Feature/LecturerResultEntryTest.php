@@ -150,5 +150,16 @@ class LecturerResultEntryTest extends TestCase
 
         $this->assertEquals('submitted', $result->status);
         $this->assertEquals($coord100->id, $result->coordinator_id, 'Result should be routed to 100L coordinator rather than mismatched 200L coordinator.');
+        $this->assertDatabaseHas('result_workflow_notifications', [
+            'user_id' => $coordUser->id,
+            'event_type' => 'lecturer_submission',
+        ]);
+        $this->assertDatabaseHas('result_workflow_notifications', [
+            'user_id' => $lecturer->id,
+            'event_type' => 'lecturer_submission_confirmation',
+        ]);
+        $this->assertDatabaseMissing('result_workflow_notifications', [
+            'user_id' => $student->id,
+        ]);
     }
 }

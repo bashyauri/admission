@@ -10,6 +10,7 @@ use App\Models\RegisteredCourse;
 use App\Models\User;
 use App\Services\AcademicSessionService;
 use App\Services\StudentStatusService;
+use App\Services\ResultWorkflowNotificationService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
@@ -1020,6 +1021,11 @@ class CoordinatorResultReview extends Component
             return;
         }
 
+        $handoffIds = (clone $resultsQuery)->pluck('id')->all();
+        $departmentCourse = \App\Models\DepartmentCourse::with('studentCourse')->find($this->selectedDepartmentCourseId);
+        $departmentId = (int) ($departmentCourse?->department_id ?? $this->inspectingDepartment?->id ?? 0);
+        $handoffEventKey = 'coordinator-forward:'.hash('sha256', implode('|', $handoffIds).now()->format('U.u'));
+
 
         /*
         |--------------------------------------------------------------------------
@@ -1087,6 +1093,44 @@ class CoordinatorResultReview extends Component
         session()->flash(
             'success',
             "{$count} result(s) approved and forwarded to the Exam Officer."
+        );
+
+        $examOfficers = User::query()
+            ->where(function ($query) use ($departmentId) {
+                $query->where('role', 'exam_officer')
+                    ->orWhereHas('capabilities', function ($capabilities) use ($departmentId) {
+                        $capabilities->where('capability', 'exam_officer')
+                            ->where(function ($scope) use ($departmentId) {
+                                $scope->whereNull('department_id')->orWhere('department_id', $departmentId);
+                            });
+                    });
+            })
+            ->get();
+
+        $context = [
+            'course' => trim(($departmentCourse?->studentCourse?->code ?? '').' '.($departmentCourse?->studentCourse?->title ?? '')),
+            'session' => $this->selectedSession,
+            'semester' => $this->selectedSemester,
+            'action' => 'Review the Coordinator-approved results.',
+        ];
+        $notifications = app(ResultWorkflowNotificationService::class);
+        $notifications->notify(
+            $examOfficers,
+            'coordinator_forward',
+            $handoffEventKey.':exam-officer',
+            'Course results ready for Exam Officer review',
+            'The Coordinator approved and forwarded course results for examination review.',
+            url('/exam-officer/results-review'),
+            $context
+        );
+        $notifications->notify(
+            [Auth::user()],
+            'coordinator_forward_confirmation',
+            $handoffEventKey.':coordinator:'.Auth::id(),
+            'Results forwarded successfully',
+            'Your approved course results were forwarded to the Exam Officer.',
+            url('/coordinator/result-review'),
+            $context
         );
 
         $this->showApprovalModal = false;
@@ -1197,6 +1241,23 @@ class CoordinatorResultReview extends Component
             return;
         }
 
+        $returnReason = $this->rejectionReason;
+        $returnedResults = (clone $query)->with('lecturer')->get();
+        $returnedIds = $returnedResults->pluck('id')->all();
+        $lecturers = $returnedResults->pluck('lecturer')->filter()->unique('id')->values();
+        if ($returnedResults->contains(fn ($result) => !$result->lecturer)) {
+            $assignedLecturer = \App\Models\CourseAllocation::with('lecturer')
+                ->where('department_course_id', $this->selectedDepartmentCourseId)
+                ->where('academic_session', $this->selectedSession)
+                ->where('semester', $this->selectedSemester)
+                ->first()?->lecturer;
+            if ($assignedLecturer && !$lecturers->contains('id', $assignedLecturer->id)) {
+                $lecturers->push($assignedLecturer);
+            }
+        }
+        $departmentCourse = \App\Models\DepartmentCourse::with('studentCourse')->find($this->selectedDepartmentCourseId);
+        $returnEventKey = 'coordinator-return:'.hash('sha256', implode('|', $returnedIds).now()->format('U.u'));
+
 
         /*
         |--------------------------------------------------------------------------
@@ -1234,6 +1295,32 @@ class CoordinatorResultReview extends Component
             'warning',
             "{$count} result(s) returned to the lecturer."
         );
+
+        $context = [
+            'course' => trim(($departmentCourse?->studentCourse?->code ?? '').' '.($departmentCourse?->studentCourse?->title ?? '')),
+            'session' => $this->selectedSession,
+            'semester' => $this->selectedSemester,
+            'reason' => $returnReason,
+            'action' => 'Correct the results and resubmit them to the Coordinator.',
+        ];
+        $notifications = app(ResultWorkflowNotificationService::class);
+        foreach ($lecturers as $lecturer) {
+            $allocationId = \App\Models\CourseAllocation::query()
+                ->where('lecturer_id', $lecturer->id)
+                ->where('department_course_id', $this->selectedDepartmentCourseId)
+                ->where('academic_session', $this->selectedSession)
+                ->where('semester', $this->selectedSemester)
+                ->value('id');
+            $notifications->notify(
+                [$lecturer],
+                'coordinator_return',
+                $returnEventKey.':lecturer:'.$lecturer->id,
+                'Results returned for correction',
+                'The Coordinator returned course results. Review the reason, correct the results, and resubmit.',
+                $allocationId ? url('/lecturer/result-entry/'.$allocationId) : url('/lecturer/dashboard'),
+                $context
+            );
+        }
 
 
         $this->loadCourseSummaries();

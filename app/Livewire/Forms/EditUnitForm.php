@@ -8,16 +8,16 @@ use Livewire\Form;
 
 class EditUnitForm extends Form
 {
-    #[Validate('required')]
+    #[Validate('required|integer|min:1')]
     public $unit;
 
-    public function update($id)
+    public function update(int $id, int $departmentId): void
     {
-        DepartmentCourse::find($id)->update(
-            [
-                'units' => $this->unit,
+        $this->validate();
 
-            ]
-        );
+        DepartmentCourse::query()
+            ->where('department_id', $departmentId)
+            ->findOrFail($id)
+            ->update(['units' => (int) $this->unit]);
     }
 }
