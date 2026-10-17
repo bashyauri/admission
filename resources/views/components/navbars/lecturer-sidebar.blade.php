@@ -26,6 +26,7 @@
     <div class="items-center block w-full h-auto grow basis-full" id="sidenav-collapse-main">
         <ul class="flex flex-col pl-0 mb-0 list-none">
             @include('components.navbars.partials.senate-corrections-link')
+            @include('components.navbars.partials.workflow-notifications-link')
 
             <!-- Lecturer Dashboard -->
             <li class="mt-0.5 w-full">

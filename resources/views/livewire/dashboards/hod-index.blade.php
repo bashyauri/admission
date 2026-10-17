@@ -1,6 +1,7 @@
 @use('App\Services\AcademicSessionService')
 @use('Illuminate\Support\Facades\Auth')
 <div>
+    <livewire:dashboards.workflow-notifications />
     <div class="mb-5 rounded-xl border border-amber-200 bg-amber-50 p-4 dark:border-amber-800 dark:bg-amber-900/20">
         <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>

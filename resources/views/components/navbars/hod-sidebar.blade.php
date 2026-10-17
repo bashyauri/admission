@@ -41,6 +41,7 @@
 
             <ul class="flex flex-col pl-0 mb-0 list-none">
             @include('components.navbars.partials.senate-corrections-link')
+            @include('components.navbars.partials.workflow-notifications-link')
                 <!-- primary list item -->
 
                 <li class="mt-0.5 w-full">
