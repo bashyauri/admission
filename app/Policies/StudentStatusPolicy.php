@@ -14,6 +14,7 @@ class StudentStatusPolicy
             || $actor->capabilities()->whereIn('capability', [
                 'student_status.view',
                 'student_status.record_senate_approved_withdrawal',
+                'student_status.reinstate_on_behalf_of_senate',
             ])->exists();
     }
 
@@ -22,7 +23,8 @@ class StudentStatusPolicy
         return $actor->isAdmin()
             || (string) $actor->id === (string) $student->id
             || $this->hasCapabilityForStudent($actor, 'student_status.view', $student)
-            || $this->hasCapabilityForStudent($actor, 'student_status.record_senate_approved_withdrawal', $student);
+            || $this->hasCapabilityForStudent($actor, 'student_status.record_senate_approved_withdrawal', $student)
+            || $this->hasCapabilityForStudent($actor, 'student_status.reinstate_on_behalf_of_senate', $student);
     }
 
     public function viewAudit(User $actor): bool
@@ -49,6 +51,12 @@ class StudentStatusPolicy
     {
         return $student->isUndergraduate()
             && ($actor->isAdmin() || $this->hasCapabilityForStudent($actor, 'student_status.record_senate_approved_withdrawal', $student));
+    }
+
+    public function reinstateOnBehalfOfSenate(User $actor, User $student): bool
+    {
+        return $student->isUndergraduate()
+            && ($actor->isAdmin() || $this->hasCapabilityForStudent($actor, 'student_status.reinstate_on_behalf_of_senate', $student));
     }
 
     public function processVoluntary(User $actor, User $student): bool

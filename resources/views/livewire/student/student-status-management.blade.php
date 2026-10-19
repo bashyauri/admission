@@ -83,6 +83,16 @@
                         @endif
                     </div>
 
+                    @if($currentStatus && $currentStatus->status->isWithdrawn())
+                    @can('student-status.reinstate-on-behalf-of-senate', $selectedStudent)
+                        <div class="rounded-xl border border-violet-200 bg-violet-50 p-4">
+                            <p class="text-sm font-bold text-violet-900">Senate-delegated reinstatement</p>
+                            <p class="mt-1 text-xs leading-5 text-violet-800">Use this for an individual exception, including a withdrawal marked ineligible. Enter the Senate reference, decision date, and reason. The action is audited and updates the student's return session and level.</p>
+                            <button type="button" wire:click="beginDelegatedReinstatement" class="mt-3 inline-flex min-h-10 items-center justify-center rounded-lg bg-violet-700 px-4 py-2 text-xs font-bold text-white shadow-soft-xs hover:bg-violet-800 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:ring-offset-2">Record reinstatement</button>
+                        </div>
+                    @endcan
+                    @endif
+
                     @if($progression)
                         <div class="grid grid-cols-2 gap-2 text-xs">
                             <div class="rounded-xl bg-slate-50 p-3 border border-slate-100">
@@ -662,6 +672,37 @@
             </div>
         </section>
     </div>
+
+    @if($showDelegatedReinstatementModal && $selectedStudent)
+        <div class="fixed inset-0 z-[1000] flex items-center justify-center bg-slate-950/50 p-4 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="delegated-reinstatement-title" x-data x-on:keydown.escape.window="$wire.closeDelegatedReinstatementModal()">
+            <form wire:submit="recordDelegatedReinstatement" class="w-full max-w-lg space-y-4 rounded-2xl bg-white p-6 shadow-soft-xl" x-on:click.outside="$wire.closeDelegatedReinstatementModal()">
+                <div class="border-b border-slate-100 pb-3">
+                    <h2 id="delegated-reinstatement-title" class="text-lg font-bold text-slate-800">Record reinstatement on Senate’s behalf</h2>
+                    <p class="mt-1 text-sm text-slate-500">{{ $selectedStudent->surname }} {{ $selectedStudent->firstname }} · {{ $selectedStudent->academicDetail?->matric_no }}</p>
+                </div>
+                <div class="rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs leading-5 text-amber-900" role="note">This records an official reinstatement immediately. Confirm the Senate decision and reference before submitting. The student's withdrawal record will remain in history.</div>
+                <div>
+                    <label for="delegated-reinstatement-reference" class="mb-1 block text-xs font-semibold text-slate-700">Senate reference</label>
+                    <input id="delegated-reinstatement-reference" type="text" wire:model="delegatedReinstatementReference" placeholder="SEN-2026-104" class="h-11 w-full rounded-xl border-slate-200 text-sm focus:border-violet-500 focus:ring-violet-300">
+                    @error('delegatedReinstatementReference') <p class="mt-1 text-xs text-rose-600">{{ $message }}</p> @enderror
+                </div>
+                <div>
+                    <label for="delegated-reinstatement-date" class="mb-1 block text-xs font-semibold text-slate-700">Senate decision date</label>
+                    <input id="delegated-reinstatement-date" type="date" wire:model="delegatedReinstatementDate" class="h-11 w-full rounded-xl border-slate-200 text-sm focus:border-violet-500 focus:ring-violet-300">
+                    @error('delegatedReinstatementDate') <p class="mt-1 text-xs text-rose-600">{{ $message }}</p> @enderror
+                </div>
+                <div>
+                    <label for="delegated-reinstatement-reason" class="mb-1 block text-xs font-semibold text-slate-700">Decision reason / minutes summary</label>
+                    <textarea id="delegated-reinstatement-reason" wire:model="delegatedReinstatementReason" rows="4" class="w-full rounded-xl border-slate-200 text-sm focus:border-violet-500 focus:ring-violet-300" placeholder="Record the Senate decision basis and any repeat-session direction."></textarea>
+                    @error('delegatedReinstatementReason') <p class="mt-1 text-xs text-rose-600">{{ $message }}</p> @enderror
+                </div>
+                <div class="flex flex-col-reverse gap-2 border-t border-slate-100 pt-3 sm:flex-row sm:justify-end">
+                    <button type="button" wire:click="closeDelegatedReinstatementModal" class="min-h-10 rounded-lg border border-slate-200 px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50">Cancel</button>
+                    <button type="submit" wire:loading.attr="disabled" class="min-h-10 rounded-lg bg-violet-700 px-4 py-2 text-xs font-bold text-white hover:bg-violet-800 disabled:opacity-50"><span wire:loading.remove>Record official reinstatement</span><span wire:loading>Recording…</span></button>
+                </div>
+            </form>
+        </div>
+    @endif
 
     {{-- Senate Decision Modal --}}
     @if($showDecisionModal)

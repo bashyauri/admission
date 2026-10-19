@@ -57,6 +57,25 @@ class Kernel extends ConsoleKernel
     $schedule->command('queue:restart')
         ->dailyAt('03:00');
 
+    // Only schedule encrypted Google Drive backups after all required secrets exist.
+    if (filled(config('backup.backup.password'))
+        && filled(config('filesystems.disks.google.client_id'))
+        && filled(config('filesystems.disks.google.client_secret'))
+        && filled(config('filesystems.disks.google.refresh_token'))
+        && filled(config('filesystems.disks.google.folder_id'))) {
+        $schedule->command('backup:run')
+            ->dailyAt('01:00')
+            ->withoutOverlapping(1440);
+
+        $schedule->command('backup:clean')
+            ->dailyAt('02:00')
+            ->withoutOverlapping(60);
+
+        $schedule->command('backup:monitor')
+            ->dailyAt('02:30')
+            ->withoutOverlapping(60);
+    }
+
     // Your existing demo logic (unchanged)
     $hour = config('app.hour');
     $min = config('app.min');
@@ -64,7 +83,7 @@ class Kernel extends ConsoleKernel
         ? (($min !== '' && $min != 0) ? $min . ' */' . $hour . ' * * *' : '0 */' . $hour . ' * * *')
         : '*/' . $min . ' * * * *';
 
-    if (env('IS_DEMO')) {
+    if (app()->environment('local') && config('app.is_demo')) {
         $schedule->command('migrate:fresh --seed')->cron($scheduledInterval);
     }
 }

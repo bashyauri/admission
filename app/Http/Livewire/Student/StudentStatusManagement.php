@@ -53,6 +53,10 @@ class StudentStatusManagement extends Component
     public string $senateDecisionDate = '';
     public string $decisionNotes = '';
     public bool $showStatusConfirmation = false;
+    public bool $showDelegatedReinstatementModal = false;
+    public string $delegatedReinstatementReference = '';
+    public string $delegatedReinstatementDate = '';
+    public string $delegatedReinstatementReason = '';
 
     protected $paginationTheme = 'tailwind';
 
@@ -62,6 +66,7 @@ class StudentStatusManagement extends Component
         $this->academicSession = app(AcademicSessionService::class)->getAcademicSession(Auth::user());
         $this->effectiveDate = now()->toDateString();
         $this->senateDecisionDate = '';
+        $this->delegatedReinstatementDate = now()->toDateString();
     }
 
     public function updatedStudentSearch(): void
@@ -84,6 +89,62 @@ class StudentStatusManagement extends Component
     public function clearSelectedStudent(): void
     {
         $this->selectedStudentId = null;
+    }
+
+    public function beginDelegatedReinstatement(): void
+    {
+        $student = $this->visibleStudentsQuery()->findOrFail($this->selectedStudentId);
+        Gate::authorize('student-status.reinstate-on-behalf-of-senate', $student);
+        $currentStatus = app(StudentStatusService::class)->getCurrentStatus($student);
+        if (!$currentStatus || !$currentStatus->status->isWithdrawn()) {
+            $this->addError('delegatedReinstatementReason', 'This student does not have a current withdrawal status to reinstate from.');
+            return;
+        }
+
+        $this->resetValidation();
+        $this->delegatedReinstatementReference = '';
+        $this->delegatedReinstatementDate = now()->toDateString();
+        $this->delegatedReinstatementReason = '';
+        $this->showDelegatedReinstatementModal = true;
+    }
+
+    public function recordDelegatedReinstatement(): void
+    {
+        $this->validate([
+            'selectedStudentId' => ['required', 'exists:users,id'],
+            'delegatedReinstatementReference' => ['required', 'string', 'max:100', function ($attribute, $value, $fail) {
+                if (!app(StudentStatusService::class)->isValidSenateReference((string) $value)) {
+                    $fail('Enter a valid Senate reference.');
+                }
+            }],
+            'delegatedReinstatementDate' => ['required', 'date'],
+            'delegatedReinstatementReason' => ['required', 'string', 'max:2000'],
+        ]);
+
+        $student = $this->visibleStudentsQuery()->findOrFail($this->selectedStudentId);
+        Gate::authorize('student-status.reinstate-on-behalf-of-senate', $student);
+
+        try {
+            app(StudentStatusService::class)->recordSenateDelegatedReinstatement(
+                student: $student,
+                senateReference: $this->delegatedReinstatementReference,
+                senateDecisionDate: $this->delegatedReinstatementDate,
+                decisionReason: $this->delegatedReinstatementReason,
+                processedBy: Auth::user(),
+            );
+            $this->showDelegatedReinstatementModal = false;
+            $this->alert('success', 'Senate-delegated reinstatement recorded. The prior withdrawal history remains preserved.');
+        } catch (AuthorizationException $exception) {
+            throw $exception;
+        } catch (\InvalidArgumentException $exception) {
+            $this->addError('delegatedReinstatementReason', $exception->getMessage());
+        }
+    }
+
+    public function closeDelegatedReinstatementModal(): void
+    {
+        $this->showDelegatedReinstatementModal = false;
+        $this->resetValidation();
     }
 
     public function createStatusRecord(): void
@@ -356,7 +417,7 @@ class StudentStatusManagement extends Component
 
         if (!$actor->isAdmin()) {
             $scopes = $actor->capabilities()
-                ->whereIn('capability', ['student_status.view', 'student_status.record_senate_approved_withdrawal'])
+                ->whereIn('capability', ['student_status.view', 'student_status.record_senate_approved_withdrawal', 'student_status.reinstate_on_behalf_of_senate'])
                 ->pluck('department_id');
 
             if (!$scopes->contains(null)) {
@@ -495,7 +556,7 @@ class StudentStatusManagement extends Component
         $actor = Auth::user();
         if (!$actor->isAdmin()) {
             $scopes = $actor->capabilities()
-                ->whereIn('capability', ['student_status.view', 'student_status.record_senate_approved_withdrawal'])
+                ->whereIn('capability', ['student_status.view', 'student_status.record_senate_approved_withdrawal', 'student_status.reinstate_on_behalf_of_senate'])
                 ->pluck('department_id');
             if (!$scopes->contains(null)) {
                 $departmentIds = $scopes->filter()->values();

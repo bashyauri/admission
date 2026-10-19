@@ -1292,6 +1292,95 @@ class StudentStatusService
         });
     }
 
+    /** Record a Senate-delegated reinstatement for one student, including exceptions to the eligibility flag. */
+    public function recordSenateDelegatedReinstatement(
+        User $student,
+        string $senateReference,
+        \DateTimeInterface|string $senateDecisionDate,
+        string $decisionReason,
+        ?User $processedBy = null
+    ): StudentStatusRecord {
+        $student->loadMissing(['academicDetail', 'academicProgressionRecords', 'gpaRecords']);
+        if (!$student->isUndergraduate()) {
+            throw new \InvalidArgumentException('Senate-delegated reinstatement is only applicable to undergraduate students.');
+        }
+
+        $processedBy = $this->authorizeStatusAction('reinstate-on-behalf-of-senate', $processedBy, $student);
+        if (!$this->isValidSenateReference($senateReference)) {
+            throw new \InvalidArgumentException("Invalid Senate reference format: {$senateReference}");
+        }
+        if (trim($decisionReason) === '') {
+            throw new \InvalidArgumentException('A reason for the Senate-delegated reinstatement is required.');
+        }
+
+        $withdrawal = $this->getCurrentStatus($student);
+        if (!$withdrawal || !$withdrawal->status->isWithdrawn()
+            || !in_array($withdrawal->senate_decision, [self::WORKFLOW_SENATE_APPROVED, 'APPROVED'], true)) {
+            throw new \InvalidArgumentException('The student must have a current Senate-approved withdrawal to reinstate.');
+        }
+
+        $pendingRequest = StudentStatusRecord::query()
+            ->where('user_id', $student->id)
+            ->where('reason_code', 'REINSTATEMENT_REQUEST')
+            ->whereIn('senate_decision', [self::REINSTATEMENT_REQUESTED, self::REINSTATEMENT_DEPARTMENT_APPROVED, self::REINSTATEMENT_FACULTY_APPROVED])
+            ->exists();
+        if ($pendingRequest) {
+            throw new \InvalidArgumentException('This student already has a reinstatement request in progress. Complete or reject it before recording another decision.');
+        }
+
+        $decisionDate = Carbon::parse($senateDecisionDate)->startOfDay();
+        $placement = $this->determineReinstatementLevel($student, $withdrawal);
+
+        return DB::transaction(function () use ($student, $withdrawal, $processedBy, $senateReference, $decisionDate, $decisionReason, $placement) {
+            $this->closePreviousActiveStatus($student->id, $decisionDate, $processedBy, 'ACTIVE_STATUS_CLOSED_FOR_REINSTATEMENT');
+            $event = StudentStatusRecord::create([
+                'user_id' => $student->id,
+                'academic_detail_id' => $student->academicDetail?->id,
+                'status' => StudentStatus::REINSTATED,
+                'status_type' => $withdrawal->status_type,
+                'reason_code' => 'SENATE_DELEGATED_REINSTATEMENT',
+                'reason' => 'Reinstatement recorded under delegated Senate authority.',
+                'academic_session' => $placement['academic_session'],
+                'semester' => null,
+                'effective_date' => $decisionDate->toDateString(),
+                'senate_reference' => $senateReference,
+                'senate_decision_date' => $decisionDate->toDateString(),
+                'senate_decision' => self::WORKFLOW_SENATE_APPROVED,
+                'reinstatement_eligible' => false,
+                'processed_by' => $processedBy->id,
+                'notes' => trim($decisionReason . "\nPlacement: {$placement['level']} (level id {$placement['student_level_id']})."),
+            ]);
+
+            $student->academicDetail?->update([
+                'student_level_id' => $placement['student_level_id'],
+                'acad_session' => $placement['academic_session'],
+            ]);
+            $this->writeStatusAudit($student, $event, 'SENATE_DELEGATED_REINSTATEMENT_RECORDED', $processedBy, [
+                'old_status' => $withdrawal->status,
+                'new_status' => $event->status,
+                'old_decision' => $withdrawal->senate_decision,
+                'new_decision' => $event->senate_decision,
+                'reason' => $decisionReason,
+                'senate_reference' => $senateReference,
+                'withdrawal_record_id' => $withdrawal->id,
+                'reinstatement_eligibility_overridden' => !$withdrawal->reinstatement_eligible,
+                'placement_level_id' => $placement['student_level_id'],
+                'placement_session' => $placement['academic_session'],
+            ]);
+
+            Log::notice('Senate-delegated reinstatement recorded', [
+                'user_id' => $student->id,
+                'withdrawal_record_id' => $withdrawal->id,
+                'reinstatement_record_id' => $event->id,
+                'senate_reference' => $senateReference,
+                'processed_by' => $processedBy->id,
+                'eligibility_overridden' => !$withdrawal->reinstatement_eligible,
+            ]);
+
+            return $event;
+        });
+    }
+
     private function nextAcademicSession(string $session): string
     {
         if (!$this->isValidAcademicSession($session)) {
@@ -1405,7 +1494,7 @@ class StudentStatusService
             ? $effectiveDate->format('Y-m-d')
             : Carbon::parse($effectiveDate)->toDateString();
 
-        $records = StudentStatusRecord::where('user_id', $userId)
+        $records = StudentStatusRecord::with('user')->where('user_id', $userId)
             ->whereIn('senate_decision', [self::WORKFLOW_SENATE_APPROVED, 'APPROVED'])
             ->whereNull('end_date')
             ->get();

@@ -444,6 +444,13 @@ The system must follow these governance rules:
 *Agent Prompt:*
   > *"Please implement Phase 6, Task 6.7.5: Create Senate-approved reinstatement workflow that preserves complete withdrawal history and uses academic progression logic to determine correct reinstatement level."*
 
+**October 2026 extension — delegated individual reinstatement:**
+- [x] Add the `student_status.reinstate_on_behalf_of_senate` capability for a designated staff officer (assignable to an Exam Officer and department scoped).
+- [x] Allow a capability holder to immediately record a single student's Senate-authorized reinstatement even when the withdrawal's `reinstatement_eligible` flag is false.
+- [x] Require a valid Senate reference, decision date, and reason; preserve the withdrawal and append an auditable reinstatement event.
+- [x] Use academic progression logic for return-level/session placement; reject active/non-withdrawn students and duplicate open reinstatement requests.
+- [x] Keep this capability independent from the normal Department → Faculty → Senate request workflow and enforce it server-side.
+
 #### Task 6.7.6: Senate Withdrawal Reporting
 * **Scope:** Senate-compliant withdrawal ledger and reports. (✅ COMPLETED — September 2026)
 * **Tasks:**

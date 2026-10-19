@@ -6,6 +6,7 @@ return [
 
     'hour' => env('SCHEDULED_HOUR', ''),
     'min' => env('SCHEDULED_MIN', ''),
+    'is_demo' => env('IS_DEMO', false),
     'default_password' => env('DEFAULT_PASSWORD'),
 
     /*
@@ -191,8 +192,6 @@ return [
         /*
          * Package Service Providers...
          */
-        Laravel\Boost\BoostServiceProvider::class,
-
         /*
          * Application Service Providers...
          */
@@ -201,10 +200,6 @@ return [
         // App\Providers\BroadcastServiceProvider::class,
         App\Providers\EventServiceProvider::class,
         App\Providers\RouteServiceProvider::class,
-        Barryvdh\Debugbar\ServiceProvider::class,
-
-
-
     ],
 
     /*
