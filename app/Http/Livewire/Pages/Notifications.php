@@ -13,11 +13,15 @@ class Notifications extends Component
 
     public function markAsRead(string $id): void
     {
-        ResultWorkflowNotification::query()
+        $updated = ResultWorkflowNotification::query()
             ->where('user_id', Auth::id())
             ->whereKey($id)
             ->whereNull('read_at')
             ->update(['read_at' => now()]);
+
+        if ($updated > 0) {
+            $this->dispatch('result-workflow-notification-read');
+        }
     }
 
     public function render()

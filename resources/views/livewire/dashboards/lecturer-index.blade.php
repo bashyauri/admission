@@ -1,5 +1,4 @@
 <div>
-    <livewire:dashboards.workflow-notifications />
     <div class="flex flex-wrap -mx-3">
         <div class="w-full max-w-full px-3 mb-6">
             <div class="relative flex flex-col min-w-0 break-words bg-white border-0 shadow-soft-xl rounded-2xl bg-clip-border">

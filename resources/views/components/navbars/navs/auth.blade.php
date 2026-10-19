@@ -102,10 +102,7 @@
         </li>
 
         <li class="relative flex items-center pr-2">
-          <a href="{{ route('notifications') }}" aria-label="Open notifications"
-            class="relative block p-0 transition-all text-size-sm ease-nav-brand text-slate-500 hover:text-slate-700 dark:text-white">
-            <i class="cursor-pointer fa fa-bell" aria-hidden="true"></i>
-          </a>
+          <livewire:pages.notification-bell />
         </li>
       </ul>
     </div>

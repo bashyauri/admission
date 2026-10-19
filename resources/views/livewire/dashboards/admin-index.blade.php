@@ -2,7 +2,6 @@
 @use('Illuminate\Support\Facades\Auth')
 
 <div>
-    <livewire:dashboards.workflow-notifications />
     <div class="flex flex-wrap -mx-3 mb-4">
 
 
