@@ -22,7 +22,8 @@ return [
         'source' => [
             'files' => [
                 'include' => [
-                    base_path(),
+                    storage_path('app/public'),
+                    storage_path('app/senate-grade-corrections'),
                 ],
                 'exclude' => [
                     base_path('vendor'),
@@ -43,8 +44,7 @@ return [
         'destination' => [
             'filename_prefix' => '',
             'disks' => [
-                'local',
-                's3', // Optional: for cloud storage
+                    'local',
             ],
         ],
         'temporary_directory' => storage_path('app/backup-temp'),
@@ -83,14 +83,11 @@ Edit `app/Console/Kernel.php`:
 ```php
 protected function schedule(Schedule $schedule)
 {
-    // Daily backup at 2 AM
-    $schedule->command('backup:run')->dailyAt('02:00');
+    // Encrypted database archive and resumable Google Drive upload at 1 AM
+    $schedule->command('backup:sync-google')->dailyAt('01:00');
     
-    // Weekly full backup on Sunday at 3 AM
-    $schedule->command('backup:run --only-db')->weeklyOn(0, '03:00');
-    
-    // Cleanup old backups daily at 4 AM
-    $schedule->command('backup:clean')->dailyAt('04:00');
+    // Clean retained local database archives at 2 AM
+    $schedule->command('backup:clean')->dailyAt('02:00');
 }
 ```
 
@@ -99,18 +96,30 @@ protected function schedule(Schedule $schedule)
 ### Method 1: Using Laravel Backup Package
 
 ```bash
-# Full backup (database + files)
+# Encrypted database archive plus resumable upload-file sync (requires configured rclone crypt remote)
+php artisan backup:sync-google
+
+# Create a local database-only archive without uploading
+php artisan backup:run --only-db --only-to-disk=local
+
+# Legacy combined backup command (not recommended for large uploads)
 php artisan backup:run
 
 # Database only
 php artisan backup:run --only-db
 
-# Files only
+# Files only (local; avoid uploading a multi-gigabyte ZIP through the Google Drive adapter)
 php artisan backup:run --only-files
 
 # Run backup without notifications
 php artisan backup:run --disable-notifications
 ```
+
+### Google Drive backups for production
+
+The production flow keeps the encrypted database archive on the local backup disk, then uses `rclone copy` to upload that archive and the upload files individually. Configure `BACKUP_ARCHIVE_PASSWORD`, `RCLONE_BINARY`, and `BACKUP_RCLONE_REMOTE` in the production environment. `BACKUP_RCLONE_REMOTE` must point to an rclone `crypt` remote backed by Google Drive so uploaded documents are encrypted too. Run `php artisan config:cache` after setting these values. The scheduler creates the encrypted local database archive whenever its password is set and uploads it when the rclone remote is configured.
+
+The file copies are additive: the command does not delete remote files. The database archive remains on the server if an upload fails, and the command exits unsuccessfully and emails the configured backup notification address. The scheduler still creates the encrypted local database archive when rclone is not configured, then reports that the cloud sync failed. Senate evidence is skipped when its folder has not been created yet. `backup:monitor` checks the local database archive; check the command log and Google Drive for upload status. Keep the rclone config file and its crypt password secure and backed up separately.
 
 ### Method 2: Using mysqldump (Native MySQL)
 

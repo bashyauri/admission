@@ -198,9 +198,7 @@
                                 <div class="flex items-start justify-between gap-3">
                                     <div class="min-w-0">
                                         <h3 class="break-words text-sm font-bold text-slate-900">
-                                            {{ $student->academicDetail->user->surname ?? '' }}
-                                            {{ $student->academicDetail->user->firstname ?? '' }}
-                                            {{ $student->academicDetail->user->m_name ?? '' }}
+                                            {{ format_user_name($student->academicDetail->user) }}
                                         </h3>
                                         <p class="mt-1 font-mono text-xs text-slate-500">{{ $student->academicDetail->matric_no ?? 'N/A' }}</p>
                                     </div>
@@ -323,9 +321,7 @@
                                             <div class="flex px-2 py-1">
                                                 <div class="flex flex-col justify-center">
                                                     <h6 class="mb-0 text-sm leading-normal font-semibold">
-                                                         {{ $student->academicDetail->user->surname ?? '' }}
-                                                        {{ $student->academicDetail->user->firstname ?? '' }}
-                                                        {{ $student->academicDetail->user->m_name ?? '' }}
+                                                        {{ format_user_name($student->academicDetail->user) }}
                                                        
                                                     </h6>
                                                 </div>

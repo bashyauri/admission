@@ -320,7 +320,7 @@ class FubkStudentReportService
     {
         return $rows->map(static function (object $row): array {
             return [
-                'student_name' => trim(implode(' ', array_filter([$row->surname, $row->firstname, $row->m_name]))),
+                'student_name' => format_user_name($row),
                 'matric_no' => $row->matric_no,
                 'department_name' => $row->department_name,
                 'programme_name' => $row->programme_name,
@@ -340,7 +340,7 @@ class FubkStudentReportService
         return $rows->map(static function (object $row): array {
             return [
                 'id' => $row->id,
-                'full_name' => trim(implode(' ', array_filter([$row->surname, $row->firstname, $row->m_name]))),
+                'full_name' => format_user_name($row),
                 'surname' => $row->surname,
                 'firstname' => $row->firstname,
                 'middle_name' => $row->m_name,

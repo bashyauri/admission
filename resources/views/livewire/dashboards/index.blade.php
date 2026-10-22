@@ -50,7 +50,7 @@
 
 
 
-                            <h5>Name: {{auth()->user()->surname .' ' . auth()->user()->firstname .' ' . auth()->user()->m_name}}</h5>
+                            <h5>Name: {{ auth()->user()->full_name }}</h5>
 
                             @php
                                 $department_id = auth()->user()->proposedCourse?->department_id;

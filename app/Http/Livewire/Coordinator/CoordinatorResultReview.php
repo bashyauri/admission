@@ -926,7 +926,7 @@ class CoordinatorResultReview extends Component
                             ?? $course['course_title']
                             ?? 'N/A'),
                     'matric_no' => $academicDetail?->matric_no ?? 'N/A',
-                    'name' => trim(($user->surname ?? '') . ' ' . ($user->firstname ?? '') . ' ' . ($user->m_name ?? '')) ?: 'Unknown Student',
+                    'name' => format_user_name($user, 'Unknown Student'),
                     'ca_score' => $result->ca_score,
                     'exam_score' => $result->exam_score,
                     'total_score' => $result->total_score,

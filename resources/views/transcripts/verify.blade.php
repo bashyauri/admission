@@ -155,7 +155,7 @@
         <div class="grid">
             <div class="info-card">
                 <div class="label">Student Full Name</div>
-                <div class="value">{{ strtoupper($student->surname) }}, {{ $student->firstname }} {{ $student->othername }}</div>
+                <div class="value">{{ strtoupper($student->surname) }}, {{ trim($student->firstname . ' ' . ($student->m_name ?? $student->othername ?? '')) }}</div>
             </div>
 
             <div class="info-card">

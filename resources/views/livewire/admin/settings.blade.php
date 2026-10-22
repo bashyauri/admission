@@ -747,7 +747,7 @@
                                 <div class="flex justify-between items-start mb-3">
                                     <div>
                                         <p class="font-semibold text-slate-700 dark:text-white">
-                                            {{ $recoveredStudent->surname }}, {{ $recoveredStudent->firstname }} {{ $recoveredStudent->m_name }}
+                                            {{ $recoveredStudent->surname }}, {{ trim($recoveredStudent->firstname . ' ' . ($recoveredStudent->m_name ?? '')) }}
                                         </p>
                                         <p class="text-size-sm text-slate-500 dark:text-white/60">Email: <span class="font-medium">{{ $recoveredStudent->email }}</span></p>
                                         <p class="text-size-sm text-slate-500 dark:text-white/60">Phone: <span class="font-medium">{{ $recoveredStudent->phone }}</span></p>
@@ -797,7 +797,7 @@
                                     <div class="flex justify-between items-start mb-3">
                                         <div>
                                             <p class="font-semibold text-slate-700 dark:text-white">
-                                                {{ $recoveredStudent->surname }}, {{ $recoveredStudent->firstname }} {{ $recoveredStudent->m_name }}
+                                                {{ $recoveredStudent->surname }}, {{ trim($recoveredStudent->firstname . ' ' . ($recoveredStudent->m_name ?? '')) }}
                                             </p>
                                             <p class="text-size-sm text-slate-500 dark:text-white/60">Email: <span class="font-medium">{{ $recoveredStudent->email }}</span></p>
                                             <p class="text-size-sm text-slate-500 dark:text-white/60">Phone: <span class="font-medium">{{ $recoveredStudent->phone }}</span></p>

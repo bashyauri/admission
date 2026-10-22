@@ -191,9 +191,8 @@
                                 {{-- Info --}}
                                 <div class="flex-1 min-w-0">
                                     <h6 class="mb-1 font-bold leading-normal truncate text-size-sm dark:text-white"
-                                        title="{{ $row['surname'] }}, {{ $row['firstname'] }} {{ $row['m_name'] }}">
-                                        {{ $row['surname'] }}, {{ $row['firstname'] }}
-                                        @if($row['m_name']) <span class="text-slate-500">{{ $row['m_name'] }}</span> @endif
+                                        title="{{ format_user_name($row) }}">
+                                        {{ format_user_name($row) }}
                                     </h6>
 
                                     {{-- Actions --}}

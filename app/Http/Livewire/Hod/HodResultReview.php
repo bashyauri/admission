@@ -151,7 +151,7 @@ class HodResultReview extends Component
             $rows[] = [
                 'user_id' => $userId,
                 'matric_no' => $reg->academicDetail->matric_no ?? 'N/A',
-                'name' => trim(($reg->academicDetail->user->surname ?? '') . ' ' . ($reg->academicDetail->user->firstname ?? '') . ' ' . ($reg->academicDetail->user->m_name ?? '')),
+                'name' => format_user_name($reg->academicDetail->user),
                 'ca_score' => $result?->ca_score,
                 'exam_score' => $result?->exam_score,
                 'total_score' => $result?->total_score,

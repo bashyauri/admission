@@ -296,6 +296,10 @@ class User extends Authenticatable implements MustVerifyEmail
     }
     public function getFullNameAttribute()
     {
+        if ($this->role === Role::STUDENT->value) {
+            return format_user_name($this);
+        }
+
         return $this->surname . ' ' . $this->firstname . ' ' . $this->m_name;
     }
     public function hasInvoice(string $paymentType)

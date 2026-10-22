@@ -28,7 +28,7 @@
                     class="hidden h-full max-w-full transition-all duration-200 ease-soft-in-out max-h-8 dark:inline-block"
                     alt="main_logo" />
                 <span
-                    class="ml-1 font-semibold transition-all duration-200 ease-soft-in-out">{{auth()->user()->firstname}},</span>
+                    class="ml-1 font-semibold transition-all duration-200 ease-soft-in-out">{{ auth()->user()->full_name }}</span>
                 {{-- <span class="ml-1 font-semibold transition-all duration-200 ease-soft-in-out">Wufpbk DHS</span>
                 --}}
             </a>

@@ -181,7 +181,7 @@
                         @forelse($audits as $audit)
                             <tr class="border-b border-gray-100 dark:border-gray-800">
                                 <td class="px-4 py-3 whitespace-nowrap">{{ $audit->created_at?->format('d M Y H:i') }}</td>
-                                <td class="px-4 py-3">{{ trim(($audit->adminUser->firstname ?? '') . ' ' . ($audit->adminUser->surname ?? '')) ?: 'Unknown' }}</td>
+                                <td class="px-4 py-3">{{ trim(($audit->adminUser?->firstname ?? '') . ' ' . ($audit->adminUser?->surname ?? '')) ?: 'Unknown' }}</td>
                                 <td class="px-4 py-3 uppercase">{{ $audit->action_type }}</td>
                                 <td class="px-4 py-3">{{ $audit->academic_session }}</td>
                                 <td class="px-4 py-3">{{ implode(', ', $audit->course_codes ?? []) }}</td>

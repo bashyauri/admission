@@ -290,7 +290,7 @@ class GraduationAudit extends Component
         }
 
         $this->clearingEligibilityId = $eligibility->id;
-        $fullName = trim(($eligibility->user->surname ?? '') . ' ' . ($eligibility->user->firstname ?? ''));
+        $fullName = format_user_name($eligibility->user);
         $matricNo = $eligibility->academicDetail->matric_no ?? '';
         $this->clearingStudentName = "{$fullName} ({$matricNo})";
         $this->clearingRemarks = 'Qualified for degree conferment and cleared by Exam Officer.';

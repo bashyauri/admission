@@ -38,7 +38,7 @@
                         @forelse($students as $student)
                             <button type="button" wire:click="selectStudent('{{ $student->id }}')" x-data="{ loading: false }" x-on:click="loading = true" x-on:livewire:loadend.window="loading = false" class="flex w-full items-center justify-between gap-3 px-3.5 py-3 text-left hover:bg-violet-50/50 transition">
                                 <span class="min-w-0">
-                                    <span class="block truncate text-sm font-bold text-slate-800">{{ $student->surname }} {{ $student->firstname }} {{ $student->m_name }}</span>
+                                    <span class="block truncate text-sm font-bold text-slate-800">{{ format_user_name($student) }}</span>
                                     <span class="mt-0.5 block text-xs text-slate-500 font-mono">{{ $student->academicDetail?->matric_no ?? 'No Matric' }} · {{ $student->academicDetail?->department?->name ?? 'No Dept' }}</span>
                                 </span>
                                 <span class="inline-flex shrink-0 items-center gap-1.5 rounded-lg bg-violet-50 px-2.5 py-1 text-xs font-bold text-violet-700">
@@ -64,7 +64,7 @@
                     <div class="flex items-start justify-between gap-3 pb-3 border-b border-slate-100">
                         <div>
                             <span class="inline-block rounded-md bg-violet-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-violet-800 mb-1">Selected Student Profile</span>
-                            <h2 class="text-base font-bold text-slate-800">{{ $selectedStudent->surname }} {{ $selectedStudent->firstname }} {{ $selectedStudent->m_name }}</h2>
+                            <h2 class="text-base font-bold text-slate-800">{{ format_user_name($selectedStudent) }}</h2>
                             <p class="mt-0.5 text-xs text-slate-500 font-mono">{{ $selectedStudent->academicDetail?->matric_no }} · {{ $selectedStudent->academicDetail?->department?->name }}</p>
                         </div>
                         <button type="button" wire:click="clearSelectedStudent" class="rounded-lg border border-slate-200 p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition" title="Close inspector">
@@ -360,9 +360,9 @@
                                         <h3 class="text-sm font-bold text-amber-900">Confirm Status Action</h3>
                                         <p class="mt-1 text-xs text-amber-800">
                                             @if(auth()->user()?->isAdmin() && $withdrawalType === 'academic') 
-                                                You are recording a Senate-approved academic withdrawal for <strong>{{ $selectedStudent->surname }} {{ $selectedStudent->firstname }}</strong> ({{ $selectedStudent->academicDetail?->matric_no }}), effective {{ $effectiveDate }}, under reference <strong>{{ $senateReference }}</strong> dated {{ $senateDecisionDate }}.
+                                                You are recording a Senate-approved academic withdrawal for <strong>{{ format_user_name($selectedStudent) }}</strong> ({{ $selectedStudent->academicDetail?->matric_no }}), effective {{ $effectiveDate }}, under reference <strong>{{ $senateReference }}</strong> dated {{ $senateDecisionDate }}.
                                             @else 
-                                                You are creating a <strong>{{ $withdrawalType }}</strong> withdrawal record for <strong>{{ $selectedStudent->surname }} {{ $selectedStudent->firstname }}</strong> ({{ $selectedStudent->academicDetail?->matric_no }}), effective {{ $effectiveDate }}.
+                                                You are creating a <strong>{{ $withdrawalType }}</strong> withdrawal record for <strong>{{ format_user_name($selectedStudent) }}</strong> ({{ $selectedStudent->academicDetail?->matric_no }}), effective {{ $effectiveDate }}.
                                             @endif 
                                             This action will be written to the immutable status audit trail.
                                         </p>
@@ -423,7 +423,7 @@
                                     @php($eligibility = app(\App\Services\AcademicProgressionService::class)->evaluateWithdrawalEligibility($student))
                                     <tr class="hover:bg-slate-50/80 transition">
                                         <td class="px-3.5 py-3">
-                                            <span class="block font-bold text-slate-800">{{ $student->surname }} {{ $student->firstname }}</span>
+                                            <span class="block font-bold text-slate-800">{{ format_user_name($student) }}</span>
                                             <span class="font-mono text-slate-400 text-[11px]">{{ $student->academicDetail?->matric_no }}</span>
                                         </td>
                                         <td class="px-3.5 py-3">
@@ -482,7 +482,7 @@
                                 @forelse($pendingSubmissions as $record)
                                     <tr class="hover:bg-slate-50/80 transition">
                                         <td class="px-3.5 py-3">
-                                            <span class="block font-bold text-slate-800">{{ $record->user?->surname }} {{ $record->user?->firstname }}</span>
+                                            <span class="block font-bold text-slate-800">{{ format_user_name($record->user) }}</span>
                                             <span class="font-mono text-slate-400 text-[11px]">{{ $record->user?->academicDetail?->matric_no }}</span>
                                         </td>
                                         <td class="px-3.5 py-3">
@@ -564,7 +564,7 @@
                                 @forelse($pendingDecisions as $record)
                                     <tr class="hover:bg-slate-50/80 transition">
                                         <td class="px-3.5 py-3">
-                                            <span class="block font-bold text-slate-800">{{ $record->user?->surname }} {{ $record->user?->firstname }}</span>
+                                            <span class="block font-bold text-slate-800">{{ format_user_name($record->user) }}</span>
                                             <span class="font-mono text-slate-400 text-[11px]">{{ $record->user?->academicDetail?->matric_no }}</span>
                                         </td>
                                         <td class="px-3.5 py-3">
@@ -623,7 +623,7 @@
                                 <div class="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
                                     <div>
                                         <h3 class="text-sm font-bold text-slate-800">
-                                            {{ $request->user?->surname }} {{ $request->user?->firstname }} 
+                                            {{ format_user_name($request->user) }}
                                             <span class="font-mono font-normal text-slate-500">· {{ $request->user?->academicDetail?->matric_no }}</span>
                                         </h3>
                                         <p class="mt-0.5 text-xs text-slate-500">{{ $request->user?->academicDetail?->department?->name }} · Session {{ $request->academic_session }}</p>
@@ -678,7 +678,7 @@
             <form wire:submit="recordDelegatedReinstatement" class="w-full max-w-lg space-y-4 rounded-2xl bg-white p-6 shadow-soft-xl" x-on:click.outside="$wire.closeDelegatedReinstatementModal()">
                 <div class="border-b border-slate-100 pb-3">
                     <h2 id="delegated-reinstatement-title" class="text-lg font-bold text-slate-800">Record reinstatement on Senate’s behalf</h2>
-                    <p class="mt-1 text-sm text-slate-500">{{ $selectedStudent->surname }} {{ $selectedStudent->firstname }} · {{ $selectedStudent->academicDetail?->matric_no }}</p>
+                    <p class="mt-1 text-sm text-slate-500">{{ format_user_name($selectedStudent) }} · {{ $selectedStudent->academicDetail?->matric_no }}</p>
                 </div>
                 <div class="rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs leading-5 text-amber-900" role="note">This records an official reinstatement immediately. Confirm the Senate decision and reference before submitting. The student's withdrawal record will remain in history.</div>
                 <div>

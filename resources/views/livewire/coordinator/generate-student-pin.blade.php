@@ -53,7 +53,7 @@
             <div class="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
                 @foreach($pendingSubmissions as $pendingStudent)
                     <button type="button" wire:click="selectStudent({{ $pendingStudent->id }})" class="rounded-xl border border-slate-200 p-3 text-left transition hover:border-fuchsia-300 hover:bg-fuchsia-50">
-                        <span class="block text-sm font-semibold text-slate-800">{{ $pendingStudent->user?->surname }} {{ $pendingStudent->user?->firstname }} {{ $pendingStudent->user?->m_name }}</span>
+                        <span class="block text-sm font-semibold text-slate-800">{{ format_user_name($pendingStudent->user, 'Unknown student') }}</span>
                         <span class="block font-mono text-xs text-slate-500">{{ $pendingStudent->matric_no }}</span>
                         <span class="mt-1 block text-xs font-semibold text-amber-700">Waiting {{ $pendingStudent->approval?->registration_submitted_at?->diffForHumans() }}</span>
                     </button>
@@ -124,8 +124,7 @@
                                          class="w-10 h-10 rounded-xl object-cover shadow-soft-sm flex-shrink-0 border border-white">
                                     <div class="flex-1 min-w-0">
                                         <h6 class="mb-0 text-sm font-semibold dark:text-white truncate leading-snug">
-                                            {{ $student->user?->surname }} {{ $student->user?->firstname }}
-                                            @if($student->user?->m_name) {{ $student->user->m_name }} @endif
+                                            {{ format_user_name($student->user, 'Unknown student') }}
                                         </h6>
                                         <p class="mb-1.5 text-xs font-mono text-slate-400 leading-none">{{ $student->matric_no }}</p>
 
@@ -207,11 +206,7 @@
                             {{-- Student info --}}
                             <div>
                                 <h6 class="mb-0.5 dark:text-white font-bold text-base leading-snug">
-                                    {{ $selectedAcademicDetail->user?->surname }}
-                                    {{ $selectedAcademicDetail->user?->firstname }}
-                                    @if($selectedAcademicDetail->user?->m_name)
-                                        {{ $selectedAcademicDetail->user->m_name }}
-                                    @endif
+                                    {{ format_user_name($selectedAcademicDetail->user, 'Unknown student') }}
                                 </h6>
                                 <p class="text-xs font-mono text-slate-400 mb-2">{{ $selectedAcademicDetail->matric_no }}</p>
 

@@ -123,7 +123,7 @@ class ManageDisciplinaryActions extends Component
 
                 return [
                     'id' => $student->id,
-                    'name' => trim(($student->firstname ?? '') . ' ' . ($student->surname ?? '')),
+                    'name' => format_user_name($student),
                     'matric_no' => $academicDetail?->matric_no ?? 'No matric number',
                     'department' => $academicDetail?->department?->name ?? 'Unassigned',
                     'session' => $academicDetail?->acad_session ?? 'N/A',

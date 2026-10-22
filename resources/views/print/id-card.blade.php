@@ -334,8 +334,7 @@
 
                     <div class="card-info">
                         <div class="name">
-                            {{ $student->surname }}, {{ $student->firstname }}
-                            @if($student->m_name) {{ $student->m_name }} @endif
+                            {{ $student->surname }}, {{ trim($student->firstname . ' ' . ($student->m_name ?? '')) }}
                         </div>
 
                         <div class="row">

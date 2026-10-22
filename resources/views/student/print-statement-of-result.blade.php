@@ -445,7 +445,7 @@
         <div class="info-grid">
             <div class="info-row">
                 <span class="info-label">Student Name:</span>
-                <span class="info-value">{{ $student->full_name ?? ($student->firstname . ' ' . $student->surname) }}</span>
+                <span class="info-value">{{ format_user_name($student) }}</span>
             </div>
             <div class="info-row">
                 <span class="info-label">Matric. Number:</span>

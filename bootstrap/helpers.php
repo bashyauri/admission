@@ -2,6 +2,35 @@
 
 use Illuminate\Support\Facades\Request;
 
+/**
+ * Format a person name consistently across Eloquent models and query results.
+ * Surname and first name are required; the middle name is included when set.
+ */
+function format_user_name($person, string $fallback = ''): string
+{
+    if (!is_array($person) && !is_object($person)) {
+        return $fallback;
+    }
+
+    $value = static function (string $key) use ($person): ?string {
+        $raw = data_get($person, $key);
+        if (!is_scalar($raw)) {
+            return null;
+        }
+
+        $name = trim((string) $raw);
+
+        return $name !== '' ? $name : null;
+    };
+
+    $surname = $value('surname');
+    $firstname = $value('firstname');
+    $middlename = $value('m_name') ?? $value('middlename') ?? $value('middle_name') ?? $value('othername');
+    $name = implode(' ', array_filter([$surname, $firstname, $middlename]));
+
+    return $name !== '' ? $name : $fallback;
+}
+
 function getPathName()
 {
     $pathname = explode("/", Request::path());

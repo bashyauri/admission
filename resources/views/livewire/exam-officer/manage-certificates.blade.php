@@ -162,7 +162,7 @@
                                         @foreach($unissuedItems as $item)
                                             <tr class="hover:bg-purple-50/60 transition">
                                                 <td class="py-2.5 px-3 font-semibold text-slate-800">
-                                                    {{ $item->full_name ?: ($item->user?->surname . ' ' . $item->user?->firstname) }}
+                                                    {{ $item->full_name ?: format_user_name($item->user) }}
                                                 </td>
                                                 <td class="py-2.5 px-3 font-mono text-slate-700">
                                                     {{ $item->matric_no ?: ($item->academicDetail?->matric_no ?? '—') }}
@@ -222,7 +222,7 @@
                                         {{-- Student Details --}}
                                         <td class="py-3 px-4">
                                             <p class="font-bold text-slate-800 mb-0">
-                                                {{ $cert->user?->surname }} {{ $cert->user?->firstname }} {{ $cert->user?->m_name }}
+                                                {{ format_user_name($cert->user) }}
                                             </p>
                                             <p class="text-[11px] font-mono text-slate-500 mb-0">
                                                 {{ $cert->academicDetail?->matric_no ?? '—' }}
@@ -272,7 +272,7 @@
                                         <td class="py-3 px-4">
                                             @if($cert->is_collected)
                                                 <p class="font-semibold text-slate-800 mb-0">
-                                                    {{ $cert->recipient_name ?: ($cert->user?->surname . ' ' . $cert->user?->firstname) }}
+                                                    {{ $cert->recipient_name ?: format_user_name($cert->user) }}
                                                 </p>
                                                 <p class="text-[10px] text-slate-500 mb-0">
                                                     {{ $cert->collected_at ? $cert->collected_at->format('d M Y, h:i A') : '—' }}

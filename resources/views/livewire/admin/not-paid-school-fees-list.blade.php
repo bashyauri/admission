@@ -325,7 +325,7 @@
                                             </div>
                                             <div class="ml-3">
                                                 <h6 class="my-auto dark:text-white font-medium">
-                                                    <span x-text="student.surname + ' ' + student.firstname + ' ' + (student.m_name || '')"></span>
+                                                    <span x-text="[student.surname, student.firstname, student.m_name].filter(Boolean).join(' ')"></span>
                                                 </h6>
                                                 <p class="text-xs text-gray-500" x-text="student.phone || 'N/A'"></p>
                                             </div>

@@ -26,8 +26,11 @@ return [
                  * The list of directories and files that will be included in the backup.
                  */
                 'include' => [
-                    base_path(),
-                    // storage_path(),  // Include if you use zero downtime deployments and don't follow symlinks
+                    // User-uploaded profile images and admission documents.
+                    storage_path('app/public'),
+
+                    // Private Senate correction evidence uploaded on the local disk.
+                    storage_path('app/senate-grade-corrections'),
                 ],
 
                 /*
@@ -167,7 +170,8 @@ return [
              * The disk names on which the backups will be stored.
              */
             'disks' => [
-                'google',
+                // Keep the database archive local until rclone has uploaded it.
+                'local',
             ],
 
             /*
@@ -179,7 +183,8 @@ return [
         /*
          * The directory where the temporary files will be stored.
          */
-        'temporary_directory' => storage_path('app/backup-temp'),
+        // Isolate database-only runs from any leftover temp folder from the old full-archive upload.
+        'temporary_directory' => storage_path('app/backup-temp-database'),
 
         /*
          * The password to be used for archive encryption.
@@ -239,7 +244,7 @@ return [
         'notifiable' => Notifiable::class,
 
         'mail' => [
-            'to' => env('BACKUP_NOTIFICATION_EMAIL', env('MAIL_FROM_ADDRESS')),
+            'to' => env('BACKUP_NOTIFICATION_EMAIL') ?: (env('MAIL_FROM_ADDRESS') ?: 'backup@example.com'),
 
             'from' => [
                 'address' => env('MAIL_FROM_ADDRESS', 'hello@example.com'),
@@ -300,7 +305,7 @@ return [
     'monitor_backups' => [
         [
             'name' => env('APP_NAME', 'laravel-backup'),
-            'disks' => ['google'],
+            'disks' => ['local'],
             'health_checks' => [
                 MaximumAgeInDays::class => 1,
                 MaximumStorageInMegabytes::class => 5000,
@@ -317,6 +322,13 @@ return [
             ],
         ],
         */
+    ],
+
+    // rclone uploads individual files to Google Drive using resumable transfers.
+    // Configure this as an rclone crypt remote to encrypt uploaded documents.
+    'rclone' => [
+        'binary' => env('RCLONE_BINARY', 'rclone'),
+        'remote' => env('BACKUP_RCLONE_REMOTE'),
     ],
 
     'cleanup' => [

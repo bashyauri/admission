@@ -118,7 +118,7 @@
                                         </div>
                                         <div>
                                             <div class="font-medium">
-                                                {{ $payment->surname }} {{ $payment->firstname }} {{ $payment->m_name ?? '' }}
+                                                {{ format_user_name($payment) }}
                                             </div>
                                             <div class="text-xs text-gray-500">{{ $payment->phone ?? '—' }}</div>
                                         </div>

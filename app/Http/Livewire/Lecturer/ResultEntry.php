@@ -542,7 +542,7 @@ class ResultEntry extends Component
                 // Collect student details for error message
                 $unassignedStudents[] = [
                     'matric_no' => $ad?->matric_no ?? 'N/A',
-                    'name' => $result->user?->surname . ' ' . $result->user?->firstname ?? 'Unknown',
+                    'name' => format_user_name($result->user, 'Unknown'),
                     'level' => $levelId ?? 'N/A',
                 ];
             }

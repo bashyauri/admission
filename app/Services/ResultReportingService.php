@@ -129,7 +129,7 @@ class ResultReportingService
             $user = $result->student;
             $acadDetail = $result->academicDetail ?? $user?->academicDetail;
             $matricNo = $acadDetail?->matric_no ?? 'N/A';
-            $studentName = $user ? trim("{$user->surname} {$user->firstname} {$user->m_name}") : 'Unknown Student';
+            $studentName = format_user_name($user, 'Unknown Student');
             if (empty(trim($studentName))) {
                 $studentName = $user?->name ?? 'Unknown Student';
             }
@@ -387,6 +387,24 @@ class ResultReportingService
                 ->map(fn($recs) => $recs->first())
             : collect();
 
+        // Fetch prior released results before this session (or prior semester if single-semester)
+        // to compute accurate cumulative totals (UTD, GPTD, CGPA) without N+1 queries.
+        $priorResultsGrouped = Result::with(['departmentCourse.studentCourse', 'registeredCourse'])
+            ->whereIn('user_id', $studentIds)
+            ->where('status', 'released')
+            ->where(function ($query) use ($session, $singleSemesterOnly, $semester) {
+                $query->where('academic_session', '<', $session)
+                    ->where('academic_session', '!=', $session);
+
+                if ($singleSemesterOnly && $semester === 'second') {
+                    $query->orWhere(function ($sub) use ($session) {
+                        $sub->where('academic_session', $session)->where('semester', 'first');
+                    });
+                }
+            })
+            ->get()
+            ->groupBy('user_id');
+
         // 4. Fetch all active carry-overs for remark calculation
         $carryOvers = CarryOverCourse::whereIn('user_id', $studentIds)
             ->active()
@@ -427,7 +445,7 @@ class ResultReportingService
         foreach ($students as $student) {
             $acadDetail = $student->academicDetail;
             $matricNo = $acadDetail?->matric_no ?? 'N/A';
-            $studentName = trim("{$student->surname} {$student->firstname} {$student->m_name}");
+            $studentName = format_user_name($student);
             if (empty(trim($studentName))) {
                 $studentName = $student->name ?? 'Unknown Student';
             }
@@ -498,22 +516,24 @@ class ResultReportingService
             /** @var ResultGpaRecord|null $gpaRecord */
             $gpaRecord = $gpaRecords->get($student->id);
 
-            if ($gpaRecord && $gpaRecord->cumulative_credit_units > 0) {
+            // Compute prior cumulative statistics from historical released results
+            /** @var \Illuminate\Support\Collection<int, Result> $priorResults */
+            $priorResults = $priorResultsGrouped->get($student->id, collect());
+            $priorCalc = $this->gradeCalculator->calculateSemesterGpa($priorResults);
+            $priorUnits = (int) $priorCalc['total_units'];
+            $priorPoints = (int) $priorCalc['total_points'];
+
+            if ($releasedOnly && $gpaRecord && $gpaRecord->cumulative_credit_units > 0) {
+                // Official Senate Final: use persisted ResultGpaRecord
                 $utd = (int) $gpaRecord->cumulative_credit_units;
                 $gptd = (int) $gpaRecord->cumulative_grade_points;
                 $cgpa = (float) $gpaRecord->cumulative_gpa;
                 $classOfDegree = $gpaRecord->class_of_degree ?? $this->gradeCalculator->getClassOfDegree($cgpa);
             } else {
-                // Fallback: Compute on the fly from all historical released results
-                $allUserResults = Result::with(['departmentCourse.studentCourse', 'registeredCourse'])
-                    ->where('user_id', $student->id)
-                    ->where('status', 'released')
-                    ->get();
-
-                $cumCalc = $this->gradeCalculator->calculateSemesterGpa($allUserResults);
-                $utd = $cumCalc['total_units'] > 0 ? $cumCalc['total_units'] : $uts;
-                $gptd = $cumCalc['total_points'] > 0 ? $cumCalc['total_points'] : $gpts;
-                $cgpa = $utd > 0 ? round($gptd / $utd, 2) : $gpa;
+                // Provisional Review or unpersisted: combine prior released results with current session review scores
+                $utd = $priorUnits + $uts;
+                $gptd = $priorPoints + $gpts;
+                $cgpa = $utd > 0 ? round($gptd / $utd, 2) : 0.00;
                 $classOfDegree = $this->gradeCalculator->getClassOfDegree($cgpa);
             }
 
@@ -522,7 +542,7 @@ class ResultReportingService
             $prevGpa = $prevGpaRecords->get($student->id);
             $cgpaLs = ($prevGpa && $prevGpa->cumulative_gpa > 0)
                 ? number_format((float) $prevGpa->cumulative_gpa, 2)
-                : '-';
+                : ($priorUnits > 0 ? number_format((float) $priorCalc['semester_gpa'], 2) : '-');
 
             // Determine Academic Standing & Official Senate Remarks
             $standingInfo = $this->progressionService->determineAcademicStanding($student, ($uts > 0 || $utd > 0) ? $cgpa : null);
@@ -935,7 +955,7 @@ class ResultReportingService
             $user = $rec->user;
             $acad = $rec->academicDetail ?? $user?->academicDetail;
             $matricNo = $acad?->matric_no ?? 'N/A';
-            $studentName = trim(($user?->surname ?? '') . ' ' . ($user?->firstname ?? '') . ' ' . ($user?->m_name ?? ''));
+            $studentName = format_user_name($user);
             if (empty($studentName)) {
                 $studentName = $user?->name ?? 'Unknown Graduand';
             }
@@ -1211,7 +1231,7 @@ public function getCohortProgressionBroadsheet(array $filters): array
     foreach ($students as $student) {
         $acadDetail  = $student->academicDetail;
         $matricNo    = $acadDetail?->matric_no ?? 'N/A';
-        $studentName = trim("{$student->surname} {$student->firstname} {$student->m_name}");
+        $studentName = format_user_name($student);
         if (empty(trim($studentName))) {
             $studentName = $student->name ?? 'Unknown Student';
         }
@@ -1669,7 +1689,7 @@ public function getCohortProgressionBroadsheet(array $filters): array
                 $user = $rec->user;
                 $acad = $rec->academicDetail ?? $user?->academicDetail;
                 $matricNo = $acad?->matric_no ?? 'N/A';
-                $studentName = trim(($user?->surname ?? '') . ' ' . ($user?->firstname ?? '') . ' ' . ($user?->m_name ?? ''));
+                $studentName = format_user_name($user);
                 if (empty($studentName)) {
                     $studentName = $user?->name ?? 'Unknown Graduand';
                 }
@@ -1706,7 +1726,7 @@ public function getCohortProgressionBroadsheet(array $filters): array
                 $user = $item->user;
                 $acad = $item->academicDetail ?? $user?->academicDetail;
                 $matricNo = $item->matric_no ?? $acad?->matric_no ?? 'N/A';
-                $studentName = $item->full_name ?? trim(($user?->surname ?? '') . ' ' . ($user?->firstname ?? '') . ' ' . ($user?->m_name ?? ''));
+                $studentName = $item->full_name ?: format_user_name($user);
                 if (empty($studentName)) {
                     $studentName = $user?->name ?? 'Unknown Graduand';
                 }
@@ -2016,7 +2036,7 @@ public function getCohortProgressionBroadsheet(array $filters): array
             return [
                 'id' => $record->id,
                 'matric_no' => $detail?->matric_no ?? '—',
-                'student_name' => trim(($user?->surname ?? '') . ' ' . ($user?->firstname ?? '') . ' ' . ($user?->m_name ?? '')),
+                'student_name' => format_user_name($user),
                 'programme' => $detail?->programme?->name ?? $user?->programme?->name ?? '—',
                 'department' => $detail?->department?->name ?? 'Unassigned',
                 'withdrawal_type' => $record->status?->label() ?? (string) $record->status,

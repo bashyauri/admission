@@ -103,7 +103,7 @@
                     @forelse($actions as $action)
                         <tr class="align-top">
                             <td class="px-4 py-3">
-                                <div class="font-semibold text-slate-900">{{ $action->user?->firstname ?? '' }} {{ $action->user?->surname ?? '' }}</div>
+                                <div class="font-semibold text-slate-900">{{ format_user_name($action->user) }}</div>
                                 <div class="text-xs text-slate-500">{{ $action->academicDetail?->matric_no ?? 'No matric number' }}</div>
                             </td>
                             <td class="px-4 py-3">
@@ -168,7 +168,7 @@
                 <div class="mb-5 flex items-start justify-between gap-4">
                     <div>
                         <p class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Disciplinary record</p>
-                        <h3 class="mt-2 text-xl font-bold text-slate-900">{{ trim(($selectedAction->user?->firstname ?? '') . ' ' . ($selectedAction->user?->surname ?? '')) }}</h3>
+                        <h3 class="mt-2 text-xl font-bold text-slate-900">{{ format_user_name($selectedAction->user) }}</h3>
                     </div>
                     <button type="button" class="text-slate-400 hover:text-slate-600" wire:click="closeDetailModal">✕</button>
                 </div>
@@ -176,7 +176,7 @@
                 <div class="grid gap-4 md:grid-cols-2 text-sm">
                     <div class="rounded-xl border border-slate-200 bg-slate-50 p-3">
                         <div class="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500">Student</div>
-                        <div class="mt-1 font-semibold text-slate-900">{{ trim(($selectedAction->user?->firstname ?? '') . ' ' . ($selectedAction->user?->surname ?? '')) }}</div>
+                        <div class="mt-1 font-semibold text-slate-900">{{ format_user_name($selectedAction->user) }}</div>
                         <div class="text-slate-600">{{ $selectedAction->academicDetail?->matric_no ?? 'No matric number' }}</div>
                     </div>
 
@@ -227,7 +227,7 @@
                 <div class="mb-5 flex items-start justify-between gap-4">
                     <div>
                         <p class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Record sanction</p>
-                        <h3 class="mt-2 text-xl font-bold text-slate-900">{{ trim(($selectedStudent->firstname ?? '') . ' ' . ($selectedStudent->surname ?? '')) }}</h3>
+                        <h3 class="mt-2 text-xl font-bold text-slate-900">{{ format_user_name($selectedStudent) }}</h3>
                     </div>
                     <button type="button" class="text-slate-400 hover:text-slate-600" wire:click="closeApplyModal">✕</button>
                 </div>

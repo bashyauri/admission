@@ -464,7 +464,7 @@ class GraduationService
             ? $record->academicDetail
             : ($student?->academicDetail ?? AcademicDetail::with(['department', 'programme'])->find($record->academic_detail_id));
 
-        $fullName = trim(($student->surname ?? '') . ' ' . ($student->firstname ?? '') . ' ' . ($student->m_name ?? ''));
+        $fullName = format_user_name($student);
         $departmentName = $academicDetail?->department?->name ?? 'Undergraduate Department';
         $programmeName = $academicDetail?->programme?->name ?? 'Bachelor of Science';
 

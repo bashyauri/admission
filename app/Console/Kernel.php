@@ -21,49 +21,27 @@ class Kernel extends ConsoleKernel
         ->withoutOverlapping(60);
 
         // 2. Dedicated reports queue worker for heavy PDF jobs
-        $schedule->command(
-        'queue:work --queue=reports
-         --stop-when-empty
-         --tries=1
-         --timeout=600
-         --memory=512
-         --sleep=3
-         --max-jobs=20'
-)
-        ->everyMinute()
-        ->withoutOverlapping();
+        $schedule->command('queue:work --queue=reports --stop-when-empty --tries=1 --timeout=600 --memory=512 --sleep=3 --max-jobs=20')
+            ->everyMinute()
+            ->withoutOverlapping();
 
-        // 3. Dedicated worker for result workflow notification emails.
-        $schedule->command(
-            'queue:work database --queue=notifications --stop-when-empty --tries=3 --timeout=120 --memory=192 --sleep=2 --max-jobs=80'
-        )
+        // 3. Dedicated worker for result workflow notification emails
+        $schedule->command('queue:work database --queue=notifications --stop-when-empty --tries=3 --timeout=120 --memory=256 --sleep=2 --max-jobs=50')
             ->everyMinute()
             ->withoutOverlapping();
 
         // 4. Default/remita queue worker
-  $schedule->command(
-    'queue:work --queue=default,remita 
-     --stop-when-empty 
-     --tries=3 
-     --timeout=120 
-     --memory=192 
-     --sleep=5 
-     --max-jobs=80'
-)
-    ->everyMinute()
-    ->withoutOverlapping();
+        $schedule->command('queue:work --queue=default,remita --stop-when-empty --tries=3 --timeout=120 --memory=512 --sleep=5 --max-jobs=50')
+            ->everyMinute()
+            ->withoutOverlapping();
 
     // 5. Daily queue restart (helps after deployments or code changes)
     $schedule->command('queue:restart')
         ->dailyAt('03:00');
 
-    // Only schedule encrypted Google Drive backups after all required secrets exist.
-    if (filled(config('backup.backup.password'))
-        && filled(config('filesystems.disks.google.client_id'))
-        && filled(config('filesystems.disks.google.client_secret'))
-        && filled(config('filesystems.disks.google.refresh_token'))
-        && filled(config('filesystems.disks.google.folder_id'))) {
-        $schedule->command('backup:run')
+    // Always keep an encrypted local database archive; sync it and uploads when rclone is configured.
+    if (filled(config('backup.backup.password'))) {
+        $schedule->command('backup:sync-google')
             ->dailyAt('01:00')
             ->withoutOverlapping(1440);
 

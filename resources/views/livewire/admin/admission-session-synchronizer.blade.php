@@ -115,7 +115,7 @@
                                 {{ $academicDetail->matric_no }}
                             </td>
                             <td class="px-4 py-4 text-sm text-slate-700">
-                                {{ trim(($academicDetail->user?->surname ?? '') . ' ' . ($academicDetail->user?->firstname ?? '') . ' ' . ($academicDetail->user?->m_name ?? '')) ?: 'Unknown Student' }}
+                                {{ format_user_name($academicDetail->user, 'Unknown Student') }}
                             </td>
                             <td class="px-4 py-4 text-sm text-slate-700">
                                 {{ $academicDetail->department?->name ?? 'Unassigned' }}

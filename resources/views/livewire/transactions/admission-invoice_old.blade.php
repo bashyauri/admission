@@ -77,9 +77,9 @@
                 <td class="px-2 py-1 text-sm font-medium text-gray-700 dark:
                 <td class="px-2 py-1 text-sm font-medium text-gray-700 dark:text-gray-200">
                     <p class="text-sm font-bold mb-0">
-                      {{auth()->user()->surname . ' ' . auth()->user()->firstname . ' ' . auth()->user()->middlename}}
+                      {{ auth()->user()->full_name }}
                     </p>
-                    <input id="payerName" name="payerName" value="{{auth()->user()->surname . ' ' . auth()->user()->firstname . ' ' . auth()->user()->middlename}}" type="hidden" />
+                    <input id="payerName" name="payerName" value="{{ auth()->user()->full_name }}" type="hidden" />
                   </td>
                 </tr>
                 <tr>

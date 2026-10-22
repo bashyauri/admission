@@ -399,7 +399,7 @@
     <table class="info-panel">
         <tr>
             <td class="info-label">Student Name:</td>
-            <td class="info-value">{{ strtoupper($student->surname) }}, {{ $student->firstname }} {{ $student->othername }}</td>
+            <td class="info-value">{{ strtoupper($student->surname) }}, {{ trim($student->firstname . ' ' . ($student->m_name ?? $student->othername ?? '')) }}</td>
             <td class="info-label">Matric Number:</td>
             <td class="info-value font-mono">{{ $academicDetail->matric_no ?? 'PENDING' }}</td>
         </tr>

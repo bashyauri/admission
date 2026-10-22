@@ -210,7 +210,7 @@
                                     @php
                                         $eligibility = $candidate->graduationEligibilities->first();
                                         $isStaged = $candidate->graduationListItems->isNotEmpty();
-                                        $fullName = trim(($candidate->user->surname ?? '') . ' ' . ($candidate->user->firstname ?? '') . ' ' . ($candidate->user->m_name ?? ''));
+                                        $fullName = format_user_name($candidate->user);
                                     @endphp
                                     <tr class="hover:bg-slate-50/80 transition-colors {{ in_array($candidate->id, $selectedAcademicDetailIds) ? 'bg-fuchsia-50/40' : '' }}">
                                         {{-- Checkbox --}}
@@ -400,7 +400,7 @@
                     <div>
                         <h6 class="font-bold text-base text-slate-800 mb-0">Graduation Audit Breakdown</h6>
                         <span class="text-xs text-slate-500">
-                            {{ $inspectedStudent->matric_no ?? '' }} — {{ $inspectedStudent->user->firstname ?? '' }} {{ $inspectedStudent->user->surname ?? '' }}
+                            {{ $inspectedStudent->matric_no ?? '' }} — {{ format_user_name($inspectedStudent->user) }}
                         </span>
                     </div>
                     <button wire:click="closeDeficiencyModal" class="text-slate-400 hover:text-slate-700 text-lg font-bold">
