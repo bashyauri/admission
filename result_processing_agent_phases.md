@@ -123,7 +123,7 @@ graph TD
 
 ### Phase 4 Follow-up: Task 4.1 - Result Workflow Email Notifications (IMPLEMENTED; VERIFICATION PENDING)
 
-* **Status:** Workflow-specific in-portal records and queued email prompts are implemented for Lecturer submission/resubmission, Coordinator return/forward, Exam Officer return, and successful handoff confirmations. The notifications page now shows recipient-scoped messages and email delivery status. Focused regression tests and production queue-worker verification remain pending.
+* **Status:** Workflow-specific in-portal records and queued email prompts are implemented for Lecturer submission/resubmission, Coordinator return/forward, Exam Officer return, and successful handoff confirmations. The notifications page shows recipient-scoped messages and email delivery status, and the scheduled notifications queue worker is configured in `app/Console/Kernel.php`. Focused regression tests and verification in the target deployment remain pending.
 * **Implementation:** `ResultWorkflowNotificationService`, `ResultWorkflowNotification`, and `SendResultWorkflowNotificationEmail` persist an idempotent outbox row per event and recipient, then queue mail on the database `notifications` queue. Email failures are recorded without reversing the result transition. `/notifications` displays each user's own updates and supports marking them read. Exam Officer returns clear prior approval stamps so returned work re-enters the Coordinator review queue.
 * **Operational requirement:** Configure a database queue worker for the `notifications` queue in each deployment. The existing `jobs` table migration is reused; this feature's migration has not been run automatically.
 
@@ -256,7 +256,7 @@ graph TD
 * **Risk Profile:** Low (primarily reports, eligibility evaluation, and certificate logging).
 * **Status:** **Completed (including student-status and withdrawal/reinstatement management)**
 
-> **Note:** Phase 6.7 (Student Academic Status, Withdrawal & Reinstatement Management) is detailed below and is being implemented following Senate-compliant architecture principles. Its reports preserve historical records and keep institutional status separate from academic progression.
+> **Note:** Phase 6.7 (Student Academic Status, Withdrawal & Reinstatement Management) is completed under Senate-compliant architecture principles. Its reports preserve historical records and keep institutional status separate from academic progression.
 
 ### Daily Tasks Breakdown (Token-Efficient Execution):
 
@@ -823,7 +823,7 @@ Keep the interface aligned with the existing Soft UI design system, accessible, 
 
 #### Task 8.5: Audit Reporting
 - [x] Build a correction ledger and per-result history with original values, adjustment, corrected values, evidence/verifier, reason, implementer, and timestamps.
-- [ ] Complete ledger filtering by session, department/course, student, reference, and implementing officer.
+- [x] Complete ledger filtering by session, department/course, student, reference, and implementing officer.
 - Add report authorization and coverage for filters, history, and reversals.
 
 #### Task 8.6: Capability Management

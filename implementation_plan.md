@@ -1,5 +1,7 @@
 # Phase 4 Reporting Implementation Plan
 
+> **Status note (October 2026):** This plan is historical. The reporting service, course score sheets, Senate broadsheet, and summary reporting described here are already implemented; see [`result_processing_agent_phases.md`](result_processing_agent_phases.md) for current status. The “User Review Required” section and proposed tasks below are retained as design history, not pending approval or work.
+
 This plan breaks down the generation of Academic Board / Senate Broadsheets and Course Score Sheets into small, manageable daily tasks. This modular approach ensures that each task can be completed by the AI in a single prompt without exhausting tokens or losing context.
 
 ## User Review Required

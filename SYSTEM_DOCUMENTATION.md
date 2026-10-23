@@ -1,5 +1,7 @@
 # Admission Management System - Complete Documentation
 
+> **Current status (October 2026):** This document describes the implemented application. The current undergraduate result-processing roadmap and remaining work are in [`result_processing_agent_phases.md`](result_processing_agent_phases.md). The HOD result review route is a deprecated legacy page; the active UG approval chain is Lecturer → Coordinator → Exam Officer → Released.
+
 ## Overview
 This is a comprehensive Laravel-based admission management system built for handling student applications, admissions, course registrations, and fee payments for an educational institution. The system supports multiple programmes (Undergraduate, Postgraduate, HND, ND, NCE, etc.) and provides role-based access control for different stakeholders.
 
@@ -37,6 +39,7 @@ This is a comprehensive Laravel-based admission management system built for hand
 - Can shortlist applicants
 - Can edit applicant details
 - Can view department-specific reports
+- The legacy HOD result review page is deprecated and is not an approval stage in the current undergraduate result workflow
 - **Routes**: `/hod/*`
 
 ### 3. Applicant
@@ -80,13 +83,13 @@ This is a comprehensive Laravel-based admission management system built for hand
 - Academic instruction and result processing
 - Can view assigned courses
 - Can enter and edit scores (CA and Exam) for assigned courses
-- Can submit results for approval
+- Can submit results to the assigned Coordinator for approval
 - **Routes**: `/lecturer/*` (via primary role or capabilities check)
 
 ### 9. Exam Officer
 - Faculty/department-wide result review and auditing
 - Can view all results in faculty
-- Can approve results at faculty level
+- Can audit coordinator-approved results and release results
 - Can generate statistical performance reports
 - **Routes**: `/exam-officer/*` (via primary role or capabilities check)
 
@@ -108,7 +111,7 @@ This is a comprehensive Laravel-based admission management system built for hand
   - `home_town`, `nationality`
   - `home_address`, `cor_address`
   - `kin_name`, `kin_address`, `kin_phone`
-  - `role` (enum: applicant, student, graduate, hod, admin)
+  - `role` (enum includes applicant, student, graduate, HOD, admin, CIT, Coordinator, ID Card Officer, Lecturer, and Exam Officer; see `app/Enums/Role.php` and the current users migration)
   - `password`, `vpassword`
   - `email_verified_at`
 - **Relationships**: HasOne(AcademicDetail), HasMany(Transaction), HasOne(ProposedCourse)
@@ -298,7 +301,7 @@ This is a comprehensive Laravel-based admission management system built for hand
 
 ### HOD Routes (hod.php)
 - `/dashboard` - HOD dashboard
-- `/results-review` - Review and approve submitted course results or return to lecturer with feedback
+- HOD-specific routes and department management; the UG result approval stage is handled by the Coordinator
 - `/all-applicants` - View department applicants
 - `/not-recommended-applicants` - View not recommended
 - `/shortlisted-applicants` - View shortlisted
@@ -307,11 +310,11 @@ This is a comprehensive Laravel-based admission management system built for hand
 
 ### Lecturer Routes (lecturer.php - capability:lecturer)
 - `/dashboard` - Lecturer dashboard showing allocated courses
-- `/result-entry/{courseAllocation}` - Interactive result entry (CA 0–40, Exam 0–60), CSV template download, CSV bulk import, submit to HOD
+- `/result-entry/{courseAllocation}` - Interactive result entry (CA 0–40, Exam 0–60), CSV template download, CSV bulk import, submit to the assigned Coordinator
 
 ### Exam Officer Routes (exam_officer.php - capability:exam_officer)
 - `/dashboard` - Exam officer dashboard
-- `/results-review` - Faculty-wide result auditing, return to HOD, and batch result release to students (auto-calculating GPA and carry-overs)
+- `/results-review` - Result auditing after Coordinator approval, return for review, and batch release (triggers GPA and carry-over processing)
 
 ### Other Route Files
 - `cit.php` - CIT-specific routes
@@ -370,7 +373,8 @@ This is a comprehensive Laravel-based admission management system built for hand
 
 ### HOD Components
 - `HodIndex` - HOD dashboard
-- `HodResultReview` - Review and approve submitted course results, inspect student scores, or return to lecturer with feedback remarks
+- `HodResultReview` - Deprecated legacy review page; its approval action is disabled because UG results are reviewed by Coordinators
+- `CarryOverReview` - Department review of carry-over course mapping
 - `AllApplicants` - View department applicants
 - `NotRecommended` - View not recommended
 - `ShortlistedApplicants` - View shortlisted
@@ -379,18 +383,26 @@ This is a comprehensive Laravel-based admission management system built for hand
 
 ### Lecturer Components
 - `LecturerDashboard` - Overview of allocated courses for the lecturer
-- `ResultEntry` - Interactive score entry table (CA 0–40, Exam 0–60), CSV template export (`ResultTemplateExport`), CSV bulk import (`ResultImport`), and submit to HOD
+- `ResultEntry` - Interactive score entry table (CA 0–40, Exam 0–60), CSV template export (`ResultTemplateExport`), CSV bulk import (`ResultImport`), and submission to the assigned Coordinator
+
+### Coordinator Components
+- `CoordinatorResultReview` and `CoordinatorCourseResultReview` - Review course cohort submissions, approve and forward to Exam Officers, or return results to Lecturers
+- `GenerateStudentPin` - Generate registration PINs and review, approve, or unlock course registrations
+- `AddCourse` - Assign and manage department course offerings
 
 ### Exam Officer Components
 - `ExamOfficerIndex` - Exam officer dashboard
-- `ExamOfficerResultReview` - Faculty-wide score sheet auditing, return to HOD, and official batch result release (triggers GPA & carry-over computation)
+- `ExamOfficerResultReview` - Score sheet auditing after Coordinator approval, return to the appropriate review stage, and official batch result release (triggers GPA & carry-over computation)
 
 ### Student Status & Governance Components
 - `StudentStatusManagement` - Multi-tab student academic status and withdrawal management UI (`/student-status-management`). Features 5 workflow tabs (`Overview`, `Due for Review`, `Recommendations Pending Senate`, `Senate Decisions`, `Reinstatements`), top-level metrics summary header, database candidate query scoping (`whereHas('academicProgressionRecords', ...)`), cached dropdowns, and direct Senate submission/approval workflow actions.
+- `SenateGradeCorrection` and `SenateBulkGradeCorrection` - Capability-protected individual and filtered cohort UG corrections with audit history; reversal and full consumer verification remain in progress.
 
 ### Student Components
 - `StudentIndex` - Student dashboard
 - `CourseRegistration` - Course registration
+- `MyResults` - Released results and academic summary
+- Transcript download and preview routes for undergraduate students
 - `PrintCourseHistory` - Print course history
 - `ExamCard` - Exam card generation
 
@@ -496,15 +508,12 @@ This is a comprehensive Laravel-based admission management system built for hand
 ## Application Flow
 
 ### Applicant Registration Flow
-1. User registers via `/sign-up` or `/degree-signup`
-2. Email verification required
-3. Complete profile (`/applications/profile`)
-4. Add schools attended (`/applications/school-attended`)
-5. Add O-level results (`/applications/olevel`, `/applications/olevel-grade`)
-6. Upload certificates (`/applications/upload-certificate`)
-7. Propose course (`/applications/apply-course`)
-8. Review application (`/applications/review`)
-9. Print application form (`/applications/print-form`)
+1. User registers via `/sign-up` or `/degree-signup` and verifies the email address.
+2. Degree applicants search for their JAMB record at `/applications/search-utme`.
+3. The applicant enters a phone number and 11-digit NIN; matched JAMB details are saved to the profile.
+4. Complete the remaining profile (`/applications/profile`), schools attended, O-level results, and required certificate uploads.
+5. Select a programme/course, complete required payments, and submit the application for review.
+6. Review or print the application from the available application pages.
 
 ### Admission Process Flow
 1. Admin uploads UTME results or applicants register
@@ -520,6 +529,7 @@ This is a comprehensive Laravel-based admission management system built for hand
 2. Register courses (`/course-registration`)
 3. Print exam card (`/exam-card`)
 4. Print course form (`/print-course-form`)
+5. View released results (`/my-results`), academic status, and permitted transcript services
 
 ### Payment Flow
 1. Generate invoice for specific payment type
@@ -557,6 +567,9 @@ This is a comprehensive Laravel-based admission management system built for hand
 - Credit unit tracking
 - Course drop functionality with audit trail
 - Academic session management
+- Undergraduate result entry, Coordinator review, Exam Officer release, GPA/progression, and snapshot-based result history
+- Student result portal, transcript download/preview, and Senate reporting
+- Senate grade correction and disciplinary/student-status governance for authorized staff
 
 ### Reporting
 - FUBK reports

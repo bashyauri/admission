@@ -19,6 +19,16 @@ class DegreeRegisterForm extends Form
         'password' => 'required|min:8',
         'confirm_password' => 'required|same:password',
     ];
+
+    protected $messages = [
+        'email.required' => 'Enter your email address.',
+        'email.email' => 'Enter a valid email address.',
+        'email.unique' => 'An account with this email already exists. Sign in or use a different email address.',
+        'password.required' => 'Create a password for your account.',
+        'password.min' => 'Your password must be at least 8 characters long.',
+        'confirm_password.required' => 'Enter your password again to confirm it.',
+        'confirm_password.same' => 'The passwords do not match. Check both fields and try again.',
+    ];
     public function store(): User
     {
         $this->validate();

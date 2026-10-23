@@ -2,6 +2,8 @@
 
 **Comprehensive backup and recovery strategy for the admission system database.**
 
+> **Status note (October 2026):** `spatie/laravel-backup` is already a project dependency, and conditional backup sync, cleanup, and monitoring commands are scheduled in `app/Console/Kernel.php`. Scheduling does not prove that production credentials, remote sync, or restore readiness are configured; verify those in the target environment using [`PRODUCTION_BACKUP_SETUP_GUIDE.md`](PRODUCTION_BACKUP_SETUP_GUIDE.md) before relying on backups.
+
 ## Recommended Backup Solution: Laravel Backup Package
 
 ### 1. Install Spatie Laravel Backup

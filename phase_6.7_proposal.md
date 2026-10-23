@@ -3,6 +3,8 @@
 * **Risk Profile:** Low (additive tables and service layer with proper governance workflows).
 * **Status:** Senate-compliant status and withdrawal workflows are implemented. The rules below govern ongoing maintenance.
 
+> **Checklist note (October 2026):** This proposal's unchecked implementation checklists are historical and do not reflect completion. Phase 6.7 is marked complete in [`result_processing_agent_phases.md`](result_processing_agent_phases.md); use that roadmap and the current services/UI for implementation status.
+
 ### Design Principles
 The system must follow these governance rules:
 - Academic progression is not the same as withdrawal

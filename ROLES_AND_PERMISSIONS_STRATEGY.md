@@ -8,6 +8,8 @@
 - [RESULT_PROCESSING_EXTENSION_PLAN.md](file:///c:/laragon/www/admission/RESULT_PROCESSING_EXTENSION_PLAN.md)  
 - [RESULT_PROCESSING_PRODUCTION_SAFE.md](file:///c:/laragon/www/admission/RESULT_PROCESSING_PRODUCTION_SAFE.md)  
 
+> **Status note (October 2026):** The implementation checklist below is the original rollout plan and its unchecked boxes are not a reliable indicator of current completion. The capabilities system is implemented. For current application behavior, see [`AGENT_CONTEXT.md`](AGENT_CONTEXT.md) and [`SYSTEM_DOCUMENTATION.md`](SYSTEM_DOCUMENTATION.md); for the result workflow, see [`result_processing_agent_phases.md`](result_processing_agent_phases.md).
+
 ---
 
 ## Problem Statement

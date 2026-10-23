@@ -1,5 +1,7 @@
 # MD Files & Roles/Permissions Analysis
 
+> **Historical analysis (October 2026):** This document predates implementation of the capability system, result workflow, and current student modules. Its gap assessments and unchecked rollout checklist are not current. Consult [`AGENT_CONTEXT.md`](AGENT_CONTEXT.md), [`SYSTEM_DOCUMENTATION.md`](SYSTEM_DOCUMENTATION.md), and [`result_processing_agent_phases.md`](result_processing_agent_phases.md) for the current application state.
+
 ## Part 1: MD Files Review — Are They Sufficient?
 
 ### Summary Table

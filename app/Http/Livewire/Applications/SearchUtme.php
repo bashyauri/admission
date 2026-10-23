@@ -3,6 +3,7 @@
 namespace App\Http\Livewire\Applications;
 
 use App\Models\PostUtmeUpload;
+use Illuminate\Database\QueryException;
 use Illuminate\Validation\Rule;
 use Jantinnerezo\LivewireAlert\LivewireAlert;
 use Livewire\Component;
@@ -56,7 +57,8 @@ class SearchUtme extends Component
             'nin.digits' => 'NIN must be exactly 11 digits.',
 
             'phoneNumber.required' => 'Please enter your phone number.',
-            'phoneNumber.unique' => 'This phone number is already in use.',
+            'phoneNumber.unique' => 'This phone number is already linked to another account. Enter a different number or contact the admissions office for help.',
+            'nin.unique' => 'This NIN is already linked to another account. Check the number or contact the admissions office for help.',
 
             'jambNumber.required' => 'Enter your JAMB registration number.',
         ];
@@ -146,11 +148,29 @@ class SearchUtme extends Component
 
             return redirect()->route('postutmescreening-invoice');
 
+        } catch (QueryException $e) {
+
+            report($e);
+
+            if ((string) $e->getCode() === '23000') {
+                $this->alert('error', 'We couldn’t save your profile because a phone number, NIN, or JAMB number may already be linked to another account. Check these details and try again, or contact the admissions office for help.', [
+                    'toast' => true,
+                    'position' => 'center',
+                ]);
+
+                return;
+            }
+
+            $this->alert('error', 'We couldn’t save your profile right now. Your details have not been updated. Please try again, and contact the admissions office if the problem continues.', [
+                'toast' => true,
+                'position' => 'center',
+            ]);
+
         } catch (\Throwable $e) {
 
             report($e);
 
-            $this->alert('error', 'Unable to update your profile. Please try again.', [
+            $this->alert('error', 'We couldn’t save your profile right now. Your details have not been updated. Please try again, and contact the admissions office if the problem continues.', [
                 'toast' => true,
                 'position' => 'center',
             ]);

@@ -2,6 +2,8 @@
 
 **IMPORTANT: This app is in production. Only implement changes marked as "Safe for Live Production". Changes marked as "Requires Maintenance Window" need scheduled downtime.**
 
+> **Status note (October 2026):** Some optimizations in this guide have already been implemented. In particular, selected composite indexes and result-workflow query improvements are in the codebase; see Phase 9 in [`result_processing_agent_phases.md`](result_processing_agent_phases.md). Treat the examples below as candidates, not a current migration checklist, and confirm the live schema and query plan before applying any change.
+
 ## Safe for Live Production (Can be done anytime)
 
 ### 1. Add Missing Indexes on Foreign Keys

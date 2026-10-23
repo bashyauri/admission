@@ -3,6 +3,8 @@
 **Status:** Schema & Models Implemented (Phase 1 Completed, August 2026)  
 **Database Tables:** `course_versions`, `course_change_history`, `course_mappings`, `registered_courses` snapshots
 
+> **Current implementation note (October 2026):** UG result entry, GPA, student result/statement, broadsheet/report, graduation, and transcript consumers use result-attempt snapshots first, linked registration snapshots second, and current course data only as a legacy fallback. Do not backfill unverified historical values. Remaining snapshot verification is tracked as Task 5.5 in [`result_processing_agent_phases.md`](result_processing_agent_phases.md); examples below are design guidance and should be checked against current code before reuse.
+
 ## Problem Statement
 
 The current course system lacks versioning, creating critical data integrity issues:

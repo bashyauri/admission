@@ -1,5 +1,7 @@
 # Student MIS Extension Plan - Result Processing & Graduation System
 
+> **Status note (October 2026):** This is an original design proposal, not the current implementation checklist. Its phase checklist and example code below predate the current application and contain stale/incomplete status markers. For implemented behavior and outstanding work, use [`result_processing_agent_phases.md`](result_processing_agent_phases.md), [`AGENT_CONTEXT.md`](AGENT_CONTEXT.md), and the application source. The current result approval path is Lecturer → Coordinator → Exam Officer → Released. Do not use older references below to HOD approval as the intermediate result stage.
+
 ## Overview
 This document outlines the comprehensive plan to extend the current admission system into a full Student Management Information System (MIS) covering the complete student lifecycle from admission to graduation, following National Universities Commission (NUC) standards for Nigerian universities.
 
@@ -911,7 +913,7 @@ SC/20/002,BELLO KHADIJA,28,62
 ```
 
 #### Step 3: Result Review & Submission ✅
-- Lecturer reviews the entered scores and clicks **Submit to HOD**.
+- Lecturer reviews the entered scores and submits them to the assigned Coordinator.
 - All results for that course change from `pending` → `submitted`.
 - Score inputs are locked while status is `submitted`.
 
@@ -934,37 +936,37 @@ pending → submitted → hod_approved → released
 
 **Exam Officer Level (`ExamOfficerResultReview`):**
 - Exam officer sees all departments' score sheets.
-- Inspects HOD-approved results before release.
+- Inspects Coordinator-approved results before release.
 - If satisfied → **Release to Students** → `hod_approved` → `released`:
   - Auto-triggers `GradeCalculationService::processAndSaveGpaRecord()` for each student.
   - Implements NUC rules for tracking Uncleared Carry Overs (`is_cleared` flag).
   - Auto-triggers `CarryOverRegistrationService::processResultClearance()` (pass ≥40) or `recordFailedCourse()` (fail <40).
-- If issues found → **Return to HOD** → mandatory audit comment → `hod_approved` → `submitted` (returns to HOD queue).
+- If issues are found → **Return to Coordinator** with an audit comment; the Coordinator then returns the results to the Lecturer or forwards them again after review.
 
 #### Step 5: Result Release ✅
 - Released results populate `result_gpa_records` with:
   - `semester_gpa`, `cumulative_gpa`, `total_credit_units`, `total_grade_point`, `class_of_degree`
-- Students will be able to view released results in future `MyResults` component (Phase 5).
+- Students view released results in the implemented `MyResults` component; use the current roadmap for status and verification details.
 
 ### 3.2 Implemented Livewire Components
 
 #### Lecturer Components
 - `LecturerDashboard` — Overview of allocated courses with student count and submission status
-- `ResultEntry` — Inline score entry table, CSV template download, CSV import, submit to HOD
+- `ResultEntry` — Inline score entry table, CSV template download, CSV import, submit to the assigned Coordinator
 
 #### HOD Components
-- `HodResultReview` — Department course list with result status; student score sheet inspection; batch approve or return with feedback
+- `HodResultReview` — Deprecated legacy page; its result approval action is disabled in the current workflow
 
 #### Exam Officer Components
-- `ExamOfficerResultReview` — Institutional course list across all departments; audit HOD-approved results; batch release to students triggering GPA & carry-over computation
+- `ExamOfficerResultReview` — Institutional result auditing after Coordinator approval; batch release triggers GPA and carry-over processing
 
 #### Admin / CIT Components
 - `CourseAllocationManager` — Assign/revoke course-lecturer allocations per session and semester
 - `ManageUserCapabilities` — Grant lecturer, HOD, or exam officer capabilities to users
 
-#### Student Components (Upcoming — Phase 5)
+#### Student Components (Implemented; see current roadmap)
 - `MyResults` — View released semester results
-- `TranscriptRequest` — Request official PDF transcript
+- `TranscriptService` and transcript routes — Generate and verify official undergraduate transcripts
 
 ## Phase 4: Transcript Generation
 
@@ -1705,6 +1707,6 @@ Before this phase begins, the following must be completed:
 
 ---
 
-**Deferred Phase Reference**: Senate Grade Report  
-**Target Phase**: After Phase 3 (Result Processing & GPA Engine) is complete  
+**Historical design reference**: Senate Grade Report
+**Current status**: The current Senate broadsheet and result-reporting functionality is documented in [`result_processing_agent_phases.md`](result_processing_agent_phases.md). This older proposal is not a current implementation checklist; verify whether any additional institutional report format is still required before using it.
 **NUC Compliance**: Required for Senate ratification of results  

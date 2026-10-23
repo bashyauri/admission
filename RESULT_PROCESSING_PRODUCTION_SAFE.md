@@ -2,6 +2,8 @@
 
 **IMPORTANT: This app is in production. Follow this guide for safe implementation of result processing features.**
 
+> **Status note (October 2026):** The result-processing features described as future additions below have largely been implemented. This file is deployment-safety guidance and historical rollout design, not the feature roadmap. Check [`result_processing_agent_phases.md`](result_processing_agent_phases.md) and current migrations/routes before treating any checklist or sample rollback as applicable.
+
 ## Safe for Live Production (Can be done anytime)
 
 ### 1. Create New Tables (No Impact on Existing Data)

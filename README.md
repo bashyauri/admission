@@ -29,6 +29,8 @@ This system manages the complete student lifecycle from admission to graduation,
 - Course allocation manager (`CourseAllocationManager`) for assigning courses to lecturers
 - Coordinator department course assignment with debounced catalog search, course metadata, and paginated lists
 - Student application workflow with status tracking
+- Undergraduate account creation with email verification and JAMB-backed profile completion (phone number and NIN)
+- Applicant profile validation gives actionable feedback for duplicate phone numbers, NINs, and account details
 - O-level result and certificate upload management
 - Post-UTME credential management
 - Course registration system with course versioning foundation
@@ -38,20 +40,26 @@ This system manages the complete student lifecycle from admission to graduation,
 - Academic progression engine (`AcademicProgressionService`) with promotion, probation, repeat, and spillover rules
 - Automatic carry-over tracking & clearance engine (`CarryOverRegistrationService`)
 - Lecturer result entry dashboard with inline validation (CA 0–40, Exam 0–60), CSV template export, and CSV bulk import
-- HOD Result Review & Approval panel (`HodResultReview`) with student score sheet inspection, batch approval, and return-to-lecturer workflow
-- Exam Officer Result Auditing & Release panel (`ExamOfficerResultReview`) with batch release triggering GPA calculation and carry-over management
+- Coordinator result review and approval, followed by Exam Officer audit and release (the old HOD result review page is deprecated)
+- Result workflow notifications in the portal with queued email prompts
+- Senate grade correction for authorized staff, with individual and filtered cohort workflows
 
-### Upcoming Extensions (Documented in Plan)
-- Student portal result viewer (`MyResults`)
-- Official transcript generation with QR verification (PDF)
-- Graduation eligibility checking and certificate issuance tracking (`GraduationService`)
+### Result Processing and Graduation
+- Student result portal (`MyResults`) for released undergraduate results
+- Official undergraduate transcript generation with QR verification
+- Graduation eligibility checks, cohort audit, Senate broadsheets, and certificate tracking
+- Senate disciplinary enforcement and student status governance
+- Senate grade correction for authorized staff; the correction reversal and full consumer verification work remains in progress
+
+For current implementation status and the next result-processing tasks, see [result_processing_agent_phases.md](result_processing_agent_phases.md). The older [RESULT_PROCESSING_EXTENSION_PLAN.md](RESULT_PROCESSING_EXTENSION_PLAN.md) is a design proposal and is not the current delivery checklist.
 
 ## Documentation
 
 For detailed documentation, see:
 
 - **[SYSTEM_DOCUMENTATION.md](SYSTEM_DOCUMENTATION.md)** - Complete system architecture, database schema, roles, routes, Livewire components
-- **[RESULT_PROCESSING_EXTENSION_PLAN.md](RESULT_PROCESSING_EXTENSION_PLAN.md)** - Detailed plan for extending to full Student MIS with result processing
+- **[result_processing_agent_phases.md](result_processing_agent_phases.md)** - Current undergraduate result-processing roadmap and implementation status
+- **[RESULT_PROCESSING_EXTENSION_PLAN.md](RESULT_PROCESSING_EXTENSION_PLAN.md)** - Historical design proposal and requirements reference
 - **[COURSE_VERSIONING_DATA_INTEGRITY.md](COURSE_VERSIONING_DATA_INTEGRITY.md)** - Course versioning system for historical data integrity
 - **[DATABASE_OPTIMIZATION_PRODUCTION_SAFE.md](DATABASE_OPTIMIZATION_PRODUCTION_SAFE.md)** - Production-safe database optimization guide
 - **[DATABASE_BACKUP_STRATEGY.md](DATABASE_BACKUP_STRATEGY.md)** - Comprehensive backup and recovery strategy
@@ -118,8 +126,9 @@ The system supports the following roles with specific privileges:
 - **CIT**: System administration, technical support
 - **Coordinator**: Programme coordination, student oversight
 - **IdCard Officer**: ID card generation and management
-- **Lecturer**: Result entry, course management (planned)
-- **Exam Officer**: Faculty-level result approval (planned)
+- **Lecturer**: Assigned-course result entry and submission to the Coordinator
+- **Coordinator**: Course registration approval and intermediate result review
+- **Exam Officer**: Result auditing, release, reporting, and authorized graduation/governance workflows
 
 ## Database Schema
 
