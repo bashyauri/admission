@@ -740,6 +740,10 @@
 
                 </p>
 
+                <div class="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2.5 text-xs leading-5 text-amber-900">
+                    Any results already released will be hidden from students during review. Undergraduate GPA/progression records and carry-over clearances tied to those results will be refreshed.
+                </div>
+
 
                 {{-- Reason --}}
                 <div class="mb-4">

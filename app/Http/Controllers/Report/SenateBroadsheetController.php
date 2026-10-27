@@ -61,8 +61,7 @@ class SenateBroadsheetController extends Controller
         $normalizedSemester = $semester !== null ? trim((string) $semester) : null;
 
         $singleSemesterOnly = $normalizedSemester !== null
-            && $normalizedSemester !== ''
-            && (bool) $request->query('single_semester_only', false);
+            && in_array(strtolower($normalizedSemester), ['first', 'second', '1', '2'], true);
 
         $filters = [
             'department_id'    => $departmentId,

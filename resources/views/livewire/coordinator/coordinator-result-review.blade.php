@@ -306,6 +306,10 @@
                         Submitted
                     </option>
 
+                    <option value="exam_officer_returned">
+                        Returned by Exam Officer (all assigned levels)
+                    </option>
+
                     <option value="coordinator_approved">
                         Coordinator Approved
                     </option>
@@ -473,7 +477,14 @@
                     $statusClasses =
                         'border-slate-200 bg-slate-50 text-slate-600';
 
-                    if ($course['submitted'] > 0) {
+                    if (($course['exam_officer_returned'] ?? 0) > 0) {
+
+                        $statusText = 'Returned by Exam Officer';
+
+                        $statusClasses =
+                            'border-amber-200 bg-amber-50 text-amber-800';
+
+                    } elseif ($course['submitted'] > 0) {
 
                         $statusText = 'Submitted';
 
@@ -567,7 +578,7 @@
 
 
                         {{-- Result Counts --}}
-                        <div class="grid grid-cols-3 gap-2 lg:w-[330px]">
+                        <div class="grid grid-cols-4 gap-2 lg:w-[420px]">
 
                             <div class="rounded-xl bg-blue-50 px-3 py-2 text-center">
 
@@ -577,6 +588,18 @@
 
                                 <p class="text-sm font-black text-blue-700">
                                     {{ $course['submitted'] }}
+                                </p>
+
+                            </div>
+
+                            <div class="rounded-xl bg-amber-50 px-3 py-2 text-center">
+
+                                <p class="text-[9px] font-black uppercase tracking-wide text-amber-700">
+                                    EO Returned
+                                </p>
+
+                                <p class="text-sm font-black text-amber-800">
+                                    {{ $course['exam_officer_returned'] ?? 0 }}
                                 </p>
 
                             </div>
@@ -893,6 +916,9 @@
 
                                 $studentStatusClasses = match ($student['status']) {
 
+                                    'exam_officer_returned' =>
+                                        'border-amber-200 bg-amber-50 text-amber-800',
+
                                     'submitted' =>
                                         'border-blue-200 bg-blue-50 text-blue-700',
 
@@ -911,6 +937,9 @@
 
 
                                 $studentStatusLabel = match ($student['status']) {
+
+                                    'exam_officer_returned' =>
+                                        'Returned by Exam Officer',
 
                                     'submitted' =>
                                         'Submitted',
@@ -1075,6 +1104,9 @@
 
                         $studentStatusClasses = match ($student['status']) {
 
+                            'exam_officer_returned' =>
+                                'border-amber-200 bg-amber-50 text-amber-800',
+
                             'submitted' =>
                                 'border-blue-200 bg-blue-50 text-blue-700',
 
@@ -1093,6 +1125,9 @@
 
 
                         $studentStatusLabel = match ($student['status']) {
+
+                            'exam_officer_returned' =>
+                                'Returned by Exam Officer',
 
                             'submitted' =>
                                 'Submitted',

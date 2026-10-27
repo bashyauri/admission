@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Livewire\ExamOfficer;
 
 use App\Models\CourseAllocation;
+use App\Models\CarryOverCourse;
 use App\Models\Department;
 use App\Models\DepartmentCourse;
 use App\Models\RegisteredCourse;
@@ -557,10 +558,15 @@ class ExamOfficerResultReview extends Component
 
     public function rejectCourseResults(): void
     {
+        if (!Auth::user()?->canActAsExamOfficer()) {
+            abort(403, 'Unauthorized access to Exam Officer Result Review.');
+        }
+
         if (! $this->selectedCourseId) {
             return;
         }
 
+        $this->rejectionReason = trim($this->rejectionReason);
         $this->validate([
             'rejectionReason' => 'required|min:5|max:500',
         ], [
@@ -579,10 +585,7 @@ class ExamOfficerResultReview extends Component
         $semester = $this->selectedSemester;
 
 
-        /*
-         * Only return Coordinator-approved results belonging to
-         * registered students in the selected session.
-         */
+        /* Return results awaiting release or already released to students. */
         $returnQuery = Result::query()
             ->join(
                 'registered_courses as rc',
@@ -606,43 +609,120 @@ class ExamOfficerResultReview extends Component
                 'results.semester',
                 $semester
             )
-            ->where(
-                'results.status',
-                'exam_officer_approved'
-            );
+            ->whereIn('results.status', ['exam_officer_approved', 'released']);
 
         $returnedResults = Result::query()
             ->whereIn('id', (clone $returnQuery)->select('results.id'))
-            ->with('coordinator.user')
-            ->get(['id', 'coordinator_id']);
+            ->with(['coordinator.user', 'user'])
+            ->get(['id', 'coordinator_id', 'user_id', 'status']);
 
-        $updatedCount = $returnQuery->update([
-                'results.status' => 'submitted',
-                'results.coordinator_approved_by' => null,
-                'results.coordinator_approved_at' => null,
-                'results.exam_officer_approved_by' => null,
-                'results.exam_officer_approved_at' => null,
+        // Post-release recall is part of the UG result workflow; leave PG releases untouched.
+        $returnedResults = $returnedResults
+            ->filter(fn (Result $result): bool => $result->status !== 'released' || $result->user?->isUndergraduate())
+            ->values();
 
-                'results.remarks' =>
-                    '[Exam Officer]: ' . $this->rejectionReason,
+        if ($returnedResults->isEmpty()) {
+            $this->alert('info', 'No Coordinator-approved or released results are available to return for this course.');
+
+            return;
+        }
+
+        $releasedResultIds = $returnedResults
+            ->where('status', 'released')
+            ->modelKeys();
+        $updatedCount = 0;
+        DB::transaction(function () use ($returnedResults, $releasedResultIds, $session, $semester, $returnReason, &$updatedCount): void {
+            $updatedCount = Result::query()
+                ->whereIn('id', $returnedResults->modelKeys())
+                ->whereIn('status', ['exam_officer_approved', 'released'])
+                ->update([
+                    'status' => 'submitted',
+                    'coordinator_approved_by' => null,
+                    'coordinator_approved_at' => null,
+                    'exam_officer_approved_by' => null,
+                    'exam_officer_approved_at' => null,
+                    'remarks' => '[Exam Officer]: '.$returnReason,
+                ]);
+
+            if ($updatedCount === 0) {
+                return;
+            }
+
+            if ($releasedResultIds !== []) {
+                CarryOverCourse::query()
+                    ->whereIn('cleared_result_id', $releasedResultIds)
+                    ->update([
+                        'is_cleared' => false,
+                        'cleared_at' => null,
+                        'cleared_result_id' => null,
+                        'retake_session' => null,
+                        'retake_semester' => null,
+                        'registration_status' => 'pending',
+                    ]);
+            }
+
+            $deptCourse = DepartmentCourse::find($this->selectedCourseId);
+            ResultApproval::create([
+                'department_id' => $deptCourse?->department_id,
+                'academic_session' => $session,
+                'semester' => $semester,
+                'approval_level' => 'exam_officer',
+                'approved_by' => Auth::id(),
+                'approved_at' => now(),
+                'status' => 'rejected',
+                'comments' => $returnReason,
             ]);
 
+            $gradeService = app(GradeCalculationService::class);
+            foreach ($returnedResults->pluck('user')->filter()->unique('id') as $student) {
+                if (!$student->isUndergraduate()) {
+                    continue;
+                }
 
-        $deptCourse = DepartmentCourse::with('studentCourse')->find(
-            $this->selectedCourseId
-        );
+                $periods = Result::query()
+                    ->where('user_id', $student->id)
+                    ->where('status', 'released')
+                    ->where(function ($query) use ($session, $semester): void {
+                        $query->where('academic_session', '>', $session)
+                            ->orWhere(function ($sameSession) use ($session, $semester): void {
+                                $sameSession->where('academic_session', $session)
+                                    ->where(function ($semesterQuery) use ($semester): void {
+                                        if (in_array(strtolower($semester), ['first', '1'], true)) {
+                                            $semesterQuery->whereIn('semester', ['first', '1', 'second', '2']);
+                                        } else {
+                                            $semesterQuery->whereIn('semester', ['second', '2']);
+                                        }
+                                    });
+                            });
+                    })
+                    ->select('academic_session', 'semester')
+                    ->distinct()
+                    ->get()
+                    ->push((object) ['academic_session' => $session, 'semester' => $semester])
+                    ->unique(fn ($period) => $period->academic_session.'|'.strtolower((string) $period->semester))
+                    ->sort(function ($a, $b): int {
+                        $sessionOrder = strcmp((string) $a->academic_session, (string) $b->academic_session);
+                        if ($sessionOrder !== 0) {
+                            return $sessionOrder;
+                        }
+                        $rank = fn ($value): int => in_array(strtolower((string) $value), ['first', '1'], true) ? 1 : 2;
 
+                        return $rank($a->semester) <=> $rank($b->semester);
+                    });
 
-        ResultApproval::create([
-            'department_id' => $deptCourse?->department_id,
-            'academic_session' => $session,
-            'semester' => $semester,
-            'approval_level' => 'exam_officer',
-            'approved_by' => Auth::id(),
-            'approved_at' => now(),
-            'status' => 'rejected',
-            'comments' => $this->rejectionReason,
-        ]);
+                foreach ($periods as $period) {
+                    $gradeService->processAndSaveGpaRecord($student, (string) $period->academic_session, (string) $period->semester);
+                }
+            }
+        });
+
+        if ($updatedCount === 0) {
+            $this->alert('info', 'These results have already changed. Refresh the course list and try again.');
+
+            return;
+        }
+
+        $deptCourse = DepartmentCourse::with('studentCourse')->find($this->selectedCourseId);
 
 
         $this->showRejectModal = false;
@@ -668,7 +748,7 @@ class ExamOfficerResultReview extends Component
             'exam_officer_return',
             $eventKey.':coordinator',
             'Results returned for Coordinator action',
-            'The Exam Officer returned course results. Coordinate the correction with the Lecturer.',
+            'The Exam Officer returned course results, including any previously released results, for Coordinator review. Coordinate corrections with the Lecturer.',
             url('/coordinator/result-review'),
             $context
         );

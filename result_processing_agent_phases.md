@@ -114,7 +114,9 @@ graph TD
 - [x] Created `CourseAllocationManager` Livewire component (`Admin/CourseAllocationManager.php` and view) for Admin/CIT to allocate department courses to lecturers.
 - [x] Added Course Allocation links in `admin-sidebar.blade.php` and `cit-sidebar.blade.php`.
 - [x] Implemented Coordinator Result Review component (`CoordinatorResultReview.php` & `coordinator-result-review.blade.php`) with multi-level course inspection, SQL summaries, paginated review, batch approval (`status = 'exam_officer_approved'`), and return/rejection audit actions.
+- [x] Added a dedicated Coordinator filter and status label for Exam Officer returns, making returned course batches easy to find and send back to the Lecturer.
 - [x] Implemented Exam Officer Result Review component (`ExamOfficerResultReview.php` & `exam-officer-result-review.blade.php`) with institutional grade auditing, batch result release (`status = 'released'`), GPA calculation triggering (`ResultGpaRecord`), and carry-over processing.
+- [x] Extended the Exam Officer's existing return-to-Coordinator action to include released UG course results. Returned results are hidden from students, prior carry-over clearances tied to those attempts are reopened, affected UG GPA/progression records are recalculated, and the reason is audited and sent to the Coordinator; PG releases remain unchanged.
 - [x] Kept academic progression separate from institutional status: release-time progression records standing and withdrawal recommendations only; only Senate approval through `StudentStatusService` changes official withdrawal status.
 - [x] Documented the current partial-failure risk: result status updates precede downstream GPA/carry-over/progression/audit writes. Inspect all affected records before retrying a failed release; make the operation transactional and idempotent as a follow-up.
 - [x] Registered routes in `routes/coordinator.php` (`coordinator.result-review`) and `routes/exam_officer.php` (`exam-officer.results-review`).
@@ -969,12 +971,12 @@ Keep the interface aligned with the existing Soft UI design system, accessible, 
     - `CGPA 0.75 – 0.99`: `STATUS: ON PROBATION`, listing uncleared courses under `REPEAT: [courses]`.
     - `CGPA 0.50 – 0.74`: `STATUS: WITHDRAWN FROM PROGRAM` (W/P), listing uncleared courses under `REPEAT: [courses]`.
     - `CGPA 0.00 – 0.49`: `STATUS: WITHDRAWN FROM THE UNIVERSITY` (W/U), listing uncleared courses under `REPEAT: [courses]`.
-    - `Two consecutive academic sessions on probation`: `STATUS: WITHDRAWN FROM PROGRAM` (W/P), regardless of current CGPA, provided the two-session rule is actually satisfied.
+    - `Two consecutive academic semesters on probation`: recommend W/P for Senate review, even if a later CGPA improves; do not present this as an official withdrawn status.
     - `CGPA ≥ 1.00`: `PASS` when all courses cleared; `REPEAT: [courses]` when deficiencies exist (no `STATUS:` line).
   - **Senate Broadsheet Summary Footer:**
     - Correctly tally `PASS`, `PROBATION`, `WITHDRAWN` (combining W/U and W/P), `SPECIAL CASES` (0 examination units / unexamined / DE), and `OTHERS` (students with CGPA ≥ 1.00 having repeat courses).
 * **Tasks:**
-  - [x] Extend `AcademicProgressionService::determineAcademicStanding()` to accept `?float $calculatedCgpa = null`, check consecutive probation sessions (threshold = 2 sessions), and return `STANDING_WITHDRAWN_UNIVERSITY` and `STANDING_WITHDRAWN_PROGRAM` constants.
+  - [x] Extend `AcademicProgressionService::determineAcademicStanding()` to accept `?float $calculatedCgpa = null`, check consecutive probation semesters (threshold = 2 semesters), and return academic withdrawal recommendation standings without changing official status.
   - [x] Update `AcademicProgressionService::getNextEligibleLevel()` to retain current level on withdrawal standings.
   - [x] In `ResultReportingService::getDepartmentalBroadsheet()`, pass computed CGPA to standing determination and assign FUBK-compliant `$statusText` and `$remark`.
   - [x] In `ResultReportingService::getSenateSummaryStats()`, correctly categorize withdrawn, probation, special cases, and repeat students.

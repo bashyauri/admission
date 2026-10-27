@@ -415,7 +415,7 @@ class CoordinatorResultReview extends Component
 
     public function loadCourseSummaries(): void
     {
-        $assignmentIds = $this->assignedCoordinatorIds();
+        $assignmentIds = $this->assignedCoordinatorIds($this->statusFilter === 'exam_officer_returned');
 
         if ($assignmentIds === []) {
             $this->courseSummaries = [];
@@ -443,16 +443,15 @@ class CoordinatorResultReview extends Component
                     ->where('results.semester', $this->selectedSemester)
                     ->whereIn('results.coordinator_id', $assignmentIds);
             })
-            ->where('department_courses.department_id', $this->inspectingDepartment?->id);
+            ->join('academic_details', 'academic_details.id', '=', 'results.academic_detail_id')
+            ->where('academic_details.department_id', $this->inspectingDepartment?->id);
 
-        // Admission year gold standard: filter by student's own admission_session
+        // Coordinator authorization follows the student's department and assigned cohort,
+        // so shared course offerings owned by another department remain visible.
         if ($hasCohortFilter) {
-            $query->join('academic_details', function ($join) {
-                $join->on('academic_details.id', '=', 'results.academic_detail_id')
-                    ->where(function ($clause) {
-                        $clause->whereIn('academic_details.admission_session', $this->cohortSessions)
-                            ->orWhereNull('academic_details.admission_session');
-                    });
+            $query->where(function ($clause) {
+                $clause->whereIn('academic_details.admission_session', $this->cohortSessions)
+                    ->orWhereNull('academic_details.admission_session');
             });
         }
         $this->courseSummaries = $query
@@ -465,6 +464,7 @@ class CoordinatorResultReview extends Component
                 DB::raw('COUNT(DISTINCT results.user_id) as student_count'),
                 DB::raw('COUNT(results.id) as total_results'),
                 DB::raw("SUM(CASE WHEN results.status = 'submitted' AND results.coordinator_approved_at IS NULL THEN 1 ELSE 0 END) as submitted"),
+                DB::raw("SUM(CASE WHEN results.status = 'submitted' AND results.coordinator_approved_at IS NULL AND results.remarks LIKE '[Exam Officer]:%' THEN 1 ELSE 0 END) as exam_officer_returned"),
                 DB::raw("SUM(CASE WHEN results.status = 'exam_officer_approved' THEN 1 ELSE 0 END) as coordinator_approved"),
                 DB::raw("SUM(CASE WHEN results.status = 'released' THEN 1 ELSE 0 END) as released"),
                 DB::raw("SUM(CASE WHEN results.status = 'pending' THEN 1 ELSE 0 END) as pending"),
@@ -482,6 +482,7 @@ class CoordinatorResultReview extends Component
                     'student_count' => (int) $course->student_count,
                     'total_results' => (int) $course->total_results,
                     'submitted' => (int) $course->submitted,
+                    'exam_officer_returned' => (int) $course->exam_officer_returned,
                     'coordinator_approved' => (int) $course->coordinator_approved,
                     'exam_officer_approved' => 0,
                     'released' => (int) $course->released,
@@ -491,6 +492,7 @@ class CoordinatorResultReview extends Component
             ->filter(function (array $course): bool {
                 return match ($this->statusFilter) {
                     'submitted' => $course['submitted'] > 0,
+                    'exam_officer_returned' => $course['exam_officer_returned'] > 0,
                     'coordinator_approved' => $course['coordinator_approved'] > 0,
                     'released' => $course['released'] > 0,
                     'pending' => $course['pending'] > 0,
@@ -854,7 +856,7 @@ class CoordinatorResultReview extends Component
             ->where('department_course_id', $this->selectedDepartmentCourseId)
             ->where('academic_session', $this->selectedSession)
             ->where('semester', $this->selectedSemester)
-            ->whereIn('coordinator_id', $this->assignedCoordinatorIds());
+            ->whereIn('coordinator_id', $this->assignedCoordinatorIds($this->statusFilter === 'exam_officer_returned'));
 
         /*
         |--------------------------------------------------------------------------
@@ -878,6 +880,9 @@ class CoordinatorResultReview extends Component
 
         match ($this->statusFilter) {
             'submitted' => $query->where('status', 'submitted')->whereNull('coordinator_approved_at'),
+            'exam_officer_returned' => $query->where('status', 'submitted')
+                ->whereNull('coordinator_approved_at')
+                ->where('remarks', 'like', '[Exam Officer]:%'),
             'coordinator_approved' => $query->where('status', 'exam_officer_approved'),
             'released' => $query->where('status', 'released'),
             'pending' => $query->where('status', 'pending'),
@@ -932,7 +937,9 @@ class CoordinatorResultReview extends Component
                     'total_score' => $result->total_score,
                     'grade' => $result->grade ?? '-',
                     'grade_point' => $result->grade_point ?? '-',
-                    'status' => $result->status === 'exam_officer_approved' ? 'coordinator_approved' : $result->status,
+                    'status' => $result->status === 'submitted' && str_starts_with((string) $result->remarks, '[Exam Officer]:')
+                        ? 'exam_officer_returned'
+                        : ($result->status === 'exam_officer_approved' ? 'coordinator_approved' : $result->status),
                     'remarks' => $result->remarks,
                 ];
             })
@@ -1225,7 +1232,11 @@ class CoordinatorResultReview extends Component
             ->whereNull(
                 'coordinator_approved_at'
             )
-            ->whereIn('coordinator_id', $this->assignedCoordinatorIds());
+            ->whereIn('coordinator_id', $this->assignedCoordinatorIds($this->statusFilter === 'exam_officer_returned'));
+
+        if ($this->statusFilter === 'exam_officer_returned') {
+            $query->where('remarks', 'like', '[Exam Officer]:%');
+        }
 
 
         $count = $query->count();
@@ -1350,7 +1361,7 @@ class CoordinatorResultReview extends Component
         $this->loadCourseSummaries();
     }
 
-    private function assignedCoordinatorIds(): array
+    private function assignedCoordinatorIds(bool $allAssignedLevels = false): array
     {
         /** @var User|null $user */
         $user = Auth::user();
@@ -1369,7 +1380,7 @@ class CoordinatorResultReview extends Component
         return $user->coordinators()
             ->where('department_id', $this->inspectingDepartment->id)
             ->when(
-                $this->selectedLevelId,
+                !$allAssignedLevels && $this->selectedLevelId,
                 fn ($query) => $query->where(fn ($q) => $q->where('student_level_id', $this->selectedLevelId)->orWhereNull('student_level_id'))
             )
             ->pluck('id')

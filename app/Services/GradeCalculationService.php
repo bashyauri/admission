@@ -141,9 +141,8 @@ class GradeCalculationService
     /**
      * Calculate and record the student session GPA and cumulative GPA.
      *
-     * Every academic calculation is session-based for governance reporting, so
-     * the GPA is built from all released results in the given session rather than
-     * from a single semester bucket.
+     * Persist the GPA for the selected semester and the cumulative GPA through
+     * that semester. Keeping those values distinct is required for standing rules.
      */
     public function processAndSaveGpaRecord(User $student, string $session, string $semester): ResultGpaRecord
     {
@@ -151,14 +150,23 @@ class GradeCalculationService
         $sessionResults = Result::with(['registeredCourse', 'departmentCourse.studentCourse'])
             ->where('user_id', $student->id)
             ->where('academic_session', $session)
+            ->where('semester', $semester)
             ->where('status', 'released')
             ->get();
 
         $sessionCalc = $this->calculateSemesterGpa($sessionResults);
 
-        // Fetch all released historical results for the student up to and including this session.
+        // Fetch released results through this semester only; later semesters must
+        // not alter a historical cumulative snapshot.
         $allResults = Result::with(['registeredCourse', 'departmentCourse.studentCourse'])
             ->where('user_id', $student->id)
+            ->where(function ($query) use ($session, $semester) {
+                $query->where('academic_session', '<', $session)
+                    ->orWhere(function ($current) use ($session, $semester) {
+                        $current->where('academic_session', $session)
+                            ->whereIn('semester', strtolower($semester) === 'first' ? ['first', '1'] : ['first', '1', 'second', '2']);
+                    });
+            })
             ->where('status', 'released')
             ->get();
 

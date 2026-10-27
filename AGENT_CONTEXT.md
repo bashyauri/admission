@@ -40,6 +40,7 @@ A Laravel-based Admission Management and Student Management Information System (
 10. TALL Stack Performance Optimisation (Phase 9 completed: quick wins and Tasks 9.1–9.7 are complete — see [`result_processing_agent_phases.md`](file:///c:/laragon/www/admission/result_processing_agent_phases.md))
 11. Coordinator Course Registration Approval: Coordinators can now review a student's registered courses and explicitly approve/lock or unlock registrations from `generate-student-pin` — preventing students from adding or removing courses after coordinator approval.
 12. Coordinator Department Course Assignment: `/coordinator/add-course` assigns canonical `student_courses` records to a department. The catalog and assigned-course lists are separately paginated; catalog search is debounced and matches course code/title; level and semester labels come from saved course data. Use semantic buttons, visible loading/empty states, and department-scoped edit/delete operations. Do not poll the page for updates; Livewire actions refresh the affected lists.
+13. Coordinator result review scopes results to the students' department, assigned Coordinator IDs, and cohort. It must include shared service courses even when the `department_courses` offering belongs to another department.
 
 ### What Makes This Different
 - NUC-compliant grading system for Nigerian universities
@@ -661,11 +662,12 @@ Lecturer Submits → status = 'submitted' (routed to student's Course Cohort Coo
   ↓
 Coordinator Reviews Course Cohort Score Sheet (CoordinatorResultReview)
   ├── Issues Found → Return to Lecturer + Reason → status = 'pending'
+  ├── Exam Officer return → visible as “Returned by Exam Officer” so Coordinator can return it to Lecturer
   │     ↓ (Lecturer corrects and resubmits)
   └── Approved → status = 'exam_officer_approved'
         ↓
 Exam Officer Audits (ExamOfficerResultReview)
-  ├── Issues Found → Return to Coordinator + Audit Comment → status = 'submitted'
+  ├── Issues Found (before or after UG release) → Exam Officer returns to Coordinator + audit comment → status = 'submitted'; released UG results are hidden from students while under review
   └── Release to Students → status = 'released'
         ↓
 GPA / CGPA Calculated (GradeCalculationService → result_gpa_records)
@@ -690,12 +692,12 @@ The university operates under the following mandatory academic standing and degr
 * **CGPA 1.00 – 2.49** → Good Academic Standing / Third Class Honours
 
 ### 2. Academic Deficiency & Withdrawal Thresholds
-* **CGPA 0.75 – 0.99** → **PROBATION** (`STATUS: ON PROBATION`)
+* **CGPA 0.75 – 0.99 at a semester checkpoint** → **PROBATION** (`STATUS: ON PROBATION`)
 * **CGPA 0.50 – 0.74** → eligible for a **W/P programme-withdrawal recommendation**; this is not an official `WITHDRAWN` status until Senate approves it.
 * **CGPA 0.00 – 0.49** → eligible for a **W/U university-withdrawal recommendation**; this is not an official `WITHDRAWN` status until Senate approves it.
 
 ### 3. Consecutive Probation Rule
-* **Two (2) consecutive academic sessions on probation → recommend W/P for Senate review**, regardless of current CGPA, provided the two-session rule is actually satisfied. Do not change institutional status before Senate approval.
+* **Two (2) consecutive academic semesters with CGPA 0.75–0.99 at each semester checkpoint → recommend W/P for Senate review**, even if a later CGPA improves. This is a recommendation only; do not change institutional status before Senate approval.
 
 ### 4. Broadsheet Remarks & Status Display Rules (Print SR4)
 * **Clean Pass (CGPA ≥ 1.00, no failed courses):** `PASS` (no `STATUS:` line)

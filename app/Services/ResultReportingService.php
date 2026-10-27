@@ -364,29 +364,6 @@ class ResultReportingService
             ? ($includedStages !== [] ? 'Provisional Review (' . implode(', ', $includedStages) . ')' : 'Provisional Staff Review')
             : 'Official Senate Final (Released Results Only)';
 
-        // 3. Fetch cumulative ResultGpaRecords for these students for this session
-        $gpaRecords = ResultGpaRecord::whereIn('user_id', $studentIds)
-            ->where('academic_session', $session)
-            ->orderByDesc('id')
-            ->get()
-            ->groupBy('user_id')
-            ->map(fn($recs) => $recs->first());
-
-        // Derive previous academic session for CGPA LS (e.g. 2024/2025 -> 2023/2024)
-        $parts = explode('/', $session);
-        $prevSession = (count($parts) === 2 && is_numeric($parts[0]) && is_numeric($parts[1]))
-            ? ((int) $parts[0] - 1) . '/' . ((int) $parts[1] - 1)
-            : null;
-
-        $prevGpaRecords = $prevSession
-            ? ResultGpaRecord::whereIn('user_id', $studentIds)
-                ->where('academic_session', $prevSession)
-                ->orderByDesc('id')
-                ->get()
-                ->groupBy('user_id')
-                ->map(fn($recs) => $recs->first())
-            : collect();
-
         // Fetch prior released results before this session (or prior semester if single-semester)
         // to compute accurate cumulative totals (UTD, GPTD, CGPA) without N+1 queries.
         $priorResultsGrouped = Result::with(['departmentCourse.studentCourse', 'registeredCourse'])
@@ -402,6 +379,16 @@ class ResultReportingService
                     });
                 }
             })
+            ->get()
+            ->groupBy('user_id');
+
+        // CGPA LS is the cumulative CGPA before the selected academic session.
+        // Recalculate from released results because legacy GPA snapshots may
+        // have been written with later semesters included in earlier records.
+        $lastSessionResultsGrouped = Result::with(['departmentCourse.studentCourse', 'registeredCourse'])
+            ->whereIn('user_id', $studentIds)
+            ->where('status', 'released')
+            ->where('academic_session', '<', $session)
             ->get()
             ->groupBy('user_id');
 
@@ -513,9 +500,6 @@ class ResultReportingService
             $gpa = $uts > 0 ? round($gpts / $uts, 2) : 0.00;
 
             // Cumulative Calculation (UTD & GPTD & CGPA)
-            /** @var ResultGpaRecord|null $gpaRecord */
-            $gpaRecord = $gpaRecords->get($student->id);
-
             // Compute prior cumulative statistics from historical released results
             /** @var \Illuminate\Support\Collection<int, Result> $priorResults */
             $priorResults = $priorResultsGrouped->get($student->id, collect());
@@ -523,29 +507,28 @@ class ResultReportingService
             $priorUnits = (int) $priorCalc['total_units'];
             $priorPoints = (int) $priorCalc['total_points'];
 
-            if ($releasedOnly && $gpaRecord && $gpaRecord->cumulative_credit_units > 0) {
-                // Official Senate Final: use persisted ResultGpaRecord
-                $utd = (int) $gpaRecord->cumulative_credit_units;
-                $gptd = (int) $gpaRecord->cumulative_grade_points;
-                $cgpa = (float) $gpaRecord->cumulative_gpa;
-                $classOfDegree = $gpaRecord->class_of_degree ?? $this->gradeCalculator->getClassOfDegree($cgpa);
-            } else {
-                // Provisional Review or unpersisted: combine prior released results with current session review scores
-                $utd = $priorUnits + $uts;
-                $gptd = $priorPoints + $gpts;
-                $cgpa = $utd > 0 ? round($gptd / $utd, 2) : 0.00;
-                $classOfDegree = $this->gradeCalculator->getClassOfDegree($cgpa);
-            }
+            // Derive the report totals from the results in scope. This keeps
+            // official and provisional reports aligned to the selected semester
+            // and avoids stale cumulative values in legacy GPA snapshots.
+            $utd = $priorUnits + $uts;
+            $gptd = $priorPoints + $gpts;
+            $cgpa = $utd > 0 ? round($gptd / $utd, 2) : 0.00;
+            $classOfDegree = $this->gradeCalculator->getClassOfDegree($cgpa);
 
             // Last Session CGPA (CGPA LS)
-            /** @var ResultGpaRecord|null $prevGpa */
-            $prevGpa = $prevGpaRecords->get($student->id);
-            $cgpaLs = ($prevGpa && $prevGpa->cumulative_gpa > 0)
-                ? number_format((float) $prevGpa->cumulative_gpa, 2)
-                : ($priorUnits > 0 ? number_format((float) $priorCalc['semester_gpa'], 2) : '-');
+            $lastSessionResults = $lastSessionResultsGrouped->get($student->id, collect());
+            $lastSessionCalc = $this->gradeCalculator->calculateSemesterGpa($lastSessionResults);
+            $cgpaLs = $lastSessionCalc['total_units'] > 0
+                ? number_format((float) $lastSessionCalc['semester_gpa'], 2)
+                : '-';
 
             // Determine Academic Standing & Official Senate Remarks
-            $standingInfo = $this->progressionService->determineAcademicStanding($student, ($uts > 0 || $utd > 0) ? $cgpa : null);
+            $standingInfo = $this->progressionService->determineAcademicStanding(
+                $student,
+                ($uts > 0 || $utd > 0) ? $cgpa : null,
+                $session,
+                strtolower($semester) === 'first' ? 1 : 2,
+            );
             $standing = $standingInfo['standing'] ?? AcademicProgressionService::STANDING_PROMOTED;
 
             // Build course breakdown items for Nigerian Senate report
@@ -650,9 +633,9 @@ class ResultReportingService
 
                 if (!$isOfficiallyWithdrawn) {
                     if ($cgpa < 0.50 || $standing === AcademicProgressionService::STANDING_WITHDRAWN_UNIVERSITY) {
-                        $statusText = 'WITHDRAWN FROM THE UNIVERSITY';
+                        $statusText = 'W/U RECOMMENDATION — PENDING SENATE DECISION';
                     } elseif ($standing === AcademicProgressionService::STANDING_WITHDRAWN_PROGRAM || $cgpa < 0.75) {
-                        $statusText = 'WITHDRAWN FROM PROGRAM';
+                        $statusText = 'W/P RECOMMENDATION — PENDING SENATE DECISION';
                     } elseif ($standing === AcademicProgressionService::STANDING_PROBATION || $cgpa < 1.00) {
                         $statusText = 'ON PROBATION';
                     } else {

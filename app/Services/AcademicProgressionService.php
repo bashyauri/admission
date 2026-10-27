@@ -27,7 +27,12 @@ class AcademicProgressionService
     /**
      * Determine the academic standing of an undergraduate student based on approved session results.
      */
-    public function determineAcademicStanding(User $user, ?float $calculatedCgpa = null): array
+    public function determineAcademicStanding(
+        User $user,
+        ?float $calculatedCgpa = null,
+        ?string $academicSession = null,
+        ?int $academicSemester = null
+    ): array
     {
         if (!$user->isUndergraduate()) {
             return [
@@ -105,7 +110,8 @@ class AcademicProgressionService
         //                0.50–0.74   → Withdrawn from Program
         //                0.75–0.99   → Probation
         //                ≥ 1.00      → Good Standing / Promoted
-        // Special Rule: Two consecutive academic sessions on probation → W/P, regardless of current CGPA
+        // Two consecutive probation semesters qualify for a W/P recommendation,
+        // even if a later semester's CGPA improves, pending Senate decision.
         if ($cgpa < 0.50) {
             return [
                 'standing' => self::STANDING_WITHDRAWN_UNIVERSITY,
@@ -115,15 +121,29 @@ class AcademicProgressionService
             ];
         }
 
-        // Two consecutive academic sessions on probation → W/P (WITHDRAWAL FROM PROGRAMME)
+        // Two consecutive academic semesters on probation → W/P recommendation.
         $rule = config('academic_withdrawal.consecutive_probation', []);
         $probationThreshold = !empty($rule['enabled']) ? (int) ($rule['threshold'] ?? 2) : 2;
-        if ($this->countConsecutiveStandingSessions($user, self::STANDING_PROBATION, 'session') >= $probationThreshold) {
+        $probationUnit = $rule['unit'] ?? 'semester';
+        $currentSessionStanding = $calculatedCgpa !== null
+            ? (($calculatedCgpa >= 0.75 && $calculatedCgpa < 1.00)
+                ? self::STANDING_PROBATION
+                : self::STANDING_PROMOTED)
+            : null;
+
+        if ($this->countConsecutiveStandingSessions(
+            $user,
+            self::STANDING_PROBATION,
+            $probationUnit,
+            $academicSession,
+            $currentSessionStanding,
+            $academicSession !== null ? ($academicSemester ?? 2) : null,
+        ) >= $probationThreshold) {
             return [
                 'standing' => self::STANDING_WITHDRAWN_PROGRAM,
                 'cgpa' => $cgpa,
                 'has_uncleared_carryovers' => $hasUnclearedCarryOvers,
-                'reason' => "Withdrawn from Program ({$probationThreshold} consecutive academic sessions on probation)",
+                'reason' => "Programme withdrawal recommended ({$probationThreshold} consecutive academic semesters on probation; pending Senate decision)",
             ];
         }
 
@@ -603,7 +623,7 @@ class AcademicProgressionService
     // =========================================================================
 
     /**
-     * Count consecutive academic sessions (most recent first) where the
+     * Count consecutive academic sessions or semesters where the
      * student held the given standing.
      *
      * Prefers persisted AcademicProgressionRecord rows (Task 6.7.3+).
@@ -611,18 +631,46 @@ class AcademicProgressionService
      * students whose progression has not yet been persisted explicitly.
      *
      * @param string $standing  One of the STANDING_* constants.
-     * @param string $unit      'session' (default) groups all semesters per year;
+     * @param string $unit      'session' groups semesters per year;
      *                          'semester' counts each semester individually.
      */
-    private function countConsecutiveStandingSessions(User $user, string $standing, string $unit = 'session'): int
+    private function countConsecutiveStandingSessions(
+        User $user,
+        string $standing,
+        string $unit = 'session',
+        ?string $overrideAcademicSession = null,
+        ?string $overrideStanding = null,
+        ?int $overrideSemester = null,
+    ): int
     {
-        $records = AcademicProgressionRecord::where('user_id', $user->id)
-            ->orderByDesc('academic_session')
-            ->orderByDesc('semester')
-            ->get();
+        // Each semester's cumulative GPA snapshot determines whether that
+        // semester was probationary; semester_gpa is a separate statistic.
+        $records = $unit === 'semester'
+            ? $this->buildProgressionSnapshotsFromGpaRecords($user)
+            : AcademicProgressionRecord::where('user_id', $user->id)
+                ->orderByDesc('academic_session')
+                ->orderByDesc('semester')
+                ->get();
 
         if ($records->isEmpty()) {
             $records = $this->buildProgressionSnapshotsFromGpaRecords($user);
+        }
+
+        // A provisional report may include unreleased results that are not yet
+        // reflected in persisted GPA/progression records. Use its current-session
+        // standing instead of letting an older released-only snapshot drive the streak.
+        if ($overrideAcademicSession !== null && $overrideStanding !== null) {
+            $semester = $overrideSemester ?? 2;
+            $records = $records
+                ->reject(fn ($record) => strcmp((string) ($record->academic_session ?? ''), $overrideAcademicSession) > 0
+                    || ((string) ($record->academic_session ?? '') === $overrideAcademicSession
+                        && $this->semesterSequence((string) ($record->semester ?? '')) >= $semester))
+                ->values();
+            $records->prepend((object) [
+                'academic_session' => $overrideAcademicSession,
+                'semester' => $semester,
+                'standing' => $overrideStanding,
+            ]);
         }
 
         if ($unit === 'semester') {
@@ -639,15 +687,26 @@ class AcademicProgressionService
         }
 
         $consecutive = 0;
+        $maximumConsecutive = 0;
         foreach ($groups as $group) {
             if (($group['standing'] ?? '') === $standing) {
                 $consecutive++;
+                $maximumConsecutive = max($maximumConsecutive, $consecutive);
             } else {
-                break;
+                $consecutive = 0;
             }
         }
 
-        return $consecutive;
+        return $maximumConsecutive;
+    }
+
+    private function semesterSequence(string $semester): int
+    {
+        return match (strtolower(trim($semester))) {
+            'first', '1' => 1,
+            'second', '2' => 2,
+            default => (int) $semester,
+        };
     }
 
     /**
@@ -717,11 +776,11 @@ class AcademicProgressionService
             ->orderByDesc('id')
             ->get()
             ->map(function ($gpa) {
-                $cgpa = (float) $gpa->cumulative_gpa;
+                $cumulativeGpa = (float) $gpa->cumulative_gpa;
 
                 $standing = match (true) {
-                    $cgpa >= 1.00 => self::STANDING_PROMOTED,
-                    $cgpa >= 0.75 => self::STANDING_PROBATION,
+                    $cumulativeGpa >= 1.00 => self::STANDING_PROMOTED,
+                    $cumulativeGpa >= 0.75 => self::STANDING_PROBATION,
                     default       => self::STANDING_REPEAT,
                 };
 
@@ -729,7 +788,7 @@ class AcademicProgressionService
                     'academic_session' => $gpa->academic_session,
                     'semester'         => $gpa->semester,
                     'standing'         => $standing,
-                    'cgpa'             => $cgpa,
+                    'cgpa'             => $cumulativeGpa,
                 ];
             });
     }

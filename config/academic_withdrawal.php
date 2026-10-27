@@ -33,17 +33,17 @@ return [
     |--------------------------------------------------------------------------
     | Rule: Consecutive Academic Probation
     |--------------------------------------------------------------------------
-    | A student at CGPA 0.75–0.99 is on probation. Two consecutive probation
-    | sessions make the student eligible for a programme-withdrawal recommendation.
+    | A student with cumulative GPA (CGPA) 0.75–0.99 at a semester checkpoint is on probation. Two consecutive
+    | probation semesters make the student eligible for a programme-withdrawal recommendation.
     |
     | unit: 'semester' | 'session'
     */
     'consecutive_probation' => [
         'enabled'   => true,
-        'threshold' => 2,      // two consecutive probation sessions
-        'unit'      => 'session', // count per academic session, not per semester
+        'threshold' => 2,      // two consecutive probation semesters
+        'unit'      => 'semester',
         'reason_code' => 'CONSECUTIVE_PROBATION',
-        'reason'    => 'Student has been on academic probation for {threshold} consecutive sessions; recommend programme withdrawal for Senate review.',
+        'reason'    => 'Student has been on academic probation for {threshold} consecutive semesters; recommend programme withdrawal for Senate review.',
     ],
 
     /*
@@ -67,7 +67,7 @@ return [
     |--------------------------------------------------------------------------
     | CGPA below 0.50: university withdrawal recommendation.
     | CGPA 0.50–0.74: programme withdrawal recommendation.
-    | CGPA 0.75–0.99: probation; two consecutive probation sessions trigger
+    | CGPA 0.75–0.99: probation; two consecutive probation semesters trigger
     | a programme-withdrawal recommendation.
     | - CGPA < 0.50:          recommend withdrawal from the University
     | - 0.50 ≤ CGPA < 0.75:  recommend withdrawal from the programme
