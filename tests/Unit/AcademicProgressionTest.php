@@ -676,4 +676,201 @@ class AcademicProgressionTest extends TestCase
 
         return [$user, $academicDetail, $registration, $departmentCourse];
     }
+
+    /**
+     * A student CANNOT be withdrawn in First Semester, even if their CGPA is very low.
+     * Poor performance in First Semester places them on PROBATION pending the session close.
+     */
+    public function test_first_semester_student_cannot_be_withdrawn_even_with_very_low_cgpa(): void
+    {
+        $user = new User();
+        $user->id = (string) \Illuminate\Support\Str::uuid();
+        $user->programme_id = ProgrammesEnum::Undergraduate->value;
+        $user->email = 'sem1_low_' . uniqid() . '@example.com';
+        $user->password = bcrypt('secret');
+        $user->vpassword = 'secret';
+        $user->role = 'student';
+        $user->save();
+
+        $course = Course::first() ?? Course::create([
+            'name' => 'CS Test',
+            'department_id' => $this->department->id,
+            'programme_id' => $this->programme->id,
+        ]);
+
+        AcademicDetail::create([
+            'user_id' => $user->id,
+            'matric_no' => 'MAT/SEM1/' . rand(1000, 9999),
+            'course_id' => $course->id,
+            'programme_id' => $this->programme->id,
+            'department_id' => $this->department->id,
+            'student_level_id' => $this->level100->id,
+            'acad_session' => '2024/2025',
+            'admission_session' => '2024/2025',
+        ]);
+
+        // Evaluate at First Semester with very low CGPA (0.34)
+        $standing034 = $this->progressionService->determineAcademicStanding(
+            $user,
+            0.34,
+            '2024/2025',
+            1
+        );
+
+        $this->assertEquals(
+            AcademicProgressionService::STANDING_PROBATION,
+            $standing034['standing'],
+            'Semester 1 evaluation must NEVER return WITHDRAWN_UNIVERSITY; it must return PROBATION'
+        );
+
+        // Evaluate at First Semester with 0.65 (between 0.50 and 0.74)
+        $standing065 = $this->progressionService->determineAcademicStanding(
+            $user,
+            0.65,
+            '2024/2025',
+            1
+        );
+
+        $this->assertEquals(
+            AcademicProgressionService::STANDING_PROBATION,
+            $standing065['standing'],
+            'Semester 1 evaluation must NEVER return WITHDRAWN_PROGRAM; it must return PROBATION'
+        );
+
+        // Create a Semester 1 GPA record with poor GPA (0.34)
+        ResultGpaRecord::create([
+            'user_id' => $user->id,
+            'academic_session' => '2024/2025',
+            'semester' => 1,
+            'semester_gpa' => 0.34,
+            'cumulative_gpa' => 0.34,
+            'total_credit_units' => 17,
+            'total_grade_points' => 5.78,
+        ]);
+
+        // processAndApplyAcademicProgression in semester 1 must not recommend withdrawal
+        $result = $this->progressionService->processAndApplyAcademicProgression($user, '2024/2025', 1);
+        $this->assertEquals(AcademicProgressionService::STANDING_PROBATION, $result['standing']);
+        $this->assertEquals('active', $result['status']);
+        $this->assertFalse($result['withdrawal_applied']);
+        $this->assertNull($result['reason_code']);
+    }
+
+    /**
+     * At session end (Semester 2 / full session), 100-level students ARE evaluated
+     * for withdrawal exactly per the Senate broadsheet:
+     * - CGPA < 0.50 -> WITHDRAWN_UNIVERSITY (e.g. Shehu Muhammad Galadima CGPA 0.38)
+     * - 0.50 <= CGPA < 0.75 -> WITHDRAWN_PROGRAM (e.g. Shehu Isah Galadima CGPA 0.74)
+     * - 0.75 <= CGPA < 1.00 -> ON PROBATION (e.g. Murtala Manir Gulma CGPA 0.97)
+     */
+    public function test_100_level_student_evaluated_for_withdrawal_at_session_end_per_senate_broadsheet(): void
+    {
+        $user = new User();
+        $user->id = (string) \Illuminate\Support\Str::uuid();
+        $user->programme_id = ProgrammesEnum::Undergraduate->value;
+        $user->email = 'senate_100_' . uniqid() . '@example.com';
+        $user->password = bcrypt('secret');
+        $user->vpassword = 'secret';
+        $user->role = 'student';
+        $user->save();
+
+        $course = Course::first() ?? Course::create([
+            'name' => 'CS Senate',
+            'department_id' => $this->department->id,
+            'programme_id' => $this->programme->id,
+        ]);
+
+        AcademicDetail::create([
+            'user_id' => $user->id,
+            'matric_no' => 'MAT/SEN/' . rand(1000, 9999),
+            'course_id' => $course->id,
+            'programme_id' => $this->programme->id,
+            'department_id' => $this->department->id,
+            'student_level_id' => $this->level100->id,
+            'acad_session' => '2024/2025',
+            'admission_session' => '2024/2025',
+        ]);
+
+        // Student with CGPA 0.38 (like Student 12 in PDF) -> WITHDRAWN_UNIVERSITY
+        $standing038 = $this->progressionService->determineAcademicStanding($user, 0.38, '2024/2025', 2);
+        $this->assertEquals(AcademicProgressionService::STANDING_WITHDRAWN_UNIVERSITY, $standing038['standing']);
+
+        // Student with CGPA 0.74 (like Student 13 SHEHU Isah Galadima in PDF) -> WITHDRAWN_PROGRAM
+        $standing074 = $this->progressionService->determineAcademicStanding($user, 0.74, '2024/2025', 2);
+        $this->assertEquals(AcademicProgressionService::STANDING_WITHDRAWN_PROGRAM, $standing074['standing']);
+
+        // Student with CGPA 0.97 (like Student 14 MURTALA Manir Gulma in PDF) -> ON PROBATION
+        $standing097 = $this->progressionService->determineAcademicStanding($user, 0.97, '2024/2025', 2);
+        $this->assertEquals(AcademicProgressionService::STANDING_PROBATION, $standing097['standing']);
+
+        // Student with CGPA 2.32 (like Student 2 in PDF) -> PROMOTED / PASS
+        $standing232 = $this->progressionService->determineAcademicStanding($user, 2.32, '2024/2025', 2);
+        $this->assertEquals(AcademicProgressionService::STANDING_PROMOTED, $standing232['standing']);
+    }
+
+    /**
+     * Consecutive probation is counted across sessions:
+     * A student on probation in 100L session gets PROBATION.
+     * When still on probation in 200L session, 2 consecutive sessions triggers WITHDRAWN_PROGRAM.
+     */
+    public function test_consecutive_probation_across_sessions_triggers_withdrawal_recommendation(): void
+    {
+        config([
+            'academic_withdrawal.consecutive_probation.enabled' => true,
+            'academic_withdrawal.consecutive_probation.threshold' => 2,
+            'academic_withdrawal.consecutive_probation.unit' => 'session',
+        ]);
+
+        $user = new User();
+        $user->id = (string) \Illuminate\Support\Str::uuid();
+        $user->programme_id = ProgrammesEnum::Undergraduate->value;
+        $user->email = 'consec_sess_' . uniqid() . '@example.com';
+        $user->password = bcrypt('secret');
+        $user->vpassword = 'secret';
+        $user->role = 'student';
+        $user->save();
+
+        $course = Course::first() ?? Course::create([
+            'name' => 'CS Consec',
+            'department_id' => $this->department->id,
+            'programme_id' => $this->programme->id,
+        ]);
+
+        $academicDetail = AcademicDetail::create([
+            'user_id' => $user->id,
+            'matric_no' => 'MAT/CON/' . rand(1000, 9999),
+            'course_id' => $course->id,
+            'programme_id' => $this->programme->id,
+            'department_id' => $this->department->id,
+            'student_level_id' => $this->level200->id,
+            'acad_session' => '2025/2026',
+            'admission_session' => '2024/2025',
+        ]);
+
+        // Session 1 (2024/2025) session record: PROBATION
+        \App\Models\AcademicProgressionRecord::create([
+            'user_id' => $user->id,
+            'academic_detail_id' => $academicDetail->id,
+            'academic_session' => '2024/2025',
+            'semester' => 2,
+            'level' => '100',
+            'cgpa' => 0.88,
+            'standing' => AcademicProgressionService::STANDING_PROBATION,
+            'withdrawal_recommended' => false,
+        ]);
+
+        // Session 2 (2025/2026): Evaluate with probationary CGPA (0.90)
+        $standing = $this->progressionService->determineAcademicStanding(
+            $user,
+            0.90,
+            '2025/2026',
+            2
+        );
+
+        $this->assertEquals(
+            AcademicProgressionService::STANDING_WITHDRAWN_PROGRAM,
+            $standing['standing'],
+            'Student with 2 consecutive probation sessions should be recommended for WITHDRAWN_PROGRAM'
+        );
+    }
 }

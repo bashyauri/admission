@@ -106,12 +106,34 @@ class AcademicProgressionService
             ];
         }
 
-        // FUBK standard: CGPA < 0.50 → Withdrawn from University
+        // A student CANNOT be withdrawn in First Semester (semester 1).
+        // Withdrawal (W/U, W/P, or consecutive probation) is evaluated at the end
+        // of the session (Second Semester / full session). In First Semester,
+        // performance below 1.00 places the student on PROBATION pending the
+        // completion of the second semester.
+        if ($academicSemester === 1) {
+            if ($cgpa < 1.00) {
+                return [
+                    'standing' => self::STANDING_PROBATION,
+                    'cgpa' => $cgpa,
+                    'has_uncleared_carryovers' => $hasUnclearedCarryOvers,
+                    'reason' => 'Probation / Academic Warning (First Semester CGPA < 1.00; evaluated at session end)',
+                ];
+            }
+
+            return [
+                'standing' => self::STANDING_PROMOTED,
+                'cgpa' => $cgpa,
+                'has_uncleared_carryovers' => $hasUnclearedCarryOvers,
+                'reason' => 'Good Academic Standing (CGPA >= 1.00)',
+            ];
+        }
+
+        // FUBK standard (evaluated at session end):
+        //                CGPA < 0.50 → Withdrawn from University
         //                0.50–0.74   → Withdrawn from Program
         //                0.75–0.99   → Probation
         //                ≥ 1.00      → Good Standing / Promoted
-        // Two consecutive probation semesters qualify for a W/P recommendation,
-        // even if a later semester's CGPA improves, pending Senate decision.
         if ($cgpa < 0.50) {
             return [
                 'standing' => self::STANDING_WITHDRAWN_UNIVERSITY,
@@ -121,10 +143,10 @@ class AcademicProgressionService
             ];
         }
 
-        // Two consecutive academic semesters on probation → W/P recommendation.
+        // Two consecutive academic sessions on probation → W/P recommendation.
         $rule = config('academic_withdrawal.consecutive_probation', []);
         $probationThreshold = !empty($rule['enabled']) ? (int) ($rule['threshold'] ?? 2) : 2;
-        $probationUnit = $rule['unit'] ?? 'semester';
+        $probationUnit = $rule['unit'] ?? 'session';
         $currentSessionStanding = $calculatedCgpa !== null
             ? (($calculatedCgpa >= 0.75 && $calculatedCgpa < 1.00)
                 ? self::STANDING_PROBATION
@@ -143,7 +165,7 @@ class AcademicProgressionService
                 'standing' => self::STANDING_WITHDRAWN_PROGRAM,
                 'cgpa' => $cgpa,
                 'has_uncleared_carryovers' => $hasUnclearedCarryOvers,
-                'reason' => "Programme withdrawal recommended ({$probationThreshold} consecutive academic semesters on probation; pending Senate decision)",
+                'reason' => "Programme withdrawal recommended ({$probationThreshold} consecutive academic sessions on probation; pending Senate decision)",
             ];
         }
 
@@ -378,12 +400,12 @@ class AcademicProgressionService
             ];
         }
 
-        $standingInfo = $this->determineAcademicStanding($student);
+        $sem = $semester ?? 2;
+        $standingInfo = $this->determineAcademicStanding($student, null, $session, $sem);
         $standing = $standingInfo['standing'];
         $cgpa = (float) $standingInfo['cgpa'];
         $academicDetail = $student->academicDetail;
         $level = $academicDetail?->studentLevel?->level ?? (string) ($academicDetail?->student_level_id ?? '100');
-        $sem = $semester ?? 2;
 
         // Persist or update AcademicProgressionRecord for this session/semester
         $progRecord = AcademicProgressionRecord::where('user_id', $student->id)
@@ -413,8 +435,17 @@ class AcademicProgressionService
 
         // Eligibility is a recommendation only. The Senate workflow in StudentStatusService
         // is the only path that may create an institutional withdrawal status.
-        $eligibility = $this->evaluateWithdrawalEligibility($student);
-        $withdrawalRecommended = (bool) $eligibility['eligible'];
+        // In First Semester, withdrawal cannot be recommended — students are evaluated at session end.
+        $withdrawalRecommended = false;
+        $reasonCode = null;
+        $reason = null;
+
+        if ($sem !== 1) {
+            $eligibility = $this->evaluateWithdrawalEligibility($student);
+            $withdrawalRecommended = (bool) $eligibility['eligible'];
+            $reasonCode = $eligibility['reason_code'];
+            $reason = $eligibility['reason'];
+        }
 
         if ($progRecord && $withdrawalRecommended) {
             $progRecord->update(['withdrawal_recommended' => true]);
@@ -425,8 +456,8 @@ class AcademicProgressionService
             'cgpa' => $cgpa,
             'status' => $withdrawalRecommended ? 'pending_senate_review' : 'active',
             'withdrawal_applied' => false,
-            'reason_code' => $eligibility['reason_code'],
-            'reason' => $eligibility['reason'],
+            'reason_code' => $reasonCode,
+            'reason' => $reason,
         ];
     }
 
@@ -679,10 +710,14 @@ class AcademicProgressionService
                 'standing' => $r->standing,
             ]);
         } else {
-            // Group by session, pick worst standing per session
+            // Group by session: the official standing of an academic session is determined
+            // at session close (the latest semester of that session, typically semester 2).
             $groups = $records->groupBy('academic_session')->map(function ($sessionRecords) {
-                $standings = $sessionRecords->pluck('standing')->all();
-                return ['key' => $sessionRecords->first()->academic_session, 'standing' => $this->worstStanding($standings)];
+                $latestSemesterRecord = $sessionRecords->sortByDesc(fn ($r) => $this->semesterSequence((string) ($r->semester ?? '')))->first();
+                return [
+                    'key' => $sessionRecords->first()->academic_session,
+                    'standing' => $latestSemesterRecord->standing,
+                ];
             })->values();
         }
 

@@ -40,10 +40,10 @@ return [
     */
     'consecutive_probation' => [
         'enabled'   => true,
-        'threshold' => 2,      // two consecutive probation semesters
-        'unit'      => 'semester',
+        'threshold' => 2,      // two consecutive probation sessions
+        'unit'      => 'session',
         'reason_code' => 'CONSECUTIVE_PROBATION',
-        'reason'    => 'Student has been on academic probation for {threshold} consecutive semesters; recommend programme withdrawal for Senate review.',
+        'reason'    => 'Student has been on academic probation for {threshold} consecutive sessions; recommend programme withdrawal for Senate review.',
     ],
 
     /*

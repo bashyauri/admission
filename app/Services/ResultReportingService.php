@@ -283,6 +283,7 @@ class ResultReportingService
         $studentIds = $students->pluck('id')->all();
         $statusService = $this->studentStatusService ??= app(StudentStatusService::class);
         $statusesForSession = $statusService->getStatusesForSession($studentIds, $session);
+        $currentStatuses = $statusService->getCurrentStatuses($studentIds);
 
         // Keep a student's withdrawal-session results in that session's
         // historical broadsheet, but omit them from later-session cohort
@@ -607,7 +608,7 @@ class ResultReportingService
             $allUnclearedCourses = array_values(array_unique(array_merge($failedCoursesThisSession, $activeCarryCodes)));
 
             $hasResults = ($uts > 0 || $utd > 0 || !empty($courseBreakdownItems));
-            $statusRecord = $statusesForSession->get($student->id);
+            $statusRecord = $statusesForSession->get($student->id) ?? $currentStatuses->get($student->id);
             $isOfficiallyWithdrawn = $statusRecord?->status?->isWithdrawn() === true;
             $statusText = $isOfficiallyWithdrawn
                 ? 'WITHDRAWN: ' . strtoupper($statusRecord->status->label())
@@ -632,11 +633,11 @@ class ResultReportingService
                     && $cgpa >= 1.00;
 
                 if (!$isOfficiallyWithdrawn) {
-                    if ($cgpa < 0.50 || $standing === AcademicProgressionService::STANDING_WITHDRAWN_UNIVERSITY) {
-                        $statusText = 'W/U RECOMMENDATION — PENDING SENATE DECISION';
-                    } elseif ($standing === AcademicProgressionService::STANDING_WITHDRAWN_PROGRAM || $cgpa < 0.75) {
-                        $statusText = 'W/P RECOMMENDATION — PENDING SENATE DECISION';
-                    } elseif ($standing === AcademicProgressionService::STANDING_PROBATION || $cgpa < 1.00) {
+                    if ($standing === AcademicProgressionService::STANDING_WITHDRAWN_UNIVERSITY) {
+                        $statusText = 'WITHDRAWN FROM THE UNIVERSITY';
+                    } elseif ($standing === AcademicProgressionService::STANDING_WITHDRAWN_PROGRAM) {
+                        $statusText = 'WITHDRAWN FROM PROGRAM';
+                    } elseif ($standing === AcademicProgressionService::STANDING_PROBATION || ($cgpa < 1.00 && strtolower($semester) === 'first')) {
                         $statusText = 'ON PROBATION';
                     } else {
                         $statusText = match ($standing) {
