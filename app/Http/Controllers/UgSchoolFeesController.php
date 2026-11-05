@@ -9,42 +9,33 @@ use App\Services\PaymentService;
 use App\Models\StudentTransaction;
 use Illuminate\Support\Facades\Log;
 use App\Services\TransactionService;
-use App\Services\StudentTransactionService;
 
 class UgSchoolFeesController extends Controller
 {
     public function __construct(protected PaymentService $paymentService) {}
+
     public function index(?StudentTransaction $studenttransaction)
     {
-
-
-
-        $valuesToHash  = config('remita.settings.merchantid') . $studenttransaction->RRR . config('remita.settings.apikey');
+        $valuesToHash = config('remita.settings.merchantid') . $studenttransaction->RRR . config('remita.settings.apikey');
         $studenttransaction->apiHash = hash('sha512', $valuesToHash);
         $studenttransaction->user = User::where('id', $studenttransaction->user_id)->first();
 
-
         return view('payment.ugpayment-slip')->with(['studenttransaction' => $studenttransaction]);
     }
+
     public function generateInvoice(Request $request)
     {
-
-
         $data = $request->only(['userId', 'transactionId', 'amount', 'description', 'payerName', 'payerPhone', 'payerEmail', 'student_level_id']);
-
 
         $valuesToHash = config('remita.settings.merchantid') . config('remita.settings.serviceid') .
             $data['transactionId'] . $data['amount'] . config('remita.settings.apikey');
         $data['apiHash'] = hash('sha512', $valuesToHash);
-
-
 
         try {
             $this->paymentService->ensureStudentCanGenerateSchoolFeeInvoice($data['userId'] ?? null);
             $customFields = $this->paymentService->getSchoolFeesCustomFields($data['userId']);
 
             $response = $this->paymentService->generateInvoice($data, $customFields);
-
 
             $data['RRR'] = $response->RRR;
             $data['statuscode'] = $response->statuscode;
@@ -65,33 +56,13 @@ class UgSchoolFeesController extends Controller
             return redirect()->back()->with('error', 'Something went wrong:');
         }
     }
-    // public function checkTransactionStatus($rrr, StudentTransactionService $service)
-    // {
 
-
-
-    //     try {
-    //         $studenttransaction = StudentTransaction::where('RRR', $rrr)->first();
-
-
-    //         $response = $service->getTransactionStatus($rrr);
-
-    //         $this->paymentService->updateTransactionStatus($response->status, $response->rrr);
-
-
-
-    //         return to_route('admin.payment', ['studenttransaction' => $studenttransaction])->with('info', $response->message);
-    //     } catch (\Exception $ex) {
-    //         Log::alert($ex->getMessage());
-    //         return redirect()->back()->with('error', 'Something went wrong: Try again later');
-    //     }
-    // }
-    public function checkTransactionStatus($rrr = null, TransactionService $service)
+    public function checkTransactionStatus(TransactionService $service, ?string $rrr = null)
     {
         $rrr = $rrr ?? request()->query('RRR') ?? request()->query('rrr');
 
         if (!$rrr) {
-            return redirect()->back()->with('error', 'Invalid Transaction Reference');
+            return redirect()->back()->with('error', 'Invalid Transaction Reference.');
         }
 
         try {
@@ -108,28 +79,84 @@ class UgSchoolFeesController extends Controller
             }
 
             // 3️⃣ Get transaction status from service
-            $response = $service->getTransactionStatus($rrr);
+            $response = $service->getTransactionStatus((string) $rrr);
+            $verifiedRrr = (string) ($response->RRR ?? $response->rrr ?? $studentTransaction->RRR ?? $rrr);
+            $responseStatus = (string) ($response->status ?? $response->statuscode ?? '');
 
-            if (in_array($response->status, [\App\Enums\TransactionStatus::APPROVED->value, \App\Enums\TransactionStatus::ACTIVATED->value])) {
-                if (isset($response->amount) && $response->amount >= $studentTransaction->amount) {
-                    $this->paymentService->updateTransactionStatus(\App\Enums\TransactionStatus::APPROVED->value, $response->rrr);
-                    return to_route('cit.payment', ['studenttransaction' => $studentTransaction])->with('success', 'Payment successful!');
-                } else {
-                    $this->paymentService->updateTransactionStatus('PARTIAL_PAYMENT', $response->rrr);
-                    Log::alert("Underpayment detected for RRR: {$rrr}. Expected: {$studentTransaction->amount}, Paid: " . ($response->amount ?? 0));
-                    return to_route('cit.payment', ['studenttransaction' => $studentTransaction])->with('error', 'Incomplete payment amount detected.');
+            $isApproved = in_array($responseStatus, [
+                \App\Enums\TransactionStatus::APPROVED->value,
+                \App\Enums\TransactionStatus::ACTIVATED->value,
+                '00',
+                '01',
+            ], true);
+
+            if ($isApproved) {
+                if (isset($response->amount) && (float) $response->amount < (float) $studentTransaction->amount) {
+                    $newStatus = 'PARTIAL_PAYMENT';
+                    Log::alert("Underpayment detected for RRR: {$verifiedRrr}. Expected: {$studentTransaction->amount}, Paid: " . ($response->amount ?? 0));
+
+                    $this->persistTransactionStatus($studentTransaction, $newStatus, $verifiedRrr, $service);
+
+                    return $this->redirectAfterVerification($studentTransaction, 'error', 'Incomplete payment amount detected.');
                 }
+
+                $newStatus = \App\Enums\TransactionStatus::APPROVED->value;
+                $this->persistTransactionStatus($studentTransaction, $newStatus, $verifiedRrr, $service);
+
+                return $this->redirectAfterVerification($studentTransaction, 'success', 'Payment verified and approved successfully!');
             }
 
-            // 4️⃣ Update status
-            $this->paymentService->updateTransactionStatus($response->status, $response->rrr);
+            $newStatus = $responseStatus !== '' ? $responseStatus : '025';
+            $this->persistTransactionStatus($studentTransaction, $newStatus, $verifiedRrr, $service);
 
-            // 5️⃣ Redirect to appropriate page (admin example)
-            return to_route('cit.payment', ['studenttransaction' => $studentTransaction])
-                ->with('info', $response->message ?? 'Transaction pending or failed.');
+            return $this->redirectAfterVerification(
+                $studentTransaction,
+                'info',
+                $response->message ?? 'Transaction pending or not completed.'
+            );
         } catch (\Exception $ex) {
             Log::error('Transaction check failed: ' . $ex->getMessage());
-            return redirect()->back()->with('error', 'Something went wrong: Try again later.');
+
+            $fallbackRoute = (auth()->user()?->role === 'admin') ? 'admin.first-school-fees' : 'cit.first-school-fees';
+            $previousUrl = url()->previous();
+            if ($previousUrl && $previousUrl !== url()->current()) {
+                return redirect()->to($previousUrl)->with('error', 'Something went wrong: Try again later.');
+            }
+
+            return to_route($fallbackRoute)->with('error', 'Something went wrong: Try again later.');
         }
+    }
+
+    protected function persistTransactionStatus($transaction, string $status, string $rrr, TransactionService $service): void
+    {
+        $transaction->update(['status' => $status]);
+
+        if ($transaction instanceof StudentTransaction) {
+            $this->paymentService->updateTransactionStatus($status, $rrr);
+        } else {
+            $service->updateTransactionStatus($status, $rrr);
+        }
+    }
+
+    protected function redirectAfterVerification($studentTransaction, string $flashType, string $message)
+    {
+        $user = auth()->user();
+
+        // If the current user is a student, redirect to student payment slip
+        if ($user && $user->role === 'student') {
+            return to_route('student.ug-payment', ['studenttransaction' => $studentTransaction->id])
+                ->with($flashType, $message);
+        }
+
+        // For admin / staff / cit, redirect back to previous list or fallback to first-school-fees
+        $previousUrl = url()->previous();
+        $currentUrl = url()->current();
+
+        if ($previousUrl && $previousUrl !== $currentUrl) {
+            return redirect()->to($previousUrl)->with($flashType, $message);
+        }
+
+        $fallbackRoute = ($user && $user->role === 'admin') ? 'admin.first-school-fees' : 'cit.first-school-fees';
+        return to_route($fallbackRoute)->with($flashType, $message);
     }
 }

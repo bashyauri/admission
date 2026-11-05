@@ -1,8 +1,9 @@
 @php
     use App\Enums\TransactionStatus;
     $approved = TransactionStatus::APPROVED;
-     $activated = TransactionStatus::ACTIVATED;
+    $activated = TransactionStatus::ACTIVATED;
     $pending = TransactionStatus::PENDING;
+    $routePrefix = auth()->user()?->role === 'admin' ? 'admin' : 'cit';
 @endphp
 <div class="flex flex-wrap -mx-3">
     <div class="w-full max-w-full px-3 flex-0">
@@ -64,7 +65,7 @@
                                 </td>
                                 <td class="leading-normal text-size-sm">
                                     @if($applicant->status === $approved->toString())
-                                        <a href="{{ route('admin.add-matric-number', $applicant->user_id)}}" class="py-1.8-em px-3-em bg-lime-500 text-size-xxs-em rounded-1 inline-block whitespace-nowrap text-center align-baseline font-bold uppercase leading-none text-white">
+                                        <a href="{{ route($routePrefix . '.add-matric-number', $applicant->user_id)}}" class="py-1.8-em px-3-em bg-lime-500 text-size-xxs-em rounded-1 inline-block whitespace-nowrap text-center align-baseline font-bold uppercase leading-none text-white">
                                        Add Matric No
                                     </a>
                                   
@@ -72,7 +73,7 @@
                                     @else
 
 
-                                     <a href="{{ route('admin.payment.status', $applicant->RRR)}}" class="py-1.8-em px-3-em bg-fuchsia-500 text-size-xxs-em rounded-1 inline-block whitespace-nowrap text-center align-baseline font-bold uppercase leading-none text-white">
+                                     <a href="{{ route($routePrefix . '.payment.status', $applicant->RRR)}}" class="py-1.8-em px-3-em bg-fuchsia-500 text-size-xxs-em rounded-1 inline-block whitespace-nowrap text-center align-baseline font-bold uppercase leading-none text-white">
 
                                        Confirm Payment
 

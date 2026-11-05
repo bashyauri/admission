@@ -96,6 +96,206 @@
 
 
 {{-- ========================================================= --}}
+{{-- STICKY TOP NAVIGATION --}}
+{{-- ========================================================= --}}
+
+<a href="#main-content"
+   class="sr-only focus:not-sr-only focus:absolute focus:z-[10000] focus:m-2 focus:px-4 focus:py-2 focus:rounded-lg focus:bg-white focus:text-green-800">
+    Skip to main content
+</a>
+
+{{-- Top utility bar --}}
+<div class="hidden md:block bg-green-900 text-green-100 text-xs">
+    <div class="max-w-7xl mx-auto px-4 h-9 flex items-center justify-between">
+        <div class="flex items-center gap-4">
+            <span>Waziri Umaru Federal Polytechnic, Birnin Kebbi</span>
+            <a href="tel:07064429665" class="hover:text-white transition">07064429665</a>
+        </div>
+        <div class="flex items-center gap-4">
+            <a href="#screening-announcement" class="inline-flex items-center gap-1.5 font-semibold text-amber-300 hover:text-amber-200 transition">
+                <span class="w-1.5 h-1.5 rounded-full bg-red-400 animate-pulse"></span>
+                Latest: BSc. Physical Screening Notice
+            </a>
+        </div>
+    </div>
+</div>
+
+<nav x-data="{ mobileOpen: false }"
+     class="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-gray-200 shadow-sm">
+
+    <div class="max-w-7xl mx-auto px-4">
+
+        <div class="flex items-center justify-between h-14 sm:h-16">
+
+            {{-- Logo / Brand --}}
+            <a href="/"
+               class="flex items-center gap-2 sm:gap-3 flex-shrink-0">
+
+                <img src="{{ asset('assets/img/logo-ct.png') }}"
+                     alt="WUFPBK Logo"
+                     class="w-8 h-8 sm:w-10 sm:h-10 rounded-full object-cover"
+                     onerror="this.style.display='none'">
+
+                <div class="leading-tight">
+                    <span class="block text-sm sm:text-base font-extrabold text-green-800 tracking-tight">
+                        DHS — WUFPBK
+                    </span>
+                    <span class="hidden sm:block text-[10px] text-gray-500 font-medium">
+                        Directorate of Higher Studies
+                    </span>
+                </div>
+
+            </a>
+
+
+            {{-- Desktop Navigation Links --}}
+            <div class="hidden md:flex items-center gap-1">
+
+                <a href="{{ route('home') }}"
+                   class="px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:text-green-700 hover:bg-green-50 transition">
+                    Home
+                </a>
+
+                <a href="#programmes"
+                   class="px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:text-green-700 hover:bg-green-50 transition">
+                    Programmes
+                </a>
+
+                <a href="#screening-announcement"
+                   class="px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:text-green-700 hover:bg-green-50 transition">
+                    Notices
+                </a>
+
+                <a href="#contact-us"
+                   class="px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:text-green-700 hover:bg-green-50 transition">
+                    Contact
+                </a>
+
+            </div>
+
+
+            {{-- Desktop Login Buttons --}}
+            <div class="hidden md:flex items-center gap-2">
+
+                <a href="{{ route('degree-login') }}"
+                   class="inline-flex items-center gap-1.5
+                          px-4 py-2 rounded-lg
+                          bg-green-600 text-white
+                          text-sm font-bold
+                          hover:bg-green-700
+                          shadow-sm
+                          transition">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M12 14l9-5-9-5-9 5 9 5z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M12 14l6.16-3.422A12.083 12.083 0 0112 21a12.083 12.083 0 01-6.16-10.422L12 14z" />
+                    </svg>
+                    Degree Login
+                </a>
+
+                <a href="{{ route('login') }}"
+                   class="inline-flex items-center gap-1.5
+                          px-4 py-2 rounded-lg
+                          border border-green-600
+                          text-green-700
+                          text-sm font-bold
+                          hover:bg-green-50
+                          transition">
+                    PGD Login
+                </a>
+
+            </div>
+
+
+            {{-- Mobile Menu Button --}}
+            <button @click="mobileOpen = !mobileOpen"
+                    class="md:hidden p-2 rounded-lg text-gray-600 hover:bg-gray-100 transition"
+                    :aria-expanded="mobileOpen"
+                    aria-label="Toggle navigation menu">
+
+                <svg x-show="!mobileOpen" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+
+                <svg x-show="mobileOpen" x-cloak class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M6 18L18 6M6 6l12 12" />
+                </svg>
+
+            </button>
+
+        </div>
+
+    </div>
+
+
+    {{-- Mobile Dropdown Menu --}}
+    <div x-show="mobileOpen"
+         x-cloak
+         x-transition:enter="transition ease-out duration-200"
+         x-transition:enter-start="opacity-0 -translate-y-1"
+         x-transition:enter-end="opacity-100 translate-y-0"
+         x-transition:leave="transition ease-in duration-150"
+         x-transition:leave-start="opacity-100 translate-y-0"
+         x-transition:leave-end="opacity-0 -translate-y-1"
+         class="md:hidden border-t border-gray-100 bg-white">
+
+        <div class="px-4 py-3 space-y-1">
+
+            <a href="#programmes"
+               @click="mobileOpen = false"
+               class="block px-3 py-2 rounded-lg text-sm font-medium text-gray-700 hover:bg-green-50 hover:text-green-700 transition">
+                Programmes
+            </a>
+
+            <a href="#screening-announcement"
+               @click="mobileOpen = false"
+               class="block px-3 py-2 rounded-lg text-sm font-medium text-gray-700 hover:bg-green-50 hover:text-green-700 transition">
+                Screening
+            </a>
+
+            <a href="#contact-us"
+               @click="mobileOpen = false"
+               class="block px-3 py-2 rounded-lg text-sm font-medium text-gray-700 hover:bg-green-50 hover:text-green-700 transition">
+                Contact
+            </a>
+
+        </div>
+
+        <div class="px-4 pb-4 pt-2 border-t border-gray-100 grid grid-cols-2 gap-2">
+
+            <a href="{{ route('degree-login') }}"
+               class="inline-flex items-center justify-center
+                      px-4 py-2.5 rounded-lg
+                      bg-green-600 text-white
+                      text-sm font-bold
+                      hover:bg-green-700
+                      transition">
+                🎓 Degree Login
+            </a>
+
+            <a href="{{ route('login') }}"
+               class="inline-flex items-center justify-center
+                      px-4 py-2.5 rounded-lg
+                      border border-green-600
+                      text-green-700
+                      text-sm font-bold
+                      hover:bg-green-50
+                      transition">
+                PGD Login
+            </a>
+
+        </div>
+
+    </div>
+
+</nav>
+
+
+
+{{-- ========================================================= --}}
 {{-- ADMISSION ANNOUNCEMENT --}}
 {{-- ========================================================= --}}
 
@@ -174,257 +374,205 @@
 
 
 
-{{-- ========================================================= --}}
-{{-- NEW PGD PROGRAMMES --}}
-{{-- ========================================================= --}}
-
-<section class="bg-green-700 text-white">
-
-    <div class="max-w-6xl mx-auto px-4 py-3">
-
-        <div class="flex flex-col md:flex-row
-                    items-center justify-center
-                    gap-3 text-center">
-
-            <div class="flex items-center gap-2">
-
-                <span class="inline-flex items-center
-                             px-3 py-1
-                             rounded-full
-                             bg-white
-                             text-green-700
-                             text-xs font-extrabold
-                             uppercase tracking-wide">
-
-                    New Programmes
-
-                </span>
-
-
-                <span class="hidden sm:inline
-                             text-green-100
-                             text-sm">
-
-                    Two new PGD programmes are now available.
-
-                </span>
-
-            </div>
-
-
-            <div class="flex flex-wrap
-                        justify-center
-                        gap-2">
-
-                <a href="#pgd-requirements"
-                    class="px-3 py-1.5
-                           rounded-lg
-                           bg-green-800
-                           text-white
-                           border border-green-500
-                           text-sm font-semibold
-                           hover:bg-green-900
-                           transition">
-
-                    PGD Public Health
-
-                </a>
-
-
-                <a href="#pgd-requirements"
-                    class="px-3 py-1.5
-                           rounded-lg
-                           bg-green-800
-                           text-white
-                           border border-green-500
-                           text-sm font-semibold
-                           hover:bg-green-900
-                           transition">
-
-                    PGD Surveying & Geo-Informatics
-
-                </a>
-
-            </div>
-
-        </div>
-
-    </div>
-
-</section>
-
-
+<main id="main-content" class="flex flex-col">
 
 {{-- ========================================================= --}}
-{{-- PGD SCREENING NOTICE --}}
+{{-- PUBLIC ANNOUNCEMENT: BSc. PHYSICAL SCREENING EXERCISE --}}
 {{-- ========================================================= --}}
 
-<section class="bg-red-50 border-b border-red-200">
+<section id="screening-announcement" class="bg-gradient-to-b from-amber-50 via-white to-gray-50 border-y border-amber-200 py-6 sm:py-8">
 
-    <div class="max-w-6xl mx-auto px-4 py-4">
+    <div class="max-w-6xl mx-auto px-4">
 
-        <div class="flex flex-col lg:flex-row
-                    items-center justify-center
-                    gap-4
-                    text-center lg:text-left">
+        <div class="bg-white rounded-2xl shadow-xl border border-amber-200/80 overflow-hidden">
 
-
-            <div class="w-11 h-11
-                        rounded-xl
-                        bg-red-100
-                        text-red-600
-                        flex items-center
-                        justify-center
-                        flex-shrink-0">
-
-                <svg class="w-6 h-6"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor">
-
-                    <path stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M12 9v2m0 4h.01
-                           M4.93 19.07a10 10 0 1114.14 0
-                           A10 10 0 014.93 19.07z" />
-
-                </svg>
-
-            </div>
-
-
-            <div class="flex-1">
-
-                <div class="flex flex-wrap
-                            items-center
-                            justify-center
-                            lg:justify-start
-                            gap-2">
-
-                    <span class="inline-flex
-                                 px-2.5 py-1
-                                 rounded-full
-                                 bg-red-600
-                                 text-white
-                                 text-xs font-extrabold
-                                 uppercase">
-
-                        Important Notice
-
-                    </span>
-
-
-                    <h2 class="font-bold text-gray-900">
-
-                        PGD Physical Screening Has Started
-
+            {{-- Announcement Header Banner --}}
+            <div class="bg-gradient-to-r from-green-800 via-green-700 to-emerald-800 text-white px-6 py-4 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+                <div>
+                    <p class="text-xs font-semibold tracking-wider uppercase text-green-200">
+                        Waziri Umaru Federal Polytechnic Birnin Kebbi • Office of the Registrar
+                    </p>
+                    <h2 class="text-lg sm:text-xl font-extrabold tracking-tight mt-0.5 text-white flex items-center gap-2">
+                        <span class="inline-block w-2.5 h-2.5 rounded-full bg-red-400 animate-pulse"></span>
+                        PUBLIC ANNOUNCEMENT: PHYSICAL SCREENING EXERCISE FOR BSc. CANDIDATES
                     </h2>
-
                 </div>
-
-
-                <p class="mt-1 text-sm text-gray-700">
-
-                    Physical screening for Postgraduate Diploma
-                    applicants is now ongoing.
-
-                </p>
-
+                <div class="flex items-center gap-2 flex-shrink-0">
+                    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-amber-400 text-amber-950 shadow-sm">
+                        2026/2027 Academic Session
+                    </span>
+                    <span class="text-xs font-medium text-green-100 hidden sm:inline">
+                        2nd November, 2026
+                    </span>
+                </div>
             </div>
 
+            <div class="p-6 sm:p-8">
 
-            <div class="flex flex-wrap
-                        justify-center
-                        gap-2">
+                {{-- Intro Message --}}
+                <div class="bg-amber-50/70 border-l-4 border-amber-500 rounded-r-xl p-4 sm:p-5 mb-6 text-gray-800">
+                    <p class="text-sm sm:text-base leading-relaxed">
+                        This is to inform all candidates who secured admission into
+                        <strong class="font-bold text-gray-950">Waziri Umaru Federal Polytechnic Birnin Kebbi (WUFPBK)</strong>
+                        Affiliated Degree Programmes through
+                        <strong class="font-bold text-gray-950">Unified Tertiary Matriculation Examination (UTME)</strong>
+                        and <strong class="font-bold text-gray-950">Direct Entry (D.E.)</strong>
+                        that the physical screening begins on
+                        <strong class="text-green-800 font-bold">Wednesday 4th November, 2026</strong>.
+                    </p>
+                </div>
 
+                {{-- Key Schedule & Venue Grid --}}
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
 
-                <div class="inline-flex items-center gap-2
-                            px-3 py-2
-                            rounded-lg
-                            bg-white
-                            border border-red-200
-                            text-sm
-                            font-semibold
-                            text-gray-800">
+                    {{-- Card 1: Commencement --}}
+                    <div class="p-4 rounded-xl bg-gray-50 border border-gray-200">
+                        <div class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1 flex items-center gap-1.5">
+                            <svg class="w-4 h-4 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3M5 11h14M5 7h14a2 2 0 012 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2V9a2 2 0 012-2z" />
+                            </svg>
+                            Commencement Date
+                        </div>
+                        <div class="text-base font-bold text-gray-900">
+                            Wednesday 4th Nov, 2026
+                        </div>
+                        <p class="text-xs text-gray-500 mt-1">Screening officially commences</p>
+                    </div>
 
-                    <svg class="w-4 h-4 text-red-600"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor">
+                    {{-- Card 2: Schedule --}}
+                    <div class="p-4 rounded-xl bg-gray-50 border border-gray-200">
+                        <div class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1 flex items-center gap-1.5">
+                            <svg class="w-4 h-4 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            Daily Schedule
+                        </div>
+                        <div class="text-base font-bold text-gray-900">
+                            Mondays – Thursdays
+                        </div>
+                        <p class="text-xs text-emerald-700 font-semibold mt-1">10:00am – 2:00pm daily</p>
+                    </div>
 
-                        <path stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="2"
-                            d="M8 7V3m8 4V3M5 11h14
-                               M5 7h14a2 2 0 012 2v10
-                               a2 2 0 01-2 2H5
-                               a2 2 0 01-2-2V9
-                               a2 2 0 012-2z" />
+                    {{-- Card 3: Venue --}}
+                    <div class="p-4 rounded-xl bg-gray-50 border border-gray-200">
+                        <div class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1 flex items-center gap-1.5">
+                            <svg class="w-4 h-4 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 21a2 2 0 01-2.828 0l-4.243-4.343a8 8 0 1111.314 0z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                            </svg>
+                            Screening Venue
+                        </div>
+                        <div class="text-base font-bold text-gray-900">
+                            DHS Boardroom
+                        </div>
+                        <p class="text-xs text-gray-500 mt-1">Directorate of Higher Studies</p>
+                    </div>
 
-                    </svg>
-
-                    Monday & Thursday
+                    {{-- Card 4: Deadline --}}
+                    <div class="p-4 rounded-xl bg-red-50 border border-red-200">
+                        <div class="text-xs font-bold text-red-600 uppercase tracking-wider mb-1 flex items-center gap-1.5">
+                            <svg class="w-4 h-4 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                            </svg>
+                            Screening Deadline
+                        </div>
+                        <div class="text-base font-bold text-red-700">
+                            Saturday 21st Nov, 2026
+                        </div>
+                        <p class="text-xs text-red-600 font-semibold mt-1">Strict deadline applies</p>
+                    </div>
 
                 </div>
 
+                {{-- Requirements Checklist --}}
+                <div class="mb-8">
+                    <h3 class="text-sm font-extrabold uppercase tracking-wider text-gray-900 mb-3 flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full bg-green-600"></span>
+                        Consequently, candidates are expected to come along with:
+                    </h3>
 
-                <div class="inline-flex items-center gap-2
-                            px-3 py-2
-                            rounded-lg
-                            bg-red-600
-                            text-white
-                            text-sm font-bold">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
 
-                    <svg class="w-4 h-4"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor">
+                        <div class="flex items-start gap-3 p-3.5 rounded-xl bg-gray-50 border border-gray-200/80">
+                            <span class="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-green-100 text-green-800 font-extrabold text-xs flex-shrink-0">
+                                i
+                            </span>
+                            <span class="text-sm text-gray-800 font-medium">
+                                Original copies of <strong>JAMB admission letters (coloured)</strong>
+                            </span>
+                        </div>
 
-                        <path stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="2"
-                            d="M12 6v6l4 2" />
+                        <div class="flex items-start gap-3 p-3.5 rounded-xl bg-gray-50 border border-gray-200/80">
+                            <span class="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-green-100 text-green-800 font-extrabold text-xs flex-shrink-0">
+                                ii
+                            </span>
+                            <span class="text-sm text-gray-800 font-medium">
+                                <strong>Post UTME online screening form</strong>
+                            </span>
+                        </div>
 
-                    </svg>
+                        <div class="flex items-start gap-3 p-3.5 rounded-xl bg-green-50/70 border border-green-200">
+                            <span class="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-green-200 text-green-900 font-extrabold text-xs flex-shrink-0">
+                                iii
+                            </span>
+                            <span class="text-sm text-gray-800 font-medium">
+                                Evidence of payment of <strong class="text-green-800 font-extrabold">₦10,000 ACCEPTANCE FEES</strong>
+                            </span>
+                        </div>
 
-                    10:00 AM – 1:00 PM
+                        <div class="flex items-start gap-3 p-3.5 rounded-xl bg-gray-50 border border-gray-200/80">
+                            <span class="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-green-100 text-green-800 font-extrabold text-xs flex-shrink-0">
+                                iv
+                            </span>
+                            <span class="text-sm text-gray-800 font-medium">
+                                <strong>Original O-level certificate</strong> and <strong>primary certificate</strong>
+                            </span>
+                        </div>
 
+                        <div class="flex items-start gap-3 p-3.5 rounded-xl bg-gray-50 border border-gray-200/80">
+                            <span class="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-green-100 text-green-800 font-extrabold text-xs flex-shrink-0">
+                                v
+                            </span>
+                            <span class="text-sm text-gray-800 font-medium">
+                                <strong>Indigene letter</strong>, and <strong>birth certificate</strong>
+                            </span>
+                        </div>
+
+                        <div class="flex items-start gap-3 p-3.5 rounded-xl bg-gray-50 border border-gray-200/80">
+                            <span class="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-green-100 text-green-800 font-extrabold text-xs flex-shrink-0">
+                                vi
+                            </span>
+                            <span class="text-sm text-gray-800 font-medium">
+                                <strong>Scratch card for result verification</strong> <span class="text-gray-500 text-xs font-normal">(if the result is not original)</span>
+                            </span>
+                        </div>
+
+                    </div>
                 </div>
 
+                {{-- Footer: Contact Numbers & Signoff --}}
+                <div class="pt-5 border-t border-gray-200 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                    <div>
+                        <span class="text-xs font-bold uppercase tracking-wider text-gray-500 block mb-1">
+                            For More Information, Contact:
+                        </span>
+                        <div class="flex flex-wrap items-center gap-2 text-sm font-semibold text-green-800">
+                            <a href="tel:07064429665" class="hover:underline hover:text-green-950">07064429665</a>
+                            <span class="text-gray-300">•</span>
+                            <a href="tel:07033071497" class="hover:underline hover:text-green-950">07033071497</a>
+                            <span class="text-gray-300">•</span>
+                            <a href="tel:08068991818" class="hover:underline hover:text-green-950">08068991818</a>
+                            <span class="text-gray-300">•</span>
+                            <a href="tel:08036397597" class="hover:underline hover:text-green-950">08036397597</a>
+                        </div>
+                    </div>
 
-                <div class="inline-flex items-center gap-2
-                            px-3 py-2
-                            rounded-lg
-                            bg-white
-                            border border-red-200
-                            text-sm
-                            font-semibold
-                            text-gray-800">
-
-                    <svg class="w-4 h-4 text-red-600"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor">
-
-                        <path stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="2"
-                            d="M17.657 16.657L13.414 21
-                               a2 2 0 01-2.828 0
-                               l-4.243-4.343
-                               a8 8 0 1111.314 0z" />
-
-                        <path stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="2"
-                            d="M15 11a3 3 0 11-6 0
-                               3 3 0 016 0z" />
-
-                    </svg>
-
-                    Directorate of Higher Studies
-
+                    <div class="text-right sm:text-right border-t md:border-t-0 pt-3 md:pt-0">
+                        <p class="text-xs text-gray-500 uppercase tracking-wide">Official Notice</p>
+                        <p class="text-sm font-extrabold text-gray-900">(Signed)</p>
+                        <p class="text-sm font-bold text-gray-900">Mohammed Lawal Ibrahim</p>
+                        <p class="text-xs font-semibold text-green-800">Registrar</p>
+                    </div>
                 </div>
 
             </div>
@@ -441,7 +589,7 @@
 {{-- HERO --}}
 {{-- ========================================================= --}}
 
-<section class="relative overflow-hidden
+<section class="order-first relative overflow-hidden
                 bg-gradient-to-br
                 from-green-800
                 via-green-700
@@ -557,11 +705,11 @@
             </div>
 
 
+            {{-- Primary CTA buttons --}}
             <div class="mt-8
                         flex flex-col sm:flex-row
                         justify-center
                         gap-3">
-
 
                 <a href="#programmes"
                     class="inline-flex
@@ -612,6 +760,46 @@
 
             </div>
 
+
+            {{-- Student Login buttons --}}
+            <div class="mt-5 flex flex-col sm:flex-row justify-center gap-3">
+
+                <a href="{{ route('degree-login') }}"
+                    class="inline-flex items-center justify-center gap-2
+                           px-6 py-2.5 rounded-xl
+                           bg-amber-400 text-amber-950
+                           font-bold text-sm
+                           shadow-md
+                           hover:bg-amber-300
+                           transition">
+
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
+                    </svg>
+                    Degree Student Login
+
+                </a>
+
+                <a href="{{ route('login') }}"
+                    class="inline-flex items-center justify-center gap-2
+                           px-6 py-2.5 rounded-xl
+                           bg-white/15 border border-white/40
+                           text-white
+                           font-bold text-sm
+                           hover:bg-white/25
+                           transition">
+
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
+                    </svg>
+                    PGD Student Login
+
+                </a>
+
+            </div>
+
         </div>
 
     </div>
@@ -624,7 +812,7 @@
 {{-- QUICK INFORMATION --}}
 {{-- ========================================================= --}}
 
-<section class="relative -mt-7">
+<section class="order-first relative -mt-7 pb-4">
 
     <div class="max-w-6xl mx-auto px-4">
 
@@ -633,11 +821,17 @@
 
             {{-- Admissions --}}
 
-            <div class="bg-white
+            <a href="#programmes"
+                class="bg-white
                         rounded-2xl
                         shadow-xl
                         border border-gray-100
-                        p-6">
+                        p-6
+                        block
+                        hover:shadow-2xl
+                        hover:border-green-200
+                        transition
+                        group">
 
                 <div class="w-11 h-11
                             rounded-xl
@@ -653,7 +847,9 @@
 
                 <h3 class="mt-4
                            font-bold
-                           text-lg">
+                           text-lg
+                           group-hover:text-green-700
+                           transition">
 
                     Admissions Open
 
@@ -670,22 +866,28 @@
 
                 </p>
 
-            </div>
+            </a>
 
 
 
-            {{-- Screening --}}
+            {{-- BSc. Screening --}}
 
-            <div class="bg-white
+            <a href="#screening-announcement"
+                class="bg-white
                         rounded-2xl
                         shadow-xl
-                        border border-red-100
-                        p-6">
+                        border border-amber-100
+                        p-6
+                        block
+                        hover:shadow-2xl
+                        hover:border-amber-300
+                        transition
+                        group">
 
                 <div class="w-11 h-11
                             rounded-xl
-                            bg-red-100
-                            text-red-600
+                            bg-amber-100
+                            text-amber-700
                             flex items-center
                             justify-center">
 
@@ -696,9 +898,11 @@
 
                 <h3 class="mt-4
                            font-bold
-                           text-lg">
+                           text-lg text-gray-900
+                           group-hover:text-amber-700
+                           transition">
 
-                    PGD Screening
+                    BSc. Physical Screening
 
                 </h3>
 
@@ -708,8 +912,8 @@
                           leading-relaxed
                           text-gray-600">
 
-                    Every <strong>Monday & Thursday</strong>
-                    from <strong>10:00 AM – 1:00 PM.</strong>
+                    Starts <strong>Wed 4th Nov, 2026</strong>. Runs <strong>Mondays – Thursdays</strong>
+                    from <strong>10:00 AM – 2:00 PM</strong> daily.
 
                 </p>
 
@@ -717,41 +921,49 @@
                 <p class="mt-2
                           text-sm
                           font-semibold
-                          text-red-600">
+                          text-amber-700">
 
-                    Venue: Directorate of Higher Studies
+                    Venue: DHS Boardroom
 
                 </p>
 
-            </div>
+            </a>
 
 
 
-            {{-- New Programmes --}}
+            {{-- Screening Requirements & Deadline --}}
 
-            <div class="bg-white
+            <a href="#screening-announcement"
+                class="bg-white
                         rounded-2xl
                         shadow-xl
-                        border border-gray-100
-                        p-6">
+                        border border-red-100
+                        p-6
+                        block
+                        hover:shadow-2xl
+                        hover:border-red-300
+                        transition
+                        group">
 
                 <div class="w-11 h-11
                             rounded-xl
-                            bg-teal-100
-                            text-teal-700
+                            bg-red-100
+                            text-red-600
                             flex items-center
                             justify-center">
 
-                    ✨
+                    📋
 
                 </div>
 
 
                 <h3 class="mt-4
                            font-bold
-                           text-lg">
+                           text-lg text-gray-900
+                           group-hover:text-red-600
+                           transition">
 
-                    New PGD Programmes
+                    Required Documents
 
                 </h3>
 
@@ -761,12 +973,20 @@
                           leading-relaxed
                           text-gray-600">
 
-                    PGD Public Health and PGD Surveying &
-                    Geo-Informatics are now available.
+                    JAMB letter (coloured), ₦10,000 acceptance fee proof, Post-UTME form & credentials.
 
                 </p>
 
-            </div>
+                <p class="mt-2
+                          text-sm
+                          font-semibold
+                          text-red-600">
+
+                    Deadline: Saturday 21st Nov, 2026
+
+                </p>
+
+            </a>
 
         </div>
 
@@ -2293,10 +2513,10 @@
                                       text-white/70
                                       leading-relaxed">
 
-                                08036235488<br>
-                                07033071497<br>
-                                08039273164<br>
-                                08065332564
+                                <a href="tel:07064429665" class="hover:text-white transition">07064429665</a><br>
+                                <a href="tel:07033071497" class="hover:text-white transition">07033071497</a><br>
+                                <a href="tel:08068991818" class="hover:text-white transition">08068991818</a><br>
+                                <a href="tel:08036397597" class="hover:text-white transition">08036397597</a>
 
                             </p>
 
@@ -2385,7 +2605,9 @@
                 <form
                     method="POST"
                     action="{{ route('contact.send') }}"
-                    class="space-y-5">
+                    class="space-y-5"
+                    x-data="{ submitting: false }"
+                    @submit="submitting = true">
 
                     @csrf
 
@@ -2495,6 +2717,8 @@
 
                     <button
                         type="submit"
+                        :disabled="submitting"
+                        :class="submitting ? 'opacity-75 cursor-not-allowed' : ''"
                         class="w-full
                                inline-flex
                                items-center
@@ -2511,19 +2735,33 @@
                                focus:ring-offset-2
                                transition">
 
-                        Send Message
+                        <template x-if="!submitting">
+                            <span class="inline-flex items-center">
+                                Send Message
 
-                        <svg class="w-5 h-5 ml-2"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor">
+                                <svg class="w-5 h-5 ml-2"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor">
 
-                            <path stroke-linecap="round"
-                                stroke-linejoin="round"
-                                stroke-width="2"
-                                d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                                    <path stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        stroke-width="2"
+                                        d="M14 5l7 7m0 0l-7 7m7-7H3" />
 
-                        </svg>
+                                </svg>
+                            </span>
+                        </template>
+
+                        <template x-if="submitting">
+                            <span class="inline-flex items-center">
+                                <svg class="animate-spin -ml-1 mr-2 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                                </svg>
+                                Sending...
+                            </span>
+                        </template>
 
                     </button>
 
@@ -2539,76 +2777,63 @@
 
 
 
+</main>
+
 {{-- ========================================================= --}}
 {{-- FOOTER --}}
 {{-- ========================================================= --}}
 
 <footer class="bg-gray-900 text-gray-400">
 
-    <div class="max-w-7xl mx-auto
-                px-4 sm:px-6 lg:px-8
-                py-8">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
 
-        <div class="flex flex-col
-                    md:flex-row
-                    items-center
-                    justify-between
-                    gap-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
 
-
-            <div class="text-center md:text-left">
-
-                <p class="text-sm">
-
-                    &copy; {{ date('Y') }}
-
-                    Directorate of Higher Studies,
-                    Waziri Umaru Federal Polytechnic,
-                    Birnin Kebbi.
-
+            <div class="lg:col-span-2">
+                <div class="flex items-center gap-3">
+                    <img src="{{ asset('assets/img/logo-ct.png') }}"
+                         alt="WUFPBK Logo"
+                         class="w-10 h-10 rounded-full object-cover"
+                         onerror="this.style.display='none'">
+                    <p class="font-extrabold text-white leading-tight">
+                        Directorate of Higher Studies
+                    </p>
+                </div>
+                <p class="mt-4 text-sm leading-relaxed max-w-md">
+                    Waziri Umaru Federal Polytechnic, Birnin Kebbi. Affiliated degree and
+                    postgraduate diploma programmes supporting your academic and professional goals.
                 </p>
-
-
-                <p class="mt-1
-                          text-xs
-                          text-gray-500">
-
-                    All rights reserved.
-
-                </p>
-
             </div>
 
-
-            <div class="flex items-center
-                        gap-5
-                        text-sm">
-
-                <a href="#programmes"
-                    class="hover:text-white transition">
-
-                    Programmes
-
-                </a>
-
-
-                <a href="#pgd-requirements"
-                    class="hover:text-white transition">
-
-                    PGD Requirements
-
-                </a>
-
-
-                <a href="#contact-us"
-                    class="hover:text-white transition">
-
-                    Contact
-
-                </a>
-
+            <div>
+                <h3 class="text-sm font-bold uppercase tracking-wider text-white">Quick Links</h3>
+                <ul class="mt-4 space-y-2 text-sm">
+                    <li><a href="#programmes" class="hover:text-white transition">Programmes</a></li>
+                    <li><a href="#screening-announcement" class="hover:text-white transition">Screening Notice</a></li>
+                    <li><a href="#pgd-requirements" class="hover:text-white transition">PGD Requirements</a></li>
+                    <li><a href="#contact-us" class="hover:text-white transition">Contact</a></li>
+                </ul>
             </div>
 
+            <div>
+                <h3 class="text-sm font-bold uppercase tracking-wider text-white">Student Portals</h3>
+                <ul class="mt-4 space-y-2 text-sm">
+                    <li><a href="{{ route('degree-login') }}" class="hover:text-white transition">Degree Student Login</a></li>
+                    <li><a href="{{ route('login') }}" class="hover:text-white transition">PGD Student Login</a></li>
+                </ul>
+                <p class="mt-5 text-sm">
+                    <a href="tel:07064429665" class="hover:text-white transition">07064429665</a><br>
+                    <a href="tel:07033071497" class="hover:text-white transition">07033071497</a>
+                </p>
+            </div>
+
+        </div>
+
+        <div class="mt-10 pt-6 border-t border-gray-800 text-center sm:text-left">
+            <p class="text-sm">
+                &copy; {{ date('Y') }} Directorate of Higher Studies,
+                Waziri Umaru Federal Polytechnic, Birnin Kebbi. All rights reserved.
+            </p>
         </div>
 
     </div>
