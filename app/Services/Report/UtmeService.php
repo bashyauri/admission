@@ -316,6 +316,7 @@ class UtmeService
             'users.surname as surname',
             'users.firstname as firstname',
             'users.m_name as middlename',
+            'users.email as email',
             'users.picture as picture',
             'users.phone as phone',
             'courses.name as course_name',

@@ -30,6 +30,7 @@ $shortlisted = ApplicationStatus::SHORTLISTED;
                         <thead class="thead-light">
                             <tr>
                                 <th>Full Name</th>
+                                <th>Email</th>
 
                                 <th>Course</th>
                                 <th>Phone</th>
@@ -50,6 +51,13 @@ $shortlisted = ApplicationStatus::SHORTLISTED;
 
                                                                         <h6 class="my-auto ml-4 dark:text-white">{{$applicant->surname . ' ' . $applicant->firstname . ' ' . $applicant->middlename}}</h6>
                                                                     </div>
+                                                                </td>
+                                                                <td class="leading-normal text-size-sm">
+                                                                    @if (filled($applicant->email))
+                                                                        <a href="mailto:{{ $applicant->email }}" class="text-blue-500 hover:underline">{{ $applicant->email }}</a>
+                                                                    @else
+                                                                        N/A
+                                                                    @endif
                                                                 </td>
                                                                 <td class="leading-normal text-size-sm">{{$applicant->course_name}}</td>
 
@@ -80,6 +88,7 @@ $shortlisted = ApplicationStatus::SHORTLISTED;
                         <tfoot>
                             <tr>
                                  <th>Full Name</th>
+                                <th>Email</th>
 
                                 <th>Course</th>
                                 <th>Phone</th>
