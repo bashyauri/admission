@@ -76,7 +76,7 @@
 
                         </div>
                         <div class="flex-auto p-6">
-                              <div><h5>Payment for {{$currentLevel}}00 Level</h5></div>
+                              <div><h5>Payment for {{ $currentLevelName ?? (\App\Models\StudentLevel::find($currentLevel)?->level ? (is_numeric(\App\Models\StudentLevel::find($currentLevel)->level) ? \App\Models\StudentLevel::find($currentLevel)->level . ' Level' : \App\Models\StudentLevel::find($currentLevel)->level) : $currentLevel . ' Level') }}</h5></div>
                             <div class="flex flex-wrap -mx-3">
                                 <div class="w-full max-w-full px-3 flex-0">
                                     <div class="overflow-x-auto">
@@ -90,7 +90,7 @@
                                                     Course:</th>
                                                     <td
                                                         class="p-2 text-left border-b whitespace-nowrap dark:border-white/40 dark:text-white/60">
-                                                        {{$user->proposedCourse->course->name}}</td>
+                                                        {{$user->academicDetail?->course?->name ?? $user->proposedCourse?->course?->name ?? 'N/A'}}</td>
                                                 </tr>
                                                 <tr>
                                                     <th scope="col"
@@ -98,7 +98,7 @@
                                                     Department:</th>
                                                     <td
                                                         class="p-2 text-left border-b whitespace-nowrap dark:border-white/40 dark:text-white/60">
-                                                       {{$user->proposedCourse->department->name}}</td>
+                                                       {{$user->academicDetail?->department?->name ?? $user->proposedCourse?->department?->name ?? 'N/A'}}</td>
                                                 </tr>
                                                 <tr>
                                                     <th scope="col"
@@ -158,7 +158,7 @@
 
                                 <div
                                     class="w-full max-w-full px-3 mt-4 lg:flex-0 shrink-0 md:mt-0 md:text-right lg:w-7/12">
-                                    @if ($user->hasPaid($description))
+                                    @if (app(\App\Services\PaymentService::class)->hasPaidForAcademicSession($user, $description))
                                     <button onclick="window.print()" type="button"
                                         class="inline-block px-6 py-3 mb-0 font-bold text-right text-white uppercase align-middle transition-all border-0 rounded-lg cursor-pointer hover:scale-102 active:opacity-85 hover:shadow-soft-xs bg-gradient-cyan leading-pro text-size-xs ease-soft-in tracking-tight-soft shadow-soft-md bg-150 bg-x-25 lg:mt-24">Print</button>
                                     @else
@@ -183,4 +183,3 @@
 @push('js')
 <script src="{{ asset('assets') }}/js/plugins/datatables.min.js"></script>
 @endpush
-

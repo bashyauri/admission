@@ -283,7 +283,7 @@ class User extends Authenticatable implements MustVerifyEmail
         $hasPaidStudentTx = StudentTransaction::where([
             'user_id' => $this->id,
             'status' => TransactionStatus::APPROVED->value,
-            'resource' => $payment
+            'resource' => $payment,
         ])->exists();
 
         if ($hasPaidStudentTx) {

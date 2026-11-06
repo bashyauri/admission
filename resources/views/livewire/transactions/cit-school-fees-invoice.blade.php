@@ -77,7 +77,7 @@
 
                         </div>
                         <div class="flex-auto p-6">
-                              <div><h5>Payment for {{$currentLevel}}00 Level</h5></div>
+                              <div><h5>Payment for {{ $currentLevelName ?? (\App\Models\StudentLevel::find($currentLevel)?->level ? (is_numeric(\App\Models\StudentLevel::find($currentLevel)->level) ? \App\Models\StudentLevel::find($currentLevel)->level . ' Level' : \App\Models\StudentLevel::find($currentLevel)->level) : $currentLevel . ' Level') }}</h5></div>
                             <div class="flex flex-wrap -mx-3">
                                 <div class="w-full max-w-full px-3 flex-0">
                                     <div class="overflow-x-auto">
@@ -91,7 +91,7 @@
                                                     Course:</th>
                                                     <td
                                                         class="p-2 text-left border-b whitespace-nowrap dark:border-white/40 dark:text-white/60">
-                                                        {{$user->proposedCourse->course->name}}</td>
+                                                        {{$user->academicDetail?->course?->name ?? $user->proposedCourse?->course?->name ?? 'N/A'}}</td>
                                                 </tr>
                                                 <tr>
                                                     <th scope="col"
@@ -99,7 +99,7 @@
                                                     Department:</th>
                                                     <td
                                                         class="p-2 text-left border-b whitespace-nowrap dark:border-white/40 dark:text-white/60">
-                                                       {{$user->proposedCourse->department->name}}</td>
+                                                       {{$user->academicDetail?->department?->name ?? $user->proposedCourse?->department?->name ?? 'N/A'}}</td>
                                                 </tr>
                                                 <tr>
                                                     <th scope="col"
@@ -184,4 +184,3 @@
 @push('js')
 <script src="{{ asset('assets') }}/js/plugins/datatables.min.js"></script>
 @endpush
-

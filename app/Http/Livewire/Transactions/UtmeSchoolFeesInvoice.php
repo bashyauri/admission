@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Livewire\Transactions;
 
+use App\Models\StudentLevel;
 use App\Models\User;
 use Livewire\Component;
 use Livewire\Attributes\Locked;
@@ -21,6 +22,8 @@ class UtmeSchoolFeesInvoice extends Component
     #[Locked]
     public $currentLevel;
     #[Locked]
+    public $currentLevelName;
+    #[Locked]
     public $description;
     #[Locked]
     public $amount;
@@ -34,7 +37,6 @@ class UtmeSchoolFeesInvoice extends Component
 
     public function mount(User $user): void
     {
-
         $this->paymentService = new PaymentService();
         $this->transactionService = new StudentTransactionService();
         $this->user = $user;
@@ -43,11 +45,8 @@ class UtmeSchoolFeesInvoice extends Component
         $existingInvoice = $this->getExistingInvoice();
 
         if ($existingInvoice) {
-
             $this->redirectToPayment($existingInvoice);
         } else {
-
-
             $this->generateNewInvoice();
         }
     }
@@ -73,7 +72,6 @@ class UtmeSchoolFeesInvoice extends Component
         }
     }
 
-
     private function generateNewInvoice(): void
     {
         try {
@@ -84,6 +82,10 @@ class UtmeSchoolFeesInvoice extends Component
         }
 
         $this->currentLevel = $this->paymentService->getUgStudentLevel($this->user->id);
+        $levelModel = StudentLevel::find($this->currentLevel);
+        $levelLabel = trim((string) ($levelModel?->level ?? $this->currentLevel));
+        $this->currentLevelName = is_numeric($levelLabel) ? $levelLabel . ' Level' : $levelLabel;
+
         $paymentDetail = $this->paymentService->getStudentFee($this->user->id);
         if (!$paymentDetail) {
             $this->activityBlockMessage = 'A school-fee amount is not configured for your current academic level. Contact the Bursary for assistance.';

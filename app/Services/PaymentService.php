@@ -67,6 +67,22 @@ class PaymentService
     {
         return StudentTransaction::where(['user_id' => $userId, 'resource' => $paymentType, 'acad_session' => app(AcademicSessionService::class)->getAcademicSession(Auth::user())])->exists();
     }
+
+    public function hasPaidForAcademicSession(User $user, string $paymentType): bool
+    {
+        $academicSession = app(AcademicSessionService::class)->getAcademicSession($user);
+
+        return StudentTransaction::where([
+            'user_id' => $user->id,
+            'status' => TransactionStatus::APPROVED->value,
+            'resource' => $paymentType,
+            'acad_session' => $academicSession,
+        ])->exists() || $user->transactions()->where([
+            'status' => TransactionStatus::APPROVED->value,
+            'resource' => $paymentType,
+            'acad_session' => $academicSession,
+        ])->exists();
+    }
     public function getUgStudentLevel(string $userId): int
     {
         $user = User::with(['academicDetail.programme', 'proposedCourse'])->find($userId);
