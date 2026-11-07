@@ -26,7 +26,7 @@
 
         <!-- Academic Level -->
         <p class="text-xs text-gray-500 dark:text-gray-400">
-            Level: {{ $student->academicDetail->student_level_id . '00' ?? 'N/A' }}
+            Level: {{ is_numeric($academicLevel) ? $academicLevel . 'L' : $academicLevel }}
         </p>
     </div>
 </div>
