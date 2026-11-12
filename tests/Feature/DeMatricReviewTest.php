@@ -125,7 +125,7 @@ class DeMatricReviewTest extends TestCase
             'course_id' => 1,
             'programme_id' => ProgrammesEnum::Undergraduate->value,
             'student_level_id' => $level->id,
-            'matric_no' => '2610905003',
+            'matric_no' => '2610905004',
             'acad_session' => '2026/2027',
         ]);
 

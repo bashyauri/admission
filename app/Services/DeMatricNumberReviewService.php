@@ -107,6 +107,13 @@ class DeMatricNumberReviewService
 
     private function sequencePositionFor(AcademicDetail $academicDetail, string $session): ?int
     {
+        // The assigned serial is the stable cohort position. Preserve it while
+        // correcting a DE prefix so a different record creation order cannot
+        // renumber an existing student.
+        if (preg_match('/(\d{3})$/', (string) $academicDetail->matric_no, $matches) === 1) {
+            return (int) $matches[1];
+        }
+
         $records = AcademicDetail::query()
             ->with(['user', 'department'])
             ->where('department_id', $academicDetail->department_id)
