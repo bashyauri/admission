@@ -9,6 +9,7 @@ use App\Models\Department;
 use App\Models\Programme;
 use App\Models\StudentLevel;
 use App\Models\User;
+use App\Services\UTMEApplicantService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 use Tests\TestCase;
@@ -200,6 +201,117 @@ class AdmissionSessionPopulationTest extends TestCase
 
         // Initially at 100L, resolves to 100L coordinator
         $this->assertSame($entryCoordinator->id, $academicDetail->course_cohort_coordinator?->id);
+    }
+
+    public function test_de_matric_numbers_do_not_count_utme_records_in_same_department_and_session(): void
+    {
+        $department = Department::first() ?? Department::create([
+            'name' => 'Matric DE Dept ' . uniqid(),
+        ]);
+        $programme = Programme::first() ?? Programme::create([
+            'name' => 'Matric DE Prog ' . uniqid(),
+            'abv' => 'MD',
+        ]);
+        $level = StudentLevel::first() ?? StudentLevel::create(['level' => '100']);
+        $course = Course::create([
+            'name' => 'Matric DE Course ' . uniqid(),
+            'department_id' => $department->id,
+            'programme_id' => $programme->id,
+        ]);
+
+        $user = User::create([
+            'email' => 'de_matric_' . uniqid() . '@example.com',
+            'role' => 'admin',
+            'programme_id' => $programme->id,
+            'surname' => 'Direct',
+            'firstname' => 'Entry',
+            'password' => bcrypt('password'),
+            'vpassword' => 'password',
+        ]);
+
+        auth()->setUser($user);
+
+        $utmeUser = User::create([
+            'email' => 'utme_matric_' . uniqid() . '@example.com',
+            'role' => 'student',
+            'programme_id' => $programme->id,
+            'surname' => 'UTME',
+            'firstname' => 'Student',
+            'password' => bcrypt('password'),
+            'vpassword' => 'password',
+        ]);
+
+        AcademicDetail::create([
+            'user_id' => $utmeUser->id,
+            'matric_no' => '2610905001',
+            'course_id' => $course->id,
+            'department_id' => $department->id,
+            'programme_id' => $programme->id,
+            'student_level_id' => $level->id,
+            'acad_session' => '2026/2027',
+            'admission_session' => '2026/2027',
+        ]);
+
+        $deUserA = User::create([
+            'email' => 'de_matric_a_' . uniqid() . '@example.com',
+            'role' => 'student',
+            'programme_id' => $programme->id,
+            'surname' => 'Direct',
+            'firstname' => 'StudentA',
+            'password' => bcrypt('password'),
+            'vpassword' => 'password',
+        ]);
+        $deUserB = User::create([
+            'email' => 'de_matric_b_' . uniqid() . '@example.com',
+            'role' => 'student',
+            'programme_id' => $programme->id,
+            'surname' => 'Direct',
+            'firstname' => 'StudentB',
+            'password' => bcrypt('password'),
+            'vpassword' => 'password',
+        ]);
+
+        AcademicDetail::create([
+            'user_id' => $deUserA->id,
+            'matric_no' => '2620905001',
+            'course_id' => $course->id,
+            'department_id' => $department->id,
+            'programme_id' => $programme->id,
+            'student_level_id' => $level->id,
+            'acad_session' => '2026/2027',
+            'admission_session' => '2026/2027',
+        ]);
+
+        AcademicDetail::create([
+            'user_id' => $deUserB->id,
+            'matric_no' => '2620905002',
+            'course_id' => $course->id,
+            'department_id' => $department->id,
+            'programme_id' => $programme->id,
+            'student_level_id' => $level->id,
+            'acad_session' => '2026/2027',
+            'admission_session' => '2026/2027',
+        ]);
+
+        $service = app(UTMEApplicantService::class);
+
+        $nextDeMatric = $service->generateUgRegistrationNumber(
+            year: '26',
+            modeOfEntry: '20',
+            facultyCode: '90',
+            departmentCode: '50',
+            departmentId: $department->id,
+        );
+
+        $this->assertSame('26209050003', $nextDeMatric);
+    }
+
+    public function test_serial_suffix_uses_three_digits_without_expanding_past_three_digits(): void
+    {
+        $this->assertSame('001', str_pad((string) 1, 3, '0', STR_PAD_LEFT));
+        $this->assertSame('010', str_pad((string) 10, 3, '0', STR_PAD_LEFT));
+        $this->assertSame('070', str_pad((string) 70, 3, '0', STR_PAD_LEFT));
+        $this->assertSame('100', str_pad((string) 100, 3, '0', STR_PAD_LEFT));
     }
 
     private function createAcademicDetail(string $matricNumber): AcademicDetail

@@ -204,6 +204,18 @@
             </a>
         </li>
 
+        <li class="mt-0.5 w-full">
+            <a class="ease-soft-in-out py-2.7 text-size-sm my-0 mx-4 flex items-center whitespace-nowrap px-4 font-medium text-slate-500 shadow-none transition-colors dark:text-white dark:opacity-80 hover:bg-slate-100 rounded-lg {{ Route::currentRouteName() == 'admin.de-matric-number-review' ? 'font-semibold text-slate-700 xl:shadow-soft-xl rounded-lg bg-white' : '' }}"
+                href="{{ route('admin.de-matric-number-review') }}">
+                <div class="stroke-none mr-2 flex h-8 w-8 items-center justify-center rounded-lg bg-white bg-center fill-current p-2.5 text-center text-black {{ Route::currentRouteName() == 'admin.de-matric-number-review' ? 'shadow-soft-sm bg-gradient-fuchsia' : 'shadow-soft-2xl' }}">
+                    <svg width="12px" height="12px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 7h6m-6 4h6m-6 4h6M5 21h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v14a2 2 0 002 2z" class="{{ Route::currentRouteName() == 'admin.de-matric-number-review' ? '' : 'stroke-slate-800' }}"/>
+                    </svg>
+                </div>
+                <span class="ml-1 duration-300 opacity-100 pointer-events-none ease-soft">DE Matric Review</span>
+            </a>
+        </li>
+
         <li class="w-full mt-4">
             <h6 class="pl-6 ml-2 font-bold leading-tight uppercase text-size-xs opacity-60 dark:text-white">Account
             </h6>

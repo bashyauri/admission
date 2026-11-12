@@ -37,6 +37,7 @@ Route::get('course-allocations', CourseAllocationManager::class)->name('course-a
 Route::get('coordinator-manager', CoordinatorManager::class)->name('coordinator-manager');
 Route::get('coordinators', CoordinatorManager::class)->name('coordinators');
 Route::get('admission-session-synchronization', AdmissionSessionSynchronizer::class)->name('admission-session-synchronization');
+Route::get('de-matric-number-review', \App\Http\Livewire\Admin\DeMatricNumberReview::class)->name('de-matric-number-review');
 Route::get('fubk', FubkReport::class)->name('fubk');
 Route::get('fubk/export', FubkReportExportController::class)->name('fubk.export');
 Route::get('fubk/pdf/queue', [FubkReportPdfJobController::class, 'queue'])->name('fubk.pdf.queue');

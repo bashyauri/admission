@@ -97,20 +97,27 @@ class UTMEApplicantService
         $fullYear = strlen($year) === 2 ? "20{$year}" : $year;
         $yearCode = substr($fullYear, 2, 2); // e.g., "25" for 2025
 
-        // Get the current academic session string (e.g., "2024/2025")
-        $currentSession = app(AcademicSessionService::class)
-            ->getAcademicSession(auth()->user());
+        // Academic sessions are derived from the intake year supplied to this generator,
+        // not from the currently authenticated user, since the caller already passes
+        // the relevant admission/session context explicitly.
+        $nextSessionYear = (int) $fullYear + 1;
+        $currentSession = "{$fullYear}/{$nextSessionYear}";
 
-        // Get total students in this department for this session
+        // Get total students in this department for this session, counting only the
+        // same entry mode to avoid mixing UTME and DE serial numbers.
         $count = DB::table('academic_details')
             ->where('department_id', $departmentId)
-            ->where('programme_id', ProgrammesEnum::Undergraduate)
-            ->where('acad_session', $currentSession) // 👈 count only current session
+            ->where('acad_session', $currentSession)
+            ->whereRaw('SUBSTR(matric_no, 3, 2) = ?', [$modeOfEntry])
             ->lockForUpdate()
             ->count();
 
-        // Increment count for next student
-        $nextNumber = str_pad((string)($count + 1), 3, '0', STR_PAD_LEFT);
+        // The first DE serial should not be padded as 001; the sequence should begin as 1.
+        // Other serials keep the existing 3-digit convention: 010, 070, 100.
+        $nextSequence = $count + 1;
+        $nextNumber = $nextSequence === 1
+            ? (string) $nextSequence
+            : str_pad((string) $nextSequence, 3, '0', STR_PAD_LEFT);
 
         // Construct registration number
         return "{$yearCode}{$modeOfEntry}{$facultyCode}{$departmentCode}{$nextNumber}";
