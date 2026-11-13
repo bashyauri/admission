@@ -203,10 +203,11 @@ class AdmissionSessionPopulationTest extends TestCase
         $this->assertSame($entryCoordinator->id, $academicDetail->course_cohort_coordinator?->id);
     }
 
-    public function test_de_matric_numbers_do_not_count_utme_records_in_same_department_and_session(): void
+    public function test_matric_number_generation_uses_department_cohort_sequence(): void
     {
         $department = Department::first() ?? Department::create([
             'name' => 'Matric DE Dept ' . uniqid(),
+            'code' => '50',
         ]);
         $programme = Programme::first() ?? Programme::create([
             'name' => 'Matric DE Prog ' . uniqid(),
@@ -243,7 +244,7 @@ class AdmissionSessionPopulationTest extends TestCase
 
         AcademicDetail::create([
             'user_id' => $utmeUser->id,
-            'matric_no' => '2610905001',
+            'matric_no' => '26109050001',
             'course_id' => $course->id,
             'department_id' => $department->id,
             'programme_id' => $programme->id,
@@ -273,7 +274,7 @@ class AdmissionSessionPopulationTest extends TestCase
 
         AcademicDetail::create([
             'user_id' => $deUserA->id,
-            'matric_no' => '2620905001',
+            'matric_no' => '26209050002',
             'course_id' => $course->id,
             'department_id' => $department->id,
             'programme_id' => $programme->id,
@@ -284,7 +285,7 @@ class AdmissionSessionPopulationTest extends TestCase
 
         AcademicDetail::create([
             'user_id' => $deUserB->id,
-            'matric_no' => '2620905002',
+            'matric_no' => '26209050003',
             'course_id' => $course->id,
             'department_id' => $department->id,
             'programme_id' => $programme->id,
@@ -303,7 +304,7 @@ class AdmissionSessionPopulationTest extends TestCase
             departmentId: $department->id,
         );
 
-        $this->assertSame('26209050003', $nextDeMatric);
+        $this->assertSame('26209050004', $nextDeMatric);
     }
 
     public function test_serial_suffix_uses_three_digits_without_expanding_past_three_digits(): void

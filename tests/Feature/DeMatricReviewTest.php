@@ -184,6 +184,53 @@ class DeMatricReviewTest extends TestCase
         $this->assertSame('2410905101', $detail->fresh()->matric_no);
     }
 
+    public function test_malformed_short_matric_is_corrected_using_positional_serial(): void
+    {
+        // Regression: a bug caused the first DE student's serial to be unpadded ("1" instead of "001"),
+        // producing an 8-character matric like "26109061". The service must NOT reuse the last 3
+        // characters of such a malformed (non-10-digit) matric as the serial; it must use
+        // the student's positional index among their cohort instead.
+        Config::set('remita.settings.admin_academic_session', '2026/2027');
+        $department = Department::create(['name' => 'Malformed Matric Test', 'code' => '55']);
+        $level = StudentLevel::first() ?? StudentLevel::create(['level' => '100']);
+
+        $deStudent = User::create([
+            'email' => 'malformed_de_' . uniqid() . '@example.com',
+            'role' => 'student',
+            'programme_id' => ProgrammesEnum::Undergraduate->value,
+            'surname' => 'Malformed',
+            'firstname' => 'Matric',
+            'password' => bcrypt('password'),
+            'vpassword' => 'password',
+        ]);
+        ProposedCourse::create([
+            'user_id' => $deStudent->id,
+            'department_id' => $department->id,
+            'course_id' => 1,
+            'academic_session' => '2026/2027',
+        ]);
+        // Simulate the broken 8-character matric produced by the old unpadded-serial bug
+        $brokenDetail = AcademicDetail::create([
+            'user_id' => $deStudent->id,
+            'department_id' => $department->id,
+            'course_id' => 1,
+            'programme_id' => ProgrammesEnum::Undergraduate->value,
+            'student_level_id' => $level->id,
+            'matric_no' => '261090551',   // 9 chars — malformed, last 3 chars are "551"
+            'acad_session' => '2026/2027',
+            'admission_session' => '2026/2027',
+        ]);
+
+        $reviewService = app(DeMatricNumberReviewService::class);
+        $suggested = $reviewService->getSuggestedMatricNumber($brokenDetail);
+
+        // Should use positional serial (1st student = 001), NOT "551" from the malformed tail
+        // Department code "55" is 2 digits → matric = 26+20+90+55+001 = 11 chars (correct for this dept)
+        $this->assertSame('26209055001', $suggested);
+        $this->assertSame(11, strlen($suggested));
+        $this->assertStringStartsWith('2620', $suggested);
+    }
+
     public function test_first_de_matric_number_uses_three_digit_serial(): void
     {
         $department = Department::create([

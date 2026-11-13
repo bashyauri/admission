@@ -93,34 +93,61 @@ class UTMEApplicantService
         string $departmentCode,
         int $departmentId
     ): string {
-        // Ensure full year format
-        $fullYear = strlen($year) === 2 ? "20{$year}" : $year;
-        $yearCode = substr($fullYear, 2, 2); // e.g., "25" for 2025
+        // Handle session formats such as "2026/2027", "2026", or "26"
+        if (str_contains($year, '/')) {
+            $parts = explode('/', trim($year));
+            $startYear = (int) $parts[0];
+            $endYear = (int) ($parts[1] ?? ($startYear + 1));
+            $currentSession = "{$startYear}/{$endYear}";
+            $yearCode = substr((string) $startYear, 2, 2);
+        } else {
+            $fullYear = strlen($year) === 2 ? "20{$year}" : $year;
+            $startYear = (int) $fullYear;
+            $nextSessionYear = $startYear + 1;
+            $currentSession = "{$startYear}/{$nextSessionYear}";
+            $yearCode = substr((string) $startYear, 2, 2);
+        }
 
-        // Academic sessions are derived from the intake year supplied to this generator,
-        // not from the currently authenticated user, since the caller already passes
-        // the relevant admission/session context explicitly.
-        $nextSessionYear = (int) $fullYear + 1;
-        $currentSession = "{$fullYear}/{$nextSessionYear}";
-
-        // Get total students in this department for this session, counting only the
-        // same entry mode to avoid mixing UTME and DE serial numbers.
-        $count = DB::table('academic_details')
+        // Get all existing undergraduate matric numbers for this department and session cohort.
+        // Postgraduate (PG) records and returning students from older sessions are strictly excluded.
+        $existingSerials = DB::table('academic_details')
             ->where('department_id', $departmentId)
-            ->where('acad_session', $currentSession)
-            ->whereRaw('SUBSTR(matric_no, 3, 2) = ?', [$modeOfEntry])
+            ->where('programme_id', ProgrammesEnum::Undergraduate->value)
+            ->where(function ($query) use ($currentSession, $yearCode): void {
+                $query->where('admission_session', $currentSession)
+                    ->orWhere(function ($q) use ($currentSession, $yearCode): void {
+                        $q->whereNull('admission_session')
+                            ->where('acad_session', $currentSession)
+                            ->where('matric_no', 'like', "{$yearCode}%");
+                    });
+            })
+            ->where('matric_no', 'like', "{$yearCode}%")
             ->lockForUpdate()
-            ->count();
+            ->pluck('matric_no');
 
-        // The first DE serial should not be padded as 001; the sequence should begin as 1.
-        // Other serials keep the existing 3-digit convention: 010, 070, 100.
-        $nextSequence = $count + 1;
-        $nextNumber = $nextSequence === 1
-            ? (string) $nextSequence
-            : str_pad((string) $nextSequence, 3, '0', STR_PAD_LEFT);
+        // Extract maximum 3-digit serial from existing cohort matric numbers
+        $maxSerial = 0;
+        foreach ($existingSerials as $matric) {
+            if (preg_match('/(\d{3})$/', (string) $matric, $matches) === 1) {
+                $serial = (int) $matches[1];
+                if ($serial > $maxSerial) {
+                    $maxSerial = $serial;
+                }
+            }
+        }
 
-        // Construct registration number
-        return "{$yearCode}{$modeOfEntry}{$facultyCode}{$departmentCode}{$nextNumber}";
+        // Determine next sequence based on cohort count and highest assigned serial
+        $nextSequence = max($existingSerials->count() + 1, $maxSerial + 1);
+        do {
+            $nextNumber = str_pad((string) $nextSequence, 3, '0', STR_PAD_LEFT);
+            $candidateMatric = "{$yearCode}{$modeOfEntry}{$facultyCode}{$departmentCode}{$nextNumber}";
+            $exists = DB::table('academic_details')->where('matric_no', $candidateMatric)->exists();
+            if ($exists) {
+                $nextSequence++;
+            }
+        } while ($exists);
+
+        return $candidateMatric;
     }
 
 

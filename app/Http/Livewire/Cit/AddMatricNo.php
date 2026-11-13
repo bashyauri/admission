@@ -19,12 +19,19 @@ class AddMatricNo extends Component
 
     public function mount(User $user): void
     {
+        // Eager-load relations required by isDe and department code lookup.
+        // Without this, isDe silently returns false (lazy loading guard) and
+        // the wrong mode-of-entry prefix is generated.
+        $user->loadMissing(['proposedCourse.department', 'postUtmeUpload']);
         $this->user = $user;
     }
 
     public function addRegistrationNumber(UTMEApplicantService $uTMEApplicantService)
     {
         try {
+            // Eager-load relations immediately when action runs (Livewire rehydrates models without relations)
+            $this->user->loadMissing(['proposedCourse.department', 'postUtmeUpload', 'academicDetail']);
+
             // Check if the student already has a matric number
             if ($this->user->academicDetail?->matric_no) {
                 $this->alert('warning', 'Registration number already exists for this student!', [
@@ -41,6 +48,9 @@ class AddMatricNo extends Component
 
             // Use a database transaction to ensure data consistency and atomic registration number assignment
             DB::transaction(function () use ($uTMEApplicantService) {
+                // Ensure relations are freshly loaded inside transaction
+                $this->user->loadMissing(['proposedCourse.department', 'postUtmeUpload']);
+
                 // ✅ Determine mode of entry
                 // UTME = 10, DE = 20
                 $modeOfEntry = $this->user->isDe ? "20" : "10";

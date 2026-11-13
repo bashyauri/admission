@@ -108,9 +108,12 @@ class DeMatricNumberReviewService
     private function sequencePositionFor(AcademicDetail $academicDetail, string $session): ?int
     {
         // The assigned serial is the stable cohort position. Preserve it while
-        // correcting a DE prefix so a different record creation order cannot
-        // renumber an existing student.
-        if (preg_match('/(\d{3})$/', (string) $academicDetail->matric_no, $matches) === 1) {
+        // correcting a DE prefix, but only when the matric number already has
+        // the correct 10-digit length. A malformed (e.g. 8-digit) matric number
+        // must fall through to the positional calculation below so the correct
+        // serial is derived rather than reusing a garbage tail.
+        $matricNo = (string) $academicDetail->matric_no;
+        if (strlen($matricNo) === 10 && preg_match('/(\d{3})$/', $matricNo, $matches) === 1) {
             return (int) $matches[1];
         }
 
