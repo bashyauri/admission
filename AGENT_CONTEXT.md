@@ -560,8 +560,44 @@ A student cannot register for courses unless:
 ### Fee Payment Rule
 Payment is required before:
 1. Application submission
-2. Course registration
+2. Course Registration
 3. Other academic actions only where the route explicitly requires fee confirmation
+
+### Undergraduate Matriculation / Registration Number Generation Rule
+Registration numbers (matric numbers) are generated for fresh students upon successful admission and school fees payment verification.
+
+1. **Format Specification:**
+   - Standard 10–11 character structure: `[YearCode: 2 digits][ModeOfEntry: 2 digits][FacultyCode: 2 digits][DeptCode: 1–2 digits][Serial: 3 digits]`
+   - **Mode of Entry Codes:**
+     - `10` = UTME (100 Level fresher entry)
+     - `20` = Direct Entry / DE (200 Level fresher entry)
+   - **Faculty Code:** Defaults to `90` (e.g. Science / Technology).
+   - **Department Code:** 1 or 2 digits from `departments.code` (e.g., `6` for Microbiology, `5` or `50` for Computer Science).
+   - **Serial Number:** Strictly 3 digits with zero-padding (`001`, `002`, ... `010`, `011`, ...). Unpadded numbers like `1` are malformed and forbidden.
+
+2. **Unified Department Cohort Sequence (No Skips):**
+   - The 3-digit serial number is a **single continuous cohort sequence across the department** for the intake year.
+   - UTME and Direct Entry students share the same sequential serial numbers in admission order.
+   - Example (Microbiology, Dept 29, Code 6, 2026/2027 intake):
+     - `2610906001` to `2610906007` (UTME students, serials 001–007)
+     - `2620906008` (DE student, serial 008)
+     - `2620906009` (DE student, serial 009)
+     - `2620906010` (DE student, serial 010)
+     - `2620906011` (DE student, serial 011)
+   - DE students do **not** restart counting from `001`; they continue the department's fresher sequence.
+
+3. **Strict UG / PG & Session Isolation:**
+   - Postgraduate (PG) records (e.g. `WUFP/PGD/...`, `programme_id = PG`) must **never** be counted when determining undergraduate fresher serial numbers.
+   - Returning students from previous academic sessions (e.g. `24%`, `25%`) must **never** be counted toward the new intake's fresher sequence.
+   - Only records with `programme_id = ProgrammesEnum::Undergraduate` and matching the current intake session (`matric_no LIKE '{$yearCode}%'`) may be counted.
+
+4. **Livewire & Model Hydration Safety for DE Detection:**
+   - In Livewire actions (e.g. `AddMatricNo`), models are rehydrated without relationships.
+   - `User::getIsDeAttribute()` must safely ensure relations (`proposedCourse`, `postUtmeUpload`) are loaded before determining DE status (`jamb_score === null || jamb_score === 0`).
+   - Callers must explicitly eager-load or `loadMissing(['proposedCourse.department', 'postUtmeUpload'])` before evaluating entry mode.
+
+5. **Collision Protection:**
+   - `generateUgRegistrationNumber()` must verify candidate matric numbers against existing records using an atomic check (`do ... while ($exists)`) to guarantee zero duplicate key constraint violations (`1062 Duplicate entry`).
 
 ### Result Approval Rule
 Results follow a strict multi-level approval state machine:

@@ -82,7 +82,9 @@
                                             </a>
                                         @else
 
-                                            <a href="{{ route('cit.payment.status', $applicant->RRR)}}" class="mx-4">
+                                            @if ($applicant->RRR)
+                                            <a href="{{ route('cit.acceptance-payment.status', $applicant->RRR) }}" class="mx-4 inline-flex items-center" aria-label="Verify acceptance payment for {{ $applicant->surname }} {{ $applicant->firstname }}">
+                                                <span>Verify payment</span>
 
                                                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"
                                                     class="ml-2 size-4">
@@ -93,6 +95,9 @@
                                                 </svg>
 
                                             </a>
+                                            @else
+                                                <span class="text-gray-500">No Remita reference</span>
+                                            @endif
                                         @endif
 
                                     </td>

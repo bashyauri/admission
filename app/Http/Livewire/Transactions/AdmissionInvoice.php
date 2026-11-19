@@ -25,7 +25,7 @@ class AdmissionInvoice extends Component
             $data = Transaction::where([
                 'user_id' => auth()->user()->id,
                 'resource' => config('remita.admission.description')
-            ])->first();
+            ])->whereNotNull('RRR')->first();
 
             if ($data) {
                 to_route('payment', ['transaction' => $data])->with('success', $data->status);

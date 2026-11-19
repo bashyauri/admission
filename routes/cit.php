@@ -21,6 +21,7 @@ Route::post('/transactions/generate-invoice', [UgSchoolFeesController::class, 'g
 Route::get('transactions/utme-school-fees/{user}', UtmeSchoolFeesInvoice::class)->name('utme-school-fees');
 Route::get('/transactions/generate-invoice/{studenttransaction}', [UgSchoolFeesController::class, 'index'])->name('payment');
 Route::get('/payment/status/{rrr?}', [UgSchoolFeesController::class, 'checkTransactionStatus'])->name('payment.status');
+Route::get('/acceptance-payment/status/{rrr?}', [TransactionController::class, 'checkTransactionStatus'])->name('acceptance-payment.status');
 Route::get('first-school-fees', FirstSchoolFees::class)->name('first-school-fees');
 Route::get('add-matric-number/{user}', AddMatricNo::class)->name('add-matric-number');
 Route::get('/applicant/transactions/generate-invoice/{transaction?}', [TransactionController::class, 'index'])->name('applicant.payment');

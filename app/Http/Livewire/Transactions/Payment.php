@@ -18,10 +18,12 @@ class Payment extends Component
         }
     }
     public string $selected;
-    #[Computed(persist: true)]
+    #[Computed]
     public function transactions()
     {
-        return Transaction::where(['user_id' => auth()->id()])->get();
+        return Transaction::where(['user_id' => auth()->id()])
+            ->whereNotNull('RRR')
+            ->get();
     }
     public function render()
     {

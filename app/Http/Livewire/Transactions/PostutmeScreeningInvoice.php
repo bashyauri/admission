@@ -23,7 +23,7 @@ class PostutmeScreeningInvoice extends Component
             $data = Transaction::where([
                 'user_id' => auth()->user()->id,
                 'resource' => config('remita.postutme.description')
-            ])->first();
+            ])->whereNotNull('RRR')->first();
 
             if ($data) {
                 to_route('payment', ['transaction' => $data])->with('success', $data->status);

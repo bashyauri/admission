@@ -3,15 +3,33 @@
 namespace App\Http\Controllers;
 
 use App\Models\Transaction;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use App\Services\PaymentService;
 use App\Services\TransactionService;
 
 class TransactionController extends Controller
 {
     public function __construct(protected TransactionService $transactionService) {}
+
+    public function generateAcceptanceInvoice(Request $request, PaymentService $paymentService)
+    {
+        $this->authorize('generateAcceptanceInvoice', User::class);
+
+        $request->merge([
+            'amount' => $paymentService->getAcceptanceFee(),
+            'description' => $paymentService->getAcceptanceResource(),
+        ]);
+
+        return $this->generateInvoice($request);
+    }
+
     public function index(?Transaction $transaction)
     {
+        if (!$transaction || !$transaction->RRR) {
+            return redirect()->route('transactions')->with('error', 'This invoice has no Remita RRR. Generate the invoice again.');
+        }
 
         $valuesToHash  = config('remita.settings.merchantid') . $transaction->RRR . config('remita.settings.apikey');
         $transaction['apiHash'] = hash('sha512', $valuesToHash);
@@ -34,9 +52,24 @@ class TransactionController extends Controller
             $response = $this->transactionService->generateInvoice($data);
 
 
-            $data['RRR'] = $response->RRR;
-            $data['statuscode'] = $response->statuscode;
-            $data['status'] = $response->status;
+            $data['RRR'] = $response->RRR ?? null;
+            $data['statuscode'] = $response->statuscode ?? null;
+            $data['status'] = $response->status ?? null;
+
+            if (empty($data['RRR'])) {
+                Log::warning('Remita invoice response did not contain an RRR.', [
+                    'transaction_id' => $data['transactionId'] ?? null,
+                    'status' => $data['status'] ?? null,
+                    'statuscode' => $data['statuscode'] ?? null,
+                ]);
+
+                if (($data['status'] ?? null) === 'DUPLICATE_REQUEST') {
+                    return redirect()->back()->with('error', 'Remita rejected this request as a duplicate. No invoice was recorded; reload the page and try again to generate a new request.');
+                }
+
+                return redirect()->back()->with('error', 'Remita could not generate an RRR. No invoice was saved. Please try again.');
+            }
+
             $transaction = $this->transactionService->createPayment($data);
 
             if (!$transaction || !$transaction->id) {
@@ -45,8 +78,11 @@ class TransactionController extends Controller
 
             return to_route('payment', ['transaction' => $transaction->id])->with('success', 'Remita Generated ' . ($response->status ?? ''));
         } catch (\Exception $ex) {
-            Log::alert($ex->getMessage());
-            return redirect()->back()->with('error', 'Something went wrong:');
+            Log::error('Remita invoice generation failed.', [
+                'transaction_id' => $data['transactionId'] ?? null,
+                'exception' => $ex->getMessage(),
+            ]);
+            return redirect()->back()->with('error', 'The invoice could not be generated. Please try again.');
         }
     }
     public function checkTransactionStatus($rrr = null)

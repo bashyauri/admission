@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Enums\TransactionStatus;
 use App\Models\Transaction;
+use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
 
@@ -23,7 +24,9 @@ class TransactionService
 
     public function hasInvoice(string $paymentType)
     {
-        return Transaction::where(['user_id' => Auth::id(), 'resource' => $paymentType, 'acad_session' => app(AcademicSessionService::class)->getAcademicSession(Auth::user())])->exists();
+        return Transaction::where(['user_id' => Auth::id(), 'resource' => $paymentType, 'acad_session' => app(AcademicSessionService::class)->getAcademicSession(Auth::user())])
+            ->whereNotNull('RRR')
+            ->exists();
     }
     public function generateTransactionId(string $alias): string
     {
@@ -75,15 +78,12 @@ class TransactionService
     public function createPayment($data)
     {
         if (empty($data['RRR'])) {
-            $values = $this->generateInvoice($data);
-            $data['RRR'] = $values->RRR ?? null;
-            $data['statuscode'] = $values->statuscode ?? null;
-            $data['status'] = $values->status ?? null;
+            throw new \UnexpectedValueException('Remita did not return an RRR. The invoice was not saved.');
         }
 
         $userId = $data['user_id'] ?? $data['userId'] ?? auth()->id();
 
-        if (!empty($data['RRR']) || !empty($data['transactionId'])) {
+        if (!empty($data['transactionId'])) {
             return Transaction::create([
                 'transaction_id' => $data['transactionId'],
                 'user_id' => $userId,
@@ -96,7 +96,7 @@ class TransactionService
             ]);
         }
 
-        return null;
+        throw new \InvalidArgumentException('A transaction ID is required to save the invoice.');
     }
     public function updateTransactionStatus(string $status, string $rrr)
     {
