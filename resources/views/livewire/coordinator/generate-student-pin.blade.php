@@ -16,7 +16,7 @@
                         @elseif($assignment->department)
                             {{ $assignment->department->name }}
                         @endif
-                        — {{ $assignment->studentLevel?->name ?? $assignment->student_level_id }}L
+                        — {{ $assignmentLevelLabels[$assignment->id] ?? 'N/A' }} Level
                         — {{ $assignment->academic_session }}
                     </button>
                 @endforeach
@@ -35,7 +35,7 @@
                 @elseif($singleAssignment->department)
                     {{ $singleAssignment->department->name }}
                 @endif
-                — {{ $singleAssignment->studentLevel?->name ?? $singleAssignment->student_level_id }}L
+                — {{ $assignmentLevelLabels[$singleAssignment->id] ?? 'N/A' }} Level
                 — {{ $singleAssignment->academic_session }}
             </p>
         </div>
@@ -77,7 +77,7 @@
                         <p class="text-xs text-slate-400 mb-2">
                             Session: <span class="font-bold text-fuchsia-600">{{ $academicSession }}</span>
                             @if($studentLevelId)
-                                | Level: <span class="font-bold text-fuchsia-600">{{ $studentLevelId }}L</span>
+                                | Level: <span class="font-bold text-fuchsia-600">{{ $studentLevelLabel }}</span>
                             @endif
                         </p>
                     @endif

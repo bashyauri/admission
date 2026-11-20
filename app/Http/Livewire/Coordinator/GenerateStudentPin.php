@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Eloquent\Collection;
 use App\Services\AcademicSessionService;
+use App\Services\AcademicLevelService;
 use App\Services\CourseRegistrationService;
 
 class GenerateStudentPin extends Component
@@ -313,6 +314,12 @@ class GenerateStudentPin extends Component
             ->orderBy('academic_session', 'desc')
             ->get();
 
+        $academicLevelService = app(AcademicLevelService::class);
+        $assignmentLevelLabels = $coordinatorAssignments->mapWithKeys(fn (Coordinator $assignment): array => [
+            $assignment->id => $academicLevelService->displayLabel($assignment->studentLevel, null),
+        ]);
+        $studentLevelLabel = $assignmentLevelLabels[$this->selectedAssignmentId] ?? 'N/A';
+
         $students = $this->searchStudent();
 
         $pendingSubmissions = collect();
@@ -357,6 +364,8 @@ class GenerateStudentPin extends Component
             'selectedAcademicDetail' => $selectedAcademicDetail,
             'registeredCourses'     => $registeredCourses,
             'coordinatorAssignments' => $coordinatorAssignments,
+            'assignmentLevelLabels' => $assignmentLevelLabels,
+            'studentLevelLabel' => $studentLevelLabel,
             'pendingSubmissions' => $pendingSubmissions,
         ]);
     }
