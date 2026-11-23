@@ -841,5 +841,4 @@
                     {{-- end Student Password Recovery --}}
 
 @push('js')
-    <script src="{{ asset('assets') }}/js/plugins/choices.min.js"></script>
 @endpush

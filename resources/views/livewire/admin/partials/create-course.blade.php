@@ -45,24 +45,18 @@
                 <div class="w-full max-w-full px-3 md:w-4/12 flex-0">
                     <label class="mt-6 mb-2 ml-1 font-bold text-size-xs text-slate-700 dark:text-white/80"
                         for="course-level">Level</label>
-                    <div wire:ignore x-data x-init="
-                                                                      choices = new Choices($refs.levels, {
-                                                                          searchEnabled: false
-                                                                      });
-                                                                      $refs.levels.addEventListener('change', function (event) {
-                                                                          values = event.target.value;
-                                                                          @this.set('courseForm.level_id', values);
-                                                                      })">
-                        <select wire:model="courseForm.level_id" choice name="course-level" id="course-level"
-                            x-ref="levels">
+                    <select wire:model="courseForm.level_id" name="course-level" id="course-level" required
+                        aria-describedby="course-level-help"
+                        aria-invalid="{{ $errors->has('courseForm.level_id') ? 'true' : 'false' }}"
+                        class="focus:shadow-soft-primary-outline dark:bg-gray-950 dark:text-white/80 text-size-sm leading-5.6 ease-soft block w-full appearance-none rounded-lg border border-solid {{ $errors->has('courseForm.level_id') ? 'border-red-500' : 'border-gray-300' }} bg-white bg-clip-padding px-3 py-2 font-normal text-gray-700 outline-none transition-all focus:border-fuchsia-300 focus:outline-none">
                             <option value="">Select level</option>
                             @forelse ($levels as $level)
                                 <option value="{{ $level['value'] }}">{{ $level['name'] }}</option>
                             @empty
                                 <option value="" disabled>No undergraduate levels configured</option>
                             @endforelse
-                        </select>
-                    </div>
+                    </select>
+                    <p id="course-level-help" class="mt-1 text-xs text-slate-500">Select the year level for this course.</p>
                     @if (empty($levels))
                         <p class="mt-1 text-xs text-amber-700" role="status">Add undergraduate levels 100–500 to the academic level catalog before creating courses.</p>
                     @endif
