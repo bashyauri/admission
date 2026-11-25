@@ -2,7 +2,7 @@
     id="add-course">
     <div class="p-6 mb-0 rounded-t-2xl">
         <h5 class="dark:text-white">Create Course</h5>
-        <p class="mb-0 text-sm text-slate-500 dark:text-white/60">The course catalog is shared. Course codes and titles can only be added once; use an existing course when assigning it elsewhere.</p>
+        <p class="mb-0 text-sm text-slate-500 dark:text-white/60">The course catalog is shared. Course codes must be unique; titles may be reused for different courses.</p>
     </div>
     <form wire:submit.prevent='createCourse'>
         <div class="flex-auto p-6 pt-0">

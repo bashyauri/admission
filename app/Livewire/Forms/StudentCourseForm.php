@@ -35,20 +35,7 @@ class StudentCourseForm extends Form
                     }
                 },
             ],
-            'title' => [
-                'required',
-                'string',
-                'max:255',
-                function (string $attribute, mixed $value, \Closure $fail): void {
-                    $normalizedTitle = mb_strtolower(preg_replace('/\s+/', ' ', trim((string) $value)));
-
-                    if ($normalizedTitle !== '' && StudentCourse::query()
-                        ->whereRaw('LOWER(TRIM(title)) = ?', [$normalizedTitle])
-                        ->exists()) {
-                        $fail('This course title already exists in the shared catalog. Search for and use the existing course.');
-                    }
-                },
-            ],
+            'title' => ['required', 'string', 'max:255'],
             'units' => ['required', 'integer', 'min:1'],
             'semester' => ['required', 'integer', 'in:1,2'],
             'level_id' => [

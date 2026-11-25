@@ -197,7 +197,7 @@ class Settings extends Component
         } catch (QueryException $e) {
             if ($this->isCourseDuplicateConstraintViolation($e)) {
                 report($e);
-                $this->showErrorAlert('This course code or title is already in the catalog. Search for the existing course and use it instead.');
+                $this->showErrorAlert('This course code is already in the catalog. Use the existing course code instead.');
                 return;
             }
 
